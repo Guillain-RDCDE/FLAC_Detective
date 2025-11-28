@@ -1,0 +1,6 @@
+numpy
+scipy
+mutagen
+openpyxl
+soundfile
+matplotlib
