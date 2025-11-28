@@ -60,7 +60,7 @@ FLAC Detective is a **professional-grade tool** for detecting MP3 files fraudule
 - **Automatic backup** creation (.bak files)
 - **Dry-run simulation** mode
 - **Batch processing** for entire folders
-- Uses official **FLAC tool** for guaranteed quality
+- Uses **soundfile** library (libsndfile) for reliable audio processing
 
 ### 📊 Professional Reporting
 
@@ -96,20 +96,11 @@ For compatibility, all scripts are also available with their original names:
 
 ### 1. Install Dependencies
 
-**Official FLAC tool** (required for repair):
-```bash
-# Ubuntu/Debian
-sudo apt install flac
+**Python packages** (auto-installed via pip):
+- numpy, scipy, mutagen, soundfile
 
-# macOS
-brew install flac
-
-# Windows
-Download from xiph.org and add to PATH
-```
-
-**Python packages** (auto-installed):
-- numpy, scipy, mutagen, openpyxl, soundfile
+All audio processing is done using the `soundfile` library (based on libsndfile),
+so no external tools are required.
 
 ### 2. Test a Single File
 
@@ -350,10 +341,7 @@ compression_level = 8  # Default: 5 (0-8, higher = better compression)
 
 ## 🆘 Troubleshooting
 
-**"flac tool not found"**
-→ Install official FLAC tool (see Quick Start)
 
-**"All files score 100%"**
 → Good! Your library is clean
 
 **"Too many files at 75%"**
@@ -363,7 +351,7 @@ compression_level = 8  # Default: 5 (0-8, higher = better compression)
 → Normal for large libraries. Increase `max_workers` if you have a powerful CPU
 
 **Duration repair fails**
-→ File may be truly corrupted. Try: `flac -t file.flac` to verify integrity
+→ File may be truly corrupted. Check file integrity with a FLAC validator
 
 ---
 

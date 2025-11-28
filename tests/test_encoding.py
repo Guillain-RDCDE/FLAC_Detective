@@ -1,96 +1,94 @@
 """Tests pour le module d'encodage."""
 
-import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 
-from flac_detective.repair.encoding import (
-    _decode_to_wav,
-    _encode_from_wav,
-    check_flac_tool_available,
-    reencode_flac,
-)
+from flac_detective.repair.encoding import reencode_flac
 
 
 class TestEncoding:
     """Tests des fonctions d'encodage FLAC."""
 
-    @patch("subprocess.run")
-    def test_check_flac_tool_available_success(self, mock_run):
-        """Vérifie la détection de l'outil flac."""
-        mock_run.return_value.returncode = 0
-        assert check_flac_tool_available() is True
-
-    @patch("subprocess.run")
-    def test_check_flac_tool_available_fail(self, mock_run):
-        """Vérifie l'absence de l'outil flac."""
-        mock_run.side_effect = FileNotFoundError
-        assert check_flac_tool_available() is False
-
-    @patch("subprocess.run")
-    def test_decode_to_wav_success(self, mock_run):
-        """Vérifie le décodage réussi."""
-        mock_run.return_value.returncode = 0
-        assert _decode_to_wav(Path("input.flac"), Path("temp.wav")) is True
+    @patch("soundfile.read")
+    @patch("soundfile.write")
+    def test_reencode_flac_success(self, mock_write, mock_read):
+        """Vérifie le ré-encodage réussi."""
+        # Simuler la lecture d'un fichier audio
+        mock_data = np.random.rand(44100, 2).astype('float32')  # 1 seconde stéréo
+        mock_read.return_value = (mock_data, 44100)
         
-        args = mock_run.call_args[0][0]
-        assert args[0] == "flac"
-        assert "--decode" in args
-
-    @patch("subprocess.run")
-    def test_decode_to_wav_fail(self, mock_run):
-        """Vérifie l'échec du décodage."""
-        mock_run.return_value.returncode = 1
-        mock_run.return_value.stderr = "Error"
+        input_path = Path("input.flac")
+        output_path = Path("output.flac")
         
-        with patch("pathlib.Path.exists", return_value=True), \
-             patch("pathlib.Path.unlink") as mock_unlink:
-            assert _decode_to_wav(Path("input.flac"), Path("temp.wav")) is False
-            mock_unlink.assert_called_once()
-
-    @patch("subprocess.run")
-    def test_encode_from_wav_success(self, mock_run):
-        """Vérifie l'encodage réussi."""
-        mock_run.return_value.returncode = 0
-        assert _encode_from_wav(Path("temp.wav"), Path("output.flac"), 5) is True
+        assert reencode_flac(input_path, output_path, compression_level=5) is True
         
-        args = mock_run.call_args[0][0]
-        assert "-5" in args
+        # Vérifier que read a été appelé
+        mock_read.assert_called_once_with(input_path, dtype='float32')
+        
+        # Vérifier que write a été appelé avec les bons paramètres
+        mock_write.assert_called_once()
+        call_args = mock_write.call_args
+        assert call_args[0][0] == output_path
+        assert np.array_equal(call_args[0][1], mock_data)
+        assert call_args[0][2] == 44100
+        assert call_args[1]['format'] == 'FLAC'
+        assert call_args[1]['subtype'] == 'PCM_16'
 
-    @patch("flac_detective.repair.encoding.check_flac_tool_available")
-    @patch("flac_detective.repair.encoding._decode_to_wav")
-    @patch("flac_detective.repair.encoding._encode_from_wav")
+    @patch("soundfile.read")
+    @patch("soundfile.write")
+    def test_reencode_flac_different_compression_levels(self, mock_write, mock_read):
+        """Vérifie les différents niveaux de compression."""
+        mock_data = np.random.rand(44100).astype('float32')
+        mock_read.return_value = (mock_data, 44100)
+        
+        # Test niveau 0
+        reencode_flac(Path("in.flac"), Path("out.flac"), compression_level=0)
+        assert mock_write.call_args[1]['subtype'] == 'PCM_16'
+        
+        # Test niveau 8
+        reencode_flac(Path("in.flac"), Path("out.flac"), compression_level=8)
+        assert mock_write.call_args[1]['subtype'] == 'PCM_24'
+
+    @patch("soundfile.read")
+    def test_reencode_flac_read_error(self, mock_read):
+        """Vérifie la gestion des erreurs de lecture."""
+        mock_read.side_effect = Exception("Read error")
+        
+        assert reencode_flac(Path("in.flac"), Path("out.flac")) is False
+
+    @patch("soundfile.read")
+    @patch("soundfile.write")
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.unlink")
-    def test_reencode_flac_full_flow(
-        self, mock_unlink, mock_exists, mock_encode, mock_decode, mock_check
+    def test_reencode_flac_write_error_cleanup(
+        self, mock_unlink, mock_exists, mock_write, mock_read
     ):
-        """Test le flux complet de ré-encodage."""
-        mock_check.return_value = True
-        mock_decode.return_value = True
-        mock_encode.return_value = True
-        mock_exists.return_value = True  # temp wav exists
-
-        assert reencode_flac(Path("in.flac"), Path("out.flac")) is True
+        """Vérifie le nettoyage en cas d'erreur d'écriture."""
+        mock_data = np.random.rand(44100).astype('float32')
+        mock_read.return_value = (mock_data, 44100)
+        mock_write.side_effect = Exception("Write error")
+        mock_exists.return_value = True
         
-        mock_check.assert_called_once()
-        mock_decode.assert_called_once()
-        mock_encode.assert_called_once()
-        mock_unlink.assert_called_once()  # Cleanup temp wav
-
-    @patch("flac_detective.repair.encoding.check_flac_tool_available")
-    def test_reencode_flac_tool_missing(self, mock_check):
-        """Test quand l'outil est manquant."""
-        mock_check.return_value = False
-        assert reencode_flac(Path("in.flac"), Path("out.flac")) is False
-
-    @patch("flac_detective.repair.encoding.check_flac_tool_available")
-    @patch("flac_detective.repair.encoding._decode_to_wav")
-    def test_reencode_flac_decode_fail(self, mock_decode, mock_check):
-        """Test quand le décodage échoue."""
-        mock_check.return_value = True
-        mock_decode.return_value = False
+        output_path = Path("out.flac")
+        assert reencode_flac(Path("in.flac"), output_path) is False
         
-        assert reencode_flac(Path("in.flac"), Path("out.flac")) is False
+        # Vérifier que le fichier de sortie est supprimé en cas d'erreur
+        mock_unlink.assert_called_once()
+
+    @patch("soundfile.read")
+    @patch("soundfile.write")
+    def test_reencode_flac_default_compression(self, mock_write, mock_read):
+        """Vérifie l'utilisation du niveau de compression par défaut."""
+        mock_data = np.random.rand(44100).astype('float32')
+        mock_read.return_value = (mock_data, 44100)
+        
+        # Sans spécifier compression_level, devrait utiliser la config par défaut
+        reencode_flac(Path("in.flac"), Path("out.flac"))
+        
+        mock_write.assert_called_once()
+        # Le niveau par défaut dans config est 5, qui mappe à PCM_16
+        assert mock_write.call_args[1]['subtype'] == 'PCM_16'
+

@@ -16,29 +16,14 @@
 - ✅ **flac_detective_repair.py** (réparateur)
 - ✅ **flac_detective_helper.py** (assistant interactif)
 
-### 2. Installez l'outil FLAC officiel
-
-**Windows:**
-- Téléchargez depuis https://xiph.org/flac/download.html
-- Décompressez et ajoutez au PATH
-
-**Linux/Ubuntu:**
-```bash
-sudo apt install flac
-```
-
-**macOS:**
-```bash
-brew install flac
-```
-
-### 3. Vérifiez l'installation
+### 2. Installez les dépendances Python
 
 ```bash
-flac --version
+pip install -r requirements.txt
 ```
 
-✅ Si vous voyez la version → C'est bon !
+Toutes les dépendances nécessaires seront installées automatiquement.
+Aucun outil externe n'est requis !
 
 ---
 

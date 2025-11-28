@@ -18,8 +18,7 @@ FLAC Detective est un outil professionnel pour analyser l'authenticité de vos f
 
 ### Prérequis
 - Python 3.10+
-- [FFmpeg](https://ffmpeg.org/) (pour l'analyse et la réparation)
-- [FLAC](https://xiph.org/flac/) (pour la réparation)
+- Bibliothèques Python (installées automatiquement via pip)
 
 ### Installation (Développement)
 
