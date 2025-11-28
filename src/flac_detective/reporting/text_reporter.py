@@ -130,7 +130,11 @@ class TextReporter:
         report_lines.append(f"  ✗✗✗ Fakes (<50%)              : {stats['fake']:>4} fichiers")
         report_lines.append(f"\n  ⚠️  Problèmes de durée        : {stats['duration_issues']:>4} fichiers")
         report_lines.append(
-            f"      (dont critiques >1s)     : {stats['duration_issues_critical']:>4} fichiers\n"
+            f"      (dont critiques >1s)     : {stats['duration_issues_critical']:>4} fichiers"
+        )
+        report_lines.append(f"\n  🔊 Problèmes de clipping      : {stats['clipping_issues']:>4} fichiers")
+        report_lines.append(f"  📊 Problèmes de DC offset     : {stats['dc_offset_issues']:>4} fichiers")
+        report_lines.append(f"  💥 Fichiers corrompus         : {stats['corrupted_files']:>4} fichiers\n"
         )
 
         # Taux de qualité

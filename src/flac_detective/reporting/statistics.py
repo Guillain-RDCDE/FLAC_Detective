@@ -23,6 +23,9 @@ def calculate_statistics(results: List[Dict]) -> Dict:
             "fake": 0,
             "duration_issues": 0,
             "duration_issues_critical": 0,
+            "clipping_issues": 0,
+            "dc_offset_issues": 0,
+            "corrupted_files": 0,
         }
 
     authentic = len([r for r in results if r["score"] >= 90])
@@ -33,8 +36,13 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     # Statistiques sur les problèmes de durée
     duration_issues = len([r for r in results if r.get("duration_mismatch")])
     duration_issues_critical = len(
-        [r for r in results if r.get("duration_mismatch") and r.get("diff_samples", 0) > 44100]
+        [r for r in results if r.get("duration_mismatch") and r.get("duration_diff", 0) > 44100]
     )
+
+    # Statistiques sur les problèmes de qualité (Phase 1)
+    clipping_issues = len([r for r in results if r.get("has_clipping", False)])
+    dc_offset_issues = len([r for r in results if r.get("has_dc_offset", False)])
+    corrupted_files = len([r for r in results if r.get("is_corrupted", False)])
 
     return {
         "total": total,
@@ -52,6 +60,13 @@ def calculate_statistics(results: List[Dict]) -> Dict:
         "duration_issues_critical_pct": (
             f"{duration_issues_critical/total*100:.1f}%" if total > 0 else "0%"
         ),
+        # Nouvelles statistiques de qualité
+        "clipping_issues": clipping_issues,
+        "clipping_issues_pct": f"{clipping_issues/total*100:.1f}%" if total > 0 else "0%",
+        "dc_offset_issues": dc_offset_issues,
+        "dc_offset_issues_pct": f"{dc_offset_issues/total*100:.1f}%" if total > 0 else "0%",
+        "corrupted_files": corrupted_files,
+        "corrupted_files_pct": f"{corrupted_files/total*100:.1f}%" if total > 0 else "0%",
     }
 
 
