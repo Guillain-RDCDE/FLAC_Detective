@@ -5,4 +5,4 @@ from .reporting import ExcelReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files
 
-__version__ = "4.0.0"
+__version__ = "0.1.0"

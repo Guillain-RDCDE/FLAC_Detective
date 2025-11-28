@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FLAC Detective v4.0 - Advanced FLAC Authenticity Analyzer.
+"""FLAC Detective v0.1 - Advanced FLAC Authenticity Analyzer.
 
 Hunting Down Fake FLACs Since 2025
 

@@ -1,4 +1,4 @@
-# 🔍 FLAC Detective v4.0
+# 🔍 FLAC Detective v0.1
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -13,7 +13,7 @@
 ║   │  🔧 Auto Repair          │  💾 Smart Backup                 │        ║
 ║   └─────────────────────────────────────────────────────────────┘        ║
 ║                                                                           ║
-║                         Version 4.0 - November 2025                       ║
+║                         Version 0.1 - November 2025                       ║
 ║                                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 ```
@@ -49,7 +49,7 @@ FLAC Detective is a **professional-grade tool** for detecting MP3 files fraudule
    - Verifies bit depth consistency
    - Checks for anomalies
 
-4. **Duration Integrity** (NEW in v4.0!)
+4. **Duration Integrity** (NEW in v0.1!)
    - Compares metadata duration vs real samples
    - Detects corruption, bad splits, manual edits
    - Critical for identifying problematic rips
@@ -357,7 +357,7 @@ compression_level = 8  # Default: 5 (0-8, higher = better compression)
 → Good! Your library is clean
 
 **"Too many files at 75%"**
-→ Check if electronic/ambient music (normal for this genre with v4.0)
+→ Check if electronic/ambient music (normal for this genre with v0.1)
 
 **Script very slow**
 → Normal for large libraries. Increase `max_workers` if you have a powerful CPU
@@ -411,5 +411,5 @@ Libraries: NumPy, SciPy, Mutagen, OpenPyXL, SoundFile
 
 ---
 
-**Version 4.0 - November 2025**
+**Version 0.1 - November 2025**
 *"Every FLAC file tells a story... I find the truth"*

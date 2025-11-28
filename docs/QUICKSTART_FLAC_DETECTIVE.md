@@ -1,7 +1,7 @@
 # 🚀 FLAC Detective - Quick Start Guide
 
 ```
-🔍 FLAC DETECTIVE v4.0
+🔍 FLAC DETECTIVE v0.1
 "Every FLAC file tells a story... I find the truth"
 ```
 
@@ -52,7 +52,7 @@ python3 flac_detective_test.py "E:\Music\votre_fichier.flac"
 
 **Vous verrez :**
 ```
-🔍 FLAC DETECTIVE v4.0
+🔍 FLAC DETECTIVE v0.1
 
 🎵 ANALYSE DÉTAILLÉE : votre_fichier.flac
 ================================================================================
@@ -302,7 +302,7 @@ del *.bak
 → Bonne nouvelle, votre bibliothèque est propre !
 
 **Musique électronique à 75%**
-→ Normal ! Le script v4.0 est intelligent et adapte les scores
+→ Normal ! Le script v0.1 est intelligent et adapte les scores
 
 **Erreur Python**
 → Vérifiez Python 3.7+ : `python3 --version`
@@ -316,7 +316,7 @@ del *.bak
 - **README_FLAC_DETECTIVE.md** - Documentation complète (EN)
 - **README_FINAL.md** - Guide d'utilisation (FR)
 - **GUIDE_REPARATION.md** - Guide réparation détaillé
-- **CHANGELOG_v4.md** - Détails techniques v4
+- **CHANGELOG_v0.1.md** - Détails techniques v0.1
 
 ---
 
@@ -347,9 +347,9 @@ del *.bak
 ---
 
 ```
-🔍 FLAC DETECTIVE v4.0
+🔍 FLAC DETECTIVE v0.1
 "Every FLAC file tells a story... I find the truth"
 
-Version 4.0 - November 2025
+Version 0.1 - November 2025
 Hunting Down Fake FLACs Since 2025
 ```

@@ -207,7 +207,7 @@ class TextReporter:
 
         # Pied de page
         report_lines.append("\n" + "═" * self.width)
-        report_lines.append("  Généré par FLAC Detective v4.0")
+        report_lines.append("  Généré par FLAC Detective v0.1")
         report_lines.append("  https://github.com/votre-repo/flac-detective")
         report_lines.append("═" * self.width + "\n")
 
