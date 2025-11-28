@@ -64,7 +64,7 @@ FLAC Detective is a **professional-grade tool** for detecting MP3 files fraudule
 
 ### 📊 Professional Reporting
 
-- **Excel reports** with color-coded scores
+- **Text reports** with detailed scores
 - **Detailed statistics** and breakdowns
 - **Filterable results** (only suspicious files)
 - **Progress tracking** with auto-resume
@@ -152,7 +152,7 @@ python3 flac_detective.py
 1. ✅ Scans all `.flac` files recursively
 2. ✅ Analyzes each file (4 criteria)
 3. ✅ Saves progress every 50 files
-4. ✅ Generates Excel report
+4. ✅ Generates text report
 
 **Time:** ~3-7 seconds per file (80,000 files ≈ 8-15 hours)
 
@@ -212,11 +212,11 @@ Reason: Full spectrum | Duration inconsistency (2000ms mismatch)
 ```bash
 python3 flac_detective.py
 ```
-→ Generates `rapport_flac_YYYYMMDD_HHMMSS.xlsx`
+→ Generates `rapport_flac_YYYYMMDD_HHMMSS.txt`
 
-### STEP 2: Review Excel Report
+### STEP 2: Review Text Report
 
-Open Excel, filter:
+Open text report, search for:
 - **"Score FLAC (%)"** < 90
 - **"Problème Durée"** ≠ "✓ OK"
 
@@ -309,7 +309,7 @@ Fixed files should now show:
 | Duration check | ✅ | ✅ |
 | Automatic repair | ✅ | ✅ |
 | Multi-threading | ✅ | ✅ |
-| Excel reports | ❌ | ✅ |
+| Text reports | ❌ | ✅ |
 | Batch processing | ✅ | ✅ |
 | GUI | ✅ | ❌ |
 | **Price** | **$39** | **FREE** |
@@ -403,7 +403,7 @@ Libraries: NumPy, SciPy, Mutagen, OpenPyXL, SoundFile
 ✅ Context-aware (doesn't over-flag electronic music)  
 ✅ Repairs duration problems automatically  
 ✅ Preserves 100% of metadata  
-✅ Professional Excel reports  
+✅ Professional text reports  
 ✅ Multi-threaded & resumable  
 ✅ **Completely FREE**  
 

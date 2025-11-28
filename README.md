@@ -11,7 +11,7 @@ FLAC Detective est un outil professionnel pour analyser l'authenticité de vos f
 - **🕵️ Analyse Spectrale Avancée** : Détection de coupures de fréquences (cutoff) typiques des encodeurs MP3 (16kHz, 18kHz, 20kHz).
 - **📊 Scoring Intelligent** : Score de confiance (0-100%) basé sur plusieurs critères (spectre, énergie haute fréquence, métadonnées).
 - **🔧 Réparation Automatique** : Correction des problèmes de durée (critère "Fakin' The Funk") par ré-encodage sans perte de métadonnées.
-- **📑 Rapports Détaillés** : Génération de rapports Excel professionnels avec code couleur et statistiques.
+- **📑 Rapports Détaillés** : Génération de rapports texte détaillés avec statistiques.
 - **🚀 Performance** : Analyse multi-threadée pour traiter rapidement de grandes bibliothèques.
 
 ## 🛠️ Installation
@@ -45,7 +45,7 @@ pip install -r requirements-dev.txt  # Pour les tests et le linting
 # Analyser le dossier courant
 python -m flac_detective.main
 
-# Le rapport Excel sera généré dans le même dossier.
+# Le rapport texte sera généré dans le même dossier.
 ```
 
 ### Réparateur (Fixer)
@@ -67,7 +67,7 @@ Le projet suit une architecture modulaire moderne :
 
 - `src/flac_detective/analysis/` : Moteur d'analyse spectrale et scoring.
 - `src/flac_detective/repair/` : Module de réparation et ré-encodage.
-- `src/flac_detective/reporting/` : Génération des rapports Excel.
+- `src/flac_detective/reporting/` : Génération des rapports texte.
 - `src/flac_detective/tracker.py` : Gestion de la reprise après interruption.
 
 ## 🧪 Qualité et Tests

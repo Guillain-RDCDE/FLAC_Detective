@@ -93,7 +93,7 @@ python3 flac_detective.py
 1. 🔍 Scan de tous les fichiers .flac
 2. 📊 Analyse de 4 critères par fichier
 3. 💾 Sauvegarde tous les 50 fichiers
-4. 📄 Génération du rapport Excel final
+4. 📄 Génération du rapport texte final
 
 **Temps estimé :** 8-15 heures pour 80 000 fichiers
 
@@ -105,11 +105,11 @@ python3 flac_detective.py
 
 ---
 
-## 📈 Rapport Excel Généré
+## 📈 Rapport Texte Généré
 
-**Fichier :** `rapport_flac_YYYYMMDD_HHMMSS.xlsx`
+**Fichier :** `rapport_flac_YYYYMMDD_HHMMSS.txt`
 
-### Feuille "Résumé"
+### Section "Résumé"
 
 ```
 RAPPORT D'ANALYSE FLAC
@@ -125,7 +125,7 @@ Fichiers avec décalage durée:        1,280  (1.6%)
 Décalage critique (>1 seconde):        160  (0.2%)
 ```
 
-### Feuille "Fichiers Suspects"
+### Section "Fichiers Suspects"
 
 Contient UNIQUEMENT les fichiers < 90% avec :
 - Chemin complet
@@ -203,12 +203,12 @@ Raison: Spectre complet | Durée incohérente (2000ms)
 ```bash
 python3 flac_detective.py
 ```
-→ Génère rapport Excel
+→ Génère rapport texte
 
 ### ÉTAPE 2 : TRIER
-1. Ouvrez le rapport Excel
-2. Triez par "Score FLAC (%)" croissant
-3. Filtrez "Problème Durée" ≠ "✓ OK"
+1. Ouvrez le rapport texte
+2. Recherchez les fichiers avec un score faible
+3. Repérez "Problème Durée" ≠ "✓ OK"
 4. Notez les fichiers à traiter
 
 ### ÉTAPE 3 : ACTIONS
@@ -326,7 +326,7 @@ del *.bak
 - [ ] 4 fichiers Python téléchargés
 - [ ] Test sur 1 fichier réussi
 - [ ] Analyse complète lancée
-- [ ] Rapport Excel généré
+- [ ] Rapport texte généré
 - [ ] Fichiers suspects identifiés
 - [ ] Réparations effectuées (si nécessaire)
 - [ ] Vérification finale OK

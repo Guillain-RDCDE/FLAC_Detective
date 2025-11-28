@@ -151,7 +151,7 @@ Flac_Detective/
 │       ├── analyzer.py      # Analyse FLAC
 │       ├── main.py          # Point d'entrée
 │       ├── repair.py        # Réparation
-│       ├── reporter.py      # Rapports Excel
+│       ├── reporter.py      # Rapports Texte
 │       ├── tracker.py       # Progression
 │       └── utils.py         # Utilitaires
 ├── tests/

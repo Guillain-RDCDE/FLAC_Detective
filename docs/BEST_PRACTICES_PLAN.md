@@ -32,4 +32,4 @@ Le socle technique est maintenant **extrêmement solide**. Le projet est prêt p
 - Interface Graphique (GUI) avec PyQt ou Tkinter
 - Support d'autres formats (ALAC, WAV)
 - Analyse parallèle plus performante (multiprocessing vs threading)
-- Rapport PDF en plus de Excel
+- Rapport PDF en plus du rapport texte
