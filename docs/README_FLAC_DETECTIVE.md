@@ -77,18 +77,9 @@ FLAC Detective is a **professional-grade tool** for detecting MP3 files fraudule
 
 | Script | Purpose | Command |
 |--------|---------|---------|
-| **flac_detective.py** | Main analyzer | `python3 flac_detective.py` |
-| **flac_detective_test.py** | Single file test | `python3 flac_detective_test.py "file.flac"` |
-| **flac_detective_repair.py** | Duration repair | `python3 flac_detective_repair.py "file.flac"` |
-| **flac_detective_helper.py** | Interactive menu | `python3 flac_detective_helper.py` |
-
-### 📖 Legacy Names (Same Files)
-
-For compatibility, all scripts are also available with their original names:
-- `flac_analyzer_v4_final.py` → Same as `flac_detective.py`
-- `test_single_file_v4_final.py` → Same as `flac_detective_test.py`
-- `fix_flac_duration.py` → Same as `flac_detective_repair.py`
-- `flac_helper.py` → Same as `flac_detective_helper.py`
+| **flac_detective/main.py** | Main analyzer | `python -m flac_detective.main` |
+| **flac_detective/repair.py** | Duration repair | `python -m flac_detective.repair "file.flac"` |
+| **scripts/interactive_helper.py** | Interactive menu | `python scripts/interactive_helper.py` |
 
 ---
 
@@ -105,12 +96,12 @@ so no external tools are required.
 ### 2. Test a Single File
 
 ```bash
-python3 flac_detective_test.py "/path/to/your/file.flac"
+python -m flac_detective.main --file "/path/to/your/file.flac"
 ```
 
 **Output:**
 ```
-🔍 FLAC DETECTIVE v4.0
+🔍 FLAC DETECTIVE v0.1
 
 🎵 ANALYSIS: your_file.flac
 ================================================================================
@@ -136,7 +127,7 @@ python3 flac_detective_test.py "/path/to/your/file.flac"
 
 ```bash
 cd /path/to/music/library
-python3 flac_detective.py
+python -m flac_detective.main
 ```
 
 **What happens:**
@@ -151,17 +142,17 @@ python3 flac_detective.py
 
 **Test first (dry-run):**
 ```bash
-python3 flac_detective_repair.py "file.flac" --dry-run
+python -m flac_detective.repair "file.flac" --dry-run
 ```
 
 **Repair:**
 ```bash
-python3 flac_detective_repair.py "file.flac"
+python -m flac_detective.repair "file.flac"
 ```
 
 **Batch repair:**
 ```bash
-python3 flac_detective_repair.py "Album/" --recursive
+python -m flac_detective.repair "Album/" --recursive
 ```
 
 ---
@@ -201,35 +192,35 @@ Reason: Full spectrum | Duration inconsistency (2000ms mismatch)
 
 ### STEP 1: Initial Analysis
 ```bash
-python3 flac_detective.py
+python -m flac_detective.main
 ```
-→ Generates `rapport_flac_YYYYMMDD_HHMMSS.txt`
+→ Generates `flac_report_YYYYMMDD_HHMMSS.txt`
 
 ### STEP 2: Review Text Report
 
 Open text report, search for:
 - **"Score FLAC (%)"** < 90
-- **"Problème Durée"** ≠ "✓ OK"
+- **"Duration Issue"** ≠ "✓ OK"
 
 ### STEP 3: Repair Duration Issues
 
 ```bash
 # Single file
-python3 flac_detective_repair.py "file.flac"
+python -m flac_detective.repair "file.flac"
 
 # Entire album
-python3 flac_detective_repair.py "Album/" --recursive
+python -m flac_detective.repair "Album/" --recursive
 ```
 
 ### STEP 4: Re-analyze
 
 ```bash
 rm progress.json
-python3 flac_detective.py
+python -m flac_detective.main
 ```
 
 Fixed files should now show:
-- ✅ "Problème Durée: ✓ OK"
+- ✅ "Duration Issue: ✓ OK"
 - ✅ Improved score
 
 ---
@@ -314,7 +305,7 @@ Fixed files should now show:
 ### Interactive Helper
 
 ```bash
-python3 flac_detective_helper.py
+python scripts/interactive_helper.py
 ```
 
 **Menu:**
@@ -341,7 +332,7 @@ compression_level = 8  # Default: 5 (0-8, higher = better compression)
 
 ## 🆘 Troubleshooting
 
-
+**"All files at 100%"**
 → Good! Your library is clean
 
 **"Too many files at 75%"**

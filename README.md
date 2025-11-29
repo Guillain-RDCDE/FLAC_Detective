@@ -4,84 +4,84 @@
 
 > "Every FLAC file tells a story... I find the truth."
 
-FLAC Detective est un outil professionnel pour analyser l'authenticité de vos fichiers FLAC. Il détecte les fichiers "Fake FLAC" (MP3 transcodés) en analysant leur spectre de fréquences et vérifie l'intégrité des métadonnées et de la durée.
+FLAC Detective is a professional tool for analyzing the authenticity of your FLAC files. It detects "Fake FLAC" files (transcoded MP3s) by analyzing their frequency spectrum and verifies metadata integrity and duration.
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-- **🕵️ Analyse Spectrale Avancée** : Détection de coupures de fréquences (cutoff) typiques des encodeurs MP3 (16kHz, 18kHz, 20kHz).
-- **📊 Scoring Intelligent** : Score de confiance (0-100%) basé sur plusieurs critères (spectre, énergie haute fréquence, métadonnées).
-- **🔧 Réparation Automatique** : Correction des problèmes de durée (critère "Fakin' The Funk") par ré-encodage sans perte de métadonnées.
-- **📑 Rapports Détaillés** : Génération de rapports texte détaillés avec statistiques.
-- **🚀 Performance** : Analyse multi-threadée pour traiter rapidement de grandes bibliothèques.
+- **🕵️ Advanced Spectral Analysis**: Detects frequency cutoffs typical of MP3 encoders (16kHz, 18kHz, 20kHz).
+- **📊 Intelligent Scoring**: Confidence score (0-100%) based on multiple criteria (spectrum, high-frequency energy, metadata).
+- **🔧 Automatic Repair**: Fixes duration issues ("Fakin' The Funk" criterion) by re-encoding without metadata loss.
+- **📑 Detailed Reports**: Generates detailed text reports with statistics.
+- **🚀 Performance**: Multi-threaded analysis to quickly process large libraries.
 
 ## 🛠️ Installation
 
-### Prérequis
+### Prerequisites
 - Python 3.10+
-- Bibliothèques Python (installées automatiquement via pip)
+- Python libraries (installed automatically via pip)
 
-### Installation (Développement)
+### Installation (Development)
 
 ```bash
-# Cloner le repo
-git clone https://github.com/votre-repo/flac-detective.git
+# Clone the repo
+git clone https://github.com/your-repo/flac-detective.git
 cd flac-detective
 
-# Créer un environnement virtuel
+# Create a virtual environment
 python -m venv venv
-source venv/bin/activate  # ou venv\Scripts\activate sur Windows
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
-pip install -r requirements-dev.txt  # Pour les tests et le linting
+pip install -r requirements-dev.txt  # For tests and linting
 ```
 
-## 🚀 Utilisation
+## 🚀 Usage
 
-### Analyseur (Scanner)
+### Analyzer (Scanner)
 
 ```bash
-# Analyser le dossier courant
+# Analyze the current folder
 python -m flac_detective.main
 
-# Le rapport texte sera généré dans le même dossier.
+# The text report will be generated in the same folder.
 ```
 
-### Réparateur (Fixer)
+### Repair Tool (Fixer)
 
 ```bash
-# Réparer un fichier spécifique
-python -m flac_detective.repair "chemin/vers/fichier.flac"
+# Repair a specific file
+python -m flac_detective.repair "path/to/file.flac"
 
-# Réparer tout un dossier récursivement
-python -m flac_detective.repair "chemin/vers/dossier" --recursive
+# Repair an entire folder recursively
+python -m flac_detective.repair "path/to/folder" --recursive
 
-# Simulation (sans modification)
-python -m flac_detective.repair "chemin/vers/fichier.flac" --dry-run
+# Simulation (dry-run, no modification)
+python -m flac_detective.repair "path/to/file.flac" --dry-run
 ```
 
-## 🏗️ Architecture du Code
+## 🏗️ Code Architecture
 
-Le projet suit une architecture modulaire moderne :
+The project follows a modern modular architecture:
 
-- `src/flac_detective/analysis/` : Moteur d'analyse spectrale et scoring.
-- `src/flac_detective/repair/` : Module de réparation et ré-encodage.
-- `src/flac_detective/reporting/` : Génération des rapports texte.
-- `src/flac_detective/tracker.py` : Gestion de la reprise après interruption.
+- `src/flac_detective/analysis/`: Spectral analysis and scoring engine.
+- `src/flac_detective/repair/`: Repair and re-encoding module.
+- `src/flac_detective/reporting/`: Text report generation.
+- `src/flac_detective/tracker.py`: Resume capability management.
 
-## 🧪 Qualité et Tests
+## 🧪 Quality and Tests
 
-Le projet respecte les standards de qualité Python :
-- **Formatage** : Black & Isort
-- **Linting** : Flake8 (0 erreurs)
-- **Typage** : Mypy (Strict)
-- **Tests** : Pytest (Couverture complète)
+The project respects Python quality standards:
+- **Formatting**: Black & Isort
+- **Linting**: Flake8 (0 errors)
+- **Typing**: Mypy (Strict)
+- **Tests**: Pytest (Full coverage)
 
-Pour lancer les tests :
+To run tests:
 ```bash
 pytest tests -v
 ```
 
-## 📝 Licence
+## 📝 License
 
 MIT License.

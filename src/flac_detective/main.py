@@ -32,13 +32,13 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_multiple_paths(user_input: str) -> list[str]:
-    """Parse une entrée utilisateur contenant potentiellement plusieurs chemins.
+    """Parse user input potentially containing multiple paths.
 
     Args:
-        user_input: Chaîne entrée par l'utilisateur.
+        user_input: String entered by the user.
 
     Returns:
-        Liste de chemins bruts (non nettoyés).
+        List of raw paths (uncleaned).
     """
     if ";" in user_input:
         return [p.strip() for p in user_input.split(";")]
@@ -48,13 +48,13 @@ def _parse_multiple_paths(user_input: str) -> list[str]:
 
 
 def _clean_path_string(path_str: str) -> str:
-    """Nettoie les guillemets d'un chemin.
+    """Cleans quotes from a path string.
 
     Args:
-        path_str: Chaîne de chemin potentiellement entourée de guillemets.
+        path_str: Path string potentially surrounded by quotes.
 
     Returns:
-        Chemin nettoyé.
+        Cleaned path.
     """
     if path_str.startswith('"') and path_str.endswith('"'):
         return path_str[1:-1]
@@ -64,13 +64,13 @@ def _clean_path_string(path_str: str) -> str:
 
 
 def _validate_paths(raw_paths: list[str]) -> list[Path]:
-    """Valide et convertit une liste de chemins bruts en objets Path.
+    """Validates and converts a list of raw paths to Path objects.
 
     Args:
-        raw_paths: Liste de chemins sous forme de chaînes.
+        raw_paths: List of path strings.
 
     Returns:
-        Liste de Path valides (existants).
+        List of valid (existing) Paths.
     """
     valid_paths = []
     for raw_path in raw_paths:
@@ -82,116 +82,116 @@ def _validate_paths(raw_paths: list[str]) -> list[Path]:
 
         if path.exists():
             valid_paths.append(path)
-            print(f"  ✅ Ajouté : {path.absolute()}")
+            print(f"  ✅ Added : {path.absolute()}")
         else:
-            print(f"  ⚠️  Ignoré (n'existe pas) : {raw_path}")
+            print(f"  ⚠️  Ignored (does not exist) : {raw_path}")
 
     return valid_paths
 
 
 def get_user_input_path() -> list[Path]:
-    """Demande à l'utilisateur de saisir un ou plusieurs chemins via une interface interactive.
+    """Asks user to enter one or more paths via interactive interface.
 
     Returns:
-        Liste de chemins (dossiers ou fichiers) à analyser.
+        List of paths (folders or files) to analyze.
     """
     print(LOGO)
     print("\n" + "═" * 75)
-    print("  📂 MODE INTERACTIF")
+    print("  📂 INTERACTIVE MODE")
     print("═" * 75)
-    print("  Glissez-déposez un ou plusieurs dossiers/fichiers ci-dessous")
-    print("  (Vous pouvez séparer plusieurs chemins par des virgules ou points-virgules)")
-    print("  (Ou appuyez sur Entrée pour analyser le dossier actuel)")
+    print("  Drag and drop one or more folders/files below")
+    print("  (You can separate multiple paths with commas or semicolons)")
+    print("  (Or press Enter to analyze current folder)")
     print("═" * 75)
 
     while True:
         try:
-            user_input = input("\n  👉 Chemin(s) : ").strip()
+            user_input = input("\n  👉 Path(s) : ").strip()
 
-            # Si vide, utiliser le dossier courant
+            # If empty, use current directory
             if not user_input:
                 return [Path.cwd()]
 
-            # Parser et valider les chemins
+            # Parse and validate paths
             raw_paths = _parse_multiple_paths(user_input)
             valid_paths = _validate_paths(raw_paths)
 
             if valid_paths:
-                print(f"\n  📊 Total : {len(valid_paths)} emplacement(s) sélectionné(s)")
+                print(f"\n  📊 Total : {len(valid_paths)} location(s) selected")
                 return valid_paths
             else:
-                print("  ❌ Aucun chemin valide trouvé. Veuillez réessayer.")
+                print("  ❌ No valid path found. Please try again.")
 
         except KeyboardInterrupt:
-            print("\n\n👋 Au revoir !")
+            print("\n\n👋 Goodbye !")
             sys.exit(0)
 
 
 def main():
-    """Fonction principale."""
-    # Détermination des chemins à analyser
+    """Main function."""
+    # Determine paths to analyze
     if len(sys.argv) > 1:
-        # Mode ligne de commande : tous les arguments sont des chemins
+        # Command line mode: all arguments are paths
         paths = [Path(arg) for arg in sys.argv[1:]]
         invalid_paths = [p for p in paths if not p.exists()]
         if invalid_paths:
-            logger.error(f"❌ Chemins invalides : {', '.join(str(p) for p in invalid_paths)}")
+            logger.error(f"❌ Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
             sys.exit(1)
         print(LOGO)
     else:
-        # Mode interactif
+        # Interactive mode
         paths = get_user_input_path()
 
     print()
     print("=" * 70)
     print("  🎵 FLAC AUTHENTICITY ANALYZER")
-    print("  Détection de MP3 transcodés en FLAC")
-    print("  Méthode: Analyse spectrale (type Fakin' The Funk)")
+    print("  Detection of MP3s transcoded to FLAC")
+    print("  Method: Spectral analysis (like Fakin' The Funk)")
     print("=" * 70)
     print()
 
-    # Collecte de tous les fichiers FLAC depuis tous les chemins
+    # Collect all FLAC files from all paths
     all_flac_files = []
     for path in paths:
         if path.is_file() and path.suffix.lower() == ".flac":
-            # C'est un fichier FLAC directement
+            # It's a FLAC file directly
             all_flac_files.append(path)
-            logger.info(f"📄 Fichier ajouté : {path.name}")
+            logger.info(f"📄 File added : {path.name}")
         elif path.is_dir():
-            # C'est un dossier, scanner récursivement
+            # It's a folder, scan recursively
             flac_files = find_flac_files(path)
             all_flac_files.extend(flac_files)
         else:
-            logger.warning(f"⚠️  Ignoré (ni fichier FLAC ni dossier) : {path}")
+            logger.warning(f"⚠️  Ignored (not a FLAC file or folder) : {path}")
 
     if not all_flac_files:
-        logger.error("❌ Aucun fichier FLAC trouvé!")
+        logger.error("❌ No FLAC files found!")
         return
 
-    # Déterminer le dossier de sortie (pour progress.json et le rapport)
-    # Utiliser le dossier du premier chemin, ou le dossier courant si c'est un fichier
+    # Determine output directory (for progress.json and report)
+    # Use the directory of the first path, or current directory if it's a file
     output_dir = paths[0] if paths[0].is_dir() else paths[0].parent
 
-    # Initialisation
+    # Initialization
     analyzer = FLACAnalyzer(sample_duration=analysis_config.SAMPLE_DURATION)
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
 
-    # Filtrer les fichiers déjà traités
+    # Filter already processed files
     files_to_process = [f for f in all_flac_files if not tracker.is_processed(str(f))]
 
     if not files_to_process:
-        logger.info("✅ Tous les fichiers ont déjà été traités!")
-        logger.info("Supprimez progress.json pour recommencer l'analyse")
+        logger.info("✅ All files have already been processed!")
+        logger.info("Delete progress.json to restart analysis")
     else:
         tracker.set_total(len(all_flac_files))
         processed, total = tracker.get_progress()
 
-        logger.info(f"📊 Reprise: {processed}/{total} fichiers déjà traités")
-        logger.info(f"🔄 {len(files_to_process)} fichiers restants à analyser")
+        logger.info(f"📊 Resuming: {processed}/{total} files already processed")
+        logger.info(f"🔄 {len(files_to_process)} files remaining to analyze")
         logger.info(f"⚡ Multi-threading: {analysis_config.MAX_WORKERS} workers")
         print()
 
-        # Analyse multi-threadée
+        # Multi-threaded analysis
         with ThreadPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
             futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
 
@@ -199,7 +199,7 @@ def main():
                 result = future.result()
                 tracker.add_result(result)
 
-                # Affichage du progrès
+                # Progress display
                 processed, total = tracker.get_progress()
                 score_icon = (
                     "✅" if result["score"] >= 90 else "⚠️" if result["score"] >= 70 else "🚨"
@@ -210,31 +210,31 @@ def main():
                     f"- Score: {result['score']}%"
                 )
 
-                # Sauvegarde périodique
+                # Periodic save
                 if processed % analysis_config.SAVE_INTERVAL == 0:
                     tracker.save()
-                    logger.info(f"💾 Progression sauvegardée ({processed}/{total})")
+                    logger.info(f"💾 Progress saved ({processed}/{total})")
 
-        # Sauvegarde finale
+        # Final save
         tracker.save()
 
-    # Génération du rapport texte
-    logger.info("\n📊 Génération du rapport...")
+    # Generate text report
+    logger.info("\n📊 Generating report...")
     results = tracker.get_results()
 
-    output_file = output_dir / f"rapport_flac_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     reporter = TextReporter()
     reporter.generate_report(results, output_file)
 
-    # Résumé
+    # Summary
     suspicious = [r for r in results if r["score"] < 90]
     print()
     print("=" * 70)
-    print("  ✅ ANALYSE TERMINÉE")
+    print("  ✅ ANALYSIS COMPLETE")
     print("=" * 70)
-    print(f"  📁 Fichiers analysés: {len(results)}")
-    print(f"  ⚠️  Fichiers suspects: {len(suspicious)}")
-    print(f"  📄 Rapport texte: {output_file.name}")
+    print(f"  📁 Files analyzed: {len(results)}")
+    print(f"  ⚠️  Suspicious files: {len(suspicious)}")
+    print(f"  📄 Text report: {output_file.name}")
     print("=" * 70)
 
 
@@ -242,10 +242,10 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Interruption par l'utilisateur")
-        print("💾 La progression est sauvegardée dans progress.json")
-        print("🔄 Relancez le script pour reprendre l'analyse")
+        print("\n\n⚠️  Interrupted by user")
+        print("💾 Progress is saved in progress.json")
+        print("🔄 Relaunch script to resume analysis")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"❌ Erreur fatale: {e}", exc_info=True)
+        logger.error(f"❌ Fatal error: {e}", exc_info=True)
         sys.exit(1)

@@ -70,109 +70,109 @@ class FLACDurationFixer:
             return {"has_mismatch": False, "error": str(e)}
 
     def fix_file(self, filepath: Path, dry_run: bool = False) -> dict:
-        """Répare un fichier FLAC avec problème de durée.
+        """Repairs a FLAC file with duration issues.
 
         Args:
-            filepath: Chemin du fichier à réparer.
-            dry_run: Si True, simule sans modifier.
+            filepath: Path to the file to repair.
+            dry_run: If True, simulate without modifying.
 
         Returns:
-            Dict avec: success, message, before, after.
+            Dict with: success, message, before, after.
         """
-        logger.info(f"🔧 Traitement: {filepath.name}")
+        logger.info(f"🔧 Processing: {filepath.name}")
 
-        # 1. Vérifier le problème
+        # 1. Check for issue
         check = self.check_duration_mismatch(filepath)
 
         if not check.get("has_mismatch", False):
-            logger.info(f"  ✅ Aucun problème de durée (diff: {check.get('diff_ms', 0):.1f}ms)")
+            logger.info(f"  ✅ No duration issue (diff: {check.get('diff_ms', 0):.1f}ms)")
             self.skip_count += 1
-            return {"success": False, "message": "Aucun problème détecté", "skipped": True}
+            return {"success": False, "message": "No issue detected", "skipped": True}
 
         logger.info(
-            f"  ⚠️  Problème détecté: {check['diff_samples']:,} samples ({check['diff_ms']:.1f}ms)"
+            f"  ⚠️  Issue detected: {check['diff_samples']:,} samples ({check['diff_ms']:.1f}ms)"
         )
 
         if dry_run:
-            logger.info("  🔍 [DRY RUN] Fichier serait réparé")
+            logger.info("  🔍 [DRY RUN] File would be repaired")
             return {
                 "success": True,
-                "message": "Dry run - pas de modification",
+                "message": "Dry run - no modification",
                 "dry_run": True,
                 "before": check,
             }
 
-        # 2. Extraire les métadonnées
-        logger.info("  📋 Extraction des métadonnées...")
+        # 2. Extract metadata
+        logger.info("  📋 Extracting metadata...")
         metadata = extract_all_metadata(filepath)
 
         if not metadata["success"]:
-            logger.error("  ❌ Échec extraction métadonnées")
+            logger.error("  ❌ Metadata extraction failed")
             self.error_count += 1
             return {
                 "success": False,
-                "message": f"Erreur extraction: {metadata.get('error', 'Unknown')}",
+                "message": f"Extraction error: {metadata.get('error', 'Unknown')}",
             }
 
-        logger.info(f"     Tags: {len(metadata['tags'])} entrées")
+        logger.info(f"     Tags: {len(metadata['tags'])} entries")
         logger.info(f"     Images: {len(metadata['pictures'])} artwork(s)")
 
-        # 3. Créer un backup si demandé
+        # 3. Create backup if requested
         if self.create_backup:
             backup_path = filepath.with_suffix(".flac.bak")
-            logger.info(f"  💾 Création backup: {backup_path.name}")
+            logger.info(f"  💾 Creating backup: {backup_path.name}")
             shutil.copy2(filepath, backup_path)
 
-        # 4. Ré-encoder le fichier
+        # 4. Re-encode file
         temp_fixed = filepath.with_suffix(".fixed.flac")
 
-        logger.info("  🔄 Ré-encodage FLAC...")
+        logger.info("  🔄 Re-encoding FLAC...")
         if not reencode_flac(filepath, temp_fixed):
-            logger.error("  ❌ Échec ré-encodage")
+            logger.error("  ❌ Re-encoding failed")
             if temp_fixed.exists():
                 temp_fixed.unlink()
             self.error_count += 1
-            return {"success": False, "message": "Erreur ré-encodage"}
+            return {"success": False, "message": "Re-encoding error"}
 
-        # 5. Restaurer les métadonnées
-        logger.info("  📝 Restauration des métadonnées...")
+        # 5. Restore metadata
+        logger.info("  📝 Restoring metadata...")
         if not restore_all_metadata(temp_fixed, metadata):
-            logger.error("  ❌ Échec restauration métadonnées")
+            logger.error("  ❌ Metadata restoration failed")
             temp_fixed.unlink()
             self.error_count += 1
-            return {"success": False, "message": "Erreur restauration métadonnées"}
+            return {"success": False, "message": "Metadata restoration error"}
 
-        # 6. Vérifier que le problème est résolu
+        # 6. Verify fix
         check_after = self.check_duration_mismatch(temp_fixed)
 
         if check_after.get("has_mismatch", True):
-            logger.warning("  ⚠️  Le problème persiste après réparation!")
-            logger.warning(f"     Nouvelle différence: {check_after['diff_samples']:,} samples")
+            logger.warning("  ⚠️  Issue persists after repair!")
+            logger.warning(f"     New difference: {check_after['diff_samples']:,} samples")
             temp_fixed.unlink()
             self.error_count += 1
             return {
                 "success": False,
-                "message": "Problème persiste après réparation",
+                "message": "Issue persists after repair",
                 "before": check,
                 "after": check_after,
             }
 
-        # 7. Remplacer le fichier original
-        logger.info("  🔄 Remplacement du fichier original...")
+        # 7. Replace original file
+        logger.info("  🔄 Replacing original file...")
         filepath.unlink()
         temp_fixed.rename(filepath)
 
-        logger.info("  ✅ Fichier réparé avec succès!")
-        logger.info(f"     Avant: {check['diff_samples']:,} samples ({check['diff_ms']:.1f}ms)")
+        logger.info("  ✅ File repaired successfully!")
+        logger.info(f"     Before: {check['diff_samples']:,} samples ({check['diff_ms']:.1f}ms)")
         logger.info(
-            f"     Après: {check_after['diff_samples']:,} samples ({check_after['diff_ms']:.1f}ms)"
+            f"     After: {check_after['diff_samples']:,} samples ({check_after['diff_ms']:.1f}ms)"
         )
 
         self.fixed_count += 1
 
         return {
             "success": True,
-            "message": "Réparé avec succès",
+            "message": "Repaired successfully",
             "before": check,
             "after": check_after,
         }
@@ -180,35 +180,35 @@ class FLACDurationFixer:
     def fix_directory(
         self, directory: Path, dry_run: bool = False, recursive: bool = True
     ) -> dict:
-        """Répare tous les fichiers FLAC d'un dossier.
+        """Repairs all FLAC files in a directory.
 
         Args:
-            directory: Dossier à traiter.
-            dry_run: Si True, simule sans modifier.
-            recursive: Si True, parcourt les sous-dossiers.
+            directory: Directory to process.
+            dry_run: If True, simulate without modifying.
+            recursive: If True, scan subdirectories.
 
         Returns:
-            Dict avec statistiques.
+            Dict with statistics.
         """
         logger.info("=" * 80)
         logger.info("🔧 FLAC DETECTIVE - DURATION REPAIR MODULE")
         logger.info("=" * 80)
-        logger.info(f"Dossier: {directory}")
-        logger.info(f"Mode: {'DRY RUN (simulation)' if dry_run else 'RÉPARATION RÉELLE'}")
-        logger.info(f"Récursif: {'Oui' if recursive else 'Non'}")
-        logger.info(f"Backup: {'Oui (.bak)' if self.create_backup else 'Non'}")
+        logger.info(f"Directory: {directory}")
+        logger.info(f"Mode: {'DRY RUN (simulation)' if dry_run else 'REAL REPAIR'}")
+        logger.info(f"Recursive: {'Yes' if recursive else 'No'}")
+        logger.info(f"Backup: {'Yes (.bak)' if self.create_backup else 'No'}")
         logger.info("")
 
-        # Recherche des fichiers FLAC
+        # Find FLAC files
         if recursive:
             flac_files = list(directory.rglob("*.flac"))
         else:
             flac_files = list(directory.glob("*.flac"))
 
-        logger.info(f"📁 {len(flac_files)} fichiers FLAC trouvés")
+        logger.info(f"📁 {len(flac_files)} FLAC files found")
         logger.info("")
 
-        # Traitement
+        # Process
         results = []
         for i, filepath in enumerate(flac_files, 1):
             logger.info(f"[{i}/{len(flac_files)}] {filepath.relative_to(directory)}")
@@ -216,14 +216,14 @@ class FLACDurationFixer:
             results.append(result)
             logger.info("")
 
-        # Statistiques finales
+        # Final statistics
         logger.info("=" * 80)
-        logger.info("📊 STATISTIQUES FINALES")
+        logger.info("📊 FINAL STATISTICS")
         logger.info("=" * 80)
-        logger.info(f"Fichiers traités:     {len(flac_files)}")
-        logger.info(f"Fichiers réparés:     {self.fixed_count}")
-        logger.info(f"Fichiers OK:          {self.skip_count}")
-        logger.info(f"Erreurs:              {self.error_count}")
+        logger.info(f"Files processed:      {len(flac_files)}")
+        logger.info(f"Files repaired:       {self.fixed_count}")
+        logger.info(f"Files OK:             {self.skip_count}")
+        logger.info(f"Errors:               {self.error_count}")
         logger.info("=" * 80)
 
         return {

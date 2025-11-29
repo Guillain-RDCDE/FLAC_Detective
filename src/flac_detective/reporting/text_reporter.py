@@ -91,11 +91,11 @@ class TextReporter:
             Label textuel.
         """
         if score >= 90:
-            return "AUTHENTIQUE"
+            return "AUTHENTIC"
         elif score >= 70:
             return "PROB. AUTH."
         elif score >= 50:
-            return "SUSPECT"
+            return "SUSPICIOUS"
         else:
             return "FAKE"
 
@@ -116,44 +116,44 @@ class TextReporter:
         report_lines = []
 
         # En-tête principal
-        report_lines.append(self._header("🔍 FLAC DETECTIVE - RAPPORT D'ANALYSE"))
+        report_lines.append(self._header("🔍 FLAC DETECTIVE - ANALYSIS REPORT"))
         report_lines.append(f"\n  Date : {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-        report_lines.append(f"  Fichiers analysés : {stats['total']}\n")
+        report_lines.append(f"  Files analyzed : {stats['total']}\n")
 
         # Statistiques globales
-        report_lines.append(self._section("📊 STATISTIQUES GLOBALES"))
-        report_lines.append(f"\n  ✓✓✓ Authentiques (≥90%)      : {stats['authentic']:>4} fichiers")
+        report_lines.append(self._section("📊 GLOBAL STATISTICS"))
+        report_lines.append(f"\n  ✓✓✓ Authentic (≥90%)          : {stats['authentic']:>4} files")
         report_lines.append(
-            f"  ✓✓  Probablement auth. (≥70%) : {stats['probably_authentic']:>4} fichiers"
+            f"  ✓✓  Probable auth. (≥70%)     : {stats['probably_authentic']:>4} files"
         )
-        report_lines.append(f"  ✓   Suspects (≥50%)           : {stats['suspect']:>4} fichiers")
-        report_lines.append(f"  ✗✗✗ Fakes (<50%)              : {stats['fake']:>4} fichiers")
-        report_lines.append(f"\n  ⚠️  Problèmes de durée        : {stats['duration_issues']:>4} fichiers")
+        report_lines.append(f"  ✓   Suspicious (≥50%)         : {stats['suspect']:>4} files")
+        report_lines.append(f"  ✗✗✗ Fakes (<50%)              : {stats['fake']:>4} files")
+        report_lines.append(f"\n  ⚠️  Duration issues           : {stats['duration_issues']:>4} files")
         report_lines.append(
-            f"      (dont critiques >1s)     : {stats['duration_issues_critical']:>4} fichiers"
+            f"      (critical >1s)            : {stats['duration_issues_critical']:>4} files"
         )
-        report_lines.append(f"\n  🔊 Problèmes de clipping      : {stats['clipping_issues']:>4} fichiers")
-        report_lines.append(f"  📊 Problèmes de DC offset     : {stats['dc_offset_issues']:>4} fichiers")
-        report_lines.append(f"  🔇 Silence anormal (>2s)      : {stats['silence_issues']:>4} fichiers")
-        report_lines.append(f"  📉 Faux High-Res (padding)    : {stats['fake_high_res']:>4} fichiers")
-        report_lines.append(f"  📈 Upsampling détecté         : {stats['upsampled_files']:>4} fichiers")
-        report_lines.append(f"  💥 Fichiers corrompus         : {stats['corrupted_files']:>4} fichiers\n"
+        report_lines.append(f"\n  🔊 Clipping issues            : {stats['clipping_issues']:>4} files")
+        report_lines.append(f"  📊 DC offset issues           : {stats['dc_offset_issues']:>4} files")
+        report_lines.append(f"  🔇 Abnormal silence (>2s)     : {stats['silence_issues']:>4} files")
+        report_lines.append(f"  📉 Fake High-Res (padding)    : {stats['fake_high_res']:>4} files")
+        report_lines.append(f"  📈 Upsampling detected        : {stats['upsampled_files']:>4} files")
+        report_lines.append(f"  💥 Corrupted files            : {stats['corrupted_files']:>4} files\n"
         )
 
         # Taux de qualité
         if stats["total"] > 0:
             quality_rate = (stats["authentic"] / stats["total"]) * 100
-            report_lines.append(f"  📈 Taux de qualité : {quality_rate:.1f}%\n")
+            report_lines.append(f"  📈 Quality rate : {quality_rate:.1f}%\n")
 
         # Fichiers suspects (score < 90%)
         if suspicious:
-            report_lines.append(self._section(f"⚠️  FICHIERS SUSPECTS ({len(suspicious)} fichiers)"))
+            report_lines.append(self._section(f"⚠️  SUSPICIOUS FILES ({len(suspicious)} files)"))
             report_lines.append("")
 
             # En-tête du tableau
             widths = [5, 10, 10, 15, 60]
             report_lines.append(
-                self._table_row("Icon", "Score", "Cutoff", "Durée", "Fichier", widths=widths)
+                self._table_row("Icon", "Score", "Cutoff", "Duration", "File", widths=widths)
             )
             report_lines.append("  " + "─" * (sum(widths) + 3 * (len(widths) - 1)))
 
@@ -182,40 +182,41 @@ class TextReporter:
         # Détails des fichiers authentiques (optionnel, commenté par défaut)
         # authentics = [r for r in results if r["score"] >= 90]
         # if authentics:
-        #     report_lines.append(self._section(f"✅ FICHIERS AUTHENTIQUES ({len(authentics)} fichiers)"))
-        #     report_lines.append("\n  (Liste disponible sur demande)\n")
+        #     report_lines.append(self._section(f"✅ AUTHENTIC FILES ({len(authentics)} files)"))
+        #     report_lines.append("\n  (List available on request)\n")
 
         # Recommandations
-        report_lines.append(self._section("💡 RECOMMANDATIONS"))
+        report_lines.append(self._section("💡 RECOMMENDATIONS"))
         report_lines.append("")
 
         if stats["fake"] > 0:
             report_lines.append(
-                f"  ⚠️  {stats['fake']} fichier(s) identifié(s) comme FAKE (score < 50%)"
+                f"  ⚠️  {stats['fake']} file(s) identified as FAKE (score < 50%)"
             )
-            report_lines.append("      → Vérifier la source et envisager de les supprimer\n")
+            report_lines.append("      → Check source and consider deleting\n")
 
         if stats["suspect"] > 0:
             report_lines.append(
-                f"  ⚠️  {stats['suspect']} fichier(s) suspect(s) (score 50-69%)"
+                f"  ⚠️  {stats['suspect']} file(s) suspicious (score 50-69%)"
             )
-            report_lines.append("      → Écoute critique recommandée\n")
+            report_lines.append("      → Critical listening recommended\n")
 
         if stats["duration_issues_critical"] > 0:
             report_lines.append(
-                f"  ⚠️  {stats['duration_issues_critical']} fichier(s) avec problème de durée critique"
+                f"  ⚠️  {stats['duration_issues_critical']} file(s) with critical duration issues"
             )
             report_lines.append(
-                "      → Utiliser le module de réparation : python -m flac_detective.repair\n"
+                "      → Use repair module: python -m flac_detective.repair\n"
             )
 
         if stats["authentic"] == stats["total"]:
-            report_lines.append("  ✅ Tous les fichiers sont authentiques ! Collection de qualité.\n")
+            report_lines.append("  ✅ All files are authentic! High quality collection.\n")
 
         # Pied de page
         report_lines.append("\n" + "═" * self.width)
-        report_lines.append("  Généré par FLAC Detective v0.1")
-        report_lines.append("  https://github.com/votre-repo/flac-detective")
+        report_lines.append("  Generated by FLAC Detective v0.1")
+        report_lines.append("  https://github.com/your-repo/flac-detective")
+
         report_lines.append("═" * self.width + "\n")
 
         # Écriture du fichier

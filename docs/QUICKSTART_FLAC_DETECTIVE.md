@@ -7,327 +7,329 @@
 
 ---
 
-## ⚡ Installation Rapide (2 minutes)
+## ⚡ Quick Installation (2 minutes)
 
-### 1. Téléchargez les 4 fichiers essentiels
-
-- ✅ **flac_detective.py** (analyseur principal)
-- ✅ **flac_detective_test.py** (test unitaire)
-- ✅ **flac_detective_repair.py** (réparateur)
-- ✅ **flac_detective_helper.py** (assistant interactif)
-
-### 2. Installez les dépendances Python
+### 1. Clone the repository
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/your-repo/flac-detective.git
+cd flac-detective
 ```
 
-Toutes les dépendances nécessaires seront installées automatiquement.
-Aucun outil externe n'est requis !
+### 2. Install Python dependencies
+
+```bash
+# Create virtual env (recommended)
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+
+# Install package
+pip install -e .
+```
+
+All dependencies will be installed automatically.
+No external tools required!
 
 ---
 
-## 🎯 Premier Test (30 secondes)
+## 🎯 First Test (30 seconds)
 
-### Testez sur UN fichier
+### Test on ONE file
 
 ```bash
-python3 flac_detective_test.py "E:\Music\votre_fichier.flac"
+python -m flac_detective.main --file "E:\Music\your_file.flac"
 ```
 
-**Vous verrez :**
+**You will see:**
 ```
 🔍 FLAC DETECTIVE v0.1
 
-🎵 ANALYSE DÉTAILLÉE : votre_fichier.flac
+🎵 DETAILED ANALYSIS: your_file.flac
 ================================================================================
 
-📋 MÉTADONNÉES
+📋 METADATA
   Sample Rate    : 44100 Hz
   Bit Depth      : 16 bits
-  Duration       : 249.1 secondes
+  Duration       : 249.1 seconds
 
-⏱️  VÉRIFICATION DURÉE
-  Statut         : ✅ OK (tolérance normale)
+⏱️  DURATION CHECK
+  Status         : ✅ OK (normal tolerance)
 
-🔬 ANALYSE SPECTRALE (3 échantillons)
-  Coupure        : 22050 Hz
-  Énergie >16kHz : 0.000009
+🔬 SPECTRAL ANALYSIS (3 samples)
+  Cutoff         : 22050 Hz
+  Energy >16kHz  : 0.000009
 
 🎯 VERDICT
   Score: 95% 🟢
-  Raison: Spectre complet jusqu'à 22050 Hz | Contenu ultra-aigu minimal
+  Reason: Full spectrum up to 22050 Hz | Minimal ultra-high content
   
-  ✅ FLAC AUTHENTIQUE - Très probablement lossless d'origine
+  ✅ AUTHENTIC FLAC - Very likely original lossless
 ```
 
-**Score ≥90% ?** → Votre fichier est authentique ! ✅
+**Score ≥90%?** → Your file is authentic! ✅
 
 ---
 
-## 📊 Analyse Complète (pour 80 000 fichiers)
+## 📊 Full Analysis (for 80,000 files)
 
-### Lancez l'analyse
+### Launch analysis
 
 ```bash
 cd E:\Music
-python3 flac_detective.py
+python -m flac_detective.main
 ```
 
-**Ce qui se passe :**
-1. 🔍 Scan de tous les fichiers .flac
-2. 📊 Analyse de 4 critères par fichier
-3. 💾 Sauvegarde tous les 50 fichiers
-4. 📄 Génération du rapport texte final
+**What happens:**
+1. 🔍 Scans all .flac files
+2. 📊 Analyzes 4 criteria per file
+3. 💾 Saves progress every 50 files
+4. 📄 Generates final text report
 
-**Temps estimé :** 8-15 heures pour 80 000 fichiers
+**Estimated time:** 8-15 hours for 80,000 files
 
-### Interruption possible !
+### Interruptible!
 
-- **Interrompre :** `Ctrl+C`
-- **Reprendre :** Relancez simplement le script
-- **Tout recommencer :** `del progress.json` puis relancez
+- **Interrupt:** `Ctrl+C`
+- **Resume:** Just relaunch the script
+- **Restart:** `del progress.json` then relaunch
 
 ---
 
-## 📈 Rapport Texte Généré
+## 📈 Generated Text Report
 
-**Fichier :** `rapport_flac_YYYYMMDD_HHMMSS.txt`
+**File:** `flac_report_YYYYMMDD_HHMMSS.txt`
 
-### Section "Résumé"
+### "Summary" Section
 
 ```
-RAPPORT D'ANALYSE FLAC
+FLAC ANALYSIS REPORT
 ================================================================================
-Fichiers analysés:                  80,000
-Authentiques (90-100%):             74,200  (92.8%)
-Probablement authentiques (70-89%):  1,100  (1.4%)
-Suspects (50-69%):                   3,850  (4.8%)
-Très suspects (<50%):                  850  (1.1%)
+Files analyzed:                     80,000
+Authentic (90-100%):                74,200  (92.8%)
+Probably authentic (70-89%):         1,100  (1.4%)
+Suspicious (50-69%):                 3,850  (4.8%)
+Very suspicious (<50%):                850  (1.1%)
 
-PROBLÈMES DE DURÉE
-Fichiers avec décalage durée:        1,280  (1.6%)
-Décalage critique (>1 seconde):        160  (0.2%)
+DURATION ISSUES
+Files with duration mismatch:        1,280  (1.6%)
+Critical mismatch (>1 second):         160  (0.2%)
 ```
 
-### Section "Fichiers Suspects"
+### "Suspicious Files" Section
 
-Contient UNIQUEMENT les fichiers < 90% avec :
-- Chemin complet
-- Score avec code couleur 🟢🟡🟠🔴
-- Raison détaillée
-- Fréquence de coupure
-- **Problème Durée** (nouveau !)
-- Métadonnées complètes
+Contains ONLY files < 90% with:
+- Full path
+- Score with color code 🟢🟡🟠🔴
+- Detailed reason
+- Cutoff frequency
+- **Duration Issue** (new!)
+- Complete metadata
 
 ---
 
-## 🔧 Réparation des Problèmes
+## 🔧 Fixing Problems
 
-### Réparer un fichier
+### Repair a file
 
-**1. Test en simulation :**
+**1. Simulation test:**
 ```bash
-python3 flac_detective_repair.py "fichier.flac" --dry-run
+python -m flac_detective.repair "file.flac" --dry-run
 ```
 
-**2. Réparation réelle :**
+**2. Real repair:**
 ```bash
-python3 flac_detective_repair.py "fichier.flac"
+python -m flac_detective.repair "file.flac"
 ```
 
-**Résultat :**
-- ✅ Fichier réparé
-- 💾 Backup créé (`.bak`)
-- 📋 Toutes les métadonnées préservées
-- 🖼️ Tous les artworks préservés
+**Result:**
+- ✅ File repaired
+- 💾 Backup created (`.bak`)
+- 📋 All metadata preserved
+- 🖼️ All artwork preserved
 
-### Réparer un album complet
+### Repair a full album
 
 ```bash
-python3 flac_detective_repair.py "E:\Music\Album\" --recursive
-```
-
----
-
-## 🎓 Interprétation des Scores
-
-| Score | Signification | Action |
-|-------|--------------|--------|
-| **95-100%** | Excellent, authentique | ✅ Rien à faire |
-| **90-94%** | Authentique | ✅ OK |
-| **70-89%** | Probablement authentique | ⚠️ Vérifier si critique |
-| **50-69%** | Suspect | 🔍 Vérification manuelle |
-| **0-49%** | Très suspect | ❌ Supprimer/remplacer |
-
-### Exemples Courants
-
-**Score 95% - Musique électronique**
-```
-Raison: Spectre complet 22kHz | Contenu ultra-aigu minimal (mastering)
-→ ✅ NORMAL pour ce style musical
-```
-
-**Score 20% - MP3 transcodé**
-```
-Raison: Coupure 18kHz (MP3 192k) | Absence énergie >16kHz
-→ ❌ FAUX FLAC, c'est un MP3 déguisé
-```
-
-**Score 80% - Métadonnées corrompues**
-```
-Raison: Spectre complet | Durée incohérente (2000ms)
-→ ⚠️ RÉPARABLE avec flac_detective_repair.py
+python -m flac_detective.repair "E:\Music\Album\" --recursive
 ```
 
 ---
 
-## 🎯 Workflow Complet (3 Étapes)
+## 🎓 Score Interpretation
 
-### ÉTAPE 1 : ANALYSE
-```bash
-python3 flac_detective.py
+| Score | Meaning | Action |
+|-------|---------|--------|
+| **95-100%** | Excellent, authentic | ✅ Nothing to do |
+| **90-94%** | Authentic | ✅ OK |
+| **70-89%** | Probably authentic | ⚠️ Check if critical |
+| **50-69%** | Suspicious | 🔍 Manual check |
+| **0-49%** | Very suspicious | ❌ Delete/replace |
+
+### Common Examples
+
+**Score 95% - Electronic Music**
 ```
-→ Génère rapport texte
-
-### ÉTAPE 2 : TRIER
-1. Ouvrez le rapport texte
-2. Recherchez les fichiers avec un score faible
-3. Repérez "Problème Durée" ≠ "✓ OK"
-4. Notez les fichiers à traiter
-
-### ÉTAPE 3 : ACTIONS
-
-**Pour les scores < 50% :**
-```bash
-# Supprimer les faux FLAC
-del "fichier_fake.flac"
+Reason: Full spectrum 22kHz | Minimal ultra-high content (mastering)
+→ ✅ NORMAL for this musical style
 ```
 
-**Pour les problèmes de durée :**
-```bash
-# Réparer
-python3 flac_detective_repair.py "fichier.flac"
+**Score 20% - Transcoded MP3**
+```
+Reason: Cutoff 18kHz (MP3 192k) | No energy >16kHz
+→ ❌ FAKE FLAC, it's a disguised MP3
 ```
 
-**Pour les scores 50-89% :**
-```bash
-# Vérifier manuellement avec
-python3 flac_detective_test.py "fichier.flac"
+**Score 80% - Corrupted Metadata**
+```
+Reason: Full spectrum | Inconsistent duration (2000ms)
+→ ⚠️ REPAIRABLE with flac_detective.repair
 ```
 
 ---
 
-## 💡 Assistant Interactif
+## 🎯 Complete Workflow (3 Steps)
 
-**Pour les débutants, utilisez l'assistant :**
-
+### STEP 1: ANALYSIS
 ```bash
-python3 flac_detective_helper.py
+python -m flac_detective.main
+```
+→ Generates text report
+
+### STEP 2: SORT
+1. Open text report
+2. Search for files with low score
+3. Spot "Duration Issue" ≠ "✓ OK"
+4. Note files to process
+
+### STEP 3: ACTIONS
+
+**For scores < 50%:**
+```bash
+# Delete fake FLACs
+del "fake_file.flac"
 ```
 
-**Menu guidé :**
-1. 📖 Workflow complet
-2. 💡 Exemples pratiques
-3. ⚠️ Notes importantes
-4. 🔧 Lancer l'analyse
-5. 🛠️ Réparer un fichier
-6. 📁 Réparer un dossier
+**For duration issues:**
+```bash
+# Repair
+python -m flac_detective.repair "file.flac"
+```
+
+**For scores 50-89%:**
+```bash
+# Check manually
+python -m flac_detective.main --file "file.flac"
+```
 
 ---
 
-## ⚠️ Points Importants
+## 💡 Interactive Helper
 
-### Backups Automatiques
+**For beginners, use the helper:**
 
-Lors de la réparation, un fichier `.bak` est créé :
-```
-fichier.flac
-fichier.flac.bak  ← Backup automatique
-```
-
-**Après vérification :**
 ```bash
-# Supprimer les backups
+python scripts/interactive_helper.py
+```
+
+**Guided Menu:**
+1. 📖 Complete workflow
+2. 💡 Practical examples
+3. ⚠️ Important notes
+4. 🔧 Launch analysis
+5. 🛠️ Repair a file
+6. 📁 Repair a folder
+
+---
+
+## ⚠️ Important Points
+
+### Automatic Backups
+
+During repair, a `.bak` file is created:
+```
+file.flac
+file.flac.bak  ← Automatic backup
+```
+
+**After verification:**
+```bash
+# Delete backups
 del *.bak
 ```
 
-### Temps de Traitement
+### Processing Time
 
-**Analyse :**
-- 1 fichier : ~3-7 secondes
-- 1 000 fichiers : ~1-2 heures
-- 80 000 fichiers : ~8-15 heures
+**Analysis:**
+- 1 file: ~3-7 seconds
+- 1,000 files: ~1-2 hours
+- 80,000 files: ~8-15 hours
 
-**Réparation :**
-- 1 fichier : ~5-15 secondes
-- 1 album (10 tracks) : ~2-3 minutes
+**Repair:**
+- 1 file: ~5-15 seconds
+- 1 album (10 tracks): ~2-3 minutes
 
-### Espace Disque
+### Disk Space
 
-**Pendant la réparation :**
-- Backup = taille originale
-- Fichier temporaire WAV = ~10x la taille FLAC
+**During repair:**
+- Backup = original size
+- Temporary WAV file = ~10x FLAC size
 
-**Exemple :** Fichier FLAC 30 MB
-- Backup : 30 MB
-- Temporaire : 300 MB (supprimé après)
-
----
-
-## 🆘 Problèmes Courants
-
-**Erreur "flac not found"**
-→ Installez l'outil FLAC (voir Étape 2)
-
-**Le script trouve 0 fichiers**
-→ Vérifiez que vous êtes dans le bon dossier
-
-**Tous les fichiers à 100%**
-→ Bonne nouvelle, votre bibliothèque est propre !
-
-**Musique électronique à 75%**
-→ Normal ! Le script v0.1 est intelligent et adapte les scores
-
-**Erreur Python**
-→ Vérifiez Python 3.7+ : `python3 --version`
+**Example:** 30 MB FLAC file
+- Backup: 30 MB
+- Temporary: 300 MB (deleted afterwards)
 
 ---
 
-## 📚 Documentation Complète
+## 🆘 Common Issues
 
-**Fichiers disponibles :**
+**"flac not found" error**
+→ No longer an issue! We now use internal libraries.
 
-- **README_FLAC_DETECTIVE.md** - Documentation complète (EN)
-- **README_FINAL.md** - Guide d'utilisation (FR)
-- **GUIDE_REPARATION.md** - Guide réparation détaillé
-- **CHANGELOG_v0.1.md** - Détails techniques v0.1
+**Script finds 0 files**
+→ Check you are in the correct folder.
 
----
+**All files at 100%**
+→ Good news, your library is clean!
 
-## 🎯 Checklist Rapide
+**Electronic music at 75%**
+→ Normal! The v0.1 script is smart and adapts scores.
 
-- [ ] Outil `flac` installé (`flac --version`)
-- [ ] 4 fichiers Python téléchargés
-- [ ] Test sur 1 fichier réussi
-- [ ] Analyse complète lancée
-- [ ] Rapport texte généré
-- [ ] Fichiers suspects identifiés
-- [ ] Réparations effectuées (si nécessaire)
-- [ ] Vérification finale OK
+**Python Error**
+→ Check Python 3.10+: `python --version`
 
 ---
 
-## 🏆 Résultat Final
+## 📚 Complete Documentation
 
-**Après analyse + réparation :**
+**Available files:**
 
-✅ Bibliothèque nettoyée des faux FLAC  
-✅ Problèmes de durée réparés  
-✅ Rapport professionnel généré  
-✅ Métadonnées préservées à 100%  
+- **README.md** - Main documentation
+- **docs/README_FLAC_DETECTIVE.md** - Detailed guide
 
-**Votre bibliothèque musicale est maintenant certifiée authentique !** 🎵
+---
+
+## 🎯 Quick Checklist
+
+- [ ] Repository cloned / installed
+- [ ] Test on 1 file successful
+- [ ] Full analysis launched
+- [ ] Text report generated
+- [ ] Suspicious files identified
+- [ ] Repairs performed (if necessary)
+- [ ] Final verification OK
+
+---
+
+## 🏆 Final Result
+
+**After analysis + repair:**
+
+✅ Library cleaned of fake FLACs  
+✅ Duration issues repaired  
+✅ Professional report generated  
+✅ Metadata 100% preserved  
+
+**Your music library is now certified authentic!** 🎵
 
 ---
 
