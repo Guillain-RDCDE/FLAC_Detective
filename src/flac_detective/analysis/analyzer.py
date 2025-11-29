@@ -43,8 +43,8 @@ class FLACAnalyzer:
             # Analyse spectrale
             cutoff_freq, energy_ratio = analyze_spectrum(filepath, self.sample_duration)
 
-            # Analyse de qualité audio (Phase 1: clipping, DC offset, corruption)
-            quality_analysis = analyze_audio_quality(filepath)
+            # Analyse de qualité audio (Phase 1 & 2)
+            quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq)
 
             # Calcul du score et raison
             score, reason = calculate_score(cutoff_freq, energy_ratio, metadata, duration_check)
@@ -62,7 +62,7 @@ class FLACAnalyzer:
                 "duration_metadata": duration_check["metadata_duration"],
                 "duration_real": duration_check["real_duration"],
                 "duration_diff": duration_check["diff_samples"],
-                # Nouveaux champs de qualité
+                # Nouveaux champs de qualité (Phase 1)
                 "has_clipping": quality_analysis["clipping"]["has_clipping"],
                 "clipping_severity": quality_analysis["clipping"]["severity"],
                 "clipping_percentage": quality_analysis["clipping"]["clipping_percentage"],
@@ -71,6 +71,13 @@ class FLACAnalyzer:
                 "dc_offset_value": quality_analysis["dc_offset"]["dc_offset_value"],
                 "is_corrupted": quality_analysis["corruption"]["is_corrupted"],
                 "corruption_error": quality_analysis["corruption"].get("error"),
+                # Phase 2
+                "has_silence_issue": quality_analysis["silence"]["has_silence_issue"],
+                "silence_issue_type": quality_analysis["silence"]["issue_type"],
+                "is_fake_high_res": quality_analysis["bit_depth"]["is_fake_high_res"],
+                "estimated_bit_depth": quality_analysis["bit_depth"]["estimated_depth"],
+                "is_upsampled": quality_analysis["upsampling"]["is_upsampled"],
+                "suspected_original_rate": quality_analysis["upsampling"]["suspected_original_rate"],
             }
 
         except Exception as e:
@@ -96,5 +103,11 @@ class FLACAnalyzer:
                 "dc_offset_value": 0.0,
                 "is_corrupted": True,
                 "corruption_error": str(e),
+                "has_silence_issue": False,
+                "silence_issue_type": "error",
+                "is_fake_high_res": False,
+                "estimated_bit_depth": 0,
+                "is_upsampled": False,
+                "suspected_original_rate": 0,
             }
 

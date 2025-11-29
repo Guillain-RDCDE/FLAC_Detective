@@ -11,6 +11,9 @@ from flac_detective.analysis.quality import (
     detect_clipping,
     detect_corruption,
     detect_dc_offset,
+    detect_silence,
+    detect_true_bit_depth,
+    detect_upsampling,
 )
 
 
@@ -42,8 +45,8 @@ class TestQualityAnalysis:
     def test_detect_clipping_light(self):
         """Vérifie la détection de clipping léger."""
         data = np.random.rand(44100) * 0.5
-        # Ajouter quelques pics
-        data[100:105] = 0.995
+        # Ajouter quelques pics (4 échantillons < 0.01% de 44100)
+        data[100:104] = 0.995
         result = detect_clipping(data)
 
         assert result["has_clipping"] is False  # < 0.01%
@@ -80,8 +83,8 @@ class TestQualityAnalysis:
 
     def test_detect_dc_offset_stereo(self):
         """Vérifie la détection sur signal stéréo."""
-        # Signal stéréo avec offset
-        data = np.ones((44100, 2)) * 0.05
+        # Signal stéréo avec offset significatif (> 0.05)
+        data = np.ones((44100, 2)) * 0.06
         result = detect_dc_offset(data)
 
         assert result["has_dc_offset"] is True
@@ -135,6 +138,58 @@ class TestQualityAnalysis:
         assert result["is_corrupted"] is True
         assert result["readable"] is True
         assert "NaN" in result["error"]
+
+    def test_detect_silence_no_issue(self):
+        """Vérifie la détection sans silence anormal."""
+        data = np.random.rand(44100 * 5)  # 5 secondes de bruit
+        result = detect_silence(data, 44100)
+        assert result["has_silence_issue"] is False
+
+    def test_detect_silence_leading(self):
+        """Vérifie la détection de silence au début."""
+        # 3 secondes de silence puis 2 secondes de bruit
+        silence = np.zeros(44100 * 3)
+        noise = np.random.rand(44100 * 2)
+        data = np.concatenate([silence, noise])
+        
+        result = detect_silence(data, 44100)
+        assert result["has_silence_issue"] is True
+        assert result["issue_type"] == "leading"
+        assert result["leading_silence_sec"] >= 3.0
+
+    def test_detect_true_bit_depth_real_24bit(self):
+        """Vérifie un vrai fichier 24-bit."""
+        # Valeurs aléatoires non multiples de 1/32768
+        data = np.random.rand(1000).astype('float32')
+        result = detect_true_bit_depth(data, 24)
+        
+        assert result["is_fake_high_res"] is False
+        assert result["estimated_depth"] == 24
+
+    def test_detect_true_bit_depth_fake_24bit(self):
+        """Vérifie un faux fichier 24-bit (16-bit padding)."""
+        # Créer des valeurs 16-bit (multiples de 1/32768)
+        int_values = np.random.randint(-32768, 32767, 1000)
+        data = int_values / 32768.0
+        data = data.astype('float32')
+        
+        result = detect_true_bit_depth(data, 24)
+        
+        assert result["is_fake_high_res"] is True
+        assert result["estimated_depth"] == 16
+
+    def test_detect_upsampling_no_issue(self):
+        """Vérifie pas d'upsampling."""
+        # 44.1kHz avec cutoff à 22kHz -> OK
+        result = detect_upsampling(22000, 44100)
+        assert result["is_upsampled"] is False
+
+    def test_detect_upsampling_96k_fake(self):
+        """Vérifie 96kHz qui est en fait du 44.1kHz."""
+        # 96kHz mais cutoff à 22kHz
+        result = detect_upsampling(22000, 96000)
+        assert result["is_upsampled"] is True
+        assert result["suspected_original_rate"] == 44100
 
     @patch("soundfile.read")
     def test_analyze_audio_quality_complete(self, mock_read):

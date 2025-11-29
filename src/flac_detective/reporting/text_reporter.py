@@ -134,6 +134,9 @@ class TextReporter:
         )
         report_lines.append(f"\n  🔊 Problèmes de clipping      : {stats['clipping_issues']:>4} fichiers")
         report_lines.append(f"  📊 Problèmes de DC offset     : {stats['dc_offset_issues']:>4} fichiers")
+        report_lines.append(f"  🔇 Silence anormal (>2s)      : {stats['silence_issues']:>4} fichiers")
+        report_lines.append(f"  📉 Faux High-Res (padding)    : {stats['fake_high_res']:>4} fichiers")
+        report_lines.append(f"  📈 Upsampling détecté         : {stats['upsampled_files']:>4} fichiers")
         report_lines.append(f"  💥 Fichiers corrompus         : {stats['corrupted_files']:>4} fichiers\n"
         )
 

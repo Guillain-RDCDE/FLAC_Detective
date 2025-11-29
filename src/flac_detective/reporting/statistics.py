@@ -43,6 +43,11 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     clipping_issues = len([r for r in results if r.get("has_clipping", False)])
     dc_offset_issues = len([r for r in results if r.get("has_dc_offset", False)])
     corrupted_files = len([r for r in results if r.get("is_corrupted", False)])
+    
+    # Phase 2
+    silence_issues = len([r for r in results if r.get("has_silence_issue", False)])
+    fake_high_res = len([r for r in results if r.get("is_fake_high_res", False)])
+    upsampled_files = len([r for r in results if r.get("is_upsampled", False)])
 
     return {
         "total": total,
@@ -67,6 +72,13 @@ def calculate_statistics(results: List[Dict]) -> Dict:
         "dc_offset_issues_pct": f"{dc_offset_issues/total*100:.1f}%" if total > 0 else "0%",
         "corrupted_files": corrupted_files,
         "corrupted_files_pct": f"{corrupted_files/total*100:.1f}%" if total > 0 else "0%",
+        # Phase 2
+        "silence_issues": silence_issues,
+        "silence_issues_pct": f"{silence_issues/total*100:.1f}%" if total > 0 else "0%",
+        "fake_high_res": fake_high_res,
+        "fake_high_res_pct": f"{fake_high_res/total*100:.1f}%" if total > 0 else "0%",
+        "upsampled_files": upsampled_files,
+        "upsampled_files_pct": f"{upsampled_files/total*100:.1f}%" if total > 0 else "0%",
     }
 
 
