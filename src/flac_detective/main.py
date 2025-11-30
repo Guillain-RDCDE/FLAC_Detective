@@ -146,7 +146,7 @@ def main():
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  {colorize('FLAC AUTHENTICITY ANALYZER', Colors.BRIGHT_WHITE)}")
     print("  Detection of MP3s transcoded to FLAC")
-    print("  Method: Spectral analysis (like Fakin' The Funk)")
+    print("  Method: Advanced spectral analysis")
     print(colorize("=" * 70, Colors.CYAN))
     print()
 

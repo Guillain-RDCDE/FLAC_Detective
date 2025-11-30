@@ -225,7 +225,7 @@ class ExcelReporter:
 
         # Statistics on duration issues
         row += 1
-        ws_summary[f"A{row}"] = "DURATION ISSUES (Fakin' The Funk Criterion)"
+        ws_summary[f"A{row}"] = "DURATION ISSUES (Metadata Consistency)"
         ws_summary[f"A{row}"].font = Font(size=12, bold=True)
         row += 1
 

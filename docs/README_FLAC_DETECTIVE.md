@@ -26,7 +26,7 @@
 
 FLAC Detective is a **professional-grade tool** for detecting MP3 files fraudulently encoded as FLAC, and automatically repairing corrupted FLAC metadata.
 
-**Inspired by Fakin' The Funk**, but **free, open-source, and with additional smart features**.
+**Free, open-source, and with advanced smart features**.
 
 ---
 
@@ -281,22 +281,21 @@ Fixed files should now show:
 
 ---
 
-## 🆚 Comparison with Fakin' The Funk
+## 🆚 Why FLAC Detective?
 
-| Feature | FTF (Paid) | FLAC Detective (Free) |
-|---------|------------|----------------------|
-| Spectral analysis | ✅ | ✅ |
-| Cutoff detection | ✅ | ✅ |
-| Energy profiling | ❌ | ✅ (smarter, context-aware) |
-| Duration check | ✅ | ✅ |
-| Automatic repair | ✅ | ✅ |
-| Multi-threading | ✅ | ✅ |
-| Text reports | ❌ | ✅ |
-| Batch processing | ✅ | ✅ |
-| GUI | ✅ | ❌ |
-| **Price** | **$39** | **FREE** |
+| Feature | FLAC Detective |
+|---------|----------------|
+| Spectral analysis | ✅ |
+| Cutoff detection | ✅ |
+| Energy profiling | ✅ (context-aware) |
+| Duration check | ✅ |
+| Automatic repair | ✅ |
+| Multi-threading | ✅ |
+| Text reports | ✅ |
+| Batch processing | ✅ |
+| **Price** | **FREE** |
 
-**FLAC Detective covers ~80% of FTF features for free!** 🎉
+**FLAC Detective: Professional-grade FLAC authentication, completely free!** 🎉
 
 ---
 
@@ -350,7 +349,7 @@ compression_level = 8  # Default: 5 (0-8, higher = better compression)
 
 Free for personal use.
 
-Inspired by Fakin' The Funk methodology (commercial software).
+Based on industry-standard audio analysis methodologies.
 
 Libraries: NumPy, SciPy, Mutagen, OpenPyXL, SoundFile
 
@@ -358,7 +357,7 @@ Libraries: NumPy, SciPy, Mutagen, OpenPyXL, SoundFile
 
 ## 🙏 Credits
 
-- **Fakin' The Funk** - Inspiration and methodology
+- **Audio analysis community** - Methodologies and best practices
 - **Audiophile community** - Testing and feedback
 - **You** - For using this tool! 🎵
 

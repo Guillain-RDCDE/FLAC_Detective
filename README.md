@@ -10,7 +10,7 @@ FLAC Detective is a professional tool for analyzing the authenticity of your FLA
 
 - **🕵️ Advanced Spectral Analysis**: Detects frequency cutoffs typical of MP3 encoders (16kHz, 18kHz, 20kHz).
 - **📊 Intelligent Scoring**: Confidence score (0-100%) based on multiple criteria (spectrum, high-frequency energy, metadata).
-- **🔧 Automatic Repair**: Fixes duration issues ("Fakin' The Funk" criterion) by re-encoding without metadata loss.
+- **🔧 Automatic Repair**: Fixes duration issues (metadata consistency) by re-encoding without metadata loss.
 - **📑 Detailed Reports**: Generates detailed text reports with statistics.
 - **🚀 Performance**: Multi-threaded analysis to quickly process large libraries.
 

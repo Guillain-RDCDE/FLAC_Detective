@@ -40,7 +40,7 @@ def read_metadata(filepath: Path) -> Dict:
 def check_duration_consistency(filepath: Path, metadata: Dict) -> Dict:
     """Checks consistency between declared duration and real duration.
 
-    Criterion used by Fakin' The Funk: durations must match.
+    Industry standard criterion: durations must match.
     A discrepancy can indicate a corrupted file or failed transcoding.
 
     Args:
