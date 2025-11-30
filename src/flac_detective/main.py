@@ -20,7 +20,7 @@ from .analysis import FLACAnalyzer
 from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
-from .utils import LOGO, find_flac_files, Colors, colorize
+from .utils import LOGO, find_flac_files, find_non_flac_audio_files, Colors, colorize
 
 # Configuration du logging
 logging.basicConfig(
@@ -152,20 +152,26 @@ def main():
 
     # Collect all FLAC files from all paths
     all_flac_files = []
+    all_non_flac_files = []
+    
     for path in paths:
         if path.is_file() and path.suffix.lower() == ".flac":
             # It's a FLAC file directly
             all_flac_files.append(path)
             logger.info(f"File added : {path.name}")
         elif path.is_dir():
-            # It's a folder, scan recursively
+            # It's a folder, scan recursively for FLAC
             flac_files = find_flac_files(path)
             all_flac_files.extend(flac_files)
+            
+            # Also scan for non-FLAC audio files
+            non_flac_files = find_non_flac_audio_files(path)
+            all_non_flac_files.extend(non_flac_files)
         else:
             logger.warning(f"Ignored (not a FLAC file or folder) : {path}")
 
-    if not all_flac_files:
-        logger.error("No FLAC files found!")
+    if not all_flac_files and not all_non_flac_files:
+        logger.error("No audio files found!")
         return
 
     # Determine output directory (for progress.json and report)
@@ -221,6 +227,42 @@ def main():
         # Final save
         tracker.save()
 
+    # Add non-FLAC audio files to results (they need to be replaced with FLAC)
+    for non_flac_file in all_non_flac_files:
+        extension = non_flac_file.suffix.upper()[1:]  # Remove the dot and uppercase
+        tracker.add_result({
+            "filepath": str(non_flac_file),
+            "filename": non_flac_file.name,
+            "score": 0,
+            "reason": f"NON-FLAC FILE ({extension}) - Must be replaced with authentic FLAC",
+            "cutoff_freq": 0,
+            "sample_rate": "N/A",
+            "bit_depth": "N/A",
+            "encoder": extension,
+            "duration_mismatch": None,
+            "duration_metadata": "N/A",
+            "duration_real": "N/A",
+            "duration_diff": "N/A",
+            "has_clipping": False,
+            "clipping_severity": "n/a",
+            "clipping_percentage": 0.0,
+            "has_dc_offset": False,
+            "dc_offset_severity": "n/a",
+            "dc_offset_value": 0.0,
+            "is_corrupted": False,
+            "corruption_error": None,
+            "has_silence_issue": False,
+            "silence_issue_type": "n/a",
+            "is_fake_high_res": False,
+            "estimated_bit_depth": 0,
+            "is_upsampled": False,
+            "suspected_original_rate": 0,
+            "estimated_mp3_bitrate": 0,
+        })
+    
+    if all_non_flac_files:
+        logger.info(f"\n{len(all_non_flac_files)} non-FLAC audio files added to report")
+
     # Generate text report
     logger.info("\nGenerating report...")
     results = tracker.get_results()
@@ -234,12 +276,16 @@ def main():
 
     # Summary
     suspicious = [r for r in results if r["score"] < 90]
+    non_flac_count = len(all_non_flac_files)
+    
     print()
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
     print(colorize("=" * 70, Colors.CYAN))
-    print(f"  Files analyzed: {len(results)}")
-    print(f"  {colorize('Suspicious files', Colors.YELLOW)}: {len(suspicious)}")
+    print(f"  FLAC files analyzed: {len(all_flac_files)}")
+    print(f"  {colorize('Suspicious FLAC files', Colors.YELLOW)}: {len([r for r in results if r['score'] < 90 and r['score'] > 0])}")
+    if non_flac_count > 0:
+        print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
     print(f"  Text report: {output_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
 

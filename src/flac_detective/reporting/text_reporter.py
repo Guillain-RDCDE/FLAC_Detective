@@ -116,6 +116,7 @@ class TextReporter:
             if stats['fake_high_res'] > 0: issues.append(f"FakeHiRes: {stats['fake_high_res']}")
             if stats['upsampled_files'] > 0: issues.append(f"Upsampled: {stats['upsampled_files']}")
             if stats['corrupted_files'] > 0: issues.append(f"Corrupt: {stats['corrupted_files']}")
+            if stats.get('non_flac_files', 0) > 0: issues.append(f"Non-FLAC: {stats['non_flac_files']}")
             
             if issues:
                 report_lines.append(" Issues: " + ", ".join(issues))

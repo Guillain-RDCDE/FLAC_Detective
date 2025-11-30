@@ -48,6 +48,9 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     silence_issues = len([r for r in results if r.get("has_silence_issue", False)])
     fake_high_res = len([r for r in results if r.get("is_fake_high_res", False)])
     upsampled_files = len([r for r in results if r.get("is_upsampled", False)])
+    
+    # Non-FLAC files (identified by score=0 and specific reason)
+    non_flac_files = len([r for r in results if r["score"] == 0 and "NON-FLAC FILE" in r.get("reason", "")])
 
     return {
         "total": total,
@@ -79,6 +82,9 @@ def calculate_statistics(results: List[Dict]) -> Dict:
         "fake_high_res_pct": f"{fake_high_res/total*100:.1f}%" if total > 0 else "0%",
         "upsampled_files": upsampled_files,
         "upsampled_files_pct": f"{upsampled_files/total*100:.1f}%" if total > 0 else "0%",
+        # Non-FLAC files
+        "non_flac_files": non_flac_files,
+        "non_flac_files_pct": f"{non_flac_files/total*100:.1f}%" if total > 0 else "0%",
     }
 
 
