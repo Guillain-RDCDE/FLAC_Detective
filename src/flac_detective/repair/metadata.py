@@ -1,4 +1,4 @@
-"""Gestion des métadonnées FLAC pour la réparation."""
+"""FLAC metadata management for repair."""
 
 import logging
 from pathlib import Path
@@ -11,27 +11,27 @@ logger = logging.getLogger(__name__)
 
 
 def extract_all_metadata(filepath: Path) -> dict:
-    """Extrait TOUTES les métadonnées du fichier FLAC.
+    """Extracts ALL metadata from FLAC file.
 
     Args:
-        filepath: Chemin vers le fichier FLAC.
+        filepath: Path to FLAC file.
 
     Returns:
-        Dict avec tous les tags, pictures, vendor, etc.
+        Dict with all tags, pictures, vendor, etc.
     """
     try:
         audio = FLAC(filepath)
 
-        # Extraction de tous les tags Vorbis Comment
+        # Extract all Vorbis Comment tags
         tags = {}
         if audio.tags:
-            # On sait que pour du FLAC, tags est un VCFLACDict
+            # We know that for FLAC, tags is a VCFLACDict
             flac_tags = cast(VCFLACDict, audio.tags)
             for key, value in flac_tags.items():
-                # Stocker en tant que liste (Vorbis Comments peuvent avoir plusieurs valeurs)
+                # Store as list (Vorbis Comments can have multiple values)
                 tags[key] = list(value)
 
-        # Extraction de toutes les images (artwork)
+        # Extract all images (artwork)
         pictures = []
         for pic in audio.pictures:
             pictures.append(
@@ -43,11 +43,11 @@ def extract_all_metadata(filepath: Path) -> dict:
                     "height": pic.height,
                     "depth": pic.depth,
                     "colors": pic.colors,
-                    "data": pic.data,  # Données binaires de l'image
+                    "data": pic.data,  # Binary image data
                 }
             )
 
-        # Informations vendor
+        # Vendor info
         vendor = "reference libFLAC"
         if audio.tags and hasattr(audio.tags, "vendor"):
             vendor = audio.tags.vendor
@@ -55,36 +55,36 @@ def extract_all_metadata(filepath: Path) -> dict:
         return {"tags": tags, "pictures": pictures, "vendor": vendor, "success": True}
 
     except Exception as e:
-        logger.error(f"Erreur extraction métadonnées {filepath.name}: {e}")
+        logger.error(f"Metadata extraction error {filepath.name}: {e}")
         return {"success": False, "error": str(e)}
 
 
 def restore_all_metadata(filepath: Path, metadata: dict) -> bool:
-    """Restaure TOUTES les métadonnées dans le fichier FLAC.
+    """Restores ALL metadata into FLAC file.
 
     Args:
-        filepath: Fichier FLAC cible.
-        metadata: Dict retourné par extract_all_metadata().
+        filepath: Target FLAC file.
+        metadata: Dict returned by extract_all_metadata().
 
     Returns:
-        True si succès, False sinon.
+        True if success, False otherwise.
     """
     try:
         audio = FLAC(filepath)
 
-        # Supprimer tous les tags existants
+        # Delete all existing tags
         audio.delete()
 
-        # Restaurer le vendor
+        # Restore vendor
         if "vendor" in metadata and audio.tags:
             flac_tags = cast(VCFLACDict, audio.tags)
             flac_tags.vendor = metadata["vendor"]
 
-        # Restaurer tous les tags
+        # Restore all tags
         for key, values in metadata.get("tags", {}).items():
             audio[key] = values
 
-        # Restaurer toutes les images
+        # Restore all images
         audio.clear_pictures()
         for pic_data in metadata.get("pictures", []):
             pic = Picture()
@@ -98,11 +98,11 @@ def restore_all_metadata(filepath: Path, metadata: dict) -> bool:
             pic.data = pic_data["data"]
             audio.add_picture(pic)
 
-        # Sauvegarder
+        # Save
         audio.save()
 
         return True
 
     except Exception as e:
-        logger.error(f"Erreur restauration métadonnées: {e}")
+        logger.error(f"Metadata restoration error: {e}")
         return False

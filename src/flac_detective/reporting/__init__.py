@@ -1,4 +1,4 @@
-"""Module de génération de rapports."""
+"""Report generation module."""
 
 from .reporter import ExcelReporter
 from .text_reporter import TextReporter

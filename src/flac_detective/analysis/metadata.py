@@ -1,4 +1,4 @@
-"""Gestion des métadonnées FLAC."""
+"""FLAC metadata management."""
 
 import logging
 from pathlib import Path
@@ -11,13 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 def read_metadata(filepath: Path) -> Dict:
-    """Lit les métadonnées du fichier FLAC.
+    """Reads FLAC file metadata.
 
     Args:
-        filepath: Chemin vers le fichier FLAC.
+        filepath: Path to FLAC file.
 
     Returns:
-        Dictionnaire contenant les métadonnées (sample_rate, bit_depth, etc.).
+        Dictionary containing metadata (sample_rate, bit_depth, etc.).
     """
     try:
         audio = FLAC(filepath)
@@ -33,49 +33,49 @@ def read_metadata(filepath: Path) -> Dict:
             else "Unknown",
         }
     except Exception as e:
-        logger.debug(f"Erreur lecture métadonnées: {e}")
+        logger.debug(f"Metadata reading error: {e}")
         return {}
 
 
 def check_duration_consistency(filepath: Path, metadata: Dict) -> Dict:
-    """Vérifie la cohérence entre durée déclarée et durée réelle.
+    """Checks consistency between declared duration and real duration.
 
-    Critère utilisé par Fakin' The Funk: les durées doivent correspondre.
-    Une divergence peut indiquer un fichier corrompu ou un transcodage raté.
+    Criterion used by Fakin' The Funk: durations must match.
+    A discrepancy can indicate a corrupted file or failed transcoding.
 
     Args:
-        filepath: Chemin vers le fichier FLAC.
-        metadata: Métadonnées du fichier.
+        filepath: Path to FLAC file.
+        metadata: File metadata.
 
     Returns:
-        Dict avec: mismatch, metadata_duration, real_duration, diff_samples, diff_ms.
+        Dict with: mismatch, metadata_duration, real_duration, diff_samples, diff_ms.
     """
     try:
-        # Durée depuis métadonnées FLAC
+        # Duration from FLAC metadata
         metadata_duration = metadata.get("duration", 0)
 
-        # Durée réelle en lisant le fichier audio
+        # Real duration by reading audio file
         info = sf.info(filepath)
         real_duration = info.duration
 
-        # Différence en samples (plus précis que les secondes)
+        # Difference in samples (more precise than seconds)
         sample_rate = metadata.get("sample_rate", info.samplerate)
         metadata_samples = int(metadata_duration * sample_rate)
         real_samples = int(real_duration * sample_rate)
         diff_samples = abs(metadata_samples - real_samples)
 
-        # Tolérance : 1 frame (588 samples pour 44.1kHz, ~13ms)
+        # Tolerance: 1 frame (588 samples for 44.1kHz, ~13ms)
         tolerance_samples = 588
 
-        # Calcul du décalage en millisecondes
+        # Calculate offset in milliseconds
         diff_ms = (diff_samples / sample_rate) * 1000
 
         mismatch = diff_samples > tolerance_samples
 
         if mismatch:
-            mismatch_str = f"⚠️ Décalage: {diff_samples:,} samples ({diff_ms:.1f}ms)"
+            mismatch_str = f"⚠️ Mismatch: {diff_samples:,} samples ({diff_ms:.1f}ms)"
         else:
-            mismatch_str = "✓ Durées cohérentes"
+            mismatch_str = "✓ Consistent durations"
 
         return {
             "mismatch": mismatch_str if mismatch else None,
@@ -86,7 +86,7 @@ def check_duration_consistency(filepath: Path, metadata: Dict) -> Dict:
         }
 
     except Exception as e:
-        logger.debug(f"Erreur vérification durée: {e}")
+        logger.debug(f"Duration check error: {e}")
         return {
             "mismatch": None,
             "metadata_duration": "N/A",

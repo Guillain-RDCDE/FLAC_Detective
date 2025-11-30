@@ -1,16 +1,16 @@
-"""Calculs statistiques pour les rapports."""
+"""Statistical calculations for reports."""
 
 from typing import Dict, List
 
 
 def calculate_statistics(results: List[Dict]) -> Dict:
-    """Calcule les statistiques globales des résultats.
+    """Calculates global statistics from results.
 
     Args:
-        results: Liste des résultats d'analyse.
+        results: List of analysis results.
 
     Returns:
-        Dict avec les statistiques calculées.
+        Dict with calculated statistics.
     """
     total = len(results)
 
@@ -33,13 +33,13 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     suspect = len([r for r in results if 50 <= r["score"] < 70])
     fake = len([r for r in results if r["score"] < 50])
 
-    # Statistiques sur les problèmes de durée
+    # Statistics on duration issues
     duration_issues = len([r for r in results if r.get("duration_mismatch")])
     duration_issues_critical = len(
         [r for r in results if r.get("duration_mismatch") and r.get("duration_diff", 0) > 44100]
     )
 
-    # Statistiques sur les problèmes de qualité (Phase 1)
+    # Statistics on quality issues (Phase 1)
     clipping_issues = len([r for r in results if r.get("has_clipping", False)])
     dc_offset_issues = len([r for r in results if r.get("has_dc_offset", False)])
     corrupted_files = len([r for r in results if r.get("is_corrupted", False)])
@@ -65,7 +65,7 @@ def calculate_statistics(results: List[Dict]) -> Dict:
         "duration_issues_critical_pct": (
             f"{duration_issues_critical/total*100:.1f}%" if total > 0 else "0%"
         ),
-        # Nouvelles statistiques de qualité
+        # New quality statistics
         "clipping_issues": clipping_issues,
         "clipping_issues_pct": f"{clipping_issues/total*100:.1f}%" if total > 0 else "0%",
         "dc_offset_issues": dc_offset_issues,
@@ -83,13 +83,13 @@ def calculate_statistics(results: List[Dict]) -> Dict:
 
 
 def filter_suspicious(results: List[Dict], threshold: int = 90) -> List[Dict]:
-    """Filtre les fichiers suspects selon un seuil de score.
+    """Filters suspicious files according to a score threshold.
 
     Args:
-        results: Liste des résultats d'analyse.
-        threshold: Seuil de score (par défaut 90).
+        results: List of analysis results.
+        threshold: Score threshold (default 90).
 
     Returns:
-        Liste des résultats suspects (score < threshold).
+        List of suspicious results (score < threshold).
     """
     return [r for r in results if r["score"] < threshold]

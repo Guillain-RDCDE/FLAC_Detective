@@ -1,4 +1,4 @@
-"""Analyseur principal de fichiers FLAC."""
+"""Main FLAC file analyzer."""
 
 import logging
 from pathlib import Path
@@ -6,47 +6,47 @@ from typing import Dict
 
 from .metadata import check_duration_consistency, read_metadata
 from .quality import analyze_audio_quality
-from .scoring import calculate_score
+from .scoring import calculate_score, estimate_mp3_bitrate
 from .spectrum import analyze_spectrum
 
 logger = logging.getLogger(__name__)
 
 
 class FLACAnalyzer:
-    """Analyseur de fichiers FLAC pour détecter les transcodages MP3."""
+    """FLAC file analyzer to detect MP3 transcoding."""
 
     def __init__(self, sample_duration: float = 30.0):
-        """Initialise l'analyseur.
+        """Initializes the analyzer.
 
         Args:
-            sample_duration: Durée en secondes à analyser (30s par défaut).
+            sample_duration: Duration in seconds to analyze (default 30s).
         """
         self.sample_duration = sample_duration
 
     def analyze_file(self, filepath: Path) -> Dict:
-        """Analyse un fichier FLAC et détermine s'il est authentique.
+        """Analyzes a FLAC file and determines if it is authentic.
 
         Args:
-            filepath: Chemin vers le fichier FLAC à analyser.
+            filepath: Path to FLAC file to analyze.
 
         Returns:
-            Dict avec: filepath, filename, score, reason, cutoff_freq, metadata,
+            Dict with: filepath, filename, score, reason, cutoff_freq, metadata,
             duration_mismatch, quality issues (clipping, dc_offset, corruption).
         """
         try:
-            # Lecture des métadonnées
+            # Read metadata
             metadata = read_metadata(filepath)
 
-            # Vérification de cohérence durée (critère FTF)
+            # Duration consistency check (FTF criterion)
             duration_check = check_duration_consistency(filepath, metadata)
 
-            # Analyse spectrale
+            # Spectral analysis
             cutoff_freq, energy_ratio = analyze_spectrum(filepath, self.sample_duration)
 
-            # Analyse de qualité audio (Phase 1 & 2)
+            # Audio quality analysis (Phase 1 & 2)
             quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq)
 
-            # Calcul du score et raison
+            # Score calculation and reason
             score, reason = calculate_score(cutoff_freq, energy_ratio, metadata, duration_check)
 
             return {
@@ -62,7 +62,7 @@ class FLACAnalyzer:
                 "duration_metadata": duration_check["metadata_duration"],
                 "duration_real": duration_check["real_duration"],
                 "duration_diff": duration_check["diff_samples"],
-                # Nouveaux champs de qualité (Phase 1)
+                # New quality fields (Phase 1)
                 "has_clipping": quality_analysis["clipping"]["has_clipping"],
                 "clipping_severity": quality_analysis["clipping"]["severity"],
                 "clipping_percentage": quality_analysis["clipping"]["clipping_percentage"],
@@ -78,20 +78,21 @@ class FLACAnalyzer:
                 "estimated_bit_depth": quality_analysis["bit_depth"]["estimated_depth"],
                 "is_upsampled": quality_analysis["upsampling"]["is_upsampled"],
                 "suspected_original_rate": quality_analysis["upsampling"]["suspected_original_rate"],
+                "estimated_mp3_bitrate": estimate_mp3_bitrate(cutoff_freq),
             }
 
         except Exception as e:
-            logger.error(f"Erreur analyse {filepath.name}: {e}")
+            logger.error(f"Analysis error {filepath.name}: {e}")
             return {
                 "filepath": str(filepath),
                 "filename": filepath.name,
                 "score": 0,
-                "reason": f"Erreur: {str(e)}",
+                "reason": f"Error: {str(e)}",
                 "cutoff_freq": 0,
                 "sample_rate": "N/A",
                 "bit_depth": "N/A",
                 "encoder": "N/A",
-                "duration_mismatch": "Erreur",
+                "duration_mismatch": "Error",
                 "duration_metadata": "N/A",
                 "duration_real": "N/A",
                 "duration_diff": "N/A",

@@ -1,4 +1,4 @@
-"""Classe principale de réparation de fichiers FLAC."""
+"""Main class for FLAC file repair."""
 
 import logging
 import shutil
@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 
 class FLACDurationFixer:
-    """Réparateur automatique de problèmes de durée FLAC."""
+    """Automatic repairer for FLAC duration issues."""
 
     def __init__(self, create_backup: bool = True):
-        """Initialise le réparateur.
+        """Initializes the repairer.
 
         Args:
-            create_backup: Si True, crée un backup .bak avant modification.
+            create_backup: If True, creates a .bak backup before modification.
         """
         self.create_backup = create_backup
         self.fixed_count = 0
@@ -29,31 +29,31 @@ class FLACDurationFixer:
         self.skip_count = 0
 
     def check_duration_mismatch(self, filepath: Path) -> dict:
-        """Vérifie si un fichier a un problème de durée.
+        """Checks if a file has a duration issue.
 
         Args:
-            filepath: Chemin vers le fichier FLAC.
+            filepath: Path to the FLAC file.
 
         Returns:
-            Dict avec: has_mismatch, metadata_duration, real_duration, diff_samples, diff_ms.
+            Dict with: has_mismatch, metadata_duration, real_duration, diff_samples, diff_ms.
         """
         try:
-            # Durée métadonnées
+            # Metadata duration
             audio = FLAC(filepath)
             metadata_duration = audio.info.length
 
-            # Durée réelle
+            # Real duration
             info = sf.info(filepath)
             real_duration = info.duration
 
-            # Calcul différence
+            # Calculate difference
             sample_rate = audio.info.sample_rate
             metadata_samples = int(metadata_duration * sample_rate)
             real_samples = int(real_duration * sample_rate)
             diff_samples = abs(metadata_samples - real_samples)
             diff_ms = (diff_samples / sample_rate) * 1000
 
-            # Tolérance configurable
+            # Configurable tolerance
             has_mismatch = diff_samples > repair_config.DURATION_TOLERANCE_SAMPLES
 
             return {
@@ -66,7 +66,7 @@ class FLACDurationFixer:
             }
 
         except Exception as e:
-            logger.error(f"Erreur vérification {filepath.name}: {e}")
+            logger.error(f"Verification error {filepath.name}: {e}")
             return {"has_mismatch": False, "error": str(e)}
 
     def fix_file(self, filepath: Path, dry_run: bool = False) -> dict:

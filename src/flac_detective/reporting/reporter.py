@@ -1,4 +1,4 @@
-"""Générateur de rapports Excel professionnels."""
+"""Professional Excel report generator."""
 
 import logging
 from datetime import datetime
@@ -24,58 +24,58 @@ logger = logging.getLogger(__name__)
 
 
 class ExcelReporter:
-    """Génération du rapport Excel professionnel."""
+    """Professional Excel report generation."""
 
     def __init__(self):
-        """Initialise le générateur de rapports."""
+        """Initializes the report generator."""
         self.wb = Workbook()
         self.ws: Worksheet = self.wb.active  # type: ignore
         if self.ws is None:
             self.ws = self.wb.create_sheet()
-        self.ws.title = "Fichiers Suspects"
+        self.ws.title = "Suspicious Files"
 
     def generate_report(self, results: List[Dict], output_file: Path):
-        """Génère le rapport Excel avec les résultats.
+        """Generates the Excel report with results.
 
         Args:
-            results: Liste des résultats d'analyse.
-            output_file: Chemin du fichier Excel de sortie.
+            results: List of analysis results.
+            output_file: Output Excel file path.
         """
-        # Filtrer uniquement les fichiers suspects (score < 90)
+        # Filter only suspicious files (score < 90)
         suspicious = filter_suspicious(results)
 
-        # Générer la feuille de données
+        # Generate data sheet
         self._write_data_sheet(suspicious)
 
-        # Ajout d'une feuille de résumé
+        # Add summary sheet
         self._add_summary_sheet(results, suspicious)
 
-        # Sauvegarde
+        # Save
         self.wb.save(output_file)
-        logger.info(f"✅ Rapport Excel généré: {output_file}")
+        logger.info(f"✅ Excel report generated: {output_file}")
 
     def _write_data_sheet(self, suspicious: List[Dict]):
-        """Écrit la feuille de données des fichiers suspects.
+        """Writes the suspicious files data sheet.
 
         Args:
-            suspicious: Liste des fichiers suspects.
+            suspicious: List of suspicious files.
         """
-        # En-têtes
+        # Headers
         headers = [
-            "Chemin Complet",
-            "Nom du Fichier",
-            "Score FLAC (%)",
-            "Raison du Doute",
-            "Fréquence Coupure (Hz)",
+            "Full Path",
+            "Filename",
+            "FLAC Score (%)",
+            "Reason for Doubt",
+            "Cutoff Frequency (Hz)",
             "Sample Rate",
             "Bit Depth",
-            "Encodeur",
-            "Problème Durée",
-            "Durée Métadonnées",
-            "Durée Réelle",
+            "Encoder",
+            "Duration Issue",
+            "Metadata Duration",
+            "Real Duration",
         ]
 
-        # Écriture des en-têtes
+        # Write headers
         for col_idx, header in enumerate(headers, start=1):
             cell = self.ws.cell(row=1, column=col_idx)
             cell.value = header
@@ -84,35 +84,35 @@ class ExcelReporter:
             cell.alignment = HEADER_ALIGNMENT
             cell.border = BORDER
 
-        # Écriture des données
+        # Write data
         for row_idx, result in enumerate(suspicious, start=2):
             self._write_result_row(row_idx, result)
 
-        # Ajustement automatique des largeurs de colonnes
+        # Auto-adjust column widths
         for col_letter, width in COLUMN_WIDTHS.items():
             self.ws.column_dimensions[col_letter].width = width
 
-        # Figer la première ligne
+        # Freeze first row
         self.ws.freeze_panes = "A2"
 
     def _write_result_row(self, row_idx: int, result: Dict):
-        """Écrit une ligne de résultat.
+        """Writes a result row.
 
         Args:
-            row_idx: Index de la ligne.
-            result: Résultat d'analyse.
+            row_idx: Row index.
+            result: Analysis result.
         """
-        # Chemin complet
+        # Full path
         cell = self.ws.cell(row=row_idx, column=1)
         cell.value = result["filepath"]
         cell.border = BORDER
 
-        # Nom du fichier
+        # Filename
         cell = self.ws.cell(row=row_idx, column=2)
         cell.value = result["filename"]
         cell.border = BORDER
 
-        # Score avec code couleur
+        # Score with color code
         cell = self.ws.cell(row=row_idx, column=3)
         cell.value = result["score"]
         cell.alignment = Alignment(horizontal="center")
@@ -123,13 +123,13 @@ class ExcelReporter:
         if font:
             cell.font = font
 
-        # Raison
+        # Reason
         cell = self.ws.cell(row=row_idx, column=4)
         cell.value = result["reason"]
         cell.alignment = Alignment(wrap_text=True)
         cell.border = BORDER
 
-        # Fréquence de coupure
+        # Cutoff frequency
         cell = self.ws.cell(row=row_idx, column=5)
         cell.value = result["cutoff_freq"]
         cell.number_format = "#,##0"
@@ -153,7 +153,7 @@ class ExcelReporter:
         cell.value = result["encoder"]
         cell.border = BORDER
 
-        # Problème Durée
+        # Duration Issue
         cell = self.ws.cell(row=row_idx, column=9)
         duration_mismatch = result.get("duration_mismatch")
         if duration_mismatch:
@@ -165,52 +165,52 @@ class ExcelReporter:
             cell.alignment = Alignment(horizontal="center")
         cell.border = BORDER
 
-        # Durée Métadonnées
+        # Metadata Duration
         cell = self.ws.cell(row=row_idx, column=10)
         cell.value = result.get("duration_metadata", "N/A")
         cell.alignment = Alignment(horizontal="center")
         cell.border = BORDER
 
-        # Durée Réelle
+        # Real Duration
         cell = self.ws.cell(row=row_idx, column=11)
         cell.value = result.get("duration_real", "N/A")
         cell.alignment = Alignment(horizontal="center")
         cell.border = BORDER
 
     def _add_summary_sheet(self, all_results: List[Dict], suspicious: List[Dict]):
-        """Ajoute une feuille de résumé statistique.
+        """Adds a statistical summary sheet.
 
         Args:
-            all_results: Liste complète des résultats.
-            suspicious: Liste des fichiers suspects.
+            all_results: Complete list of results.
+            suspicious: List of suspicious files.
         """
-        ws_summary = self.wb.create_sheet("Résumé", 0)
+        ws_summary = self.wb.create_sheet("Summary", 0)
 
-        # Calcul des statistiques
+        # Calculate statistics
         stats = calculate_statistics(all_results)
 
-        # Titre
-        ws_summary["A1"] = "RAPPORT D'ANALYSE FLAC"
+        # Title
+        ws_summary["A1"] = "FLAC ANALYSIS REPORT"
         ws_summary["A1"].font = Font(size=16, bold=True, color="366092")
 
         # Date
-        ws_summary["A2"] = f'Généré le: {datetime.now().strftime("%d/%m/%Y à %H:%M:%S")}'
+        ws_summary["A2"] = f'Generated on: {datetime.now().strftime("%d/%m/%Y at %H:%M:%S")}'
         ws_summary["A2"].font = Font(size=10, italic=True)
 
-        # Statistiques globales
-        ws_summary["A4"] = "STATISTIQUES GLOBALES"
+        # Global statistics
+        ws_summary["A4"] = "GLOBAL STATISTICS"
         ws_summary["A4"].font = Font(size=12, bold=True)
 
         stat_rows = [
-            ("Fichiers analysés:", stats["total"], ""),
-            ("Authentiques (90-100%):", stats["authentic"], stats["authentic_pct"]),
+            ("Files analyzed:", stats["total"], ""),
+            ("Authentic (90-100%):", stats["authentic"], stats["authentic_pct"]),
             (
-                "Probablement authentiques (70-89%):",
+                "Probably authentic (70-89%):",
                 stats["probably_authentic"],
                 stats["probably_authentic_pct"],
             ),
-            ("Suspects (50-69%):", stats["suspect"], stats["suspect_pct"]),
-            ("Très suspects (<50%):", stats["fake"], stats["fake_pct"]),
+            ("Suspicious (50-69%):", stats["suspect"], stats["suspect_pct"]),
+            ("Very suspicious (<50%):", stats["fake"], stats["fake_pct"]),
         ]
 
         row = 5
@@ -223,20 +223,20 @@ class ExcelReporter:
                 ws_summary[f"C{row}"].font = Font(italic=True)
             row += 1
 
-        # Statistiques sur les problèmes de durée
+        # Statistics on duration issues
         row += 1
-        ws_summary[f"A{row}"] = "PROBLÈMES DE DURÉE (Critère Fakin' The Funk)"
+        ws_summary[f"A{row}"] = "DURATION ISSUES (Fakin' The Funk Criterion)"
         ws_summary[f"A{row}"].font = Font(size=12, bold=True)
         row += 1
 
         duration_stat_rows = [
             (
-                "Fichiers avec décalage durée:",
+                "Files with duration mismatch:",
                 stats["duration_issues"],
                 stats["duration_issues_pct"],
             ),
             (
-                "Décalage critique (>1 seconde):",
+                "Critical mismatch (>1 second):",
                 stats["duration_issues_critical"],
                 stats["duration_issues_critical_pct"],
             ),
@@ -251,26 +251,26 @@ class ExcelReporter:
                 ws_summary[f"C{row}"].font = Font(italic=True)
             row += 1
 
-        # Note explicative
+        # Explanatory note
         row += 2
-        ws_summary[f"A{row}"] = "ℹ️ Note sur les problèmes de durée :"
+        ws_summary[f"A{row}"] = "ℹ️ Note on duration issues:"
         ws_summary[f"A{row}"].font = Font(bold=True, color="0066CC")
         row += 1
         ws_summary[f"A{row}"] = (
-            "Un décalage entre durée métadonnées et durée réelle peut indiquer :"
+            "A mismatch between metadata duration and real duration may indicate:"
         )
         row += 1
-        ws_summary[f"A{row}"] = "  • Fichier corrompu lors de l'encodage"
+        ws_summary[f"A{row}"] = "  • Corrupted file during encoding"
         row += 1
-        ws_summary[f"A{row}"] = "  • Transcodage mal effectué (perte de samples)"
+        ws_summary[f"A{row}"] = "  • Failed transcoding (sample loss)"
         row += 1
-        ws_summary[f"A{row}"] = "  • Métadonnées erronées après édition manuelle"
+        ws_summary[f"A{row}"] = "  • Incorrect metadata after manual editing"
         row += 1
-        ws_summary[f"A{row}"] = "  • Problème lors d'un split/merge d'album"
+        ws_summary[f"A{row}"] = "  • Issue during album split/merge"
         row += 1
-        ws_summary[f"A{row}"] = "Tolérance normale : <588 samples (~13ms pour 44.1kHz)"
+        ws_summary[f"A{row}"] = "Normal tolerance: <588 samples (~13ms for 44.1kHz)"
 
-        # Ajustement des colonnes
+        # Column adjustment
         ws_summary.column_dimensions["A"].width = 45
         ws_summary.column_dimensions["B"].width = 15
         ws_summary.column_dimensions["C"].width = 15

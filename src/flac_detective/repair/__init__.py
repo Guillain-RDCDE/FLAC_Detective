@@ -1,7 +1,7 @@
-"""Module de réparation de fichiers FLAC.
+"""FLAC file repair module.
 
-Ce module fournit des outils pour réparer automatiquement
-les problèmes de durée dans les fichiers FLAC.
+This module provides tools to automatically repair
+duration issues in FLAC files.
 """
 
 from .fixer import FLACDurationFixer

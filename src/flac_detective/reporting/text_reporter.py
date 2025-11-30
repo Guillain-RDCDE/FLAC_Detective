@@ -1,4 +1,4 @@
-"""Génération de rapports texte avec formatage ASCII."""
+"""Text report generation with ASCII formatting."""
 
 import logging
 from datetime import datetime
@@ -11,45 +11,45 @@ logger = logging.getLogger(__name__)
 
 
 class TextReporter:
-    """Générateur de rapports texte avec formatage ASCII."""
+    """Text report generator with ASCII formatting."""
 
     def __init__(self):
-        """Initialise le générateur de rapports."""
-        self.width = 100  # Largeur du rapport
+        """Initialize the report generator."""
+        self.width = 100  # Report width
 
     def _header(self, title: str) -> str:
-        """Génère un en-tête formaté.
+        """Generates a formatted header.
 
         Args:
-            title: Titre de la section.
+            title: Section title.
 
         Returns:
-            En-tête formaté.
+            Formatted header.
         """
         border = "═" * self.width
         padding = (self.width - len(title) - 2) // 2
         return f"\n{border}\n{' ' * padding} {title}\n{border}\n"
 
     def _section(self, title: str) -> str:
-        """Génère un titre de section.
+        """Generates a section title.
 
         Args:
-            title: Titre de la section.
+            title: Section title.
 
         Returns:
-            Titre formaté.
+            Formatted title.
         """
         return f"\n{'─' * self.width}\n  {title}\n{'─' * self.width}\n"
 
     def _table_row(self, *columns: str, widths: list[int] | None = None) -> str:
-        """Génère une ligne de tableau.
+        """Generates a table row.
 
         Args:
-            *columns: Colonnes à afficher.
-            widths: Largeurs des colonnes (optionnel).
+            *columns: Columns to display.
+            widths: Column widths (optional).
 
         Returns:
-            Ligne formatée.
+            Formatted row.
         """
         if widths is None:
             widths = [20, 10, 10, 15, 45]
@@ -64,164 +64,120 @@ class TextReporter:
         return "  " + " │ ".join(formatted_cols)
 
     def _score_icon(self, score: int) -> str:
-        """Retourne une icône basée sur le score.
+        """Returns an icon based on score.
 
         Args:
-            score: Score de 0 à 100.
+            score: Score from 0 to 100.
 
         Returns:
-            Icône ASCII.
+            ASCII icon.
         """
         if score >= 90:
-            return "✓✓✓"  # Authentique
+            return "[OK]"
         elif score >= 70:
-            return "✓✓ "  # Probablement authentique
+            return "[?]"
         elif score >= 50:
-            return "✓  "  # Suspect
+            return "[!]"
         else:
-            return "✗✗✗"  # Fake
-
-    def _score_label(self, score: int) -> str:
-        """Retourne un label basé sur le score.
-
-        Args:
-            score: Score de 0 à 100.
-
-        Returns:
-            Label textuel.
-        """
-        if score >= 90:
-            return "AUTHENTIC"
-        elif score >= 70:
-            return "PROB. AUTH."
-        elif score >= 50:
-            return "SUSPICIOUS"
-        else:
-            return "FAKE"
+            return "[X]"
 
     def generate_report(self, results: list[dict[str, Any]], output_file: Path) -> None:
-        """Génère un rapport texte complet.
+        """Generates a complete text report.
 
         Args:
-            results: Liste des résultats d'analyse.
-            output_file: Chemin du fichier de sortie.
+            results: List of analysis results.
+            output_file: Output file path.
         """
-        logger.info(f"Génération du rapport texte : {output_file}")
+        logger.info(f"Generating text report: {output_file}")
 
-        # Calcul des statistiques
+        # Calculate statistics
         stats = calculate_statistics(results)
         suspicious = filter_suspicious(results, threshold=90)
 
-        # Construction du rapport
+        # Build report
         report_lines = []
 
-        # En-tête principal
-        report_lines.append(self._header("🔍 FLAC DETECTIVE - ANALYSIS REPORT"))
-        report_lines.append(f"\n  Date : {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-        report_lines.append(f"  Files analyzed : {stats['total']}\n")
+        # Compact Header
+        report_lines.append("=" * self.width)
+        report_lines.append(f" FLAC DETECTIVE REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        report_lines.append("=" * self.width)
 
-        # Statistiques globales
-        report_lines.append(self._section("📊 GLOBAL STATISTICS"))
-        report_lines.append(f"\n  ✓✓✓ Authentic (≥90%)          : {stats['authentic']:>4} files")
-        report_lines.append(
-            f"  ✓✓  Probable auth. (≥70%)     : {stats['probably_authentic']:>4} files"
-        )
-        report_lines.append(f"  ✓   Suspicious (≥50%)         : {stats['suspect']:>4} files")
-        report_lines.append(f"  ✗✗✗ Fakes (<50%)              : {stats['fake']:>4} files")
-        report_lines.append(f"\n  ⚠️  Duration issues           : {stats['duration_issues']:>4} files")
-        report_lines.append(
-            f"      (critical >1s)            : {stats['duration_issues_critical']:>4} files"
-        )
-        report_lines.append(f"\n  🔊 Clipping issues            : {stats['clipping_issues']:>4} files")
-        report_lines.append(f"  📊 DC offset issues           : {stats['dc_offset_issues']:>4} files")
-        report_lines.append(f"  🔇 Abnormal silence (>2s)     : {stats['silence_issues']:>4} files")
-        report_lines.append(f"  📉 Fake High-Res (padding)    : {stats['fake_high_res']:>4} files")
-        report_lines.append(f"  📈 Upsampling detected        : {stats['upsampled_files']:>4} files")
-        report_lines.append(f"  💥 Corrupted files            : {stats['corrupted_files']:>4} files\n"
-        )
+        # Global statistics (Compact)
+        total = stats['total']
+        if total > 0:
+            quality = (stats["authentic"] / total) * 100
+            report_lines.append(f" Files: {total} | Quality: {quality:.1f}% | Authentic: {stats['authentic']} | Fake/Suspicious: {stats['fake'] + stats['suspect']}")
+            
+            issues = []
+            if stats['duration_issues'] > 0: issues.append(f"Duration: {stats['duration_issues']}")
+            if stats['clipping_issues'] > 0: issues.append(f"Clip: {stats['clipping_issues']}")
+            if stats['dc_offset_issues'] > 0: issues.append(f"DC: {stats['dc_offset_issues']}")
+            if stats['silence_issues'] > 0: issues.append(f"Silence: {stats['silence_issues']}")
+            if stats['fake_high_res'] > 0: issues.append(f"FakeHiRes: {stats['fake_high_res']}")
+            if stats['upsampled_files'] > 0: issues.append(f"Upsampled: {stats['upsampled_files']}")
+            if stats['corrupted_files'] > 0: issues.append(f"Corrupt: {stats['corrupted_files']}")
+            
+            if issues:
+                report_lines.append(" Issues: " + ", ".join(issues))
+        else:
+            report_lines.append(" No files analyzed.")
 
-        # Taux de qualité
-        if stats["total"] > 0:
-            quality_rate = (stats["authentic"] / stats["total"]) * 100
-            report_lines.append(f"  📈 Quality rate : {quality_rate:.1f}%\n")
+        report_lines.append("-" * self.width)
 
-        # Fichiers suspects (score < 90%)
+        # Suspicious files (score < 90%)
         if suspicious:
-            report_lines.append(self._section(f"⚠️  SUSPICIOUS FILES ({len(suspicious)} files)"))
-            report_lines.append("")
+            report_lines.append(f" SUSPICIOUS FILES ({len(suspicious)})")
+            
+            # Table header
+            # Icon (4) | Score (5) | Cutoff (8) | Bitrate (8) | File (Rest)
+            report_lines.append(f" {'Icon':<4} | {'Score':<5} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}")
+            report_lines.append(" " + "-" * (self.width - 2))
 
-            # En-tête du tableau
-            widths = [5, 10, 10, 15, 60]
-            report_lines.append(
-                self._table_row("Icon", "Score", "Cutoff", "Duration", "File", widths=widths)
-            )
-            report_lines.append("  " + "─" * (sum(widths) + 3 * (len(widths) - 1)))
-
-            # Trier par score croissant (les pires en premier)
+            # Sort by ascending score (worst first)
             sorted_suspicious = sorted(suspicious, key=lambda x: x["score"])
 
-            for result in sorted_suspicious:
+            # Limit to fit on screen (e.g., max 15 lines of files)
+            max_files = 15
+            for i, result in enumerate(sorted_suspicious):
+                if i >= max_files:
+                    report_lines.append(f" ... and {len(sorted_suspicious) - max_files} more files.")
+                    break
+                    
                 icon = self._score_icon(result["score"])
-                score = f"{result['score']}%"
-                cutoff = f"{result['cutoff_freq'] / 1000:.1f} kHz"
-
-                # Indicateur de durée
-                if result.get("duration_mismatch", False):
-                    duration = f"⚠️ {result.get('duration_diff', 0):.0f}ms"
-                else:
-                    duration = "OK"
-
+                score = f"{result['score']}"
+                cutoff = f"{result['cutoff_freq'] / 1000:.1f}k"
+                
+                bitrate = result.get("estimated_mp3_bitrate", 0)
+                bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
+                
                 filename = result["filename"]
+                
+                # Truncate filename if too long
+                max_name_len = self.width - 36
+                if len(filename) > max_name_len:
+                    filename = filename[:max_name_len-3] + "..."
 
-                report_lines.append(
-                    self._table_row(icon, score, cutoff, duration, filename, widths=widths)
-                )
+                report_lines.append(f" {icon:<4} | {score:<5} | {cutoff:<8} | {bitrate_str:<8} | {filename}")
 
-            report_lines.append("")
+        else:
+            report_lines.append(" No suspicious files found. Collection looks clean.")
 
-        # Détails des fichiers authentiques (optionnel, commenté par défaut)
-        # authentics = [r for r in results if r["score"] >= 90]
-        # if authentics:
-        #     report_lines.append(self._section(f"✅ AUTHENTIC FILES ({len(authentics)} files)"))
-        #     report_lines.append("\n  (List available on request)\n")
+        # Footer
+        report_lines.append("-" * self.width)
+        
+        # Recommendations (Very compact)
+        recs = []
+        if stats["fake"] > 0: recs.append("Delete Fakes")
+        if stats["suspect"] > 0: recs.append("Check Suspicious")
+        if stats["duration_issues_critical"] > 0: recs.append("Repair Duration")
+        
+        if recs:
+            report_lines.append(" Action: " + ", ".join(recs))
+        else:
+            report_lines.append(" Status: All Good")
 
-        # Recommandations
-        report_lines.append(self._section("💡 RECOMMENDATIONS"))
-        report_lines.append("")
-
-        if stats["fake"] > 0:
-            report_lines.append(
-                f"  ⚠️  {stats['fake']} file(s) identified as FAKE (score < 50%)"
-            )
-            report_lines.append("      → Check source and consider deleting\n")
-
-        if stats["suspect"] > 0:
-            report_lines.append(
-                f"  ⚠️  {stats['suspect']} file(s) suspicious (score 50-69%)"
-            )
-            report_lines.append("      → Critical listening recommended\n")
-
-        if stats["duration_issues_critical"] > 0:
-            report_lines.append(
-                f"  ⚠️  {stats['duration_issues_critical']} file(s) with critical duration issues"
-            )
-            report_lines.append(
-                "      → Use repair module: python -m flac_detective.repair\n"
-            )
-
-        if stats["authentic"] == stats["total"]:
-            report_lines.append("  ✅ All files are authentic! High quality collection.\n")
-
-        # Pied de page
-        report_lines.append("\n" + "═" * self.width)
-        report_lines.append("  Generated by FLAC Detective v0.1")
-        report_lines.append("  https://github.com/your-repo/flac-detective")
-
-        report_lines.append("═" * self.width + "\n")
-
-        # Écriture du fichier
+        # Write file
         report_text = "\n".join(report_lines)
         output_file.write_text(report_text, encoding="utf-8")
 
-        logger.info(f"✅ Rapport généré : {output_file}")
-        logger.info(f"   Taille : {len(report_text)} caractères")
+        logger.info(f"Report generated: {output_file}")

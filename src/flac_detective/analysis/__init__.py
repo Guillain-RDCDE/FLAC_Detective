@@ -1,7 +1,7 @@
-"""Module d'analyse de fichiers FLAC.
+"""FLAC file analysis module.
 
-Ce module fournit des outils pour analyser la qualité des fichiers FLAC
-et détecter les transcodages MP3 potentiels.
+This module provides tools to analyze FLAC file quality
+and detect potential MP3 transcoding.
 """
 
 from .analyzer import FLACAnalyzer

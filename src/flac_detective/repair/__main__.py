@@ -1,4 +1,4 @@
-"""Point d'entrée CLI pour le module de réparation."""
+"""CLI entry point for the repair module."""
 
 import argparse
 import logging
@@ -12,52 +12,52 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    """Fonction principale du CLI de réparation."""
-    # Afficher le logo
+    """Main CLI function for repair."""
+    # Display logo
     print(LOGO)
     print()
 
     parser = argparse.ArgumentParser(
-        description="Répare automatiquement les problèmes de durée FLAC",
+        description="Automatically repairs FLAC duration issues",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemples:
-  # Simulation (dry run) sur un fichier
-  python3 -m flac_detective.repair fichier.flac --dry-run
+Examples:
+  # Simulation (dry run) on a file
+  python3 -m flac_detective.repair file.flac --dry-run
 
-  # Réparation réelle d'un fichier
-  python3 -m flac_detective.repair fichier.flac
+  # Real repair of a file
+  python3 -m flac_detective.repair file.flac
 
-  # Réparation d'un dossier (récursif)
-  python3 -m flac_detective.repair /chemin/vers/dossier --recursive
+  # Directory repair (recursive)
+  python3 -m flac_detective.repair /path/to/folder --recursive
 
-  # Sans créer de backup
-  python3 -m flac_detective.repair fichier.flac --no-backup
+  # Without creating backup
+  python3 -m flac_detective.repair file.flac --no-backup
         """,
     )
 
-    parser.add_argument("path", type=str, help="Fichier ou dossier à traiter")
-    parser.add_argument("--dry-run", action="store_true", help="Simulation sans modification")
+    parser.add_argument("path", type=str, help="File or folder to process")
+    parser.add_argument("--dry-run", action="store_true", help="Simulation without modification")
     parser.add_argument(
-        "--recursive", "-r", action="store_true", help="Parcourir les sous-dossiers (pour dossier)"
+        "--recursive", "-r", action="store_true", help="Scan subfolders (for folder)"
     )
-    parser.add_argument("--no-backup", action="store_true", help="Ne pas créer de backup .bak")
+    parser.add_argument("--no-backup", action="store_true", help="Do not create .bak backup")
 
     args = parser.parse_args()
 
     path = Path(args.path)
 
     if not path.exists():
-        logger.error(f"❌ Chemin introuvable: {path}")
+        logger.error(f"❌ Path not found: {path}")
         sys.exit(1)
 
-    # Créer le fixer
+    # Create fixer
     fixer = FLACDurationFixer(create_backup=not args.no_backup)
 
-    # Traitement
+    # Processing
     if path.is_file():
         if path.suffix.lower() != ".flac":
-            logger.error("❌ Le fichier doit être un .flac")
+            logger.error("❌ File must be a .flac")
             sys.exit(1)
 
         result = fixer.fix_file(path, dry_run=args.dry_run)
@@ -72,7 +72,7 @@ Exemples:
             sys.exit(1)
 
     else:
-        logger.error(f"❌ Le chemin n'est ni un fichier ni un dossier: {path}")
+        logger.error(f"❌ Path is neither a file nor a folder: {path}")
         sys.exit(1)
 
 
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Interruption par l'utilisateur")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"❌ Erreur fatale: {e}", exc_info=True)
+        logger.error(f"❌ Fatal error: {e}", exc_info=True)
         sys.exit(1)

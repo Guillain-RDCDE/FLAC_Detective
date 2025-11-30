@@ -45,7 +45,7 @@ class SpectralConfig:
     CUTOFF_SCAN_START: int = 14000
 
     # Taille des tranches d'analyse (Hz)
-    TRANCHE_SIZE: int = 500
+    TRANCHE_SIZE: int = 250
 
     # Seuil de coupure (dB sous la référence)
     CUTOFF_THRESHOLD_DB: int = 30

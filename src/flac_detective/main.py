@@ -20,7 +20,7 @@ from .analysis import FLACAnalyzer
 from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
-from .utils import LOGO, find_flac_files
+from .utils import LOGO, find_flac_files, Colors, colorize
 
 # Configuration du logging
 logging.basicConfig(
@@ -82,9 +82,9 @@ def _validate_paths(raw_paths: list[str]) -> list[Path]:
 
         if path.exists():
             valid_paths.append(path)
-            print(f"  ✅ Added : {path.absolute()}")
+            print(f"  {colorize('[OK]', Colors.GREEN)} Added : {path.absolute()}")
         else:
-            print(f"  ⚠️  Ignored (does not exist) : {raw_path}")
+            print(f"  {colorize('[!!]', Colors.YELLOW)} Ignored (does not exist) : {raw_path}")
 
     return valid_paths
 
@@ -96,17 +96,17 @@ def get_user_input_path() -> list[Path]:
         List of paths (folders or files) to analyze.
     """
     print(LOGO)
-    print("\n" + "═" * 75)
-    print("  📂 INTERACTIVE MODE")
-    print("═" * 75)
+    print("\n" + colorize("═" * 75, Colors.CYAN))
+    print(f"  {colorize('INTERACTIVE MODE', Colors.BRIGHT_WHITE)}")
+    print(colorize("═" * 75, Colors.CYAN))
     print("  Drag and drop one or more folders/files below")
     print("  (You can separate multiple paths with commas or semicolons)")
     print("  (Or press Enter to analyze current folder)")
-    print("═" * 75)
+    print(colorize("═" * 75, Colors.CYAN))
 
     while True:
         try:
-            user_input = input("\n  👉 Path(s) : ").strip()
+            user_input = input(f"\n  {colorize('Path(s)', Colors.BRIGHT_YELLOW)} : ").strip()
 
             # If empty, use current directory
             if not user_input:
@@ -117,13 +117,13 @@ def get_user_input_path() -> list[Path]:
             valid_paths = _validate_paths(raw_paths)
 
             if valid_paths:
-                print(f"\n  📊 Total : {len(valid_paths)} location(s) selected")
+                print(f"\n  Total : {len(valid_paths)} location(s) selected")
                 return valid_paths
             else:
-                print("  ❌ No valid path found. Please try again.")
+                print(f"  {colorize('[XX]', Colors.RED)} No valid path found. Please try again.")
 
         except KeyboardInterrupt:
-            print("\n\n👋 Goodbye !")
+            print(f"\n\n{colorize('Goodbye !', Colors.CYAN)}")
             sys.exit(0)
 
 
@@ -135,7 +135,7 @@ def main():
         paths = [Path(arg) for arg in sys.argv[1:]]
         invalid_paths = [p for p in paths if not p.exists()]
         if invalid_paths:
-            logger.error(f"❌ Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
+            logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
             sys.exit(1)
         print(LOGO)
     else:
@@ -143,11 +143,11 @@ def main():
         paths = get_user_input_path()
 
     print()
-    print("=" * 70)
-    print("  🎵 FLAC AUTHENTICITY ANALYZER")
+    print(colorize("=" * 70, Colors.CYAN))
+    print(f"  {colorize('FLAC AUTHENTICITY ANALYZER', Colors.BRIGHT_WHITE)}")
     print("  Detection of MP3s transcoded to FLAC")
     print("  Method: Spectral analysis (like Fakin' The Funk)")
-    print("=" * 70)
+    print(colorize("=" * 70, Colors.CYAN))
     print()
 
     # Collect all FLAC files from all paths
@@ -156,16 +156,16 @@ def main():
         if path.is_file() and path.suffix.lower() == ".flac":
             # It's a FLAC file directly
             all_flac_files.append(path)
-            logger.info(f"📄 File added : {path.name}")
+            logger.info(f"File added : {path.name}")
         elif path.is_dir():
             # It's a folder, scan recursively
             flac_files = find_flac_files(path)
             all_flac_files.extend(flac_files)
         else:
-            logger.warning(f"⚠️  Ignored (not a FLAC file or folder) : {path}")
+            logger.warning(f"Ignored (not a FLAC file or folder) : {path}")
 
     if not all_flac_files:
-        logger.error("❌ No FLAC files found!")
+        logger.error("No FLAC files found!")
         return
 
     # Determine output directory (for progress.json and report)
@@ -180,15 +180,15 @@ def main():
     files_to_process = [f for f in all_flac_files if not tracker.is_processed(str(f))]
 
     if not files_to_process:
-        logger.info("✅ All files have already been processed!")
+        logger.info("All files have already been processed!")
         logger.info("Delete progress.json to restart analysis")
     else:
         tracker.set_total(len(all_flac_files))
         processed, total = tracker.get_progress()
 
-        logger.info(f"📊 Resuming: {processed}/{total} files already processed")
-        logger.info(f"🔄 {len(files_to_process)} files remaining to analyze")
-        logger.info(f"⚡ Multi-threading: {analysis_config.MAX_WORKERS} workers")
+        logger.info(f"Resuming: {processed}/{total} files already processed")
+        logger.info(f"{len(files_to_process)} files remaining to analyze")
+        logger.info(f"Multi-threading: {analysis_config.MAX_WORKERS} workers")
         print()
 
         # Multi-threaded analysis
@@ -201,9 +201,12 @@ def main():
 
                 # Progress display
                 processed, total = tracker.get_progress()
-                score_icon = (
-                    "✅" if result["score"] >= 90 else "⚠️" if result["score"] >= 70 else "🚨"
-                )
+                if result["score"] >= 90:
+                    score_icon = colorize("[OK]", Colors.GREEN)
+                elif result["score"] >= 70:
+                    score_icon = colorize("[?]", Colors.YELLOW)
+                else:
+                    score_icon = colorize("[!]", Colors.RED)
 
                 logger.info(
                     f"[{processed}/{total}] {score_icon} {result['filename'][:50]} "
@@ -213,39 +216,42 @@ def main():
                 # Periodic save
                 if processed % analysis_config.SAVE_INTERVAL == 0:
                     tracker.save()
-                    logger.info(f"💾 Progress saved ({processed}/{total})")
+                    logger.info(f"Progress saved ({processed}/{total})")
 
         # Final save
         tracker.save()
 
     # Generate text report
-    logger.info("\n📊 Generating report...")
+    logger.info("\nGenerating report...")
     results = tracker.get_results()
 
     output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     reporter = TextReporter()
     reporter.generate_report(results, output_file)
 
+    # Clean up progress file after successful completion
+    tracker.cleanup()
+
     # Summary
     suspicious = [r for r in results if r["score"] < 90]
     print()
-    print("=" * 70)
-    print("  ✅ ANALYSIS COMPLETE")
-    print("=" * 70)
-    print(f"  📁 Files analyzed: {len(results)}")
-    print(f"  ⚠️  Suspicious files: {len(suspicious)}")
-    print(f"  📄 Text report: {output_file.name}")
-    print("=" * 70)
+    print(colorize("=" * 70, Colors.CYAN))
+    print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
+    print(colorize("=" * 70, Colors.CYAN))
+    print(f"  Files analyzed: {len(results)}")
+    print(f"  {colorize('Suspicious files', Colors.YELLOW)}: {len(suspicious)}")
+    print(f"  Text report: {output_file.name}")
+    print(colorize("=" * 70, Colors.CYAN))
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Interrupted by user")
-        print("💾 Progress is saved in progress.json")
-        print("🔄 Relaunch script to resume analysis")
+        print(f"\n\n{colorize('Interrupted by user', Colors.YELLOW)}")
+        print("Progress is saved in progress.json")
+        print("Relaunch script to resume analysis")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"❌ Fatal error: {e}", exc_info=True)
+        logger.error(f"Fatal error: {e}", exc_info=True)
         sys.exit(1)
