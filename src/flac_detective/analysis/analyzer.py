@@ -7,6 +7,7 @@ from typing import Dict
 from .metadata import check_duration_consistency, read_metadata
 from .quality import analyze_audio_quality
 from .scoring import calculate_score, estimate_mp3_bitrate
+from .new_scoring import new_calculate_score
 from .spectrum import analyze_spectrum
 
 logger = logging.getLogger(__name__)
@@ -46,13 +47,17 @@ class FLACAnalyzer:
             # Audio quality analysis (Phase 1 & 2)
             quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq)
 
-            # Score calculation and reason
-            score, reason = calculate_score(cutoff_freq, energy_ratio, metadata, duration_check)
+            # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
+            score, verdict, confidence, reason = new_calculate_score(
+                cutoff_freq, metadata, duration_check, filepath
+            )
 
             return {
                 "filepath": str(filepath),
                 "filename": filepath.name,
                 "score": score,
+                "verdict": verdict,
+                "confidence": confidence,
                 "reason": reason,
                 "cutoff_freq": cutoff_freq,
                 "sample_rate": metadata.get("sample_rate", "N/A"),
@@ -87,6 +92,8 @@ class FLACAnalyzer:
                 "filepath": str(filepath),
                 "filename": filepath.name,
                 "score": 0,
+                "verdict": "ERROR",
+                "confidence": "N/A",
                 "reason": f"Error: {str(e)}",
                 "cutoff_freq": 0,
                 "sample_rate": "N/A",

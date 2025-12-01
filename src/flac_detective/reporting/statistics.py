@@ -28,10 +28,16 @@ def calculate_statistics(results: List[Dict]) -> Dict:
             "corrupted_files": 0,
         }
 
-    authentic = len([r for r in results if r["score"] >= 90])
-    probably_auth = len([r for r in results if 70 <= r["score"] < 90])
-    suspect = len([r for r in results if 50 <= r["score"] < 70])
-    fake = len([r for r in results if r["score"] < 50])
+    # NEW SCORING SYSTEM: higher score = more fake
+    # Score < 30: AUTHENTIQUE
+    # Score 30-49: DOUTEUX (probably authentic)
+    # Score 50-79: FAKE_PROBABLE (suspect)
+    # Score >= 80: FAKE_CERTAIN (fake)
+    
+    authentic = len([r for r in results if r.get("score", 0) < 30])
+    probably_auth = len([r for r in results if 30 <= r.get("score", 0) < 50])
+    suspect = len([r for r in results if 50 <= r.get("score", 0) < 80])
+    fake = len([r for r in results if r.get("score", 0) >= 80])
 
     # Statistics on duration issues
     duration_issues = len([r for r in results if r.get("duration_mismatch")])
@@ -49,8 +55,8 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     fake_high_res = len([r for r in results if r.get("is_fake_high_res", False)])
     upsampled_files = len([r for r in results if r.get("is_upsampled", False)])
     
-    # Non-FLAC files (identified by score=0 and specific reason)
-    non_flac_files = len([r for r in results if r["score"] == 0 and "NON-FLAC FILE" in r.get("reason", "")])
+    # Non-FLAC files (identified by verdict="NON_FLAC" or score=100 with NON-FLAC in reason)
+    non_flac_files = len([r for r in results if r.get("verdict") == "NON_FLAC" or (r.get("score", 0) == 100 and "NON-FLAC FILE" in r.get("reason", ""))])
 
     return {
         "total": total,

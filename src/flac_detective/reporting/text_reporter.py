@@ -63,23 +63,24 @@ class TextReporter:
 
         return "  " + " │ ".join(formatted_cols)
 
-    def _score_icon(self, score: int) -> str:
-        """Returns an icon based on score.
+    def _score_icon(self, score: int, verdict: str = "") -> str:
+        """Returns an icon based on score (NEW SYSTEM: higher = more fake).
 
         Args:
-            score: Score from 0 to 100.
+            score: Score from 0 to 100 (higher = more fake).
+            verdict: Verdict string (optional).
 
         Returns:
             ASCII icon.
         """
-        if score >= 90:
-            return "[OK]"
-        elif score >= 70:
+        if score >= 80:  # FAKE_CERTAIN
+            return "[XX]"
+        elif score >= 50:  # FAKE_PROBABLE
+            return "[!!]"
+        elif score >= 30:  # DOUTEUX
             return "[?]"
-        elif score >= 50:
-            return "[!]"
-        else:
-            return "[X]"
+        else:  # AUTHENTIQUE
+            return "[OK]"
 
     def generate_report(self, results: list[dict[str, Any]], output_file: Path) -> None:
         """Generates a complete text report.
@@ -92,7 +93,8 @@ class TextReporter:
 
         # Calculate statistics
         stats = calculate_statistics(results)
-        suspicious = filter_suspicious(results, threshold=90)
+        # NEW SCORING: score >= 50 = suspicious
+        suspicious = [r for r in results if r.get("score", 0) >= 50]
 
         # Build report
         report_lines = []
@@ -130,35 +132,32 @@ class TextReporter:
             report_lines.append(f" SUSPICIOUS FILES ({len(suspicious)})")
             
             # Table header
-            # Icon (4) | Score (5) | Cutoff (8) | Bitrate (8) | File (Rest)
-            report_lines.append(f" {'Icon':<4} | {'Score':<5} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}")
+            # Icon (4) | Score (7) | Verdict (15) | Cutoff (8) | Bitrate (8) | File (Rest)
+            report_lines.append(f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}")
             report_lines.append(" " + "-" * (self.width - 2))
 
-            # Sort by ascending score (worst first)
-            sorted_suspicious = sorted(suspicious, key=lambda x: x["score"])
+            # Sort by descending score (worst first - NEW SYSTEM: higher = worse)
+            sorted_suspicious = sorted(suspicious, key=lambda x: x.get("score", 0), reverse=True)
 
-            # Limit to fit on screen (e.g., max 15 lines of files)
-            max_files = 15
-            for i, result in enumerate(sorted_suspicious):
-                if i >= max_files:
-                    report_lines.append(f" ... and {len(sorted_suspicious) - max_files} more files.")
-                    break
-                    
-                icon = self._score_icon(result["score"])
-                score = f"{result['score']}"
-                cutoff = f"{result['cutoff_freq'] / 1000:.1f}k"
+            # Display ALL suspicious files (no limit)
+            for result in sorted_suspicious:
+                score = result.get("score", 0)
+                verdict = result.get("verdict", "UNKNOWN")
+                icon = self._score_icon(score, verdict)
+                score_str = f"{score}/100"
+                cutoff = f"{result.get('cutoff_freq', 0) / 1000:.1f}k"
                 
                 bitrate = result.get("estimated_mp3_bitrate", 0)
                 bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
                 
-                filename = result["filename"]
+                filename = result.get("filename", "Unknown")
                 
                 # Truncate filename if too long
-                max_name_len = self.width - 36
+                max_name_len = self.width - 56
                 if len(filename) > max_name_len:
                     filename = filename[:max_name_len-3] + "..."
 
-                report_lines.append(f" {icon:<4} | {score:<5} | {cutoff:<8} | {bitrate_str:<8} | {filename}")
+                report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {filename}")
 
         else:
             report_lines.append(" No suspicious files found. Collection looks clean.")

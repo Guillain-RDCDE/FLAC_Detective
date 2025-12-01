@@ -11,6 +11,7 @@ Multi-criteria detection:
 """
 
 import logging
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -21,6 +22,16 @@ from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files, find_non_flac_audio_files, Colors, colorize
+
+# Fix Windows console encoding for UTF-8 support
+if sys.platform == "win32":
+    # Set console to UTF-8 mode
+    os.system("chcp 65001 > nul 2>&1")
+    # Reconfigure stdout/stderr for UTF-8
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8')
 
 # Configuration du logging
 logging.basicConfig(
@@ -205,18 +216,24 @@ def main():
                 result = future.result()
                 tracker.add_result(result)
 
-                # Progress display
+                # Progress display (NEW SCORING: higher = more fake)
                 processed, total = tracker.get_progress()
-                if result["score"] >= 90:
-                    score_icon = colorize("[OK]", Colors.GREEN)
-                elif result["score"] >= 70:
+                score = result.get("score", 0)
+                verdict = result.get("verdict", "UNKNOWN")
+                
+                # Color coding based on new scoring system
+                if score >= 80:  # FAKE_CERTAIN
+                    score_icon = colorize("[FAKE]", Colors.RED)
+                elif score >= 50:  # FAKE_PROBABLE
+                    score_icon = colorize("[SUSP]", Colors.YELLOW)
+                elif score >= 30:  # DOUTEUX
                     score_icon = colorize("[?]", Colors.YELLOW)
-                else:
-                    score_icon = colorize("[!]", Colors.RED)
+                else:  # AUTHENTIQUE
+                    score_icon = colorize("[OK]", Colors.GREEN)
 
                 logger.info(
                     f"[{processed}/{total}] {score_icon} {result['filename'][:50]} "
-                    f"- Score: {result['score']}%"
+                    f"- Score: {score}/100 - {verdict}"
                 )
 
                 # Periodic save
@@ -233,7 +250,9 @@ def main():
         tracker.add_result({
             "filepath": str(non_flac_file),
             "filename": non_flac_file.name,
-            "score": 0,
+            "score": 100,  # Maximum fake score for non-FLAC
+            "verdict": "NON_FLAC",
+            "confidence": "CERTAIN",
             "reason": f"NON-FLAC FILE ({extension}) - Must be replaced with authentic FLAC",
             "cutoff_freq": 0,
             "sample_rate": "N/A",
@@ -274,8 +293,9 @@ def main():
     # Clean up progress file after successful completion
     tracker.cleanup()
 
-    # Summary
-    suspicious = [r for r in results if r["score"] < 90]
+    # Summary (NEW SCORING: score >= 50 = suspicious)
+    suspicious_flac = [r for r in results if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
+    fake_certain = [r for r in results if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
     non_flac_count = len(all_non_flac_files)
     
     print()
@@ -283,7 +303,7 @@ def main():
     print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  FLAC files analyzed: {len(all_flac_files)}")
-    print(f"  {colorize('Suspicious FLAC files', Colors.YELLOW)}: {len([r for r in results if r['score'] < 90 and r['score'] > 0])}")
+    print(f"  {colorize('Fake/Suspicious FLAC files', Colors.RED)}: {len(suspicious_flac)} (including {len(fake_certain)} certain fakes)")
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
     print(f"  Text report: {output_file.name}")

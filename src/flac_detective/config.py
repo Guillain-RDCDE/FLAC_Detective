@@ -1,33 +1,33 @@
-"""Configuration centralisée de FLAC Detective."""
+"""Centralized configuration for FLAC Detective."""
 
 from dataclasses import dataclass
 
 
 @dataclass
 class AnalysisConfig:
-    """Configuration pour l'analyse spectrale."""
+    """Configuration for spectral analysis."""
 
-    # Durée d'échantillon à analyser (secondes)
+    # Sample duration to analyze (seconds)
     SAMPLE_DURATION: float = 30.0
 
-    # Nombre de workers pour le multi-threading
+    # Number of workers for multi-threading
     MAX_WORKERS: int = 4
 
-    # Intervalle de sauvegarde automatique (nombre de fichiers)
+    # Auto-save interval (number of files)
     SAVE_INTERVAL: int = 50
 
 
 @dataclass
 class ScoringConfig:
-    """Configuration pour le système de scoring."""
+    """Configuration for the scoring system."""
 
-    # Seuils de score
-    AUTHENTIC_THRESHOLD: int = 90  # >= 90% = Authentique
-    PROBABLY_AUTHENTIC_THRESHOLD: int = 70  # >= 70% = Probablement authentique
+    # Score thresholds
+    AUTHENTIC_THRESHOLD: int = 90  # >= 90% = Authentic
+    PROBABLY_AUTHENTIC_THRESHOLD: int = 70  # >= 70% = Probably authentic
     SUSPECT_THRESHOLD: int = 50  # >= 50% = Suspect
     # < 50% = Fake
 
-    # Pénalités
+    # Penalties
     PENALTY_LOW_ENERGY: int = 30
     PENALTY_DURATION_MISMATCH: int = 20
     PENALTY_SUSPICIOUS_METADATA: int = 10
@@ -35,42 +35,42 @@ class ScoringConfig:
 
 @dataclass
 class SpectralConfig:
-    """Configuration pour l'analyse spectrale."""
+    """Configuration for spectral analysis."""
 
-    # Zone de référence pour le calcul d'énergie (Hz)
+    # Reference zone for energy calculation (Hz)
     REFERENCE_FREQ_LOW: int = 10000
     REFERENCE_FREQ_HIGH: int = 14000
 
-    # Début du scan de coupure (Hz)
+    # Start of cutoff scan (Hz)
     CUTOFF_SCAN_START: int = 14000
 
-    # Taille des tranches d'analyse (Hz)
+    # Analysis slice size (Hz)
     TRANCHE_SIZE: int = 250
 
-    # Seuil de coupure (dB sous la référence)
+    # Cutoff threshold (dB below reference)
     CUTOFF_THRESHOLD_DB: int = 30
 
-    # Nombre de tranches consécutives faibles pour confirmer une coupure
+    # Number of consecutive low slices to confirm a cutoff
     CONSECUTIVE_LOW_THRESHOLD: int = 2
 
-    # Fréquence minimale pour l'énergie haute fréquence (Hz)
+    # Minimum frequency for high-frequency energy (Hz)
     HIGH_FREQ_THRESHOLD: int = 16000
 
 
 @dataclass
 class RepairConfig:
-    """Configuration pour le module de réparation."""
+    """Configuration for the repair module."""
 
-    # Niveau de compression FLAC (0-8, 8 = meilleur)
+    # FLAC compression level (0-8, 8 = best)
     FLAC_COMPRESSION_LEVEL: int = 5
 
-    # Créer un backup automatiquement
+    # Create backup automatically
     BACKUP_ENABLED: bool = True
 
-    # Tolérance pour la différence de durée (samples)
-    DURATION_TOLERANCE_SAMPLES: int = 588  # ~1 frame MP3 à 44.1kHz
+    # Tolerance for duration difference (samples)
+    DURATION_TOLERANCE_SAMPLES: int = 588  # ~1 MP3 frame at 44.1kHz
 
-    # Timeout pour les opérations de ré-encodage (secondes)
+    # Timeout for re-encoding operations (seconds)
     REENCODE_TIMEOUT: int = 300
 
 

@@ -8,10 +8,20 @@ FLAC Detective is a professional tool for analyzing the authenticity of your FLA
 
 ## ✨ Features
 
-- **🕵️ Advanced Spectral Analysis**: Detects frequency cutoffs typical of MP3 encoders (16kHz, 18kHz, 20kHz).
-- **📊 Intelligent Scoring**: Confidence score (0-100%) based on multiple criteria (spectrum, high-frequency energy, metadata).
+- **🕵️ Advanced 6-Rule Detection System**: 
+  - Bitrate constant MP3 detection (320, 256, 192 kbps, etc.)
+  - Frequency cutoff analysis based on sample rate
+  - Real vs apparent bitrate comparison
+  - 24-bit file validation
+  - Bitrate variance analysis to avoid false positives
+  - Bitrate coherence verification
+- **📊 4-Level Verdict System**: 
+  - FAKE_CERTAIN (score ≥ 80/100): Delete immediately
+  - FAKE_PROBABLE (score 50-79): Mark as suspicious
+  - DOUTEUX (score 30-49): Manual verification needed
+  - AUTHENTIQUE (score < 30): Keep file
 - **🔧 Automatic Repair**: Fixes duration issues (metadata consistency) by re-encoding without metadata loss.
-- **📑 Detailed Reports**: Generates detailed text reports with statistics.
+- **📑 Detailed Reports**: Generates detailed text reports with statistics and verdict breakdown.
 - **🚀 Performance**: Multi-threaded analysis to quickly process large libraries.
 
 ## 🛠️ Installation
