@@ -4,14 +4,12 @@ This test suite validates the scoring system against the 4 mandatory test cases
 from the machine specifications.
 """
 
-import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch
 from flac_detective.analysis.new_scoring import (
     new_calculate_score,
     get_cutoff_threshold,
     get_minimum_expected_bitrate,
-    calculate_real_bitrate,
     calculate_apparent_bitrate,
     MP3_STANDARD_BITRATES,
     SCORE_FAKE_CERTAIN,
@@ -24,18 +22,23 @@ class TestCutoffThresholds:
     """Test cutoff frequency thresholds based on sample rate."""
     
     def test_44100_hz_threshold(self):
+        """Test threshold for 44.1kHz."""
         assert get_cutoff_threshold(44100) == 20000
     
     def test_48000_hz_threshold(self):
+        """Test threshold for 48kHz."""
         assert get_cutoff_threshold(48000) == 22000
     
     def test_88200_hz_threshold(self):
+        """Test threshold for 88.2kHz."""
         assert get_cutoff_threshold(88200) == 40000
     
     def test_96000_hz_threshold(self):
+        """Test threshold for 96kHz."""
         assert get_cutoff_threshold(96000) == 44000
     
     def test_unknown_sample_rate_uses_45_percent(self):
+        """Test threshold for unknown sample rate."""
         # For unknown sample rates, should use 45% of sample rate
         threshold = get_cutoff_threshold(50000)
         assert threshold == 50000 * 0.45
@@ -45,21 +48,27 @@ class TestMinimumExpectedBitrate:
     """Test minimum expected bitrate calculations."""
     
     def test_44100_16bit(self):
+        """Test minimum bitrate for 44.1kHz/16bit."""
         assert get_minimum_expected_bitrate(44100, 16) == 600
     
     def test_48000_16bit(self):
+        """Test minimum bitrate for 48kHz/16bit."""
         assert get_minimum_expected_bitrate(48000, 16) == 650
     
     def test_44100_24bit(self):
+        """Test minimum bitrate for 44.1kHz/24bit."""
         assert get_minimum_expected_bitrate(44100, 24) == 900
     
     def test_48000_24bit(self):
+        """Test minimum bitrate for 48kHz/24bit."""
         assert get_minimum_expected_bitrate(48000, 24) == 1000
     
     def test_88200_24bit(self):
+        """Test minimum bitrate for 88.2kHz/24bit."""
         assert get_minimum_expected_bitrate(88200, 24) == 1800
     
     def test_96000_24bit(self):
+        """Test minimum bitrate for 96kHz/24bit."""
         assert get_minimum_expected_bitrate(96000, 24) == 2000
 
 
@@ -67,10 +76,12 @@ class TestBitrateCalculations:
     """Test bitrate calculation functions."""
     
     def test_calculate_apparent_bitrate(self):
+        """Test apparent bitrate calculation for 16-bit."""
         # 44100 Hz × 16 bits × 2 channels / 1000 = 1411.2 kbps
         assert calculate_apparent_bitrate(44100, 16, 2) == 1411
     
     def test_calculate_apparent_bitrate_24bit(self):
+        """Test apparent bitrate calculation for 24-bit."""
         # 48000 Hz × 24 bits × 2 channels / 1000 = 2304 kbps
         assert calculate_apparent_bitrate(48000, 24, 2) == 2304
 
@@ -93,6 +104,7 @@ class TestMandatoryTestCase1:
     @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
     def test_mp3_320_high_cutoff(self, mock_variance, mock_real_bitrate):
+        """Test Case 1: MP3 320 kbps with high cutoff."""
         # Mock file path
         mock_path = Mock(spec=Path)
         
@@ -147,6 +159,7 @@ class TestMandatoryTestCase2:
     @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
     def test_mp3_256_24bit(self, mock_variance, mock_real_bitrate):
+        """Test Case 2: MP3 256 kbps in 24-bit container."""
         # Mock file path
         mock_path = Mock(spec=Path)
         
@@ -202,6 +215,7 @@ class TestMandatoryTestCase3:
     @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
     def test_authentic_poor_quality(self, mock_variance, mock_real_bitrate):
+        """Test Case 3: Authentic FLAC with poor quality (e.g. vinyl rip)."""
         # Mock file path
         mock_path = Mock(spec=Path)
         
@@ -255,6 +269,7 @@ class TestMandatoryTestCase4:
     @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
     def test_authentic_high_quality(self, mock_variance, mock_real_bitrate):
+        """Test Case 4: Authentic high-quality FLAC."""
         # Mock file path
         mock_path = Mock(spec=Path)
         

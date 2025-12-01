@@ -1,7 +1,7 @@
 """Quality score calculation for FLAC files."""
 
 import logging
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 

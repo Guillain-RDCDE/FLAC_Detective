@@ -1,0 +1,4 @@
+src\flac_detective\analysis\quality.py:284: error: Incompatible default for argument "metadata" (default has type "None", argument has type "dict[Any, Any]")  [assignment]
+src\flac_detective\analysis\quality.py:284: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+src\flac_detective\analysis\quality.py:284: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+Found 1 error in 1 file (checked 25 source files)

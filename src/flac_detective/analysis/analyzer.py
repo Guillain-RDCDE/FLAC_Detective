@@ -6,7 +6,7 @@ from typing import Dict
 
 from .metadata import check_duration_consistency, read_metadata
 from .quality import analyze_audio_quality
-from .scoring import calculate_score, estimate_mp3_bitrate
+from .scoring import estimate_mp3_bitrate
 from .new_scoring import new_calculate_score
 from .spectrum import analyze_spectrum
 

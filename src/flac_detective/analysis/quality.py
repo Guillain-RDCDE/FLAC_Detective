@@ -258,7 +258,7 @@ def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
         return {"is_upsampled": False, "suspected_original_rate": samplerate}
 
     # Theoretical Nyquist
-    nyquist = samplerate / 2
+    # nyquist = samplerate / 2 (unused)
     
     # If 96kHz (Nyquist 48k) but cuts at 22k -> Upsample from 44.1k
     # If cuts at 24k -> Upsample from 48k
@@ -281,7 +281,7 @@ def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
     }
 
 
-def analyze_audio_quality(filepath: Path, metadata: Dict = None, cutoff_freq: float = 0.0) -> Dict[str, Any]:
+def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_freq: float = 0.0) -> Dict[str, Any]:
     """Complete audio quality analysis of a file.
 
     Combines all quality detections into a single analysis.
