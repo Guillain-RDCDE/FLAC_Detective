@@ -6,11 +6,13 @@ This module implements a 0-100 point scoring system where:
 - Score >= 50: FAKE_PROBABLE
 - Score >= 30: DOUTEUX
 - Score < 30: AUTHENTIQUE
+
+Range: 0-150 points
 """
 
 import logging
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 import soundfile as sf
 
 logger = logging.getLogger(__name__)
@@ -20,7 +22,6 @@ class BitrateMetrics(NamedTuple):
     """Container for bitrate-related metrics."""
     real_bitrate: float
     apparent_bitrate: int
-    minimum_expected_bitrate: int
     variance: float
 
 
@@ -34,6 +35,18 @@ class AudioMetadata(NamedTuple):
 
 # MP3 Standard Bitrates (kbps) - IMMUTABLE
 MP3_STANDARD_BITRATES = [96, 128, 160, 192, 224, 256, 320]
+
+# MP3 Bitrate Signatures (Frequency Ranges)
+# Format: (bitrate_kbps, min_freq, max_freq)
+# Ranges are slightly overlapping or contiguous to catch edge cases
+MP3_SIGNATURES = [
+    (320, 19500, 21500),  # 320 kbps: ~19.5-21.5 kHz (often 20.5k)
+    (256, 18500, 19500),  # 256 kbps: ~18.5-19.5 kHz
+    (224, 17500, 18500),  # 224 kbps: ~17.5-18.5 kHz
+    (192, 16500, 17500),  # 192 kbps: ~16.5-17.5 kHz
+    (160, 15500, 16500),  # 160 kbps: ~15.5-16.5 kHz
+    (128, 10000, 15500),  # 128 kbps or lower: < 15.5 kHz
+]
 
 # Bitrate tolerance (kbps)
 BITRATE_TOLERANCE = 10
@@ -54,6 +67,9 @@ COHERENT_BITRATE_THRESHOLD = 800
 
 # Coherence tolerance (kbps)
 COHERENCE_TOLERANCE = 100
+
+# Apparent bitrate threshold for Rule 3 (kbps)
+SEUIL_BITRATE_APPARENT_ELEVE = 600
 
 # Default number of segments for variance calculation
 DEFAULT_VARIANCE_SEGMENTS = 10
@@ -88,33 +104,22 @@ def get_cutoff_threshold(sample_rate: int) -> float:
     return sample_rate * 0.45
 
 
-def get_minimum_expected_bitrate(sample_rate: int, bit_depth: int) -> int:
-    """Get minimum expected bitrate for authentic FLAC.
+def estimate_mp3_bitrate(cutoff_freq: float) -> int:
+    """Estimates the original MP3 bitrate based on cutoff frequency.
 
     Args:
-        sample_rate: Sample rate in Hz
-        bit_depth: Bits per sample
+        cutoff_freq: Detected cutoff frequency in Hz.
 
     Returns:
-        Minimum expected bitrate in kbps
+        Estimated bitrate in kbps, or 0 if no match found.
     """
-    # Bitrate minimums according to format
-    bitrate_map = {
-        (44100, 16): 600,
-        (48000, 16): 650,
-        (44100, 24): 900,
-        (48000, 24): 1000,
-        (88200, 24): 1800,
-        (96000, 24): 2000,
-    }
+    for bitrate, min_f, max_f in MP3_SIGNATURES:
+        if min_f <= cutoff_freq < max_f:
+            return bitrate
+    return 0
 
-    key = (sample_rate, bit_depth)
-    if key in bitrate_map:
-        return bitrate_map[key]
 
-    # Default calculation: sample_rate * bit_depth * channels * compression_ratio / 1000
-    # Assuming stereo and ~0.6 compression ratio for FLAC
-    return int(sample_rate * bit_depth * 2 * 0.6 / 1000)
+
 
 
 def calculate_real_bitrate(filepath: Path, duration: float) -> float:
@@ -130,14 +135,16 @@ def calculate_real_bitrate(filepath: Path, duration: float) -> float:
     try:
         file_size_bytes = filepath.stat().st_size
         if duration <= 0:
+            logger.warning(f"Invalid duration {duration}s for {filepath.name}, cannot calculate bitrate")
             return 0
 
         # Bitrate = (file_size_bytes × 8) / (duration_seconds × 1000)
         bitrate_kbps = (file_size_bytes * 8) / (duration * 1000)
+        logger.info(f"Real bitrate calculated: {bitrate_kbps:.1f} kbps (size={file_size_bytes} bytes, duration={duration:.1f}s)")
         return bitrate_kbps
 
     except Exception as e:
-        logger.debug(f"Error calculating real bitrate: {e}")
+        logger.error(f"Error calculating real bitrate: {e}")
         return 0
 
 
@@ -215,17 +222,17 @@ def calculate_bitrate_variance(
         return 0.0
 
 
-def _apply_rule_1_mp3_bitrate(real_bitrate: float) -> Tuple[int, List[str]]:
-    """Apply Rule 1: Constant MP3 Bitrate Detection.
+def _apply_rule_1_mp3_bitrate(cutoff_freq: float) -> Tuple[int, List[str]]:
+    """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
-    Detects if the file's real bitrate matches a standard MP3 bitrate (96, 128, 160,
-    192, 224, 256, 320 kbps). This is a strong indicator of a transcoded file.
+    Detects if the file's spectral cutoff matches a standard MP3 bitrate signature.
+    This allows detecting MP3s recompressed as FLACs (Fake FLACs).
 
     Scoring:
-        +50 points if bitrate matches any standard MP3 bitrate (within tolerance)
+        +50 points if estimated spectral bitrate matches a standard MP3 bitrate
 
     Args:
-        real_bitrate: Actual file bitrate in kbps
+        cutoff_freq: Detected cutoff frequency in Hz
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
@@ -233,17 +240,16 @@ def _apply_rule_1_mp3_bitrate(real_bitrate: float) -> Tuple[int, List[str]]:
     score = 0
     reasons = []
 
-    for mp3_bitrate in MP3_STANDARD_BITRATES:
-        bitrate_difference = abs(real_bitrate - mp3_bitrate)
-        if bitrate_difference <= BITRATE_TOLERANCE:
-            score += 50
-            reasons.append(f"Constant MP3 bitrate detected: {mp3_bitrate} kbps")
-            logger.debug(
-                f"RULE 1: +50 points (bitrate {real_bitrate:.1f} ≈ {mp3_bitrate} kbps)"
-            )
-            break
+    estimated_bitrate = estimate_mp3_bitrate(cutoff_freq)
 
-    return score, reasons
+    if estimated_bitrate in MP3_STANDARD_BITRATES:
+        score += 50
+        reasons.append(f"Constant MP3 bitrate detected (Spectral): {estimated_bitrate} kbps")
+        logger.info(
+            f"RULE 1: +50 points (cutoff {cutoff_freq:.0f} Hz ~= {estimated_bitrate} kbps MP3)"
+        )
+
+    return (score, reasons), estimated_bitrate
 
 
 def _apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List[str]]:
@@ -273,8 +279,7 @@ def _apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, Lis
         cutoff_penalty = min(frequency_deficit / 200, 30)
         score += int(cutoff_penalty)
         reasons.append(
-            f"Low cutoff frequency: {cutoff_freq:.0f} Hz "
-            f"(threshold: {cutoff_threshold:.0f} Hz, +{cutoff_penalty:.0f} pts)"
+            f"R2: Cutoff {cutoff_freq:.0f} Hz < {cutoff_threshold:.0f} Hz (+{cutoff_penalty:.0f}pts)"
         )
         logger.debug(
             f"RULE 2: +{cutoff_penalty:.0f} points "
@@ -284,21 +289,20 @@ def _apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, Lis
     return score, reasons
 
 
-def _apply_rule_3_real_vs_expected(
-    real_bitrate: float, apparent_bitrate: int, minimum_expected_bitrate: int
+def _apply_rule_3_source_vs_container(
+    mp3_bitrate_detected: Optional[int], bitrate_conteneur: float
 ) -> Tuple[int, List[str]]:
-    """Apply Rule 3: Real Bitrate vs Expected Bitrate.
+    """Apply Rule 3: Source Bitrate vs Container Bitrate.
 
-    Detects files with suspiciously low real bitrate despite high apparent bitrate.
-    This catches lossy files (like MP3) that have been upsampled to higher specs.
+    Detects files where the detected MP3 source bitrate is much lower than
+    the FLAC container bitrate, proving it's a converted MP3.
 
     Scoring:
-        +50 points if real bitrate < 400 kbps AND apparent bitrate > minimum expected
+        +50 points if mp3_bitrate_detected exists AND bitrate_conteneur > 600 kbps
 
     Args:
-        real_bitrate: Actual file bitrate in kbps
-        apparent_bitrate: Theoretical bitrate based on sample rate and bit depth
-        minimum_expected_bitrate: Minimum bitrate expected for authentic FLAC
+        mp3_bitrate_detected: Detected MP3 bitrate from spectral analysis (or None)
+        bitrate_conteneur: Physical bitrate of the FLAC file in kbps
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
@@ -306,38 +310,35 @@ def _apply_rule_3_real_vs_expected(
     score = 0
     reasons = []
 
-    # Low real bitrate threshold
-    LOW_BITRATE_THRESHOLD = 400
+    # Container bitrate threshold
+    CONTAINER_THRESHOLD = 600
 
-    is_real_too_low = real_bitrate < LOW_BITRATE_THRESHOLD
-    is_apparent_high = apparent_bitrate > minimum_expected_bitrate
-
-    if is_real_too_low and is_apparent_high:
+    if mp3_bitrate_detected is not None and bitrate_conteneur > CONTAINER_THRESHOLD:
         score += 50
         reasons.append(
-            f"Real bitrate too low: {real_bitrate:.0f} kbps "
-            f"(expected: >{minimum_expected_bitrate} kbps)"
+            f"R3: Source {mp3_bitrate_detected} kbps vs conteneur {bitrate_conteneur:.0f} kbps"
         )
-        logger.debug(
-            f"RULE 3: +50 points (real {real_bitrate:.0f} < 400 "
-            f"and apparent {apparent_bitrate} > minimum {minimum_expected_bitrate})"
+        logger.info(
+            f"RULE 3: +50 points (source {mp3_bitrate_detected} kbps vs container {bitrate_conteneur:.0f} kbps)"
         )
 
     return score, reasons
 
 
-def _apply_rule_4_24bit(bit_depth: int, real_bitrate: float) -> Tuple[int, List[str]]:
-    """Apply Rule 4: 24-bit File Exception.
+def _apply_rule_4_24bit_suspect(
+    bit_depth: int, mp3_bitrate_detected: Optional[int]
+) -> Tuple[int, List[str]]:
+    """Apply Rule 4: 24-bit Suspicious Files.
 
-    Detects 24-bit files with suspiciously low bitrate. Authentic 24-bit FLAC files
-    should have significantly higher bitrates than 16-bit files.
+    Detects 24-bit files with suspiciously low MP3 source bitrate.
+    Authentic 24-bit FLAC files should have high bitrates (> 500 kbps).
 
     Scoring:
-        +30 points if bit depth is 24-bit AND real bitrate < 500 kbps
+        +30 points if bit depth is 24-bit AND mp3_bitrate_detected exists AND < 500 kbps
 
     Args:
         bit_depth: Bits per sample (16 or 24)
-        real_bitrate: Actual file bitrate in kbps
+        mp3_bitrate_detected: Detected MP3 bitrate from spectral analysis (or None)
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
@@ -349,15 +350,16 @@ def _apply_rule_4_24bit(bit_depth: int, real_bitrate: float) -> Tuple[int, List[
     MIN_24BIT_BITRATE = 500
 
     is_24bit = bit_depth == 24
-    is_bitrate_too_low = real_bitrate < MIN_24BIT_BITRATE
+    has_mp3_detected = mp3_bitrate_detected is not None
+    is_mp3_bitrate_low = mp3_bitrate_detected < MIN_24BIT_BITRATE if has_mp3_detected else False
 
-    if is_24bit and is_bitrate_too_low:
+    if is_24bit and has_mp3_detected and is_mp3_bitrate_low:
         score += 30
         reasons.append(
-            f"Suspicious 24-bit file: real bitrate {real_bitrate:.0f} kbps < {MIN_24BIT_BITRATE} kbps"
+            f"R4: 24-bit avec bitrate source {mp3_bitrate_detected} kbps (upscale suspect)"
         )
-        logger.debug(
-            f"RULE 4: +30 points (24-bit with bitrate {real_bitrate:.0f} < {MIN_24BIT_BITRATE})"
+        logger.info(
+            f"RULE 4: +30 points (24-bit with MP3 source {mp3_bitrate_detected} kbps < {MIN_24BIT_BITRATE})"
         )
 
     return score, reasons
@@ -402,40 +404,40 @@ def _apply_rule_5_high_variance(
     return score, reasons
 
 
-def _apply_rule_6_coherence(
-    real_bitrate: float, apparent_bitrate: int
+def _apply_rule_6_variable_bitrate_protection(
+    mp3_bitrate_detected: Optional[int], bitrate_conteneur: float
 ) -> Tuple[int, List[str]]:
-    """Apply Rule 6: Avoid False Positives - Bitrate Coherence.
+    """Apply Rule 6: Avoid False Positives - High Variable Bitrate Protection.
 
-    Reduces score for files where real and apparent bitrates are coherent (similar)
-    and both are high. This indicates an authentic high-quality FLAC file.
+    Protects authentic high-quality FLAC files with variable bitrate from being
+    marked as suspicious due to slightly low cutoff (old recording equipment).
 
     Scoring:
-        -30 points if |real - apparent| < 100 kbps AND real > 800 kbps
+        -30 points if mp3_bitrate_detected is None AND bitrate_conteneur > 800 kbps
 
     Args:
-        real_bitrate: Actual file bitrate in kbps
-        apparent_bitrate: Theoretical bitrate based on sample rate and bit depth
+        mp3_bitrate_detected: Detected MP3 bitrate from spectral analysis (or None)
+        bitrate_conteneur: Physical bitrate of the FLAC file in kbps
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
     reasons = []
-    bitrate_diff = abs(real_bitrate - apparent_bitrate)
 
-    is_coherent = bitrate_diff < COHERENCE_TOLERANCE
-    is_high_bitrate = real_bitrate > COHERENT_BITRATE_THRESHOLD
+    # High bitrate threshold for authentic FLAC protection
+    HIGH_BITRATE_THRESHOLD = 800
 
-    if is_coherent and is_high_bitrate:
+    is_variable_bitrate = mp3_bitrate_detected is None
+    is_high_bitrate = bitrate_conteneur > HIGH_BITRATE_THRESHOLD
+
+    if is_variable_bitrate and is_high_bitrate:
         score -= 30
         reasons.append(
-            f"Coherent bitrates: real={real_bitrate:.0f} kbps ≈ "
-            f"apparent={apparent_bitrate} kbps (-30 pts)"
+            f"R6: Bitrate variable élevé ({bitrate_conteneur:.0f} kbps) → Authentique (-30pts)"
         )
-        logger.debug(
-            f"RULE 6: -30 points (coherence {bitrate_diff:.0f} < {COHERENCE_TOLERANCE} "
-            f"and bitrate {real_bitrate:.0f} > {COHERENT_BITRATE_THRESHOLD})"
+        logger.info(
+            f"RULE 6: -30 points (variable bitrate with high container {bitrate_conteneur:.0f} kbps)"
         )
 
     return score, reasons
@@ -511,23 +513,17 @@ def _calculate_bitrate_metrics(
         audio_meta.bit_depth,
         audio_meta.channels
     )
-    minimum_expected_bitrate = get_minimum_expected_bitrate(
-        audio_meta.sample_rate,
-        audio_meta.bit_depth
-    )
     variance = calculate_bitrate_variance(filepath, audio_meta.sample_rate)
 
-    logger.debug(
+    logger.info(
         f"Bitrate analysis: real={real_bitrate:.1f} kbps, "
         f"apparent={apparent_bitrate} kbps, "
-        f"minimum_expected={minimum_expected_bitrate} kbps, "
         f"variance={variance:.1f} kbps"
     )
 
     return BitrateMetrics(
         real_bitrate=real_bitrate,
         apparent_bitrate=apparent_bitrate,
-        minimum_expected_bitrate=minimum_expected_bitrate,
         variance=variance
     )
 
@@ -550,23 +546,25 @@ def _apply_scoring_rules(
     total_score = 0
     all_reasons: List[str] = []
 
+    # Apply Rule 1 first to get the detected MP3 bitrate
+    rule1_result, mp3_bitrate_detected = _apply_rule_1_mp3_bitrate(cutoff_freq)
+    
     # Apply all 6 rules
     rule_results = [
-        _apply_rule_1_mp3_bitrate(bitrate_metrics.real_bitrate),
+        rule1_result,
         _apply_rule_2_cutoff(cutoff_freq, audio_meta.sample_rate),
-        _apply_rule_3_real_vs_expected(
-            bitrate_metrics.real_bitrate,
-            bitrate_metrics.apparent_bitrate,
-            bitrate_metrics.minimum_expected_bitrate
+        _apply_rule_3_source_vs_container(
+            mp3_bitrate_detected,
+            bitrate_metrics.real_bitrate
         ),
-        _apply_rule_4_24bit(audio_meta.bit_depth, bitrate_metrics.real_bitrate),
+        _apply_rule_4_24bit_suspect(audio_meta.bit_depth, mp3_bitrate_detected),
         _apply_rule_5_high_variance(
             bitrate_metrics.real_bitrate,
             bitrate_metrics.variance
         ),
-        _apply_rule_6_coherence(
-            bitrate_metrics.real_bitrate,
-            bitrate_metrics.apparent_bitrate
+        _apply_rule_6_variable_bitrate_protection(
+            mp3_bitrate_detected,
+            bitrate_metrics.real_bitrate
         ),
     ]
 
@@ -598,8 +596,30 @@ def new_calculate_score(
     Returns:
         Tuple of (score, verdict, confidence, reasons_str)
     """
+    logger.info(f"\n{'='*60}")
+    logger.info(f"Starting score calculation for: {filepath.name}")
+    logger.info(f"Metadata received: {metadata}")
+    logger.info(f"Cutoff frequency: {cutoff_freq:.1f} Hz")
+    logger.info(f"{'='*60}")
+    
     # Parse and validate metadata
     audio_meta = _parse_metadata(metadata)
+    
+    # Validate duration
+    if audio_meta.duration <= 0:
+        logger.warning(f"Duration is {audio_meta.duration}, attempting to read from file...")
+        try:
+            import soundfile as sf
+            info = sf.info(filepath)
+            audio_meta = AudioMetadata(
+                sample_rate=audio_meta.sample_rate,
+                bit_depth=audio_meta.bit_depth,
+                channels=audio_meta.channels,
+                duration=info.duration
+            )
+            logger.info(f"Duration corrected to {info.duration:.1f}s from soundfile")
+        except Exception as e:
+            logger.error(f"Could not read duration from file: {e}")
 
     # Calculate all bitrate metrics
     bitrate_metrics = _calculate_bitrate_metrics(filepath, audio_meta)
@@ -614,7 +634,9 @@ def new_calculate_score(
     reasons_str = " | ".join(reasons) if reasons else "No anomaly detected"
 
     logger.info(
-        f"Final score: {score}/100 - Verdict: {verdict} - Confidence: {confidence}"
+        f"Final score: {score}/150 - Verdict: {verdict} - Confidence: {confidence}"
     )
+    logger.info(f"Reasons: {reasons_str}")
+    logger.info(f"{'='*60}\n")
 
     return score, verdict, confidence, reasons_str
