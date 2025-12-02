@@ -222,7 +222,7 @@ def calculate_bitrate_variance(
         return 0.0
 
 
-def _apply_rule_1_mp3_bitrate(cutoff_freq: float) -> Tuple[int, List[str]]:
+def _apply_rule_1_mp3_bitrate(cutoff_freq: float) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
     Detects if the file's spectral cutoff matches a standard MP3 bitrate signature.
@@ -235,7 +235,7 @@ def _apply_rule_1_mp3_bitrate(cutoff_freq: float) -> Tuple[int, List[str]]:
         cutoff_freq: Detected cutoff frequency in Hz
 
     Returns:
-        Tuple of (score_delta, list_of_reasons)
+        Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
     """
     score = 0
     reasons = []
@@ -350,10 +350,8 @@ def _apply_rule_4_24bit_suspect(
     MIN_24BIT_BITRATE = 500
 
     is_24bit = bit_depth == 24
-    has_mp3_detected = mp3_bitrate_detected is not None
-    is_mp3_bitrate_low = mp3_bitrate_detected < MIN_24BIT_BITRATE if has_mp3_detected else False
 
-    if is_24bit and has_mp3_detected and is_mp3_bitrate_low:
+    if is_24bit and mp3_bitrate_detected is not None and mp3_bitrate_detected < MIN_24BIT_BITRATE:
         score += 30
         reasons.append(
             f"R4: 24-bit avec bitrate source {mp3_bitrate_detected} kbps (upscale suspect)"
