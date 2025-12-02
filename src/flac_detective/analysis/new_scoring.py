@@ -238,7 +238,17 @@ def _apply_rule_1_mp3_bitrate(cutoff_freq: float) -> Tuple[Tuple[int, List[str]]
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
     """
     score = 0
-    reasons = []
+    reasons: List[str] = []
+    
+    # Safety check: If cutoff > 21 kHz, it's likely an authentic high-quality FLAC
+    # MP3s never have cutoffs above 21 kHz (even 320 kbps tops out around 20.5 kHz)
+    HIGH_QUALITY_CUTOFF_THRESHOLD = 21000
+    
+    if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
+        logger.debug(
+            f"RULE 1: Skipped (cutoff {cutoff_freq:.0f} Hz > {HIGH_QUALITY_CUTOFF_THRESHOLD} Hz, likely authentic FLAC)"
+        )
+        return (score, reasons), None
 
     estimated_bitrate = estimate_mp3_bitrate(cutoff_freq)
 
