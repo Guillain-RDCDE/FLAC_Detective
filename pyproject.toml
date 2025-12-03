@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "0.2.0"
+version = "0.4.0"
 description = "Analyse et réparation de fichiers FLAC avec détection de problèmes audio"
 readme = "README_FLAC_DETECTIVE.md"
 requires-python = ">=3.8"

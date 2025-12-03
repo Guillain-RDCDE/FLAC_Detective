@@ -64,6 +64,12 @@ output/
 logs/
 *.log
 
+# Debug and test files
+debug_*.py
+debug_*.txt
+test_output*.txt
+*_report.txt
+
 # Jupyter Notebook
 .ipynb_checkpoints
 

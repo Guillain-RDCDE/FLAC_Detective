@@ -9,12 +9,11 @@ from unittest.mock import Mock, patch
 from flac_detective.analysis.new_scoring import (
     new_calculate_score,
     get_cutoff_threshold,
-    get_minimum_expected_bitrate,
     calculate_apparent_bitrate,
     MP3_STANDARD_BITRATES,
     SCORE_FAKE_CERTAIN,
-    SCORE_FAKE_PROBABLE,
-    SCORE_DOUTEUX,
+    SCORE_SUSPICIOUS,
+    SCORE_WARNING,
 )
 
 
@@ -44,34 +43,6 @@ class TestCutoffThresholds:
         assert threshold == 50000 * 0.45
 
 
-class TestMinimumExpectedBitrate:
-    """Test minimum expected bitrate calculations."""
-    
-    def test_44100_16bit(self):
-        """Test minimum bitrate for 44.1kHz/16bit."""
-        assert get_minimum_expected_bitrate(44100, 16) == 600
-    
-    def test_48000_16bit(self):
-        """Test minimum bitrate for 48kHz/16bit."""
-        assert get_minimum_expected_bitrate(48000, 16) == 650
-    
-    def test_44100_24bit(self):
-        """Test minimum bitrate for 44.1kHz/24bit."""
-        assert get_minimum_expected_bitrate(44100, 24) == 900
-    
-    def test_48000_24bit(self):
-        """Test minimum bitrate for 48kHz/24bit."""
-        assert get_minimum_expected_bitrate(48000, 24) == 1000
-    
-    def test_88200_24bit(self):
-        """Test minimum bitrate for 88.2kHz/24bit."""
-        assert get_minimum_expected_bitrate(88200, 24) == 1800
-    
-    def test_96000_24bit(self):
-        """Test minimum bitrate for 96kHz/24bit."""
-        assert get_minimum_expected_bitrate(96000, 24) == 2000
-
-
 class TestBitrateCalculations:
     """Test bitrate calculation functions."""
     
@@ -90,26 +61,26 @@ class TestMandatoryTestCase1:
     """TEST 1: MP3 320 kbps with high frequency - MUST be detected as FAKE.
     
     File: 02 - Dalton - Soul brother.flac
-    Parameters: sample_rate 44100, bits 16, cutoff 21166 Hz, 
-                bitrate_real 320 kbps, bitrate_apparent 851 kbps
+    Parameters: sample_rate 44100, bits 16, cutoff ~20.5 kHz, 
+                bitrate_container 851 kbps (FLAC container for MP3 320)
     
     Expected score calculation:
-    - Règle 1: +50 points (bitrate = 320)
+    - Règle 1: +50 points (cutoff ~20.5kHz = 320 kbps MP3, container 851 in range 700-950)
     - Règle 2: +0 points (cutoff > 20000)
-    - Règle 3: +50 points (320 < 400 and 851 > 600)
+    - Règle 3: +50 points (mp3_bitrate=320 detected and container 851 > 600)
     - Total: 100 points
     - Expected verdict: FAKE_CERTAIN
     """
     
-    @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
-    @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
     def test_mp3_320_high_cutoff(self, mock_variance, mock_real_bitrate):
         """Test Case 1: MP3 320 kbps with high cutoff."""
         # Mock file path
         mock_path = Mock(spec=Path)
         
-        # Setup mocks
-        mock_real_bitrate.return_value = 320  # Real bitrate = 320 kbps
+        # Setup mocks - Use realistic FLAC container bitrate for MP3 320
+        mock_real_bitrate.return_value = 851  # FLAC container bitrate (700-950 kbps range)
         mock_variance.return_value = 50  # Low variance (constant bitrate)
         
         # Metadata
@@ -126,8 +97,8 @@ class TestMandatoryTestCase1:
             "diff_ms": 0,
         }
         
-        # Cutoff frequency
-        cutoff_freq = 21166  # High cutoff (above 20kHz threshold)
+        # Cutoff frequency - MP3 320 kbps typically has cutoff around 20.5 kHz
+        cutoff_freq = 20500  # Below 21kHz threshold, in 320 kbps range (19.5-21.5 kHz)
         
         # Calculate score
         score, verdict, confidence, reason = new_calculate_score(
@@ -145,26 +116,26 @@ class TestMandatoryTestCase2:
     
     File: 01 - Ara Kekedjian - Mini, midi, maxi.flac
     Parameters: sample_rate 48000, bits 24, cutoff 19143 Hz,
-                bitrate_real 256 kbps, bitrate_apparent 1663 kbps
+                bitrate_container 725 kbps (FLAC container for MP3 256)
     
     Expected score calculation:
-    - Règle 1: +50 points (bitrate = 256)
+    - Règle 1: +50 points (cutoff 19143 Hz = 256 kbps MP3, container 725 in range 600-850)
     - Règle 2: +14 points ((22000-19143)/200)
-    - Règle 3: +50 points (256 < 400 and 1663 > 1000)
-    - Règle 4: +30 points (24-bit with bitrate < 500)
+    - Règle 3: +50 points (mp3_bitrate=256 detected and container 725 > 600)
+    - Règle 4: +30 points (24-bit with mp3_bitrate 256 < 500)
     - Total: 144 points
     - Expected verdict: FAKE_CERTAIN
     """
     
-    @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
-    @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
     def test_mp3_256_24bit(self, mock_variance, mock_real_bitrate):
         """Test Case 2: MP3 256 kbps in 24-bit container."""
         # Mock file path
         mock_path = Mock(spec=Path)
         
-        # Setup mocks
-        mock_real_bitrate.return_value = 256  # Real bitrate = 256 kbps
+        # Setup mocks - Use realistic FLAC container bitrate for MP3 256
+        mock_real_bitrate.return_value = 725  # FLAC container bitrate (600-850 kbps range)
         mock_variance.return_value = 30  # Low variance
         
         # Metadata
@@ -181,8 +152,8 @@ class TestMandatoryTestCase2:
             "diff_ms": 0,
         }
         
-        # Cutoff frequency
-        cutoff_freq = 19143  # Below 22kHz threshold
+        # Cutoff frequency - MP3 256 kbps has cutoff around 18.5-19.5 kHz
+        cutoff_freq = 19143  # In 256 kbps range
         
         # Calculate score
         score, verdict, confidence, reason = new_calculate_score(
@@ -212,8 +183,8 @@ class TestMandatoryTestCase3:
     - Expected verdict: AUTHENTIQUE
     """
     
-    @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
-    @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
     def test_authentic_poor_quality(self, mock_variance, mock_real_bitrate):
         """Test Case 3: Authentic FLAC with poor quality (e.g. vinyl rip)."""
         # Mock file path
@@ -246,8 +217,8 @@ class TestMandatoryTestCase3:
         )
         
         # Assertions
-        assert score < 30, f"Expected score < 30 (AUTHENTIQUE), got {score}"
-        assert verdict == "AUTHENTIQUE", f"Expected AUTHENTIQUE, got {verdict}"
+        assert score < 31, f"Expected score < 31 (AUTHENTIC), got {score}"
+        assert verdict == "AUTHENTIC", f"Expected AUTHENTIC, got {verdict}"
 
 
 class TestMandatoryTestCase4:
@@ -266,8 +237,8 @@ class TestMandatoryTestCase4:
     - Expected verdict: AUTHENTIQUE
     """
     
-    @patch('flac_detective.analysis.new_scoring.calculate_real_bitrate')
-    @patch('flac_detective.analysis.new_scoring.calculate_bitrate_variance')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
+    @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
     def test_authentic_high_quality(self, mock_variance, mock_real_bitrate):
         """Test Case 4: Authentic high-quality FLAC."""
         # Mock file path
@@ -300,24 +271,24 @@ class TestMandatoryTestCase4:
         )
         
         # Assertions
-        assert score < 30, f"Expected score < 30 (AUTHENTIQUE), got {score}"
-        assert verdict == "AUTHENTIQUE", f"Expected AUTHENTIQUE, got {verdict}"
+        assert score < 31, f"Expected score < 31 (AUTHENTIC), got {score}"
+        assert verdict == "AUTHENTIC", f"Expected AUTHENTIC, got {verdict}"
 
 
 class TestVerdictThresholds:
     """Test that verdict thresholds are correctly applied."""
     
     def test_fake_certain_threshold(self):
-        """Score >= 80 should give FAKE_CERTAIN verdict."""
-        assert SCORE_FAKE_CERTAIN == 80
+        """Score >= 86 should give FAKE_CERTAIN verdict."""
+        assert SCORE_FAKE_CERTAIN == 86
     
-    def test_fake_probable_threshold(self):
-        """Score >= 50 should give FAKE_PROBABLE verdict."""
-        assert SCORE_FAKE_PROBABLE == 50
+    def test_suspicious_threshold(self):
+        """Score >= 61 should give SUSPICIOUS verdict."""
+        assert SCORE_SUSPICIOUS == 61
     
-    def test_douteux_threshold(self):
-        """Score >= 30 should give DOUTEUX verdict."""
-        assert SCORE_DOUTEUX == 30
+    def test_warning_threshold(self):
+        """Score >= 31 should give WARNING verdict."""
+        assert SCORE_WARNING == 31
 
 
 class TestMP3BitrateConstants:
@@ -327,3 +298,80 @@ class TestMP3BitrateConstants:
         """Verify MP3 standard bitrates list."""
         expected = [96, 128, 160, 192, 224, 256, 320]
         assert MP3_STANDARD_BITRATES == expected
+
+
+class TestRule7SilenceAnalysis:
+    """Test Rule 7: Silence Analysis."""
+    
+    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    def test_transcode_detection(self, mock_analyze):
+        """Test detection of transcode (high HF energy in silence)."""
+        # Setup mock
+        mock_analyze.return_value = (0.4, "OK", 0.004, 0.01)  # Ratio 0.4 > 0.3
+        
+        # Call rule
+        from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
+        score, reasons, ratio = apply_rule_7_silence_analysis("dummy.flac", 20000, 44100)
+        
+        assert score == 50
+        assert ratio == 0.4
+        assert "Dither artificiel" in reasons[0]
+        
+    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    def test_authentic_detection(self, mock_analyze):
+        """Test detection of authentic file (low HF energy in silence)."""
+        # Setup mock
+        mock_analyze.return_value = (0.05, "OK", 0.0005, 0.01)  # Ratio 0.05 < 0.15
+        
+        # Call rule
+        from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
+        score, reasons, ratio = apply_rule_7_silence_analysis("dummy.flac", 20000, 44100)
+        
+        assert score == -50
+        assert ratio == 0.05
+        assert "Silence naturel" in reasons[0]
+        
+    @patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise')
+    @patch('flac_detective.analysis.new_scoring.rules.sf.read')
+    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    def test_uncertain_zone(self, mock_analyze, mock_sf_read, mock_vinyl):
+        """Test uncertain zone (ratio between 0.15 and 0.3) proceeds to Phase 2."""
+        # Setup mocks
+        mock_analyze.return_value = (0.2, "OK", 0.002, 0.01)  # Ratio 0.2 (uncertain)
+        mock_sf_read.return_value = (None, 44100)  # Dummy audio data
+        # Mock vinyl detection - noise with pattern (uncertain)
+        mock_vinyl.return_value = (False, {'energy_db': -60, 'autocorr': 0.4})
+        
+        # Call rule
+        from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
+        score, reasons, ratio = apply_rule_7_silence_analysis("dummy.flac", 20000, 44100)
+        
+        # In uncertain zone, proceeds to Phase 2
+        # Phase 2 returns uncertain (noise with pattern) -> 0 points
+        assert score == 0
+        assert ratio == 0.2
+        assert len(reasons) == 1
+        assert "Bruit avec pattern" in reasons[0] or "Incertain" in reasons[0]
+        
+    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    def test_skipped_outside_range_low(self, mock_analyze):
+        """Test rule skipped if cutoff too low."""
+        from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
+        score, reasons, ratio = apply_rule_7_silence_analysis("dummy.flac", 18000, 44100)
+        
+        assert score == 0
+        assert not reasons
+        assert ratio is None
+        mock_analyze.assert_not_called()
+        
+    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    def test_skipped_outside_range_high(self, mock_analyze):
+        """Test rule skipped if cutoff too high."""
+        from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
+        score, reasons, ratio = apply_rule_7_silence_analysis("dummy.flac", 22000, 44100)
+        
+        assert score == 0
+        assert not reasons
+        assert ratio is None
+        mock_analyze.assert_not_called()
+

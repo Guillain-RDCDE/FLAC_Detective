@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 import soundfile as sf
@@ -14,7 +14,7 @@ from ..config import spectral_config
 logger = logging.getLogger(__name__)
 
 
-def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[float, float]:
+def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
@@ -24,9 +24,10 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[flo
         sample_duration: Duration in seconds to analyze.
 
     Returns:
-        Tuple (cutoff_frequency, energy_ratio) where:
+        Tuple (cutoff_frequency, energy_ratio, cutoff_std) where:
         - cutoff_frequency: detected cutoff frequency in Hz
         - energy_ratio: energy ratio in high frequencies
+        - cutoff_std: standard deviation of cutoff frequency
     """
     try:
         # Read entire file to know its duration
@@ -89,16 +90,20 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[flo
         # For energy, we also take min() to be consistent
         final_energy = min(energy_ratios)
 
+        # Calculate standard deviation of cutoffs to detect variable spectral content
+        # Authentic FLACs often have high variance in cutoff frequency
+        cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
+
         logger.info(
             f"Spectrum analysis: cutoff={final_cutoff:.0f} Hz, "
-            f"energy_ratio={final_energy:.6f}, samples={cutoff_freqs}"
+            f"energy_ratio={final_energy:.6f}, cutoff_std={cutoff_std:.1f}, samples={cutoff_freqs}"
         )
 
-        return final_cutoff, final_energy
+        return final_cutoff, final_energy, cutoff_std
 
     except Exception as e:
         logger.debug(f"Spectral analysis error: {e}")
-        return 0, 0
+        return 0, 0, 0
 
 
 def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray) -> float:
@@ -210,3 +215,137 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
 
     # A real FLAC has energy in ALL slices
     return float(np.mean(tranche_energies)) if tranche_energies else 0.0
+
+
+def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tuple[List[float], float]:
+    """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
+
+    Phase 2 Optimization: Progressive analysis
+    - Start with 2 segments (Start + End) for quick check
+    - If coherent (variance < 500 Hz), STOP (60% of cases)
+    - Otherwise, analyze 3 more segments (25%, 50%, 75%)
+
+    Segments: Start (5%), 25%, 50%, 75%, End (95%)
+
+    Args:
+        filepath: Path to the audio file.
+        progressive: If True, use progressive analysis (default). If False, analyze all 5 segments.
+
+    Returns:
+        Tuple (list_of_cutoffs, cutoff_variance)
+    """
+    try:
+        info = sf.info(filepath)
+        total_duration = info.duration
+        samplerate = info.samplerate
+
+        segment_duration = 10.0  # 10 seconds per segment
+
+        def analyze_single_segment(center_ratio: float) -> float:
+            """Analyze a single segment and return its cutoff."""
+            center_time = total_duration * center_ratio
+            start_time = max(0, center_time - (segment_duration / 2))
+
+            # Ensure we don't go past end
+            if start_time + segment_duration > total_duration:
+                start_time = max(0, total_duration - segment_duration)
+
+            start_frame = int(start_time * samplerate)
+            frames_to_read = int(segment_duration * samplerate)
+
+            try:
+                data, _ = sf.read(
+                    filepath,
+                    start=start_frame,
+                    frames=frames_to_read,
+                    always_2d=True,
+                )
+
+                if len(data) < frames_to_read and len(data) == 0:
+                    return 0.0
+
+                # Convert to mono
+                if data.shape[1] > 1:
+                    data = np.mean(data, axis=1)
+                else:
+                    data = data[:, 0]
+
+                # Windowing
+                window = signal.windows.hann(len(data))
+                data_windowed = data * window
+
+                # FFT
+                fft_vals = rfft(data_windowed)
+                fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
+
+                magnitude = np.abs(fft_vals)
+                magnitude_db = 20 * np.log10(magnitude + 1e-10)
+
+                cutoff = detect_cutoff(fft_freq, magnitude_db)
+                return cutoff
+
+            except Exception as e:
+                logger.warning(f"Error analyzing segment at {center_ratio*100:.0f}%: {e}")
+                return 0.0
+
+        # PHASE 1: Analyze Start + End (2 segments)
+        cutoffs = []
+        cutoffs.append(analyze_single_segment(0.05))   # Start
+        cutoffs.append(analyze_single_segment(0.95))   # End
+
+        # Filter valid cutoffs
+        valid_cutoffs = [c for c in cutoffs if c > 0]
+
+        if len(valid_cutoffs) < 2:
+            logger.warning("OPTIMIZATION R10: Less than 2 valid segments, cannot determine consistency")
+            return cutoffs, 0.0
+
+        # Calculate initial variance
+        variance = float(np.std(valid_cutoffs))
+
+        logger.debug(f"OPTIMIZATION R10: Phase 1 - Start={cutoffs[0]:.0f} Hz, End={cutoffs[1]:.0f} Hz, Variance={variance:.1f} Hz")
+
+        # PHASE 2: Progressive decision
+        if progressive:
+            # If variance < 500 Hz, segments are coherent -> STOP
+            if variance < 500:
+                logger.info(f"OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)")
+                # Return only 2 segments (optimization)
+                return cutoffs, variance
+
+            # If variance > 1000 Hz, already know it's dynamic -> STOP
+            if variance > 1000:
+                logger.info(f"OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)")
+                return cutoffs, variance
+
+            # Otherwise (500 <= variance <= 1000), need more data
+            logger.info(f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f} in grey zone)")
+
+        # PHASE 3: Analyze middle segments (25%, 50%, 75%)
+        middle_segments = [0.25, 0.50, 0.75]
+        for center_ratio in middle_segments:
+            cutoff = analyze_single_segment(center_ratio)
+            # Insert in correct position to maintain order
+            if center_ratio == 0.25:
+                cutoffs.insert(1, cutoff)
+            elif center_ratio == 0.50:
+                cutoffs.insert(2, cutoff)
+            else:  # 0.75
+                cutoffs.insert(3, cutoff)
+
+        # Recalculate variance with all 5 segments
+        valid_cutoffs = [c for c in cutoffs if c > 0]
+
+        if len(valid_cutoffs) > 1:
+            variance = float(np.std(valid_cutoffs))
+        else:
+            variance = 0.0
+
+        logger.debug(f"OPTIMIZATION R10: Phase 3 - All 5 segments analyzed, final variance={variance:.1f} Hz")
+
+        return cutoffs, variance
+
+    except Exception as e:
+        logger.error(f"Segment consistency analysis failed: {e}")
+        return [], 0.0
+

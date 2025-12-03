@@ -197,8 +197,8 @@ class TestMandatoryValidation:
         total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)
         assert total_score == 0
         verdict, _ = _determine_verdict(total_score)
-        assert verdict == "AUTHENTIQUE"
-    def test_5_authentic_low_quality(self):
+        assert verdict == "AUTHENTIC"
+    def test_5_authentic_low_quality():
         """TEST 5: FLAC authentique mauvaise qualité - NE DOIT PAS être FAKE"""
         # Data
         sample_rate = 44100
@@ -242,4 +242,4 @@ class TestMandatoryValidation:
         total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)
         assert total_score == 0
         verdict, _ = _determine_verdict(total_score)
-        assert verdict == "AUTHENTIQUE"
+        assert verdict == "AUTHENTIC"
