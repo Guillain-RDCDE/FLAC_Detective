@@ -1,127 +1,127 @@
-# Phase 3 : Optimisations Avancées - Implémenté ✅
+# Phase 3: Advanced Optimizations - Implemented ✅
 
-## 📅 Date : 3 Décembre 2025
+## 📅 Date: December 3, 2025
 
-## 🎯 Objectif
+## 🎯 Objective
 
-Réduire le temps d'exécution de **10-30% supplémentaires** avec parallélisation et cache.
+Reduce execution time by an **additional 10-30%** with parallelization and caching.
 
 ---
 
-## 🚀 Optimisations Implémentées
+## 🚀 Implemented Optimizations
 
-### 1. Parallélisation des Règles Indépendantes (R7 + R9)
+### 1. Parallelization of Independent Rules (R7 + R9)
 
-#### Problème Avant
+#### Problem Before
 
 ```python
-# AVANT : Exécution séquentielle
+# BEFORE: Sequential execution
 rule7_score = apply_rule_7()  # ~2-4s
 rule9_score = apply_rule_9()  # ~1-2s
 # Total: ~3-6s
 ```
 
-**Problème** : R7 et R9 sont **indépendantes** mais exécutées séquentiellement
+**Problem**: R7 and R9 are **independent** but executed sequentially
 
-#### Solution : Parallélisation avec ThreadPoolExecutor
+#### Solution: Parallelization with ThreadPoolExecutor
 
 ```python
-# APRÈS : Exécution parallèle
+# AFTER: Parallel execution
 if run_rule7 and run_rule9:
     logger.info("Running R7 and R9 in PARALLEL")
     
     with ThreadPoolExecutor(max_workers=2) as executor:
-        # Soumettre les 2 tâches
+        # Submit both tasks
         future_r7 = executor.submit(apply_rule_7, ...)
         future_r9 = executor.submit(apply_rule_9, ...)
         
-        # Attendre les résultats
+        # Wait for results
         rule7_score = future_r7.result()
         rule9_score = future_r9.result()
     
     # Total: max(~2-4s, ~1-2s) = ~2-4s
 ```
 
-**Gain** : ~1-2s quand les deux règles sont actives
+**Gain**: ~1-2s when both rules are active
 
 ---
 
-## 📊 Analyse des Cas d'Usage
+## 📊 Use Case Analysis
 
-### Cas 1 : R7 ET R9 Actives (Parallélisation)
+### Case 1: R7 AND R9 Active (Parallelization)
 
-**Conditions** :
-- Cutoff dans zone ambiguë (19-21.5 kHz) → R7 active
-- Cutoff < 21 kHz OU MP3 détecté → R9 active
+**Conditions**:
+- Cutoff in ambiguous zone (19-21.5 kHz) → R7 active
+- Cutoff < 21 kHz OR MP3 detected → R9 active
 
-**Fréquence** : ~15-20% des fichiers
+**Frequency**: ~15-20% of files
 
-**Temps** :
+**Time**:
 ```
-AVANT : R7 (3s) + R9 (1.5s) = 4.5s
-APRÈS : max(R7, R9) = max(3s, 1.5s) = 3s
-GAIN  : -33% (1.5s économisés)
-```
-
-### Cas 2 : Seulement R7 Active (Séquentiel)
-
-**Conditions** :
-- Cutoff dans zone ambiguë (19-21.5 kHz)
-- Cutoff ≥ 21 kHz ET pas de MP3
-
-**Fréquence** : ~5% des fichiers
-
-**Temps** :
-```
-AVANT : R7 (3s) = 3s
-APRÈS : R7 (3s) = 3s
-GAIN  : 0% (pas de parallélisation possible)
+BEFORE: R7 (3s) + R9 (1.5s) = 4.5s
+AFTER : max(R7, R9) = max(3s, 1.5s) = 3s
+GAIN  : -33% (1.5s saved)
 ```
 
-### Cas 3 : Seulement R9 Active (Séquentiel)
+### Case 2: Only R7 Active (Sequential)
 
-**Conditions** :
-- Cutoff hors zone ambiguë
-- Cutoff < 21 kHz OU MP3 détecté
+**Conditions**:
+- Cutoff in ambiguous zone (19-21.5 kHz)
+- Cutoff ≥ 21 kHz AND no MP3
 
-**Fréquence** : ~15% des fichiers
+**Frequency**: ~5% of files
 
-**Temps** :
+**Time**:
 ```
-AVANT : R9 (1.5s) = 1.5s
-APRÈS : R9 (1.5s) = 1.5s
-GAIN  : 0% (pas de parallélisation possible)
+BEFORE: R7 (3s) = 3s
+AFTER : R7 (3s) = 3s
+GAIN  : 0% (no parallelization possible)
 ```
 
-### Cas 4 : Aucune Active (Skip)
+### Case 3: Only R9 Active (Sequential)
 
-**Conditions** :
-- Cutoff hors zone ambiguë
-- Cutoff ≥ 21 kHz ET pas de MP3
+**Conditions**:
+- Cutoff outside ambiguous zone
+- Cutoff < 21 kHz OR MP3 detected
 
-**Fréquence** : ~60% des fichiers
+**Frequency**: ~15% of files
 
-**Temps** :
+**Time**:
 ```
-AVANT : 0s
-APRÈS : 0s
-GAIN  : 0% (déjà optimisé Phase 1)
+BEFORE: R9 (1.5s) = 1.5s
+AFTER : R9 (1.5s) = 1.5s
+GAIN  : 0% (no parallelization possible)
+```
+
+### Case 4: None Active (Skip)
+
+**Conditions**:
+- Cutoff outside ambiguous zone
+- Cutoff ≥ 21 kHz AND no MP3
+
+**Frequency**: ~60% of files
+
+**Time**:
+```
+BEFORE: 0s
+AFTER : 0s
+GAIN  : 0% (already optimized in Phase 1)
 ```
 
 ---
 
-## 📊 Gains Estimés
+## 📊 Estimated Gains
 
-### Par Scénario
+### By Scenario
 
-| Scénario | Fréquence | Temps Avant | Temps Après | Gain |
-|----------|-----------|-------------|-------------|------|
-| **R7 ET R9** | 15-20% | 4.5s | **3s** | **-33%** |
-| **R7 seule** | 5% | 3s | 3s | 0% |
-| **R9 seule** | 15% | 1.5s | 1.5s | 0% |
-| **Aucune** | 60% | 0s | 0s | 0% |
+| Scenario | Frequency | Time Before | Time After | Gain |
+|----------|-----------|-------------|------------|------|
+| **R7 AND R9** | 15-20% | 4.5s | **3s** | **-33%** |
+| **R7 only** | 5% | 3s | 3s | 0% |
+| **R9 only** | 15% | 1.5s | 1.5s | 0% |
+| **None** | 60% | 0s | 0s | 0% |
 
-### Gain Moyen Pondéré
+### Weighted Average Gain
 
 ```
 Gain = (17.5% × 33%) + (5% × 0%) + (15% × 0%) + (60% × 0%)
@@ -129,125 +129,125 @@ Gain = (17.5% × 33%) + (5% × 0%) + (15% × 0%) + (60% × 0%)
      = 5.8%
 ```
 
-**Gain moyen attendu** : **~6%** global
+**Expected Average Gain**: **~6%** global
 
-**Note** : Gain modeste car seulement 15-20% des fichiers bénéficient de la parallélisation.
+**Note**: Modest gain because only 15-20% of files benefit from parallelization.
 
 ---
 
-### 2. Cache Audio (AudioCache)
+### 2. Audio Cache (AudioCache)
 
-#### Problème Avant
+#### Problem Before
 
 ```python
-# Règle 7
-data, sr = sf.read(filepath)  # Lecture 1
+# Rule 7
+data, sr = sf.read(filepath)  # Read 1
 
-# Règle 9
-data, sr = sf.read(filepath)  # Lecture 2 (même fichier !)
+# Rule 9
+data, sr = sf.read(filepath)  # Read 2 (same file!)
 
-# Règle 10
+# Rule 10
 for segment in segments:
-    data, sr = sf.read(filepath, start=...)  # Lectures 3-7
+    data, sr = sf.read(filepath, start=...)  # Reads 3-7
 ```
 
-**Problème** : Lectures multiples du même fichier (I/O coûteux)
+**Problem**: Multiple reads of the same file (expensive I/O)
 
-#### Solution : Cache Partagé
+#### Solution: Shared Cache
 
 ```python
-# Créer cache
+# Create cache
 cache = AudioCache(filepath)
 
-# Règle 7
-data, sr = cache.get_full_audio()  # Lecture 1 (mise en cache)
+# Rule 7
+data, sr = cache.get_full_audio()  # Read 1 (cached)
 
-# Règle 9
-data, sr = cache.get_full_audio()  # Cache HIT (pas de lecture)
+# Rule 9
+data, sr = cache.get_full_audio()  # Cache HIT (no read)
 
-# Règle 10
+# Rule 10
 for segment in segments:
-    data, sr = cache.get_segment(start, frames)  # Cache par segment
+    data, sr = cache.get_segment(start, frames)  # Cache by segment
 ```
 
-**Avantages** :
-- ✅ Évite lectures multiples (I/O)
-- ✅ Cache segments pour R10
-- ✅ Cache spectrum/cutoff (future utilisation)
+**Benefits**:
+- ✅ Avoids multiple reads (I/O)
+- ✅ Caches segments for R10
+- ✅ Caches spectrum/cutoff (future use)
 
-**Gain estimé** : ~5-10% sur I/O
+**Estimated Gain**: ~5-10% on I/O
 
-**Note** : Non encore intégré dans les règles (préparation future)
+**Note**: Not yet integrated into rules (future preparation)
 
 ---
 
 ## 🧪 Validation
 
-### Tests Unitaires
+### Unit Tests
 
 ```bash
 pytest tests/test_new_scoring.py tests/test_rule8.py -v
 # ============================= 27 passed in 25.66s =============================
 ```
 
-✅ **Tous les tests passent** (pas de régression)
+✅ **All tests pass** (no regression)
 
-### Benchmark Avant/Après
+### Benchmark Before/After
 
-#### Fichier avec R7 ET R9 Actives (15-20% des cas)
+#### File with R7 AND R9 Active (15-20% of cases)
 
 ```
-AVANT : R7 (3s) + R9 (1.5s) = 4.5s
-APRÈS : max(3s, 1.5s) = 3s
+BEFORE: R7 (3s) + R9 (1.5s) = 4.5s
+AFTER : max(3s, 1.5s) = 3s
 GAIN  : -33% ✅
 ```
 
-#### Fichier avec R7 Seule (5% des cas)
+#### File with R7 Only (5% of cases)
 
 ```
-AVANT : R7 (3s) = 3s
-APRÈS : R7 (3s) = 3s
-GAIN  : 0% (pas de parallélisation)
+BEFORE: R7 (3s) = 3s
+AFTER : R7 (3s) = 3s
+GAIN  : 0% (no parallelization)
 ```
 
 ---
 
-## 📝 Code Modifié
+## 📝 Modified Code
 
-### Fichiers Créés
+### Created Files
 
-- `src/flac_detective/analysis/audio_cache.py` : Classe AudioCache (nouveau)
+- `src/flac_detective/analysis/audio_cache.py`: AudioCache class (new)
 
-### Fichiers Modifiés
+### Modified Files
 
-- `src/flac_detective/analysis/new_scoring/calculator.py` : Parallélisation R7+R9
+- `src/flac_detective/analysis/new_scoring/calculator.py`: R7+R9 Parallelization
 
-### Statistiques
+### Statistics
 
-- **Lignes ajoutées** : ~150 lignes (AudioCache + parallélisation)
-- **Lignes modifiées** : ~40 lignes
-- **Net** : +190 lignes
+- **Lines Added**: ~150 lines (AudioCache + parallelization)
+- **Lines Modified**: ~40 lines
+- **Net**: +190 lines
 
-### Complexité
+### Complexity
 
-- **ThreadPoolExecutor** : Gestion automatique des threads
-- **AudioCache** : Cache LRU simple (dict)
-- **Logs** : Traçabilité de la parallélisation
+- **ThreadPoolExecutor**: Automatic thread management
+- **AudioCache**: Simple LRU cache (dict)
+- **Logs**: Traceability of parallelization
 
 ---
 
-## 💡 Détails d'Implémentation
+## 💡 Implementation Details
 
-### Parallélisation avec ThreadPoolExecutor
+### Parallelization with ThreadPoolExecutor
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
 
-# Déterminer quelles règles exécuter
+# Determine which rules to run
 run_rule7 = 19000 <= cutoff_freq <= 21500
 run_rule9 = cutoff_freq < 21000 or mp3_bitrate_detected is not None
 
-# Si les deux sont nécessaires, paralléliser
+# If both are needed, parallelize
 if run_rule7 and run_rule9:
     with ThreadPoolExecutor(max_workers=2) as executor:
         future_r7 = executor.submit(apply_rule_7, ...)
@@ -257,21 +257,21 @@ if run_rule7 and run_rule9:
         rule9_score = future_r9.result()
 ```
 
-**Avantages** :
-- ✅ Pas de GIL pour I/O (lecture fichiers)
-- ✅ Gestion automatique des threads
-- ✅ Exception handling intégré
+**Benefits**:
+- ✅ No GIL for I/O (file reading)
+- ✅ Automatic thread management
+- ✅ Integrated exception handling
 
-### Classe AudioCache
+### AudioCache Class
 
 ```python
 class AudioCache:
     def __init__(self, filepath: Path):
         self.filepath = filepath
-        self._full_audio = None  # Cache audio complet
-        self._segments = {}      # Cache segments
-        self._spectrum = None    # Cache spectrum
-        self._cutoff = None      # Cache cutoff
+        self._full_audio = None  # Full audio cache
+        self._segments = {}      # Segment cache
+        self._spectrum = None    # Spectrum cache
+        self._cutoff = None      # Cutoff cache
     
     def get_full_audio(self):
         if self._full_audio is None:
@@ -285,71 +285,71 @@ class AudioCache:
         return self._segments[key]
 ```
 
-**Avantages** :
-- ✅ Lazy loading (charge seulement si nécessaire)
-- ✅ Cache par segment (R10)
+**Benefits**:
+- ✅ Lazy loading (loads only if necessary)
+- ✅ Cache by segment (R10)
 - ✅ Extensible (spectrum, cutoff, etc.)
 
 ---
 
-## 🎯 Gains Cumulatifs (Phase 1 + 2 + 3)
+## 🎯 Cumulative Gains (Phase 1 + 2 + 3)
 
-### Récapitulatif
+### Summary
 
-| Phase | Optimisation | Gain |
+| Phase | Optimization | Gain |
 |-------|--------------|------|
-| **Phase 1** | Court-circuit + Conditionnelle | **~65-70%** |
-| **Phase 2** | R10 progressive | **~17%** |
-| **Phase 3** | Parallélisation R7+R9 | **~6%** |
+| **Phase 1** | Short-circuit + Conditional | **~65-70%** |
+| **Phase 2** | Progressive R10 | **~17%** |
+| **Phase 3** | R7+R9 Parallelization | **~6%** |
 
-### Total Cumulatif
+### Cumulative Total
 
 ```
-Temps initial : 5-10s
-Après Phase 1 : 1.5-3s (-70%)
-Après Phase 2 : 1.2-2.5s (-75-80%)
-Après Phase 3 : 1.1-2.3s (-77-82%)
+Initial Time: 5-10s
+After Phase 1: 1.5-3s (-70%)
+After Phase 2: 1.2-2.5s (-75-80%)
+After Phase 3: 1.1-2.3s (-77-82%)
 ```
 
-**Gain cumulatif total** : **~77-82%** 🚀
+**Total Cumulative Gain**: **~77-82%** 🚀
 
 ---
 
 ## ✅ Checklist
 
-- [x] Parallélisation R7 + R9 (ThreadPoolExecutor)
-- [x] Détection automatique des règles à paralléliser
-- [x] Fallback séquentiel si une seule règle
-- [x] Classe AudioCache créée
-- [x] Cache full audio
-- [x] Cache segments
-- [x] Cache spectrum/cutoff (préparé)
-- [x] Logs d'optimisation
-- [x] Tests unitaires passants
-- [x] Documentation complète
+- [x] R7 + R9 Parallelization (ThreadPoolExecutor)
+- [x] Automatic detection of rules to parallelize
+- [x] Sequential fallback if only one rule
+- [x] AudioCache class created
+- [x] Full audio cache
+- [x] Segment cache
+- [x] Spectrum/cutoff cache (prepared)
+- [x] Optimization logs
+- [x] Passing unit tests
+- [x] Complete documentation
 
 ---
 
-## 🔮 Améliorations Futures
+## 🔮 Future Improvements
 
-### Intégration Complète du Cache
+### Full Cache Integration
 
 ```python
-# Dans calculator.py
+# In calculator.py
 cache = AudioCache(filepath)
 
-# Passer cache aux règles
+# Pass cache to rules
 rule7_score = apply_rule_7(cache, ...)
 rule9_score = apply_rule_9(cache, ...)
 rule10_score = apply_rule_10(cache, ...)
 ```
 
-**Gain supplémentaire** : ~5-10% (I/O réduit)
+**Additional Gain**: ~5-10% (reduced I/O)
 
-### Parallélisation R10
+### R10 Parallelization
 
 ```python
-# Analyser les 5 segments en parallèle
+# Analyze 5 segments in parallel
 with ThreadPoolExecutor(max_workers=5) as executor:
     futures = [
         executor.submit(analyze_segment, 0.05),
@@ -359,34 +359,34 @@ with ThreadPoolExecutor(max_workers=5) as executor:
     cutoffs = [f.result() for f in futures]
 ```
 
-**Gain supplémentaire** : ~30-40% sur R10
+**Additional Gain**: ~30-40% on R10
 
 ---
 
-## 💡 Recommandations
+## 💡 Recommendations
 
-### Pour les Développeurs
+### For Developers
 
-1. **Activer logs DEBUG** pour voir la parallélisation :
+1. **Enable DEBUG logs** to see parallelization:
    ```python
    logging.basicConfig(level=logging.DEBUG)
    ```
 
-2. **Monitorer les threads** : Vérifier qu'il n'y a pas de contention
+2. **Monitor threads**: Check for contention
 
-3. **Profiler** : Mesurer les gains réels sur votre corpus
+3. **Profile**: Measure real gains on your corpus
 
-### Pour les Utilisateurs
+### For Users
 
-1. **Aucun changement** : Optimisation transparente
-2. **Machines multi-cœurs** : Gains maximaux
-3. **Machines mono-cœur** : Gains modestes mais présents (I/O parallèle)
+1. **No change**: Optimization is transparent
+2. **Multi-core machines**: Maximum gains
+3. **Single-core machines**: Modest but present gains (parallel I/O)
 
 ---
 
-**Version** : 0.3.4  
-**Date** : 3 Décembre 2025  
-**Statut** : ✅ Implémenté et testé  
-**Tests** : 27/27 passants  
-**Gain attendu** : **~6%** supplémentaire  
-**Gain cumulatif (Phase 1+2+3)** : **~77-82%**
+**Version**: 0.3.4  
+**Date**: December 3, 2025  
+**Status**: ✅ Implemented and tested  
+**Tests**: 27/27 passing  
+**Expected Gain**: **~6%** additional  
+**Cumulative Gain (Phase 1+2+3)**: **~77-82%**

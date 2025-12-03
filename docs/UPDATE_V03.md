@@ -1,66 +1,66 @@
-# FLAC Detective - Mise à Jour Majeure v0.3
+# FLAC Detective - Major Update v0.3
 
-## 📅 Date : 3 Décembre 2025
+## 📅 Date: December 3, 2025
 
-## 🎯 Résumé des Changements
+## 🎯 Summary of Changes
 
-Cette mise à jour apporte deux améliorations majeures au système FLAC Detective :
+This update brings two major improvements to the FLAC Detective system:
 
-1. **Règle 10 : Cohérence Multi-Segments** - Nouvelle règle pour éliminer les faux positifs
-2. **Système de Scoring à 4 Niveaux** - Alignement sur les standards de l'industrie (Fakin' The Funk)
+1. **Rule 10: Multi-Segment Consistency** - New rule to eliminate false positives
+2. **4-Level Scoring System** - Alignment with industry standards (Fakin' The Funk)
 
 ---
 
-## 🆕 Règle 10 : Cohérence Multi-Segments
+## 🆕 Rule 10: Multi-Segment Consistency
 
-### Objectif
+### Objective
 
-Valider que les anomalies détectées sont cohérentes sur l'ensemble du fichier, permettant de distinguer :
-- **Transcoding global** (anomalies uniformes)
-- **Artefacts ponctuels** (drops isolés)
-- **Mastering dynamique** (variations légitimes)
+Validate that detected anomalies are consistent throughout the file, allowing distinction between:
+- **Global transcoding** (uniform anomalies)
+- **Local artifacts** (isolated drops)
+- **Dynamic mastering** (legitimate variations)
 
-### Méthode
+### Method
 
-1. **Division en 5 segments** :
-   - Début (5%)
+1. **Division into 5 segments**:
+   - Start (5%)
    - 25%
-   - 50% (milieu)
+   - 50% (middle)
    - 75%
-   - Fin (95%)
+   - End (95%)
 
-2. **Analyse par segment** :
-   - Détection du cutoff pour chaque segment (10s)
-   - Calcul du score partiel (Règles 1 + 2)
-   - Calcul de la variance des cutoffs
+2. **Analysis per segment**:
+   - Cutoff detection for each segment (10s)
+   - Partial score calculation (Rules 1 + 2)
+   - Cutoff variance calculation
 
-3. **Scoring** :
-   - **Variance > 1000 Hz** : -20 points (Mastering dynamique légitime)
-   - **Un seul segment problématique** : -30 points (Artefact ponctuel)
-   - **Variance < 500 Hz** : 0 points (Confirmation du diagnostic initial)
+3. **Scoring**:
+   - **Variance > 1000 Hz**: -20 points (Legitimate dynamic mastering)
+   - **Single problematic segment**: -30 points (Local artifact)
+   - **Variance < 500 Hz**: 0 points (Confirmation of initial diagnosis)
 
 ### Activation
 
-- **Condition** : Score actuel > 30 (fichier déjà suspect)
-- **Raison** : Éviter calculs inutiles sur fichiers clairement authentiques
+- **Condition**: Current score > 30 (file already suspect)
+- **Reason**: Avoid unnecessary calculations on clearly authentic files
 
 ### Impact
 
-- ✅ Élimination des faux positifs dus à des drops ponctuels
-- ✅ Protection contre détection erronée de mastering dynamique
-- ✅ Confirmation des vrais transcodes (cohérence globale)
+- ✅ Elimination of false positives due to local drops
+- ✅ Protection against erroneous detection of dynamic mastering
+- ✅ Confirmation of true transcodes (global consistency)
 
-### Fichiers Modifiés
+### Modified Files
 
-- `spectrum.py` : Fonction `analyze_segment_consistency()`
-- `rules.py` : Fonction `apply_rule_10_multi_segment_consistency()`
-- `calculator.py` : Intégration dans le pipeline
+- `spectrum.py`: Function `analyze_segment_consistency()`
+- `rules.py`: Function `apply_rule_10_multi_segment_consistency()`
+- `calculator.py`: Integration into pipeline
 
 ---
 
-## 🎚️ Nouveau Système de Scoring à 4 Niveaux
+## 🎚️ New 4-Level Scoring System
 
-### Ancien Système (v0.2)
+### Old System (v0.2)
 
 ```
 Score >= 80 : FAKE_CERTAIN
@@ -69,131 +69,131 @@ Score >= 30 : DOUTEUX
 Score < 30  : AUTHENTIQUE
 ```
 
-### Nouveau Système (v0.3)
+### New System (v0.3)
 
 ```
-Score >= 86 : FAKE_CERTAIN    ❌ Transcoding confirmé
+Score >= 86 : FAKE_CERTAIN    ❌ Transcoding confirmed
 Score >= 61 : SUSPICIOUS      ⚠️  Probable transcoding
-Score >= 31 : WARNING          ⚡ Anomalies, peut être légitime
-Score < 31  : AUTHENTIC        ✅ Fichier authentique
+Score >= 31 : WARNING          ⚡ Anomalies, may be legitimate
+Score < 31  : AUTHENTIC        ✅ Authentic file
 ```
 
 ### Justification
 
-Alignement sur **Fakin' The Funk** et distribution réelle des fichiers :
+Alignment with **Fakin' The Funk** and real file distribution:
 
-| Niveau | Distribution | Description |
-|--------|--------------|-------------|
-| AUTHENTIC (0-30) | ~63% | Fichiers clairement authentiques |
-| WARNING (31-60) | ~36% | **Zone grise critique** - Vinyles, cassettes, masters anciens |
-| SUSPICIOUS (61-85) | ~1.2% | Probables transcodes nécessitant vérification |
-| FAKE_CERTAIN (86+) | ~0% | Transcodes confirmés avec certitude |
+| Level | Distribution | Description |
+|-------|--------------|-------------|
+| AUTHENTIC (0-30) | ~63% | Clearly authentic files |
+| WARNING (31-60) | ~36% | **Critical grey zone** - Vinyls, cassettes, old masters |
+| SUSPICIOUS (61-85) | ~1.2% | Probable transcodes requiring verification |
+| FAKE_CERTAIN (86+) | ~0% | Transcodes confirmed with certainty |
 
-### Zone WARNING - Critique
+### WARNING Zone - Critical
 
-La zone **WARNING (31-60)** est particulièrement importante car elle contient :
+The **WARNING (31-60)** zone is particularly important because it contains:
 
-- ✅ **Vinyles authentiques** avec cutoff naturellement bas
-- ✅ **Cassettes** et autres sources analogiques
-- ✅ **Masters anciens** avec limitations techniques
-- ✅ **Fichiers légitimes** nécessitant vérification manuelle
+- ✅ **Authentic vinyls** with naturally low cutoff
+- ✅ **Cassettes** and other analog sources
+- ✅ **Old masters** with technical limitations
+- ✅ **Legitimate files** requiring manual verification
 
-⚠️ **Ces fichiers ne doivent PAS être automatiquement rejetés !**
+⚠️ **These files must NOT be automatically rejected!**
 
-### Changements de Seuils
+### Threshold Changes
 
-| Verdict | Ancien | Nouveau | Différence |
-|---------|--------|---------|------------|
+| Verdict | Old | New | Difference |
+|---------|-----|-----|------------|
 | FAKE_CERTAIN | 80 | **86** | +6 points |
 | SUSPICIOUS (ex-FAKE_PROBABLE) | 50 | **61** | +11 points |
 | WARNING (ex-DOUTEUX) | 30 | **31** | +1 point |
 | AUTHENTIC (ex-AUTHENTIQUE) | <30 | **<31** | -1 point |
 
-### Messages Descriptifs
+### Descriptive Messages
 
-Au lieu de niveaux de confiance génériques ("VERY HIGH", "HIGH", "MEDIUM"), le système retourne maintenant des messages descriptifs :
+Instead of generic confidence levels ("VERY HIGH", "HIGH", "MEDIUM"), the system now returns descriptive messages:
 
-- `"❌ Transcoding confirmé avec certitude"`
-- `"⚠️  Probable transcoding, vérification recommandée"`
-- `"⚡ Anomalies détectées, peut être légitime"`
-- `"✅ Fichier authentique"`
+- `"❌ Transcoding confirmed with certainty"`
+- `"⚠️  Probable transcoding, verification recommended"`
+- `"⚡ Anomalies detected, may be legitimate"`
+- `"✅ Authentic file"`
 
-### Fichiers Modifiés
+### Modified Files
 
-- `constants.py` : Nouveaux seuils (86/61/31)
-- `verdict.py` : Nouveaux verdicts et messages
-- `__init__.py` : Exports mis à jour
-- Tests : Mise à jour pour nouveaux seuils
+- `constants.py`: New thresholds (86/61/31)
+- `verdict.py`: New verdicts and messages
+- `__init__.py`: Updated exports
+- Tests: Updated for new thresholds
 
 ---
 
-## 📊 Score Maximum Théorique
+## 📊 Theoretical Maximum Score
 
-### Distribution des Points (10 Règles)
+### Point Distribution (10 Rules)
 
-| Règle | Min | Max | Type |
-|-------|-----|-----|------|
-| R1 - MP3 Bitrate | 0 | +50 | Pénalité |
-| R2 - Cutoff | 0 | +30 | Pénalité |
-| R3 - Source vs Container | 0 | +50 | Pénalité |
-| R4 - 24-bit Suspect | 0 | +30 | Pénalité |
+| Rule | Min | Max | Type |
+|------|-----|-----|------|
+| R1 - MP3 Bitrate | 0 | +50 | Penalty |
+| R2 - Cutoff | 0 | +30 | Penalty |
+| R3 - Source vs Container | 0 | +50 | Penalty |
+| R4 - 24-bit Suspect | 0 | +30 | Penalty |
 | R5 - High Variance | -40 | 0 | Bonus |
 | R6 - VBR Protection | -30 | 0 | Bonus |
-| R7 - Silence/Vinyl | -100 | +70 | Mixte |
+| R7 - Silence/Vinyl | -100 | +70 | Mixed |
 | R8 - Nyquist Exception | -50 | 0 | Bonus |
-| R9 - Artefacts | 0 | +40 | Pénalité |
-| R10 - Cohérence | -30 | 0 | Bonus/Correction |
+| R9 - Artifacts | 0 | +40 | Penalty |
+| R10 - Consistency | -30 | 0 | Bonus/Correction |
 | **TOTAL** | **-250** | **+270** | - |
 
-**Note** : Score final plafonné à 0 minimum
+**Note**: Final score capped at 0 minimum
 
 ---
 
 ## 🧪 Tests
 
-### Tests Passés
+### Passed Tests
 
 ```bash
 pytest tests/test_new_scoring.py -v
 # ============================= 20 passed in 26.59s =============================
 ```
 
-### Tests Spécifiques
+### Specific Tests
 
-- ✅ `TestVerdictThresholds` : Validation des nouveaux seuils (86/61/31)
-- ✅ `TestMandatoryTestCase1-4` : Cas de validation obligatoires
-- ✅ `TestRule7SilenceAnalysis` : Analyse silences (3 phases)
-- ✅ Tous les tests existants mis à jour et passants
+- ✅ `TestVerdictThresholds`: Validation of new thresholds (86/61/31)
+- ✅ `TestMandatoryTestCase1-4`: Mandatory validation cases
+- ✅ `TestRule7SilenceAnalysis`: Silence analysis (3 phases)
+- ✅ All existing tests updated and passing
 
-### Couverture de Code
+### Code Coverage
 
-- **Total** : 23.88% (amélioration continue)
-- **Nouveaux modules** : Bien couverts par les tests
+- **Total**: 23.88% (continuous improvement)
+- **New modules**: Well covered by tests
 
 ---
 
-## 📝 Migration depuis v0.2
+## 📝 Migration from v0.2
 
-### 1. Imports à Mettre à Jour
+### 1. Imports to Update
 
 ```python
-# Avant
+# Before
 from flac_detective.analysis.new_scoring import (
     SCORE_FAKE_PROBABLE,
     SCORE_DOUTEUX
 )
 
-# Après
+# After
 from flac_detective.analysis.new_scoring import (
     SCORE_SUSPICIOUS,
     SCORE_WARNING
 )
 ```
 
-### 2. Comparaisons de Verdict
+### 2. Verdict Comparisons
 
 ```python
-# Avant
+# Before
 if verdict == "FAKE_PROBABLE":
     # ...
 if verdict == "DOUTEUX":
@@ -201,7 +201,7 @@ if verdict == "DOUTEUX":
 if verdict == "AUTHENTIQUE":
     # ...
 
-# Après
+# After
 if verdict == "SUSPICIOUS":
     # ...
 if verdict == "WARNING":
@@ -210,15 +210,15 @@ if verdict == "AUTHENTIC":
     # ...
 ```
 
-### 3. Seuils Personnalisés
+### 3. Custom Thresholds
 
 ```python
-# Avant
+# Before
 if score >= 80:  # FAKE_CERTAIN
 if score >= 50:  # FAKE_PROBABLE
 if score >= 30:  # DOUTEUX
 
-# Après
+# After
 if score >= 86:  # FAKE_CERTAIN
 if score >= 61:  # SUSPICIOUS
 if score >= 31:  # WARNING
@@ -226,119 +226,119 @@ if score >= 31:  # WARNING
 
 ---
 
-## 📈 Impact Attendu
+## 📈 Expected Impact
 
-### Faux Positifs (Réduction)
+### False Positives (Reduction)
 
-- **Vinyles 24-bit** : ~100% → ~0% (-100%)
-- **Vinyles 16-bit** : ~80% → ~17% (-83%)
-- **FLAC 24-bit HQ** : ~30% → ~0% (-100%)
-- **Artefacts ponctuels** : Nouveau : -30 points (Règle 10)
+- **24-bit Vinyls**: ~100% → ~0% (-100%)
+- **16-bit Vinyls**: ~80% → ~17% (-83%)
+- **HQ 24-bit FLAC**: ~30% → ~0% (-100%)
+- **Local Artifacts**: New: -30 points (Rule 10)
 
-### Vrais Positifs (Amélioration)
+### True Positives (Improvement)
 
-- **MP3 320 kbps** : Détection maintenue ou améliorée
-- **AAC transcodés** : Meilleure identification
-- **Cohérence** : Confirmation par Règle 10
+- **320 kbps MP3**: Detection maintained or improved
+- **Transcoded AAC**: Better identification
+- **Consistency**: Confirmation by Rule 10
 
 ---
 
 ## 📚 Documentation
 
-### Nouveaux Documents
+### New Documents
 
-1. **`SCORING_SYSTEM_V03.md`** : Documentation complète du nouveau système
-   - Échelle à 4 niveaux
-   - Exemples de scoring
-   - Guide d'utilisation
-   - Recommandations
+1. **`SCORING_SYSTEM_V03.md`**: Complete documentation of new system
+   - 4-level scale
+   - Scoring examples
+   - User guide
+   - Recommendations
 
-2. **`RULE10_MULTI_SEGMENT.md`** : Documentation Règle 10 (à créer)
-   - Méthode d'analyse
-   - Cas d'usage
-   - Exemples
+2. **`RULE10_MULTI_SEGMENT.md`**: Rule 10 documentation (to be created)
+   - Analysis method
+   - Use cases
+   - Examples
 
-### Documents Mis à Jour
+### Updated Documents
 
-- `IMPROVEMENTS_SUMMARY.md` : Ajout Règle 10 et nouveau scoring
-- `README.md` : À mettre à jour avec nouveaux verdicts
+- `IMPROVEMENTS_SUMMARY.md`: Added Rule 10 and new scoring
+- `README.md`: To be updated with new verdicts
 
 ---
 
-## ✅ Checklist de Déploiement
+## ✅ Deployment Checklist
 
 ### Code
 
-- [x] Règle 10 implémentée (`spectrum.py`, `rules.py`, `calculator.py`)
-- [x] Nouveau système de scoring (86/61/31)
-- [x] Verdicts renommés (SUSPICIOUS, WARNING, AUTHENTIC)
-- [x] Messages descriptifs au lieu de niveaux de confiance
-- [x] Imports et exports mis à jour
+- [x] Rule 10 implemented (`spectrum.py`, `rules.py`, `calculator.py`)
+- [x] New scoring system (86/61/31)
+- [x] Renamed verdicts (SUSPICIOUS, WARNING, AUTHENTIC)
+- [x] Descriptive messages instead of confidence levels
+- [x] Updated imports and exports
 
 ### Tests
 
-- [x] Tests Règle 10 (intégrés dans tests existants)
-- [x] Tests nouveaux seuils (TestVerdictThresholds)
-- [x] Tests cas mandatoires mis à jour
-- [x] Test Rule 7 uncertain zone mis à jour
-- [x] Tous tests passants (20/20)
+- [x] Rule 10 tests (integrated into existing tests)
+- [x] New thresholds tests (TestVerdictThresholds)
+- [x] Updated mandatory case tests
+- [x] Updated Rule 7 uncertain zone test
+- [x] All tests passing (20/20)
 
 ### Documentation
 
-- [x] SCORING_SYSTEM_V03.md créé
-- [x] UPDATE_V03.md créé (ce document)
-- [ ] README.md à mettre à jour
-- [ ] RULE10_MULTI_SEGMENT.md à créer (optionnel)
+- [x] SCORING_SYSTEM_V03.md created
+- [x] UPDATE_V03.md created (this document)
+- [ ] README.md to update
+- [ ] RULE10_MULTI_SEGMENT.md to create (optional)
 
 ### Validation
 
-- [ ] Tester sur 12 faux positifs connus
-- [ ] Tester sur 34 vrais positifs connus
-- [ ] Comparer avec Fakin' The Funk
-- [ ] Ajuster seuils si nécessaire
+- [ ] Test on 12 known false positives
+- [ ] Test on 34 known true positives
+- [ ] Compare with Fakin' The Funk
+- [ ] Adjust thresholds if necessary
 
 ---
 
-## 🚀 Prochaines Étapes
+## 🚀 Next Steps
 
-### Court Terme
+### Short Term
 
-1. ⏳ **Validation terrain** : Tester sur fichiers réels
-2. ⏳ **Ajustements** : Affiner seuils si nécessaire
-3. ⏳ **Documentation utilisateur** : Guide complet
+1. ⏳ **Field Validation**: Test on real files
+2. ⏳ **Adjustments**: Refine thresholds if necessary
+3. ⏳ **User Documentation**: Complete guide
 
-### Moyen Terme
+### Medium Term
 
-1. ⏳ **Analyse comparative** : FLAC Detective vs Fakin' The Funk
-2. ⏳ **Optimisation** : Performance Règle 10
-3. ⏳ **Interface** : Affichage des 4 niveaux
+1. ⏳ **Comparative Analysis**: FLAC Detective vs Fakin' The Funk
+2. ⏳ **Optimization**: Rule 10 performance
+3. ⏳ **Interface**: Display of 4 levels
 
-### Long Terme
+### Long Term
 
-1. ⏳ **Machine Learning** : Classification automatique
-2. ⏳ **Détection avancée** : Wow & flutter, rumble
-3. ⏳ **Visualisation** : Graphiques des analyses
+1. ⏳ **Machine Learning**: Automatic classification
+2. ⏳ **Advanced Detection**: Wow & flutter, rumble
+3. ⏳ **Visualization**: Analysis charts
 
 ---
 
 ## 🎉 Conclusion
 
-**FLAC Detective v0.3** apporte deux améliorations majeures :
+**FLAC Detective v0.3** brings two major improvements:
 
-1. **Règle 10** : Élimination intelligente des faux positifs par analyse multi-segments
-2. **Scoring à 4 niveaux** : Alignement sur les standards de l'industrie avec zone WARNING critique
+1. **Rule 10**: Intelligent elimination of false positives via multi-segment analysis
+2. **4-Level Scoring**: Alignment with industry standards with critical WARNING zone
 
-Ces changements devraient :
-- ✅ Réduire significativement les faux positifs (~70-80%)
-- ✅ Maintenir ou améliorer la détection des vrais transcodes
-- ✅ Fournir une classification plus nuancée et utile
-- ✅ Aligner FLAC Detective sur Fakin' The Funk
+These changes should:
+- ✅ Significantly reduce false positives (~70-80%)
+- ✅ Maintain or improve detection of true transcodes
+- ✅ Provide more nuanced and useful classification
+- ✅ Align FLAC Detective with Fakin' The Funk
 
-**Le système est maintenant prêt pour validation terrain !** 🚀
+**The system is now ready for field validation!** 🚀
 
 ---
 
-**Version** : 0.3.0  
-**Date** : 3 Décembre 2025  
-**Statut** : ✅ Implémenté et testé  
-**Tests** : 20/20 passants
+**Version**: 0.3.0  
+**Date**: December 3, 2025  
+**Status**: ✅ Implemented and tested  
+**Tests**: 20/20 passing

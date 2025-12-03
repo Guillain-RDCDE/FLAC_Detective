@@ -1,21 +1,21 @@
-# Phase 2 : Optimisations Algorithmiques - Implémenté ✅
+# Phase 2: Algorithmic Optimizations - Implemented ✅
 
-## 📅 Date : 3 Décembre 2025
+## 📅 Date: December 3, 2025
 
-## 🎯 Objectif
+## 🎯 Objective
 
-Réduire le temps d'exécution de **20-40% supplémentaires** avec des optimisations algorithmiques intelligentes.
+Reduce execution time by an **additional 20-40%** with intelligent algorithmic optimizations.
 
 ---
 
-## 🚀 Optimisation Implémentée
+## 🚀 Implemented Optimization
 
-### Règle 10 : Analyse Progressive des Segments
+### Rule 10: Progressive Segment Analysis
 
-#### Problème Avant
+#### Problem Before
 
 ```python
-# AVANT : Toujours analyser 5 segments (5× FFT)
+# BEFORE: Always analyze 5 segments (5× FFT)
 for segment in [0.05, 0.25, 0.50, 0.75, 0.95]:
     cutoff = analyze_segment(segment)  # 5× FFT (~2-3s)
     cutoffs.append(cutoff)
@@ -23,30 +23,30 @@ for segment in [0.05, 0.25, 0.50, 0.75, 0.95]:
 variance = calculate_variance(cutoffs)
 ```
 
-**Coût** : ~2-3s (5 segments × 0.4-0.6s par FFT)
+**Cost**: ~2-3s (5 segments × 0.4-0.6s per FFT)
 
-#### Solution : Analyse Progressive
+#### Solution: Progressive Analysis
 
 ```python
-# APRÈS : Analyse progressive en 3 phases
+# AFTER: Progressive analysis in 3 phases
 
-# PHASE 1: Analyser Start + End (2 segments)
+# PHASE 1: Analyze Start + End (2 segments)
 cutoffs = [
     analyze_segment(0.05),  # Start
     analyze_segment(0.95),  # End
 ]
 variance = calculate_variance(cutoffs)
 
-# PHASE 2: Décision intelligente
+# PHASE 2: Intelligent Decision
 if variance < 500:
-    # Cohérent → STOP (60% des cas)
-    return cutoffs, variance  # 2 FFT seulement
+    # Coherent → STOP (60% of cases)
+    return cutoffs, variance  # 2 FFT only
     
 if variance > 1000:
-    # Très variable → STOP (20% des cas)
-    return cutoffs, variance  # 2 FFT seulement
+    # Highly variable → STOP (20% of cases)
+    return cutoffs, variance  # 2 FFT only
 
-# PHASE 3: Analyser segments intermédiaires (20% des cas)
+# PHASE 3: Analyze intermediate segments (20% of cases)
 for segment in [0.25, 0.50, 0.75]:
     cutoff = analyze_segment(segment)
     cutoffs.insert_sorted(cutoff)
@@ -54,121 +54,121 @@ for segment in [0.25, 0.50, 0.75]:
 variance = calculate_variance(cutoffs)  # 5 FFT
 ```
 
-**Coût** :
-- **60% des cas** : ~0.8-1.2s (2 FFT) → **-60%**
-- **20% des cas** : ~0.8-1.2s (2 FFT) → **-60%**
-- **20% des cas** : ~2-3s (5 FFT) → **0%** (pas d'optimisation)
+**Cost**:
+- **60% of cases**: ~0.8-1.2s (2 FFT) → **-60%**
+- **20% of cases**: ~0.8-1.2s (2 FFT) → **-60%**
+- **20% of cases**: ~2-3s (5 FFT) → **0%** (no optimization)
 
-**Gain moyen** : **0.6 × 60% + 0.6 × 20% + 0% × 20% = 48%**
+**Average Gain**: **0.6 × 60% + 0.6 × 20% + 0% × 20% = 48%**
 
 ---
 
-## 📊 Logique de Décision
+## 📊 Decision Logic
 
-### Phase 1 : Analyse Rapide (2 Segments)
+### Phase 1: Rapid Analysis (2 Segments)
 
 ```python
-# Analyser début et fin
-start_cutoff = analyze_segment(0.05)   # 5% du fichier
-end_cutoff = analyze_segment(0.95)     # 95% du fichier
+# Analyze start and end
+start_cutoff = analyze_segment(0.05)   # 5% of file
+end_cutoff = analyze_segment(0.95)     # 95% of file
 
 variance = std([start_cutoff, end_cutoff])
 ```
 
-**Temps** : ~0.8-1.2s (2× FFT)
+**Time**: ~0.8-1.2s (2× FFT)
 
-### Phase 2 : Décision Intelligente
+### Phase 2: Intelligent Decision
 
-#### Cas 1 : Cohérence Détectée (variance < 500 Hz)
+#### Case 1: Coherence Detected (variance < 500 Hz)
 
 ```python
 if variance < 500:
     logger.info(f"Early stop - Coherent segments (variance {variance} < 500 Hz)")
-    return cutoffs, variance  # STOP ICI
+    return cutoffs, variance  # STOP HERE
 ```
 
-**Interprétation** :
-- Début et fin sont cohérents
-- Très probablement cohérent sur tout le fichier
-- **Pas besoin d'analyser le milieu**
+**Interpretation**:
+- Start and end are coherent
+- Very likely coherent throughout the file
+- **No need to analyze the middle**
 
-**Exemples** :
-- Transcoding global : Start=16.5 kHz, End=16.4 kHz → variance=70 Hz
-- FLAC authentique : Start=21.8 kHz, End=21.9 kHz → variance=70 Hz
+**Examples**:
+- Global transcoding: Start=16.5 kHz, End=16.4 kHz → variance=70 Hz
+- Authentic FLAC: Start=21.8 kHz, End=21.9 kHz → variance=70 Hz
 
-**Fréquence** : ~60% des fichiers
+**Frequency**: ~60% of files
 
-#### Cas 2 : Haute Variance Détectée (variance > 1000 Hz)
+#### Case 2: High Variance Detected (variance > 1000 Hz)
 
 ```python
 if variance > 1000:
     logger.info(f"Early stop - High variance detected ({variance} > 1000 Hz)")
-    return cutoffs, variance  # STOP ICI
+    return cutoffs, variance  # STOP HERE
 ```
 
-**Interprétation** :
-- Début et fin très différents
-- Mastering dynamique évident
-- **Verdict déjà clair : -20 points**
+**Interpretation**:
+- Start and end very different
+- Obvious dynamic mastering
+- **Verdict already clear: -20 points**
 
-**Exemples** :
-- Mastering dynamique : Start=18 kHz, End=21 kHz → variance=2121 Hz
-- Fichier corrompu : Start=16 kHz, End=22 kHz → variance=4242 Hz
+**Examples**:
+- Dynamic mastering: Start=18 kHz, End=21 kHz → variance=2121 Hz
+- Corrupted file: Start=16 kHz, End=22 kHz → variance=4242 Hz
 
-**Fréquence** : ~20% des fichiers
+**Frequency**: ~20% of files
 
-#### Cas 3 : Zone Grise (500 ≤ variance ≤ 1000 Hz)
+#### Case 3: Grey Zone (500 ≤ variance ≤ 1000 Hz)
 
 ```python
-# Besoin de plus de données
+# Need more data
 logger.info(f"Expanding to 5 segments (variance {variance} in grey zone)")
 
-# Analyser 3 segments supplémentaires
+# Analyze 3 additional segments
 for segment in [0.25, 0.50, 0.75]:
     cutoff = analyze_segment(segment)
     cutoffs.insert_sorted(cutoff)
 ```
 
-**Interprétation** :
-- Variance modérée, besoin de confirmation
-- Analyser le milieu pour décision précise
+**Interpretation**:
+- Moderate variance, need confirmation
+- Analyze the middle for precise decision
 
-**Exemples** :
-- Artefact ponctuel : Start=20 kHz, End=20.5 kHz → variance=353 Hz
-- Transition progressive : Start=19 kHz, End=20 kHz → variance=707 Hz
+**Examples**:
+- Local artifact: Start=20 kHz, End=20.5 kHz → variance=353 Hz
+- Progressive transition: Start=19 kHz, End=20 kHz → variance=707 Hz
 
-**Fréquence** : ~20% des fichiers
+**Frequency**: ~20% of files
 
-### Phase 3 : Analyse Complète (si nécessaire)
+### Phase 3: Full Analysis (if necessary)
 
 ```python
-# Analyser segments intermédiaires
+# Analyze intermediate segments
 cutoffs = [
-    start_cutoff,           # 0.05 (déjà calculé)
-    analyze_segment(0.25),  # NOUVEAU
-    analyze_segment(0.50),  # NOUVEAU
-    analyze_segment(0.75),  # NOUVEAU
-    end_cutoff,             # 0.95 (déjà calculé)
+    start_cutoff,           # 0.05 (already calculated)
+    analyze_segment(0.25),  # NEW
+    analyze_segment(0.50),  # NEW
+    analyze_segment(0.75),  # NEW
+    end_cutoff,             # 0.95 (already calculated)
 ]
 
-variance = std(cutoffs)  # Variance finale avec 5 segments
+variance = std(cutoffs)  # Final variance with 5 segments
 ```
 
-**Temps** : ~1.2-1.8s supplémentaires (3× FFT)
+**Time**: ~1.2-1.8s additional (3× FFT)
 
 ---
 
-## 📊 Gains Estimés
+## 📊 Estimated Gains
 
-### Par Scénario
+### By Scenario
 
-| Scénario | Fréquence | FFT Avant | FFT Après | Temps Avant | Temps Après | Gain |
-|----------|-----------|-----------|-----------|-------------|-------------|------|
-| **Cohérent** | 60% | 5 | **2** | 2-3s | **0.8-1.2s** | **-60%** |
-| **Haute variance** | 20% | 5 | **2** | 2-3s | **0.8-1.2s** | **-60%** |
-| **Zone grise** | 20% | 5 | **5** | 2-3s | **2-3s** | **0%** |
+| Scenario | Frequency | FFT Before | FFT After | Time Before | Time After | Gain |
+|----------|-----------|------------|-----------|-------------|------------|------|
+| **Coherent** | 60% | 5 | **2** | 2-3s | **0.8-1.2s** | **-60%** |
+| **High Variance** | 20% | 5 | **2** | 2-3s | **0.8-1.2s** | **-60%** |
+| **Grey Zone** | 20% | 5 | **5** | 2-3s | **2-3s** | **0%** |
 
-### Gain Moyen Pondéré
+### Weighted Average Gain
 
 ```
 Gain = (60% × 60%) + (20% × 60%) + (20% × 0%)
@@ -176,113 +176,113 @@ Gain = (60% × 60%) + (20% × 60%) + (20% × 0%)
      = 48%
 ```
 
-**Gain moyen attendu** : **~48%** sur Règle 10 🎉
+**Expected Average Gain**: **~48%** on Rule 10 🎉
 
-### Impact Global
+### Global Impact
 
-Règle 10 représente ~30-40% du temps total (2-3s sur 5-10s).
+Rule 10 represents ~30-40% of total time (2-3s out of 5-10s).
 
-**Gain global** : 48% × 35% = **~17%** supplémentaire
+**Global Gain**: 48% × 35% = **~17%** additional
 
 ---
 
 ## 🧪 Validation
 
-### Tests Unitaires
+### Unit Tests
 
 ```bash
 pytest tests/test_new_scoring.py::TestMandatoryTestCase3 tests/test_new_scoring.py::TestMandatoryTestCase4 -v
 # ============================= 2 passed in 16.86s ==============================
 ```
 
-✅ **Tous les tests passent** (pas de régression)
+✅ **All tests pass** (no regression)
 
-### Benchmark Avant/Après
+### Benchmark Before/After
 
-#### Fichier Cohérent (60% des cas)
+#### Coherent File (60% of cases)
 
 ```
-AVANT : 5 FFT = ~2.5s
-APRÈS : 2 FFT = ~1.0s
+BEFORE: 5 FFT = ~2.5s
+AFTER : 2 FFT = ~1.0s
 GAIN  : -60% ✅
 ```
 
-#### Fichier Haute Variance (20% des cas)
+#### High Variance File (20% of cases)
 
 ```
-AVANT : 5 FFT = ~2.5s
-APRÈS : 2 FFT = ~1.0s
+BEFORE: 5 FFT = ~2.5s
+AFTER : 2 FFT = ~1.0s
 GAIN  : -60% ✅
 ```
 
-#### Fichier Zone Grise (20% des cas)
+#### Grey Zone File (20% of cases)
 
 ```
-AVANT : 5 FFT = ~2.5s
-APRÈS : 5 FFT = ~2.5s
-GAIN  : 0% (pas d'optimisation possible)
+BEFORE: 5 FFT = ~2.5s
+AFTER : 5 FFT = ~2.5s
+GAIN  : 0% (no optimization possible)
 ```
 
 ---
 
-## 📝 Code Modifié
+## 📝 Modified Code
 
-### Fichiers
+### Files
 
-- `src/flac_detective/analysis/spectrum.py` : Fonction `analyze_segment_consistency()`
+- `src/flac_detective/analysis/spectrum.py`: Function `analyze_segment_consistency()`
 
-### Statistiques
+### Statistics
 
-- **Lignes ajoutées** : ~60 lignes (logique progressive + logs)
-- **Lignes modifiées** : ~30 lignes (refactoring)
-- **Lignes supprimées** : ~20 lignes (boucle simple)
-- **Net** : +70 lignes
+- **Lines Added**: ~60 lines (progressive logic + logs)
+- **Lines Modified**: ~30 lines (refactoring)
+- **Lines Removed**: ~20 lines (simple loop)
+- **Net**: +70 lines
 
-### Complexité
+### Complexity
 
-- **Fonction interne** : `analyze_single_segment()` pour réutilisation
-- **3 phases** : Analyse rapide → Décision → Expansion si nécessaire
-- **Logs** : Traçabilité des décisions
+- **Internal Function**: `analyze_single_segment()` for reuse
+- **3 Phases**: Rapid analysis → Decision → Expansion if necessary
+- **Logs**: Traceability of decisions
 
 ---
 
-## 💡 Détails d'Implémentation
+## 💡 Implementation Details
 
-### Fonction Interne `analyze_single_segment()`
+### Internal Function `analyze_single_segment()`
 
 ```python
 def analyze_single_segment(center_ratio: float) -> float:
     """Analyze a single segment and return its cutoff."""
-    # Calcul position
+    # Calculate position
     center_time = total_duration * center_ratio
     start_time = max(0, center_time - (segment_duration / 2))
     
-    # Lecture audio
+    # Read audio
     data, _ = sf.read(filepath, start=start_frame, frames=frames_to_read)
     
-    # FFT + Détection cutoff
+    # FFT + Cutoff Detection
     cutoff = detect_cutoff(fft_freq, magnitude_db)
     
     return cutoff
 ```
 
-**Avantage** : Réutilisable pour chaque segment, code DRY
+**Benefit**: Reusable for each segment, DRY code
 
-### Insertion Ordonnée
+### Ordered Insertion
 
 ```python
-# Maintenir l'ordre des segments
+# Maintain segment order
 if center_ratio == 0.25:
-    cutoffs.insert(1, cutoff)  # Position 1 (après Start)
+    cutoffs.insert(1, cutoff)  # Position 1 (after Start)
 elif center_ratio == 0.50:
-    cutoffs.insert(2, cutoff)  # Position 2 (milieu)
+    cutoffs.insert(2, cutoff)  # Position 2 (middle)
 else:  # 0.75
-    cutoffs.insert(3, cutoff)  # Position 3 (avant End)
+    cutoffs.insert(3, cutoff)  # Position 3 (before End)
 ```
 
-**Raison** : Variance correcte nécessite ordre chronologique
+**Reason**: Correct variance requires chronological order
 
-### Logs d'Optimisation
+### Optimization Logs
 
 ```python
 logger.debug(f"OPTIMIZATION R10: Phase 1 - Start={cutoffs[0]:.0f} Hz, End={cutoffs[1]:.0f} Hz, Variance={variance:.1f} Hz")
@@ -291,67 +291,67 @@ logger.info(f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f}
 logger.debug(f"OPTIMIZATION R10: Phase 3 - All 5 segments analyzed, final variance={variance:.1f} Hz")
 ```
 
-**Avantage** : Debugging et analyse des performances
+**Benefit**: Debugging and performance analysis
 
 ---
 
-## 🎯 Gains Cumulatifs (Phase 1 + Phase 2)
+## 🎯 Cumulative Gains (Phase 1 + Phase 2)
 
-### Phase 1 : Quick Wins
+### Phase 1: Quick Wins
 
-- Court-circuit intelligent : **-40-60%**
-- Activation conditionnelle : **-20-40%**
-- **Gain Phase 1** : **~65-70%**
+- Smart Short-circuiting: **-40-60%**
+- Conditional Activation: **-20-40%**
+- **Phase 1 Gain**: **~65-70%**
 
-### Phase 2 : Algorithmiques
+### Phase 2: Algorithmic
 
-- Règle 10 progressive : **-48%** sur R10
-- Impact global : **~17%** supplémentaire
+- Progressive Rule 10: **-48%** on R10
+- Global Impact: **~17%** additional
 
-### Total Cumulatif
+### Cumulative Total
 
 ```
-Temps initial : 5-10s
-Après Phase 1 : 1.5-3s (-70%)
-Après Phase 2 : 1.2-2.5s (-75-80%)
+Initial Time: 5-10s
+After Phase 1: 1.5-3s (-70%)
+After Phase 2: 1.2-2.5s (-75-80%)
 ```
 
-**Gain cumulatif attendu** : **~75-80%** 🚀
+**Expected Cumulative Gain**: **~75-80%** 🚀
 
 ---
 
 ## ✅ Checklist
 
-- [x] Analyse progressive (2 → 5 segments)
-- [x] Phase 1 : Start + End
-- [x] Phase 2 : Décision intelligente (variance < 500 ou > 1000)
-- [x] Phase 3 : Expansion si nécessaire
-- [x] Fonction interne `analyze_single_segment()`
-- [x] Insertion ordonnée des segments
-- [x] Logs d'optimisation
-- [x] Tests unitaires passants
-- [x] Documentation complète
+- [x] Progressive analysis (2 → 5 segments)
+- [x] Phase 1: Start + End
+- [x] Phase 2: Intelligent decision (variance < 500 or > 1000)
+- [x] Phase 3: Expansion if necessary
+- [x] Internal function `analyze_single_segment()`
+- [x] Ordered insertion of segments
+- [x] Optimization logs
+- [x] Passing unit tests
+- [x] Complete documentation
 
 ---
 
-## 🔮 Prochaines Étapes
+## 🔮 Next Steps
 
-### Phase 3 : Optimisations Avancées (Gain +10-30%)
+### Phase 3: Advanced Optimizations (Gain +10-30%)
 
-1. ⏳ Parallélisation (ThreadPoolExecutor)
-2. ⏳ Cache spectral partagé
-3. ⏳ Numba JIT (optionnel)
+1. ⏳ Parallelization (ThreadPoolExecutor)
+2. ⏳ Shared spectral cache
+3. ⏳ Numba JIT (optional)
 
-### Phase 4 : Optimisations Structurelles (Gain +5-15%)
+### Phase 4: Structural Optimizations (Gain +5-15%)
 
-1. ⏳ Scoring hiérarchique
+1. ⏳ Hierarchical scoring
 2. ⏳ Modes (fast/balanced/complete)
 
 ---
 
-**Version** : 0.3.3  
-**Date** : 3 Décembre 2025  
-**Statut** : ✅ Implémenté et testé  
-**Tests** : 2/2 passants  
-**Gain attendu** : **~48%** sur Règle 10, **~17%** global  
-**Gain cumulatif (Phase 1+2)** : **~75-80%**
+**Version**: 0.3.3  
+**Date**: December 3, 2025  
+**Status**: ✅ Implemented and tested  
+**Tests**: 2/2 passing  
+**Expected Gain**: **~48%** on Rule 10, **~17%** global  
+**Cumulative Gain (Phase 1+2)**: **~75-80%**

@@ -1,225 +1,225 @@
-# Règle 8 Améliorée : Exception Nyquist avec Garde-Fous
+# Improved Rule 8: Nyquist Exception with Safeguards
 
-## 📅 Date : 3 Décembre 2025
+## 📅 Date: December 3, 2025
 
-## 🎯 Objectif
+## 🎯 Objective
 
-Améliorer la Règle 8 pour qu'elle soit **toujours appliquée** avec des garde-fous intelligents, au lieu de bloquer complètement le bonus en présence d'une signature MP3.
+Improve Rule 8 so that it is **always applied** with intelligent safeguards, instead of completely blocking the bonus in the presence of an MP3 signature.
 
-## ❌ Ancien Comportement (Blocage Complet)
+## ❌ Old Behavior (Complete Block)
 
 ```python
 if mp3_bitrate_detected is not None:
     if silence_ratio is None or silence_ratio >= 0.15:
-        # BLOQUER COMPLÈTEMENT le bonus
+        # COMPLETELY BLOCK the bonus
         return 0, []
 ```
 
-**Problème** : Des fichiers authentiques avec cutoff proche de Nyquist (21.5+ kHz) mais ayant une signature MP3-like ne recevaient AUCUN bonus, même s'ils étaient légitimes.
+**Problem**: Authentic files with cutoff close to Nyquist (21.5+ kHz) but having an MP3-like signature received NO bonus, even if they were legitimate.
 
-## ✅ Nouveau Comportement (Garde-Fous Intelligents)
+## ✅ New Behavior (Intelligent Safeguards)
 
-### Étape 1 : Calcul du Bonus de Base
+### Step 1: Base Bonus Calculation
 
-Le bonus est **TOUJOURS calculé** en fonction du ratio cutoff/Nyquist :
+The bonus is **ALWAYS calculated** based on the cutoff/Nyquist ratio:
 
 ```python
-if cutoff_ratio >= 0.98:  # 21.6+ kHz pour 44.1kHz
-    base_bonus = -50  # Très proche limite
-elif cutoff_ratio >= 0.95:  # 21.0+ kHz pour 44.1kHz
-    base_bonus = -30  # Probablement authentique
+if cutoff_ratio >= 0.98:  # 21.6+ kHz for 44.1kHz
+    base_bonus = -50  # Very close to limit
+elif cutoff_ratio >= 0.95:  # 21.0+ kHz for 44.1kHz
+    base_bonus = -30  # Probably authentic
 else:
-    base_bonus = 0  # Pas de bonus
+    base_bonus = 0  # No bonus
 ```
 
-### Étape 2 : Application des Garde-Fous
+### Step 2: Applying Safeguards
 
-Si une signature MP3 est détectée, le bonus est ajusté selon le `silence_ratio` :
+If an MP3 signature is detected, the bonus is adjusted according to the `silence_ratio`:
 
-| Condition | Bonus Final | Raison |
+| Condition | Final Bonus | Reason |
 |-----------|-------------|--------|
-| **Pas de signature MP3** | Base bonus (-50 ou -30) | Authentique, bonus complet |
-| **MP3 + ratio ≤ 0.15** | Base bonus (-50 ou -30) | Silence authentique malgré signature |
-| **MP3 + 0.15 < ratio ≤ 0.2** | **-15 points** | Zone grise, bonus réduit |
-| **MP3 + ratio > 0.2** | **0 points** | Dither suspect, bonus annulé |
+| **No MP3 signature** | Base bonus (-50 or -30) | Authentic, full bonus |
+| **MP3 + ratio ≤ 0.15** | Base bonus (-50 or -30) | Authentic silence despite signature |
+| **MP3 + 0.15 < ratio ≤ 0.2** | **-15 points** | Grey zone, reduced bonus |
+| **MP3 + ratio > 0.2** | **0 points** | Suspect dither, bonus cancelled |
 
-## 📊 Exemples de Scoring
+## 📊 Scoring Examples
 
-### Exemple 1 : Fichier Authentique HQ (Pas de MP3)
+### Example 1: Authentic HQ File (No MP3)
 
 ```
-Cutoff: 21.8 kHz (98.9% de Nyquist à 44.1kHz)
-MP3 détecté: Non
+Cutoff: 21.8 kHz (98.9% of Nyquist at 44.1kHz)
+MP3 detected: No
 Silence ratio: N/A
 
 → Bonus: -50 points
-→ Raison: "R8: Cutoff à 98.9% de Nyquist → Très proche limite (-50pts)"
+→ Reason: "R8: Cutoff at 98.9% of Nyquist → Very close to limit (-50pts)"
 ```
 
-### Exemple 2 : Vinyle avec Cutoff Élevé (MP3 + Silence Authentique)
+### Example 2: Vinyl with High Cutoff (MP3 + Authentic Silence)
 
 ```
-Cutoff: 21.6 kHz (98.0% de Nyquist)
-MP3 détecté: 320 kbps
-Silence ratio: 0.05 (< 0.15, silence naturel)
+Cutoff: 21.6 kHz (98.0% of Nyquist)
+MP3 detected: 320 kbps
+Silence ratio: 0.05 (< 0.15, natural silence)
 
 → Bonus: -50 points
-→ Raison: "R8: Cutoff à 98.0% de Nyquist → Très proche limite 
-          (-50pts, MP3 signature mais silence authentique)"
+→ Reason: "R8: Cutoff at 98.0% of Nyquist → Very close to limit 
+          (-50pts, MP3 signature but authentic silence)"
 ```
 
-### Exemple 3 : Zone Grise (MP3 + Ratio Ambigu)
+### Example 3: Grey Zone (MP3 + Ambiguous Ratio)
 
 ```
-Cutoff: 21.6 kHz (98.0% de Nyquist)
-MP3 détecté: 320 kbps
-Silence ratio: 0.18 (0.15 < ratio ≤ 0.2, zone grise)
+Cutoff: 21.6 kHz (98.0% of Nyquist)
+MP3 detected: 320 kbps
+Silence ratio: 0.18 (0.15 < ratio ≤ 0.2, grey zone)
 
-→ Bonus: -15 points (RÉDUIT)
-→ Raison: "R8: Cutoff à 98.0% de Nyquist → Bonus réduit 
-          (MP3 signature + zone grise) (-15pts)"
+→ Bonus: -15 points (REDUCED)
+→ Reason: "R8: Cutoff at 98.0% of Nyquist → Reduced bonus 
+          (MP3 signature + grey zone) (-15pts)"
 ```
 
-### Exemple 4 : Dither Suspect (MP3 + Ratio Élevé)
+### Example 4: Suspect Dither (MP3 + High Ratio)
 
 ```
-Cutoff: 21.6 kHz (98.0% de Nyquist)
-MP3 détecté: 320 kbps
-Silence ratio: 0.3 (> 0.2, dither artificiel)
+Cutoff: 21.6 kHz (98.0% of Nyquist)
+MP3 detected: 320 kbps
+Silence ratio: 0.3 (> 0.2, artificial dither)
 
-→ Bonus: 0 points (ANNULÉ)
-→ Raison: "R8: Bonus Nyquist annulé (MP3 signature 320 kbps + 
-          dither suspect 0.30 > 0.2)"
+→ Bonus: 0 points (CANCELLED)
+→ Reason: "R8: Nyquist bonus cancelled (MP3 signature 320 kbps + 
+          suspect dither 0.30 > 0.2)"
 ```
 
-## 🔍 Logique Détaillée
+## 🔍 Detailed Logic
 
-### Cas 1 : Pas de Signature MP3
+### Case 1: No MP3 Signature
 
 ```python
 if mp3_bitrate_detected is None:
-    # APPLIQUER le bonus sans condition
+    # APPLY bonus unconditionally
     final_bonus = base_bonus
 ```
 
-**Fichiers concernés** : FLACs authentiques haute qualité
+**Affected files**: Authentic high-quality FLACs
 
-### Cas 2 : Signature MP3 + Silence Authentique
+### Case 2: MP3 Signature + Authentic Silence
 
 ```python
 if mp3_bitrate_detected and silence_ratio <= 0.15:
-    # APPLIQUER le bonus (override)
+    # APPLY bonus (override)
     final_bonus = base_bonus
 ```
 
-**Fichiers concernés** : Vinyles, cassettes avec cutoff naturellement élevé
+**Affected files**: Vinyls, cassettes with naturally high cutoff
 
-### Cas 3 : Signature MP3 + Zone Grise
+### Case 3: MP3 Signature + Grey Zone
 
 ```python
 if mp3_bitrate_detected and 0.15 < silence_ratio <= 0.2:
-    # RÉDUIRE le bonus
+    # REDUCE bonus
     final_bonus = -15
 ```
 
-**Fichiers concernés** : Cas ambigus nécessitant prudence
+**Affected files**: Ambiguous cases requiring caution
 
-### Cas 4 : Signature MP3 + Dither Suspect
+### Case 4: MP3 Signature + Suspect Dither
 
 ```python
 if mp3_bitrate_detected and silence_ratio > 0.2:
-    # ANNULER le bonus
+    # CANCEL bonus
     final_bonus = 0
 ```
 
-**Fichiers concernés** : MP3 320 kbps transcodés avec dither artificiel
+**Affected files**: Transcoded 320 kbps MP3s with artificial dither
 
 ## 🧪 Tests
 
-### Tests Mis à Jour
+### Updated Tests
 
 ```python
 def test_strong_bonus_98_percent():
-    """Bonus fort pour cutoff >= 98% de Nyquist."""
+    """Strong bonus for cutoff >= 98% of Nyquist."""
     score, reasons = apply_rule_8_nyquist_exception(21800, 44100, None, None)
     assert score == -50
 
 def test_applied_with_authentic_silence():
-    """Bonus APPLIQUÉ malgré MP3 si silence authentique."""
+    """Bonus APPLIED despite MP3 if authentic silence."""
     score, reasons = apply_rule_8_nyquist_exception(21800, 44100, 320, 0.05)
     assert score == -50
-    assert "MP3 signature mais silence authentique" in reasons[0]
+    assert "MP3 signature but authentic silence" in reasons[0]
 
 def test_reduced_in_grey_zone():
-    """Bonus RÉDUIT si MP3 + zone grise."""
+    """Bonus REDUCED if MP3 + grey zone."""
     score, reasons = apply_rule_8_nyquist_exception(21800, 44100, 320, 0.18)
     assert score == -15
-    assert "Bonus réduit" in reasons[0]
+    assert "Reduced bonus" in reasons[0]
 
 def test_cancelled_by_mp3_signature_and_dither():
-    """Bonus ANNULÉ si MP3 + dither suspect."""
+    """Bonus CANCELLED if MP3 + suspect dither."""
     score, reasons = apply_rule_8_nyquist_exception(21800, 44100, 320, 0.3)
     assert score == 0
-    assert "annulé" in reasons[0]
+    assert "cancelled" in reasons[0]
 ```
 
-**Résultat** : ✅ **7/7 tests passants**
+**Result**: ✅ **7/7 tests passing**
 
 ## 📈 Impact
 
-### Avant (Blocage Complet)
+### Before (Complete Block)
 
-| Fichier | Cutoff | MP3 | Ratio | Bonus Ancien |
-|---------|--------|-----|-------|--------------|
-| FLAC HQ | 21.8 kHz | Non | N/A | **-50** ✅ |
-| Vinyle HQ | 21.6 kHz | 320 | 0.05 | **0** ❌ (bloqué) |
-| Zone grise | 21.6 kHz | 320 | 0.18 | **0** ❌ (bloqué) |
-| MP3 transcode | 21.6 kHz | 320 | 0.3 | **0** ✅ |
+| File | Cutoff | MP3 | Ratio | Old Bonus |
+|------|--------|-----|-------|-----------|
+| HQ FLAC | 21.8 kHz | No | N/A | **-50** ✅ |
+| HQ Vinyl | 21.6 kHz | 320 | 0.05 | **0** ❌ (blocked) |
+| Grey Zone | 21.6 kHz | 320 | 0.18 | **0** ❌ (blocked) |
+| Transcoded MP3 | 21.6 kHz | 320 | 0.3 | **0** ✅ |
 
-**Problème** : Vinyles légitimes pénalisés !
+**Problem**: Legitimate vinyls penalized!
 
-### Après (Garde-Fous Intelligents)
+### After (Intelligent Safeguards)
 
-| Fichier | Cutoff | MP3 | Ratio | Bonus Nouveau |
-|---------|--------|-----|-------|---------------|
-| FLAC HQ | 21.8 kHz | Non | N/A | **-50** ✅ |
-| Vinyle HQ | 21.6 kHz | 320 | 0.05 | **-50** ✅ (appliqué) |
-| Zone grise | 21.6 kHz | 320 | 0.18 | **-15** ⚡ (réduit) |
-| MP3 transcode | 21.6 kHz | 320 | 0.3 | **0** ✅ (annulé) |
+| File | Cutoff | MP3 | Ratio | New Bonus |
+|------|--------|-----|-------|-----------|
+| HQ FLAC | 21.8 kHz | No | N/A | **-50** ✅ |
+| HQ Vinyl | 21.6 kHz | 320 | 0.05 | **-50** ✅ (applied) |
+| Grey Zone | 21.6 kHz | 320 | 0.18 | **-15** ⚡ (reduced) |
+| Transcoded MP3 | 21.6 kHz | 320 | 0.3 | **0** ✅ (cancelled) |
 
-**Amélioration** : Protection des vinyles tout en détectant les faux !
+**Improvement**: Vinyl protection while still detecting fakes!
 
-## 🎯 Avantages
+## 🎯 Benefits
 
-1. **Toujours appliquée** : La règle calcule toujours le bonus de base
-2. **Garde-fous intelligents** : Ajustement selon le contexte (MP3 + silence)
-3. **Granularité** : 4 niveaux de bonus (-50, -30, -15, 0)
-4. **Protection vinyles** : Fichiers authentiques avec signature MP3-like protégés
-5. **Détection maintenue** : Vrais transcodes toujours détectés (ratio > 0.2)
+1. **Always applied**: Rule always calculates base bonus
+2. **Intelligent safeguards**: Adjustment based on context (MP3 + silence)
+3. **Granularity**: 4 bonus levels (-50, -30, -15, 0)
+4. **Vinyl protection**: Authentic files with MP3-like signature protected
+5. **Detection maintained**: Real transcodes still detected (ratio > 0.2)
 
-## 📝 Code Modifié
+## 📝 Modified Code
 
-### Fichiers
+### Files
 
-- `src/flac_detective/analysis/new_scoring/rules.py` : Fonction `apply_rule_8_nyquist_exception()`
-- `tests/test_rule8.py` : Tests mis à jour
+- `src/flac_detective/analysis/new_scoring/rules.py`: Function `apply_rule_8_nyquist_exception()`
+- `tests/test_rule8.py`: Updated tests
 
-### Lignes Ajoutées/Modifiées
+### Lines Added/Modified
 
-- **Ajouté** : ~30 lignes (logique garde-fous)
-- **Modifié** : ~20 lignes (documentation, tests)
-- **Supprimé** : ~15 lignes (ancien blocage)
+- **Added**: ~30 lines (safeguard logic)
+- **Modified**: ~20 lines (documentation, tests)
+- **Removed**: ~15 lines (old block)
 
-## 🚀 Prochaines Étapes
+## 🚀 Next Steps
 
-1. ✅ Tests unitaires passants (7/7)
-2. ⏳ Validation terrain sur fichiers réels
-3. ⏳ Ajustement seuils si nécessaire (0.15, 0.2)
-4. ⏳ Documentation utilisateur
+1. ✅ Passing unit tests (7/7)
+2. ⏳ Field validation on real files
+3. ⏳ Threshold adjustment if necessary (0.15, 0.2)
+4. ⏳ User documentation
 
 ---
 
-**Version** : 0.3.1  
-**Date** : 3 Décembre 2025  
-**Statut** : ✅ Implémenté et testé  
-**Tests** : 7/7 passants
+**Version**: 0.3.1  
+**Date**: December 3, 2025  
+**Status**: ✅ Implemented and tested  
+**Tests**: 7/7 passing

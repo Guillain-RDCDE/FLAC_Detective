@@ -1,43 +1,43 @@
-# Système de Scoring Amélioré v0.3
+# Improved Scoring System v0.3
 
-## Vue d'ensemble
+## Overview
 
-Le système de scoring de FLAC Detective a été mis à jour pour s'aligner sur les meilleures pratiques de l'industrie, notamment celles de **Fakin' The Funk**.
+The FLAC Detective scoring system has been updated to align with industry best practices, particularly those of **Fakin' The Funk**.
 
-## Nouvelle Échelle à 4 Niveaux
+## New 4-Level Scale
 
-### Seuils de Score
+### Score Thresholds
 
-| Score | Verdict | Description | Symbole |
-|-------|---------|-------------|---------|
-| **86-270** | `FAKE_CERTAIN` | Transcoding confirmé avec certitude | ❌ |
-| **61-85** | `SUSPICIOUS` | Probable transcoding, vérification recommandée | ⚠️ |
-| **31-60** | `WARNING` | Anomalies détectées, peut être légitime | ⚡ |
-| **0-30** | `AUTHENTIC` | Fichier authentique | ✅ |
+| Score | Verdict | Description | Symbol |
+|-------|---------|-------------|--------|
+| **86-270** | `FAKE_CERTAIN` | Transcoding confirmed with certainty | ❌ |
+| **61-85** | `SUSPICIOUS` | Probable transcoding, verification recommended | ⚠️ |
+| **31-60** | `WARNING` | Anomalies detected, may be legitimate | ⚡ |
+| **0-30** | `AUTHENTIC` | Authentic file | ✅ |
 
 ### Justification
 
-Cette échelle à 4 niveaux reflète la distribution réelle des fichiers audio :
+This 4-level scale reflects the real distribution of audio files:
 
-- **État 0 (AUTHENTIC)** : ~63% des fichiers
-- **État 1 (WARNING)** : ~36% des fichiers ← **Zone grise importante**
-- **État 2 (SUSPICIOUS)** : ~1.2% des fichiers
-- **État 3 (FAKE_CERTAIN)** : ~0% des fichiers (très rare)
+- **State 0 (AUTHENTIC)**: ~63% of files
+- **State 1 (WARNING)**: ~36% of files ← **Important grey zone**
+- **State 2 (SUSPICIOUS)**: ~1.2% of files
+- **State 3 (FAKE_CERTAIN)**: ~0% of files (very rare)
 
-## Zone WARNING (31-60) - Critique
+## WARNING Zone (31-60) - Critical
 
-La zone **WARNING** est particulièrement importante car elle contient :
+The **WARNING** zone is particularly important because it contains:
 
-- **Vinyles authentiques** avec cutoff naturellement bas
-- **Cassettes** et autres sources analogiques
-- **Masters anciens** avec limitations techniques
-- **Fichiers légitimes** nécessitant une vérification manuelle
+- **Authentic vinyls** with naturally low cutoff
+- **Cassettes** and other analog sources
+- **Old masters** with technical limitations
+- **Legitimate files** requiring manual verification
 
-⚠️ **Ces fichiers ne doivent PAS être automatiquement rejetés !**
+⚠️ **These files must NOT be automatically rejected!**
 
-## Comparaison avec l'Ancien Système
+## Comparison with Old System
 
-### Avant (v0.2)
+### Before (v0.2)
 
 ```
 Score >= 80 : FAKE_CERTAIN
@@ -46,7 +46,7 @@ Score >= 30 : DOUTEUX
 Score < 30  : AUTHENTIQUE
 ```
 
-### Après (v0.3)
+### After (v0.3)
 
 ```
 Score >= 86 : FAKE_CERTAIN
@@ -55,77 +55,77 @@ Score >= 31 : WARNING
 Score < 31  : AUTHENTIC
 ```
 
-### Changements Clés
+### Key Changes
 
-1. **Seuil FAKE_CERTAIN** : 80 → **86** (+6 points)
-   - Plus strict pour éviter les faux positifs critiques
+1. **FAKE_CERTAIN Threshold**: 80 → **86** (+6 points)
+   - Stricter to avoid critical false positives
 
-2. **FAKE_PROBABLE** → **SUSPICIOUS** : 50 → **61** (+11 points)
-   - Renommage pour clarté
-   - Seuil plus élevé pour réduire les faux positifs
+2. **FAKE_PROBABLE** → **SUSPICIOUS**: 50 → **61** (+11 points)
+   - Renamed for clarity
+   - Higher threshold to reduce false positives
 
-3. **DOUTEUX** → **WARNING** : 30 → **31** (+1 point)
-   - Renommage pour clarté internationale
-   - Zone élargie pour capturer plus de cas ambigus
+3. **DOUTEUX** → **WARNING**: 30 → **31** (+1 point)
+   - Renamed for international clarity
+   - Expanded zone to capture more ambiguous cases
 
-4. **AUTHENTIQUE** → **AUTHENTIC** : < 30 → **< 31**
-   - Renommage pour clarté internationale
-   - Légère réduction de la zone "safe"
+4. **AUTHENTIQUE** → **AUTHENTIC**: < 30 → **< 31**
+   - Renamed for international clarity
+   - Slight reduction of "safe" zone
 
-## Impact sur les Détections
+## Impact on Detections
 
-### Faux Positifs (Fichiers Authentiques Marqués FAKE)
+### False Positives (Authentic Files Marked FAKE)
 
-Avec les nouvelles règles (7, 9, 10) et les nouveaux seuils :
+With new rules (7, 9, 10) and new thresholds:
 
-- **12 faux positifs actuels** → Devraient passer sous 31 (AUTHENTIC)
-- **Vinyles 24-bit** : Protection complète
-- **Vinyles 16-bit** : ~83% de réduction des faux positifs
+- **12 current false positives** → Should pass under 31 (AUTHENTIC)
+- **24-bit Vinyls**: Complete protection
+- **16-bit Vinyls**: ~83% reduction in false positives
 
-### Vrais Positifs (MP3 Transcodés)
+### True Positives (Transcoded MP3s)
 
-- **34 vrais positifs** → Resteront probablement 31-60 (WARNING) ou 61+ (SUSPICIOUS)
-- **MP3 320 kbps** : Détection améliorée
-- **AAC transcodés** : Meilleure identification
+- **34 true positives** → Will likely remain 31-60 (WARNING) or 61+ (SUSPICIOUS)
+- **320 kbps MP3**: Improved detection
+- **Transcoded AAC**: Better identification
 
-## Exemples de Scoring
+## Scoring Examples
 
-### Exemple 1 : MP3 320 kbps Transcode
+### Example 1: 320 kbps MP3 Transcode
 
 ```
-Règle 1: +50 (Cutoff 20.5 kHz = 320 kbps)
-Règle 2: +0  (Cutoff > 20 kHz)
-Règle 3: +50 (Source 320 vs Container 850 kbps)
+Rule 1: +50 (Cutoff 20.5 kHz = 320 kbps)
+Rule 2: +0  (Cutoff > 20 kHz)
+Rule 3: +50 (Source 320 vs Container 850 kbps)
 Total: 100 points → FAKE_CERTAIN ❌
 ```
 
-### Exemple 2 : Vinyle Authentique
+### Example 2: Authentic Vinyl
 
 ```
-Règle 1: +0  (Cutoff 18 kHz, pas de signature MP3)
-Règle 2: +10 (Cutoff légèrement bas)
-Règle 6: -30 (Haute qualité VBR)
-Règle 7: -50 (Silence naturel)
+Rule 1: +0  (Cutoff 18 kHz, no MP3 signature)
+Rule 2: +10 (Cutoff slightly low)
+Rule 6: -30 (High quality VBR)
+Rule 7: -50 (Natural silence)
 Total: 0 points (max(0, -70)) → AUTHENTIC ✅
 ```
 
-### Exemple 3 : Master Ancien (Cas Ambigu)
+### Example 3: Old Master (Ambiguous Case)
 
 ```
-Règle 1: +0  (Pas de signature MP3)
-Règle 2: +15 (Cutoff 17 kHz)
-Règle 7: +20 (Ratio ambigu)
+Rule 1: +0  (No MP3 signature)
+Rule 2: +15 (Cutoff 17 kHz)
+Rule 7: +20 (Ambiguous ratio)
 Total: 35 points → WARNING ⚡
 ```
 
-## Utilisation dans le Code
+## Usage in Code
 
 ### Python
 
 ```python
 from flac_detective.analysis.new_scoring import new_calculate_score, determine_verdict
 
-# Calculer le score
+# Calculate score
 score, verdict, message, reasons = new_calculate_score(
     cutoff_freq=20500,
     metadata=metadata,
@@ -133,22 +133,22 @@ score, verdict, message, reasons = new_calculate_score(
     filepath=path
 )
 
-# Interpréter le verdict
+# Interpret verdict
 if verdict == "FAKE_CERTAIN":
     print(f"❌ {message}")
-    # Action : Rejeter le fichier
+    # Action: Reject file
 elif verdict == "SUSPICIOUS":
     print(f"⚠️ {message}")
-    # Action : Marquer pour vérification
+    # Action: Mark for verification
 elif verdict == "WARNING":
     print(f"⚡ {message}")
-    # Action : Accepter avec avertissement
+    # Action: Accept with warning
 else:  # AUTHENTIC
     print(f"✅ {message}")
-    # Action : Accepter
+    # Action: Accept
 ```
 
-### Constantes
+### Constants
 
 ```python
 from flac_detective.analysis.new_scoring import (
@@ -158,71 +158,71 @@ from flac_detective.analysis.new_scoring import (
 )
 ```
 
-## Recommandations d'Utilisation
+## Usage Recommendations
 
-### Pour les Utilisateurs
+### For Users
 
-1. **FAKE_CERTAIN (86+)** : Fichier très probablement fake, à rejeter
-2. **SUSPICIOUS (61-85)** : Vérifier manuellement, écouter le fichier
-3. **WARNING (31-60)** : Accepter avec prudence, peut être légitime
-4. **AUTHENTIC (0-30)** : Fichier authentique, accepter
+1. **FAKE_CERTAIN (86+)**: Very likely fake file, reject
+2. **SUSPICIOUS (61-85)**: Manually verify, listen to file
+3. **WARNING (31-60)**: Accept with caution, may be legitimate
+4. **AUTHENTIC (0-30)**: Authentic file, accept
 
-### Pour les Développeurs
+### For Developers
 
-1. **Ne jamais rejeter automatiquement** les fichiers WARNING
-2. **Toujours fournir les raisons** du score pour transparence
-3. **Permettre l'override manuel** pour tous les niveaux
-4. **Logger les détails** pour analyse future
+1. **Never automatically reject** WARNING files
+2. **Always provide reasons** for score for transparency
+3. **Allow manual override** for all levels
+4. **Log details** for future analysis
 
-## Tests de Validation
+## Validation Tests
 
-Les tests suivants valident le nouveau système :
+The following tests validate the new system:
 
 ```bash
-# Tester les seuils
+# Test thresholds
 pytest tests/test_new_scoring.py::TestVerdictThresholds -v
 
-# Tester les cas mandatoires
+# Test mandatory cases
 pytest tests/test_new_scoring.py::TestMandatoryTestCase* -v
 
-# Tester toutes les règles
+# Test all rules
 pytest tests/test_new_scoring.py -v
 ```
 
-## Migration depuis v0.2
+## Migration from v0.2
 
-### Code à Mettre à Jour
+### Code to Update
 
-1. **Imports** :
+1. **Imports**:
    ```python
-   # Avant
+   # Before
    from flac_detective.analysis.new_scoring import SCORE_FAKE_PROBABLE, SCORE_DOUTEUX
    
-   # Après
+   # After
    from flac_detective.analysis.new_scoring import SCORE_SUSPICIOUS, SCORE_WARNING
    ```
 
-2. **Comparaisons de Verdict** :
+2. **Verdict Comparisons**:
    ```python
-   # Avant
+   # Before
    if verdict == "FAKE_PROBABLE":
    if verdict == "DOUTEUX":
    if verdict == "AUTHENTIQUE":
    
-   # Après
+   # After
    if verdict == "SUSPICIOUS":
    if verdict == "WARNING":
    if verdict == "AUTHENTIC":
    ```
 
-3. **Seuils Personnalisés** :
+3. **Custom Thresholds**:
    ```python
-   # Avant
+   # Before
    if score >= 80:  # FAKE_CERTAIN
    if score >= 50:  # FAKE_PROBABLE
    if score >= 30:  # DOUTEUX
    
-   # Après
+   # After
    if score >= 86:  # FAKE_CERTAIN
    if score >= 61:  # SUSPICIOUS
    if score >= 31:  # WARNING
@@ -230,22 +230,22 @@ pytest tests/test_new_scoring.py -v
 
 ## Changelog
 
-### v0.3 (3 Décembre 2025)
+### v0.3 (December 3, 2025)
 
-- ✅ Nouveau système à 4 niveaux aligné sur Fakin' The Funk
-- ✅ Seuils ajustés : 86/61/31 (au lieu de 80/50/30)
-- ✅ Verdicts renommés : SUSPICIOUS, WARNING, AUTHENTIC
-- ✅ Messages descriptifs au lieu de niveaux de confiance
-- ✅ Zone WARNING élargie pour cas ambigus
-- ✅ Documentation complète
+- ✅ New 4-level system aligned with Fakin' The Funk
+- ✅ Adjusted thresholds: 86/61/31 (instead of 80/50/30)
+- ✅ Renamed verdicts: SUSPICIOUS, WARNING, AUTHENTIC
+- ✅ Descriptive messages instead of confidence levels
+- ✅ Expanded WARNING zone for ambiguous cases
+- ✅ Complete documentation
 
-### v0.2 (2 Décembre 2025)
+### v0.2 (December 2, 2025)
 
-- Système à 3 niveaux : FAKE_CERTAIN/FAKE_PROBABLE/DOUTEUX
-- Seuils : 80/50/30
+- 3-level system: FAKE_CERTAIN/FAKE_PROBABLE/DOUTEUX
+- Thresholds: 80/50/30
 
 ---
 
-**Date** : 3 Décembre 2025  
-**Version** : 0.3.0  
-**Statut** : ✅ Implémenté et testé
+**Date**: December 3, 2025  
+**Version**: 0.3.0  
+**Status**: ✅ Implemented and tested
