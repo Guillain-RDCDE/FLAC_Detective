@@ -88,17 +88,17 @@ def apply_rule_1_mp3_bitrate(
     if estimated_bitrate in mp3_ranges:
         min_br, max_br = mp3_ranges[estimated_bitrate]
 
-        # EXCEPTION SPÉCIFIQUE 320 kbps : Si cutoff >= 90% Nyquist, c'est probablement légitime
-        # Les vrais MP3 320 kbps ont un cutoff autour de 20-20.5 kHz
-        # Un cutoff > 90% Nyquist suggère un filtre anti-aliasing naturel, pas une limitation MP3
+        # EXCEPTION SPÉCIFIQUE 320 kbps : Si cutoff >= 94% Nyquist, c'est probablement légitime
+        # Les vrais MP3 320 kbps ont un cutoff autour de 20-20.5 kHz (approx 93% de 22.05kHz)
+        # Un cutoff > 94% Nyquist suggère un filtre anti-aliasing naturel
         if estimated_bitrate == 320:
             nyquist_freq = sample_rate / 2.0
-            nyquist_90_percent = 0.90 * nyquist_freq
+            nyquist_limit_percent = 0.94 * nyquist_freq
 
-            if cutoff_freq >= nyquist_90_percent:
+            if cutoff_freq >= nyquist_limit_percent:
                 logger.debug(
-                    f"RULE 1: Skipped 320 kbps detection (cutoff {cutoff_freq:.0f} Hz >= 90% Nyquist "
-                    f"{nyquist_90_percent:.0f} Hz, likely legitimate high-quality file)"
+                    f"RULE 1: Skipped 320 kbps detection (cutoff {cutoff_freq:.0f} Hz >= 94% Nyquist "
+                    f"{nyquist_limit_percent:.0f} Hz, likely legitimate high-quality file)"
                 )
                 return (score, reasons), None
 

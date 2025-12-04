@@ -14,7 +14,7 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase1_transcode(self):
         """Phase 1: High ratio (>0.3) should return +50 points (Transcode)."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             mock_ratio.return_value = (0.45, "OK", 0.0, 0.0)
             
             score, reasons, ratio = apply_rule_7_silence_analysis(
@@ -27,7 +27,7 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase1_authentic(self):
         """Phase 1: Low ratio (<0.15) should return -50 points (Authentic)."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             mock_ratio.return_value = (0.05, "OK", 0.0, 0.0)
             
             score, reasons, ratio = apply_rule_7_silence_analysis(
@@ -40,18 +40,18 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase2_vinyl_detected(self):
         """Phase 2: Vinyl noise detected should return -40 points."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             # Ratio in uncertain zone (0.15-0.3)
             mock_ratio.return_value = (0.20, "OK", 0.0, 0.0)
             
-            with patch('flac_detective.analysis.new_scoring.rules.sf') as mock_sf:
+            with patch('flac_detective.analysis.new_scoring.rules.silence.sf') as mock_sf:
                 mock_sf.read.return_value = (np.zeros(100), 44100)
                 
-                with patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise') as mock_vinyl:
+                with patch('flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise') as mock_vinyl:
                     # Simulate vinyl detected
                     mock_vinyl.return_value = (True, {'energy_db': -60, 'autocorr': 0.1, 'temporal_variance': 2.0})
                     
-                    with patch('flac_detective.analysis.new_scoring.rules.detect_clicks_and_pops') as mock_clicks:
+                    with patch('flac_detective.analysis.new_scoring.rules.silence.detect_clicks_and_pops') as mock_clicks:
                         # No clicks confirmation
                         mock_clicks.return_value = (0, 0.0)
                         
@@ -64,16 +64,16 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase3_vinyl_confirmed_with_clicks(self):
         """Phase 3: Vinyl noise + Clicks should return -50 points (-40 + -10)."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             mock_ratio.return_value = (0.20, "OK", 0.0, 0.0)
             
-            with patch('flac_detective.analysis.new_scoring.rules.sf') as mock_sf:
+            with patch('flac_detective.analysis.new_scoring.rules.silence.sf') as mock_sf:
                 mock_sf.read.return_value = (np.zeros(100), 44100)
                 
-                with patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise') as mock_vinyl:
+                with patch('flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise') as mock_vinyl:
                     mock_vinyl.return_value = (True, {'energy_db': -60, 'autocorr': 0.1, 'temporal_variance': 2.0})
                     
-                    with patch('flac_detective.analysis.new_scoring.rules.detect_clicks_and_pops') as mock_clicks:
+                    with patch('flac_detective.analysis.new_scoring.rules.silence.detect_clicks_and_pops') as mock_clicks:
                         # Clicks confirm vinyl (20 clicks/min)
                         mock_clicks.return_value = (10, 20.0)
                         
@@ -86,13 +86,13 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase2_digital_upsample(self):
         """Phase 2: No noise detected should return +20 points (Digital Upsample)."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             mock_ratio.return_value = (0.20, "OK", 0.0, 0.0)
             
-            with patch('flac_detective.analysis.new_scoring.rules.sf') as mock_sf:
+            with patch('flac_detective.analysis.new_scoring.rules.silence.sf') as mock_sf:
                 mock_sf.read.return_value = (np.zeros(100), 44100)
                 
-                with patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise') as mock_vinyl:
+                with patch('flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise') as mock_vinyl:
                     # No vinyl, very low energy
                     mock_vinyl.return_value = (False, {'energy_db': -80, 'autocorr': 0.0, 'temporal_variance': 0.0})
                     
@@ -105,13 +105,13 @@ class TestRule7VinylLogic:
 
     def test_rule7_phase2_uncertain(self):
         """Phase 2: Noise with pattern should return 0 points (Uncertain)."""
-        with patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio') as mock_ratio:
+        with patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio') as mock_ratio:
             mock_ratio.return_value = (0.20, "OK", 0.0, 0.0)
             
-            with patch('flac_detective.analysis.new_scoring.rules.sf') as mock_sf:
+            with patch('flac_detective.analysis.new_scoring.rules.silence.sf') as mock_sf:
                 mock_sf.read.return_value = (np.zeros(100), 44100)
                 
-                with patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise') as mock_vinyl:
+                with patch('flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise') as mock_vinyl:
                     # No vinyl, but high energy (noise present)
                     mock_vinyl.return_value = (False, {'energy_db': -60, 'autocorr': 0.5, 'temporal_variance': 0.0})
                     

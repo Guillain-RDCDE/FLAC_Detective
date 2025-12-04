@@ -74,7 +74,8 @@ class TestMandatoryTestCase1:
     
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
-    def test_mp3_320_high_cutoff(self, mock_variance, mock_real_bitrate):
+    @patch('flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis')
+    def test_mp3_320_high_cutoff(self, mock_rule7, mock_variance, mock_real_bitrate):
         """Test Case 1: MP3 320 kbps with high cutoff."""
         # Mock file path
         mock_path = Mock(spec=Path)
@@ -82,6 +83,9 @@ class TestMandatoryTestCase1:
         # Setup mocks - Use realistic FLAC container bitrate for MP3 320
         mock_real_bitrate.return_value = 851  # FLAC container bitrate (700-950 kbps range)
         mock_variance.return_value = 50  # Low variance (constant bitrate)
+        
+        # Mock Rule 7 to return neutral result (0 points)
+        mock_rule7.return_value = (0, [], None)
         
         # Metadata
         metadata = {
@@ -129,7 +133,8 @@ class TestMandatoryTestCase2:
     
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
-    def test_mp3_256_24bit(self, mock_variance, mock_real_bitrate):
+    @patch('flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis')
+    def test_mp3_256_24bit(self, mock_rule7, mock_variance, mock_real_bitrate):
         """Test Case 2: MP3 256 kbps in 24-bit container."""
         # Mock file path
         mock_path = Mock(spec=Path)
@@ -137,6 +142,9 @@ class TestMandatoryTestCase2:
         # Setup mocks - Use realistic FLAC container bitrate for MP3 256
         mock_real_bitrate.return_value = 725  # FLAC container bitrate (600-850 kbps range)
         mock_variance.return_value = 30  # Low variance
+        
+        # Mock Rule 7 to return neutral result
+        mock_rule7.return_value = (0, [], None)
         
         # Metadata
         metadata = {
@@ -185,7 +193,8 @@ class TestMandatoryTestCase3:
     
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
-    def test_authentic_poor_quality(self, mock_variance, mock_real_bitrate):
+    @patch('flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis')
+    def test_authentic_poor_quality(self, mock_rule7, mock_variance, mock_real_bitrate):
         """Test Case 3: Authentic FLAC with poor quality (e.g. vinyl rip)."""
         # Mock file path
         mock_path = Mock(spec=Path)
@@ -193,6 +202,9 @@ class TestMandatoryTestCase3:
         # Setup mocks
         mock_real_bitrate.return_value = 850  # Real bitrate = 850 kbps
         mock_variance.return_value = 150  # High variance (variable bitrate)
+        
+        # Mock Rule 7
+        mock_rule7.return_value = (0, [], None)
         
         # Metadata
         metadata = {
@@ -239,7 +251,8 @@ class TestMandatoryTestCase4:
     
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate')
     @patch('flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance')
-    def test_authentic_high_quality(self, mock_variance, mock_real_bitrate):
+    @patch('flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis')
+    def test_authentic_high_quality(self, mock_rule7, mock_variance, mock_real_bitrate):
         """Test Case 4: Authentic high-quality FLAC."""
         # Mock file path
         mock_path = Mock(spec=Path)
@@ -247,6 +260,9 @@ class TestMandatoryTestCase4:
         # Setup mocks
         mock_real_bitrate.return_value = 1580  # Real bitrate = 1580 kbps
         mock_variance.return_value = 200  # High variance (variable bitrate)
+        
+        # Mock Rule 7
+        mock_rule7.return_value = (0, [], None)
         
         # Metadata
         metadata = {
@@ -303,7 +319,7 @@ class TestMP3BitrateConstants:
 class TestRule7SilenceAnalysis:
     """Test Rule 7: Silence Analysis."""
     
-    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio')
     def test_transcode_detection(self, mock_analyze):
         """Test detection of transcode (high HF energy in silence)."""
         # Setup mock
@@ -317,7 +333,7 @@ class TestRule7SilenceAnalysis:
         assert ratio == 0.4
         assert "Dither artificiel" in reasons[0]
         
-    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio')
     def test_authentic_detection(self, mock_analyze):
         """Test detection of authentic file (low HF energy in silence)."""
         # Setup mock
@@ -331,9 +347,9 @@ class TestRule7SilenceAnalysis:
         assert ratio == 0.05
         assert "Silence naturel" in reasons[0]
         
-    @patch('flac_detective.analysis.new_scoring.rules.detect_vinyl_noise')
-    @patch('flac_detective.analysis.new_scoring.rules.sf.read')
-    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.sf.read')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio')
     def test_uncertain_zone(self, mock_analyze, mock_sf_read, mock_vinyl):
         """Test uncertain zone (ratio between 0.15 and 0.3) proceeds to Phase 2."""
         # Setup mocks
@@ -353,7 +369,7 @@ class TestRule7SilenceAnalysis:
         assert len(reasons) == 1
         assert "Bruit avec pattern" in reasons[0] or "Incertain" in reasons[0]
         
-    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio')
     def test_skipped_outside_range_low(self, mock_analyze):
         """Test rule skipped if cutoff too low."""
         from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
@@ -364,7 +380,7 @@ class TestRule7SilenceAnalysis:
         assert ratio is None
         mock_analyze.assert_not_called()
         
-    @patch('flac_detective.analysis.new_scoring.rules.analyze_silence_ratio')
+    @patch('flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio')
     def test_skipped_outside_range_high(self, mock_analyze):
         """Test rule skipped if cutoff too high."""
         from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
@@ -374,4 +390,3 @@ class TestRule7SilenceAnalysis:
         assert not reasons
         assert ratio is None
         mock_analyze.assert_not_called()
-
