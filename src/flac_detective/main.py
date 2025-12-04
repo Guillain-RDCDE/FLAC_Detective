@@ -189,6 +189,18 @@ def main():
     # Use the directory of the first path, or current directory if it's a file
     output_dir = paths[0] if paths[0].is_dir() else paths[0].parent
 
+    # Setup file logging to capture console output
+    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
+    
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
+    file_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(file_handler)
+    
+    logger.info(f"Console log will be saved to: {log_file}")
+
     # Initialization
     analyzer = FLACAnalyzer(sample_duration=analysis_config.SAMPLE_DURATION)
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
@@ -307,6 +319,7 @@ def main():
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
     print(f"  Text report: {output_file.name}")
+    print(f"  Console log: {log_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
 
 

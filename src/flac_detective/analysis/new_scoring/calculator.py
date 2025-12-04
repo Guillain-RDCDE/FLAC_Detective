@@ -94,6 +94,18 @@ def _apply_scoring_rules(
     total_score = 0
     all_reasons: List[str] = []
     
+    # ========== RULE 8: NYQUIST EXCEPTION (ALWAYS FIRST) ==========
+    # This rule MUST be calculated first and applied before any short-circuit
+    # to protect authentic files with cutoff near Nyquist, even if R1-R6 give high scores
+    logger.debug("OPTIMIZATION: Calculating Rule 8 (Nyquist Exception) FIRST...")
+    rule8_score, rule8_reasons = apply_rule_8_nyquist_exception(
+        cutoff_freq,
+        audio_meta.sample_rate,
+        None,  # mp3_bitrate_detected not yet available
+        None   # silence_ratio not yet available
+    )
+    logger.info(f"RULE 8 (pre-calculated): {rule8_score} points")
+    
     # ========== PHASE 1: FAST RULES (R1-R6) ==========
     # These are cheap (<0.01s total), always execute
     logger.debug("OPTIMIZATION: Executing fast rules (R1-R6)...")
@@ -102,7 +114,8 @@ def _apply_scoring_rules(
     rule1_result, mp3_bitrate_detected = apply_rule_1_mp3_bitrate(
         cutoff_freq, 
         bitrate_metrics.real_bitrate,
-        cutoff_std
+        cutoff_std,
+        audio_meta.sample_rate
     )
     
     # Apply Rules 2-6 (all fast)
@@ -136,33 +149,25 @@ def _apply_scoring_rules(
         total_score += rule_score
         all_reasons.extend(rule_reasons)
     
+    # Apply Rule 8 score BEFORE short-circuit
+    total_score += rule8_score
+    all_reasons.extend(rule8_reasons)
     total_score = max(0, total_score)
     
-    logger.info(f"OPTIMIZATION: Fast rules score = {total_score}")
+    logger.info(f"OPTIMIZATION: Fast rules + R8 score = {total_score}")
     
     # SHORT-CIRCUIT 1: If already FAKE_CERTAIN (≥86), stop here
+    # Rule 8 has already been applied, so authentic files near Nyquist are protected
     if total_score >= 86:
-        logger.info(f"OPTIMIZATION: Short-circuit at {total_score} ≥ 86 (FAKE_CERTAIN)")
+        logger.info(f"OPTIMIZATION: Short-circuit at {total_score} ≥ 86 (FAKE_CERTAIN, R8 already applied)")
         all_reasons.append("⚡ Analyse rapide : FAKE_CERTAIN détecté sans règles coûteuses")
         return total_score, all_reasons
     
     # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
     if total_score < 10 and mp3_bitrate_detected is None:
-        logger.info(f"OPTIMIZATION: Fast path for authentic file (score={total_score}, no MP3)")
-        # Still apply R8 (cheap) for potential bonus
-        rule8_score, rule8_reasons = apply_rule_8_nyquist_exception(
-            cutoff_freq,
-            audio_meta.sample_rate,
-            mp3_bitrate_detected,
-            None  # No silence analysis needed
-        )
-        total_score += rule8_score
-        all_reasons.extend(rule8_reasons)
-        total_score = max(0, total_score)
-        
-        if total_score < 10:
-            all_reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
-            return total_score, all_reasons
+        logger.info(f"OPTIMIZATION: Fast path for authentic file (score={total_score}, no MP3, R8 already applied)")
+        all_reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
+        return total_score, all_reasons
     
     # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
     # PHASE 3 OPTIMIZATION: Parallelize R7 and R9 if both are needed
@@ -224,16 +229,28 @@ def _apply_scoring_rules(
     all_reasons.extend(rule9_reasons)
     total_score = max(0, total_score)
     
-    # Rule 8: Always apply (cheap)
-    rule8_score, rule8_reasons = apply_rule_8_nyquist_exception(
-        cutoff_freq,
-        audio_meta.sample_rate,
-        mp3_bitrate_detected,
-        silence_ratio
-    )
-    total_score += rule8_score
-    all_reasons.extend(rule8_reasons)
-    total_score = max(0, total_score)
+    # Rule 8: Refine with additional context if available
+    # We already calculated R8 at the beginning, but now we have mp3_bitrate_detected and silence_ratio
+    # Only recalculate if these might change the result (i.e., if MP3 was detected)
+    if mp3_bitrate_detected is not None:
+        logger.debug("OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio...")
+        # Remove the previous R8 score
+        total_score -= rule8_score
+        for reason in rule8_reasons:
+            if reason in all_reasons:
+                all_reasons.remove(reason)
+        
+        # Recalculate with full context
+        rule8_score, rule8_reasons = apply_rule_8_nyquist_exception(
+            cutoff_freq,
+            audio_meta.sample_rate,
+            mp3_bitrate_detected,
+            silence_ratio
+        )
+        total_score += rule8_score
+        all_reasons.extend(rule8_reasons)
+        total_score = max(0, total_score)
+        logger.info(f"RULE 8 (refined): {rule8_score} points")
     
     # SHORT-CIRCUIT 3: Check again after R7+R8+R9
     if total_score >= 86:

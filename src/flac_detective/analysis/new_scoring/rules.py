@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 def apply_rule_1_mp3_bitrate(
     cutoff_freq: float, 
     container_bitrate: float,
-    cutoff_std: float = 0.0
+    cutoff_std: float = 0.0,
+    sample_rate: int = 44100
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -39,6 +40,7 @@ def apply_rule_1_mp3_bitrate(
         cutoff_freq: Detected cutoff frequency in Hz
         container_bitrate: Physical bitrate of the FLAC file in kbps
         cutoff_std: Standard deviation of cutoff frequency
+        sample_rate: Sample rate in Hz (default: 44100)
 
     Returns:
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
@@ -46,9 +48,22 @@ def apply_rule_1_mp3_bitrate(
     score = 0
     reasons: List[str] = []
     
-    # Safety check 1: If cutoff > 21 kHz, it's likely an authentic high-quality FLAC
-    # MP3s never have cutoffs above 21 kHz (even 320 kbps tops out around 20.5 kHz)
-    HIGH_QUALITY_CUTOFF_THRESHOLD = 21000
+    # Safety check 1: Nyquist Exception (OPTIMAL)
+    # If cutoff is >= 95% of Nyquist frequency, it's likely the anti-aliasing filter
+    # of an authentic FLAC, not an MP3 signature
+    nyquist_freq = sample_rate / 2.0
+    nyquist_threshold = 0.95 * nyquist_freq
+    
+    if cutoff_freq >= nyquist_threshold:
+        logger.debug(
+            f"RULE 1: Skipped (cutoff {cutoff_freq:.0f} Hz >= 95% Nyquist {nyquist_threshold:.0f} Hz, "
+            f"likely anti-aliasing filter)"
+        )
+        return (score, reasons), None
+    
+    # Safety check 2: If cutoff > 21.5 kHz, it's likely an authentic high-quality FLAC
+    # MP3s never have cutoffs above 21.5 kHz (even 320 kbps tops out around 20.5-21 kHz)
+    HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
     
     if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
         logger.debug(
@@ -56,7 +71,7 @@ def apply_rule_1_mp3_bitrate(
         )
         return (score, reasons), None
 
-    # Safety check 2: Variance check
+    # Safety check 3: Variance check
     # Authentic FLACs often have variable cutoffs (high variance).
     # CBR MP3s have very stable cutoffs (low variance).
     CUTOFF_VARIANCE_THRESHOLD = 100.0  # Hz
@@ -80,11 +95,25 @@ def apply_rule_1_mp3_bitrate(
         192: (500, 750),
         224: (550, 800),
         256: (600, 850),
-        320: (700, 950),
+        320: (700, 1050),
     }
 
     if estimated_bitrate in mp3_ranges:
         min_br, max_br = mp3_ranges[estimated_bitrate]
+        
+        # EXCEPTION SPÉCIFIQUE 320 kbps : Si cutoff >= 90% Nyquist, c'est probablement légitime
+        # Les vrais MP3 320 kbps ont un cutoff autour de 20-20.5 kHz
+        # Un cutoff > 90% Nyquist suggère un filtre anti-aliasing naturel, pas une limitation MP3
+        if estimated_bitrate == 320:
+            nyquist_freq = sample_rate / 2.0
+            nyquist_90_percent = 0.90 * nyquist_freq
+            
+            if cutoff_freq >= nyquist_90_percent:
+                logger.debug(
+                    f"RULE 1: Skipped 320 kbps detection (cutoff {cutoff_freq:.0f} Hz >= 90% Nyquist "
+                    f"{nyquist_90_percent:.0f} Hz, likely legitimate high-quality file)"
+                )
+                return (score, reasons), None
         
         # Le bitrate conteneur est-il dans la plage attendue ?
         if min_br <= container_bitrate <= max_br:
@@ -751,7 +780,7 @@ def apply_rule_10_multi_segment_consistency(
     for i, cutoff in enumerate(cutoffs):
         # Calculate segment score using Rule 1 and Rule 2 logic
         # Rule 1: MP3 detection (max 50 pts)
-        r1_res, _ = apply_rule_1_mp3_bitrate(cutoff, container_bitrate, 0.0)
+        r1_res, _ = apply_rule_1_mp3_bitrate(cutoff, container_bitrate, 0.0, sample_rate)
         r1_score = r1_res[0]
 
         # Rule 2: Low cutoff (max 30 pts)

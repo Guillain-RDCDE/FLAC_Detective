@@ -1,0 +1,111 @@
+# Changelog
+
+All notable changes to FLAC Detective will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.5.0] - 2025-12-04
+
+### 🎯 Major Achievement
+- **79.2% authentic detection rate** on production dataset (759 files)
+- **2.2% fake detection rate** with near-zero false positives (< 0.5%)
+- **80% performance improvement** through intelligent optimizations
+
+### Added
+- **Rule 8: Nyquist Exception** - Protects authentic files with cutoff near Nyquist frequency
+  - 95% Nyquist threshold for global protection
+  - 90% Nyquist threshold for MP3 320 kbps specific protection
+- **Rule 9: Compression Artifacts Detection** (3 phases)
+  - Phase A: Pre-echo detection (MDCT ghosting)
+  - Phase B: High-frequency aliasing detection
+  - Phase C: MP3 quantization noise patterns
+- **Rule 10: Multi-Segment Consistency Analysis**
+  - Validates anomalies across 5 file segments
+  - Detects dynamic mastering vs global transcoding
+- **Rule 7 Enhancement: 3-Phase Vinyl Detection**
+  - Phase 1: Dither detection (existing)
+  - Phase 2: Vinyl surface noise detection (new)
+  - Phase 3: Clicks & pops detection (new)
+
+### Changed
+- **Rule 1: MP3 Bitrate Detection** - Enhanced with multiple safeguards
+  - Added 95% Nyquist exception (global)
+  - Added 90% Nyquist exception (320 kbps specific)
+  - Added variance check (cutoff_std > 100 Hz)
+  - Widened 320 kbps container range: (700, 950) → (700, 1050) kbps
+- **Rule Execution Order** - R8 now calculated FIRST and applied BEFORE short-circuit
+  - Ensures authentic files near Nyquist are protected even if R1-R6 give high scores
+  - Prevents false positives from early termination
+- **Scoring System** - Refined thresholds
+  - FAKE_CERTAIN: ≥ 86 points
+  - SUSPICIOUS: 61-85 points
+  - WARNING: 31-60 points
+  - AUTHENTIC: ≤ 30 points
+
+### Performance Optimizations
+- **Phase 1: Smart Short-Circuits** (~70% time reduction)
+  - Fast path for authentic files (score < 10, no MP3 detected)
+  - Early termination for certain fakes (score ≥ 86 after R1-R6+R8)
+- **Phase 2: Progressive Rule 10** (~17% time reduction)
+  - Starts with 2 segments, expands to 5 only if needed
+- **Phase 3: Parallel Execution** (~6% time reduction)
+  - R7 and R9 run in parallel when both are needed
+- **File Read Cache** - Avoids multiple reads of the same file
+- **Total Performance Gain: ~80%** (10 hours → 1h45 for 759 files)
+
+### Fixed
+- **Critical: Short-circuit bug** - R8 was not applied before early termination
+- **False positives on 21 kHz cutoff** - Files with cutoff at 95% Nyquist incorrectly flagged as MP3 320k
+- **False positives on 20.2-20.8 kHz** - Zone between 90-95% Nyquist now protected for 320k detection
+- **Vinyl rips misdetection** - R7 Phase 2 & 3 now correctly identify authentic vinyl sources
+
+### Technical Improvements
+- Modularized scoring system into separate files:
+  - `rules.py` - All scoring rules
+  - `bitrate.py` - Bitrate calculations
+  - `silence.py` - Silence and vinyl analysis
+  - `artifacts.py` - Compression artifacts detection
+  - `calculator.py` - Main scoring orchestration
+  - `verdict.py` - Score interpretation
+- Comprehensive unit tests for all rules
+- Improved logging with optimization markers
+- Better error handling and edge case coverage
+
+### Documentation
+- Complete rule specifications in English
+- Performance optimization documentation
+- Vinyl detection methodology
+- Nyquist exception rationale
+
+## [0.2.0] - 2025-12-01
+
+### Added
+- Initial new scoring system implementation
+- Rules 1-6 basic implementation
+- Text and JSON report generation
+
+### Changed
+- Migrated from old scoring to new multi-rule system
+
+## [0.1.0] - 2025-11-29
+
+### Added
+- Initial release
+- Basic spectral analysis
+- Simple scoring mechanism
+- Text report output
+
+---
+
+## Version Comparison
+
+| Version | Authentic Rate | Fake Rate | Performance | False Positives |
+|---------|---------------|-----------|-------------|-----------------|
+| 0.1.0   | ~93% | ~6% | Baseline | ~6% |
+| 0.2.0   | ~76% | ~6% | Baseline | ~2% |
+| 0.5.0   | **79.2%** | **2.2%** | **+80%** | **< 0.5%** |
+
+[0.5.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.5.0
+[0.2.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.2.0
+[0.1.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.1.0

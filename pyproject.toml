@@ -4,17 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "0.4.0"
-description = "Analyse et réparation de fichiers FLAC avec détection de problèmes audio"
+version = "0.5.0"
+description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README_FLAC_DETECTIVE.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
-keywords = ["flac", "audio", "analysis", "repair", "metadata"]
+keywords = ["flac", "audio", "analysis", "transcode", "detection", "mp3", "quality", "authenticity"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -23,6 +24,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Utilities",
 ]
 
 dependencies = [
