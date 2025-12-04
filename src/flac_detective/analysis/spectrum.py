@@ -86,7 +86,7 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[flo
         # A transcoded file will have a low cutoff in ALL samples
         # We use min() because even one sample with low cutoff indicates transcoding
         final_cutoff = min(cutoff_freqs)
-        
+
         # For energy, we also take min() to be consistent
         final_energy = min(energy_ratios)
 
@@ -348,4 +348,3 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tup
     except Exception as e:
         logger.error(f"Segment consistency analysis failed: {e}")
         return [], 0.0
-

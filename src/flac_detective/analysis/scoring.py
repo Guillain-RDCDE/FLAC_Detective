@@ -25,10 +25,10 @@ MP3_SIGNATURES = [
 
 def get_adaptive_threshold(sample_rate: int) -> float:
     """Calculate adaptive threshold based on sample rate.
-    
+
     Args:
         sample_rate: Sample rate in Hz.
-    
+
     Returns:
         Adaptive threshold frequency in Hz (95% of Nyquist).
     """
@@ -73,7 +73,7 @@ def calculate_score(
     """
     reasons = []
     score = 100
-    
+
     # Get sample rate
     sample_rate = metadata.get("sample_rate", 44100)
     if isinstance(sample_rate, str):
@@ -81,20 +81,20 @@ def calculate_score(
             sample_rate = int(sample_rate)
         except (ValueError, TypeError):
             sample_rate = 44100
-    
+
     nyquist = sample_rate / 2.0
     adaptive_threshold = get_adaptive_threshold(sample_rate)
-    
+
     logger.debug(
         f"Scoring: sample_rate={sample_rate}Hz, Nyquist={nyquist:.0f}Hz, "
         f"threshold={adaptive_threshold:.0f}Hz, cutoff={cutoff_freq:.0f}Hz"
     )
 
     # --- CRITERION 1: Cutoff Frequency & Bitrate Detection ---
-    
+
     # Check for specific MP3 signatures first (Priority 1)
     estimated_bitrate = estimate_mp3_bitrate(cutoff_freq)
-    
+
     if estimated_bitrate > 0:
         # Detected a specific MP3 signature
         if estimated_bitrate == 320:
@@ -112,7 +112,7 @@ def calculate_score(
         elif estimated_bitrate <= 160:
             score -= 80
             reasons.append(f"Cutoff at {cutoff_freq:.0f} Hz (matches MP3 {estimated_bitrate}kbps)")
-            
+
     elif cutoff_freq >= adaptive_threshold:
         # High cutoff, no MP3 signature -> Likely Authentic
         reasons.append(
@@ -126,9 +126,9 @@ def calculate_score(
 
     # --- CRITERION 2: High Frequency Energy ---
     # If cutoff is high but energy is low, it's suspicious (upsampling/filtering)
-    
+
     cutoff_is_high = cutoff_freq >= adaptive_threshold
-    
+
     if cutoff_is_high:
         if energy_ratio < 0.00001:
             score -= 10
@@ -154,7 +154,7 @@ def calculate_score(
     if "lame" in encoder or "mp3" in encoder:
         score -= 30
         reasons.append(f"Suspicious encoder: {metadata.get('encoder')}")
-        
+
     bit_depth = metadata.get("bit_depth")
     if bit_depth and isinstance(bit_depth, int) and bit_depth < 16:
         score -= 20
@@ -163,5 +163,5 @@ def calculate_score(
     # Final Score
     final_score = max(0, min(100, score))
     reason_str = " | ".join(reasons) if reasons else "Normal analysis"
-    
+
     return final_score, reason_str

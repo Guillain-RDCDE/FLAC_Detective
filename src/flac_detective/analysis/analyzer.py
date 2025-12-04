@@ -117,4 +117,3 @@ class FLACAnalyzer:
                 "is_upsampled": False,
                 "suspected_original_rate": 0,
             }
-

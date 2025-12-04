@@ -54,14 +54,14 @@ def find_non_flac_audio_files(root_dir: Path) -> List[Path]:
         List of paths to found non-FLAC audio files.
     """
     logger.info(f"Scanning for non-FLAC audio files in: {root_dir}")
-    
+
     # Common lossy audio formats
     extensions = ["*.mp3", "*.m4a", "*.aac", "*.ogg", "*.wma", "*.opus", "*.ape"]
-    
+
     non_flac_files = []
     for ext in extensions:
         files = list(root_dir.rglob(ext))
         non_flac_files.extend(files)
-    
+
     logger.info(f"{len(non_flac_files)} non-FLAC audio files found")
     return non_flac_files

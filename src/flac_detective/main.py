@@ -138,9 +138,34 @@ def get_user_input_path() -> list[Path]:
             sys.exit(0)
 
 
-def main():
-    """Main function."""
-    # Determine paths to analyze
+def setup_logging(output_dir: Path) -> Path:
+    """Setup file logging to capture console output.
+
+    Args:
+        output_dir: Directory where the log file will be saved.
+
+    Returns:
+        Path to the created log file.
+    """
+    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
+
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
+    file_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(file_handler)
+
+    logger.info(f"Console log will be saved to: {log_file}")
+    return log_file
+
+
+def parse_arguments() -> list[Path]:
+    """Determine paths to analyze from command line or interactive input.
+
+    Returns:
+        List of paths to analyze.
+    """
     if len(sys.argv) > 1:
         # Command line mode: all arguments are paths
         paths = [Path(arg) for arg in sys.argv[1:]]
@@ -149,22 +174,24 @@ def main():
             logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
             sys.exit(1)
         print(LOGO)
+        return paths
     else:
         # Interactive mode
-        paths = get_user_input_path()
+        return get_user_input_path()
 
-    print()
-    print(colorize("=" * 70, Colors.CYAN))
-    print(f"  {colorize('FLAC AUTHENTICITY ANALYZER', Colors.BRIGHT_WHITE)}")
-    print("  Detection of MP3s transcoded to FLAC")
-    print("  Method: Advanced spectral analysis")
-    print(colorize("=" * 70, Colors.CYAN))
-    print()
 
-    # Collect all FLAC files from all paths
+def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
+    """Scan paths for FLAC and non-FLAC audio files.
+
+    Args:
+        paths: List of paths to scan.
+
+    Returns:
+        Tuple of (all_flac_files, all_non_flac_files).
+    """
     all_flac_files = []
     all_non_flac_files = []
-    
+
     for path in paths:
         if path.is_file() and path.suffix.lower() == ".flac":
             # It's a FLAC file directly
@@ -174,33 +201,31 @@ def main():
             # It's a folder, scan recursively for FLAC
             flac_files = find_flac_files(path)
             all_flac_files.extend(flac_files)
-            
+
             # Also scan for non-FLAC audio files
             non_flac_files = find_non_flac_audio_files(path)
             all_non_flac_files.extend(non_flac_files)
         else:
             logger.warning(f"Ignored (not a FLAC file or folder) : {path}")
 
-    if not all_flac_files and not all_non_flac_files:
-        logger.error("No audio files found!")
-        return
+    return all_flac_files, all_non_flac_files
 
-    # Determine output directory (for progress.json and report)
-    # Use the directory of the first path, or current directory if it's a file
-    output_dir = paths[0] if paths[0].is_dir() else paths[0].parent
 
-    # Setup file logging to capture console output
-    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
-    
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
-    file_handler.setFormatter(formatter)
-    logging.getLogger().addHandler(file_handler)
-    
-    logger.info(f"Console log will be saved to: {log_file}")
+def run_analysis_loop(
+    all_flac_files: list[Path],
+    all_non_flac_files: list[Path],
+    output_dir: Path
+) -> list[dict]:
+    """Run the main analysis loop on the provided files.
 
+    Args:
+        all_flac_files: List of FLAC files to analyze.
+        all_non_flac_files: List of non-FLAC files to report.
+        output_dir: Directory for saving progress and reports.
+
+    Returns:
+        List of result dictionaries.
+    """
     # Initialization
     analyzer = FLACAnalyzer(sample_duration=analysis_config.SAMPLE_DURATION)
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
@@ -232,7 +257,7 @@ def main():
                 processed, total = tracker.get_progress()
                 score = result.get("score", 0)
                 verdict = result.get("verdict", "UNKNOWN")
-                
+
                 # Color coding based on new scoring system
                 if score >= 80:  # FAKE_CERTAIN
                     score_icon = colorize("[FAKE]", Colors.RED)
@@ -290,26 +315,43 @@ def main():
             "suspected_original_rate": 0,
             "estimated_mp3_bitrate": 0,
         })
-    
+
     if all_non_flac_files:
         logger.info(f"\n{len(all_non_flac_files)} non-FLAC audio files added to report")
 
-    # Generate text report
+    # Clean up progress file after successful completion
+    tracker.cleanup()
+
+    return tracker.get_results()
+
+
+def generate_final_report(
+    results: list[dict],
+    output_dir: Path,
+    all_flac_files: list[Path],
+    all_non_flac_files: list[Path],
+    log_file: Path
+):
+    """Generate the final report and print summary.
+
+    Args:
+        results: List of analysis results.
+        output_dir: Directory to save the report.
+        all_flac_files: List of FLAC files analyzed.
+        all_non_flac_files: List of non-FLAC files found.
+        log_file: Path to the console log file.
+    """
     logger.info("\nGenerating report...")
-    results = tracker.get_results()
 
     output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     reporter = TextReporter()
     reporter.generate_report(results, output_file)
 
-    # Clean up progress file after successful completion
-    tracker.cleanup()
-
     # Summary (NEW SCORING: score >= 50 = suspicious)
     suspicious_flac = [r for r in results if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
     fake_certain = [r for r in results if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
     non_flac_count = len(all_non_flac_files)
-    
+
     print()
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
@@ -321,6 +363,35 @@ def main():
     print(f"  Text report: {output_file.name}")
     print(f"  Console log: {log_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
+
+
+def main():
+    """Main function."""
+    paths = parse_arguments()
+
+    print()
+    print(colorize("=" * 70, Colors.CYAN))
+    print(f"  {colorize('FLAC AUTHENTICITY ANALYZER', Colors.BRIGHT_WHITE)}")
+    print("  Detection of MP3s transcoded to FLAC")
+    print("  Method: Advanced spectral analysis")
+    print(colorize("=" * 70, Colors.CYAN))
+    print()
+
+    all_flac_files, all_non_flac_files = scan_files(paths)
+
+    if not all_flac_files and not all_non_flac_files:
+        logger.error("No audio files found!")
+        return
+
+    # Determine output directory (for progress.json and report)
+    # Use the directory of the first path, or current directory if it's a file
+    output_dir = paths[0] if paths[0].is_dir() else paths[0].parent
+
+    log_file = setup_logging(output_dir)
+
+    results = run_analysis_loop(all_flac_files, all_non_flac_files, output_dir)
+
+    generate_final_report(results, output_dir, all_flac_files, all_non_flac_files, log_file)
 
 
 if __name__ == "__main__":

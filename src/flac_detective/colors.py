@@ -5,7 +5,7 @@ class Colors:
     RESET = "\033[0m"
     BOLD = "\033[1m"
     DIM = "\033[2m"
-    
+
     # Foreground
     BLACK = "\033[30m"
     RED = "\033[31m"
@@ -15,7 +15,7 @@ class Colors:
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
-    
+
     # Bright Foreground
     BRIGHT_BLACK = "\033[90m"
     BRIGHT_RED = "\033[91m"

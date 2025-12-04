@@ -169,10 +169,10 @@ def detect_silence(data: np.ndarray, samplerate: int, threshold_db: float = -60.
         data = np.abs(data)
 
     threshold = 10 ** (threshold_db / 20)
-    
+
     # Find indices where signal exceeds threshold
     non_silent = np.where(data > threshold)[0]
-    
+
     if len(non_silent) == 0:
         return {
             "has_silence_issue": True,
@@ -183,13 +183,13 @@ def detect_silence(data: np.ndarray, samplerate: int, threshold_db: float = -60.
 
     start_idx = non_silent[0]
     end_idx = non_silent[-1]
-    
+
     leading_silence = start_idx / samplerate
     trailing_silence = (len(data) - 1 - end_idx) / samplerate
-    
+
     # Detection criteria (silence > 2 seconds)
     has_issue = bool(leading_silence > 2.0 or trailing_silence > 2.0)
-    
+
     issue_type = "none"
     if leading_silence > 2.0 and trailing_silence > 2.0:
         issue_type = "both"
@@ -224,17 +224,17 @@ def detect_true_bit_depth(data: np.ndarray, reported_depth: int) -> Dict[str, An
     # For a 24-bit file, check if values correspond to 16-bit
     # In 16-bit, values are multiples of 1/32768
     # Check if data * 32768 is close to an integer
-    
+
     # Take a sample to be faster
     sample = data[:10000] if data.ndim == 1 else data[:10000, 0]
-    
+
     # Multiply by 2^15 (32768)
     scaled = sample * 32768.0
     residuals = np.abs(scaled - np.round(scaled))
-    
+
     # If residuals are very low, it's probably 16-bit
     is_16bit = bool(np.all(residuals < 1e-4))
-    
+
     return {
         "is_fake_high_res": is_16bit,
         "estimated_depth": 16 if is_16bit else 24,
@@ -259,10 +259,10 @@ def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
 
     # Theoretical Nyquist
     # nyquist = samplerate / 2 (unused)
-    
+
     # If 96kHz (Nyquist 48k) but cuts at 22k -> Upsample from 44.1k
     # If cuts at 24k -> Upsample from 48k
-    
+
     is_upsampled = False
     suspected_rate = samplerate
 
@@ -273,7 +273,7 @@ def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
             suspected_rate = 44100
         else:
             suspected_rate = 48000
-            
+
     return {
         "is_upsampled": is_upsampled,
         "suspected_original_rate": suspected_rate,
@@ -313,10 +313,10 @@ def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_f
 
         # 4. DC offset detection
         results["dc_offset"] = detect_dc_offset(data)
-        
+
         # 5. Silence detection (Phase 2)
         results["silence"] = detect_silence(data, samplerate)
-        
+
         # 6. Fake High-Res detection (Phase 2)
         reported_depth = 16
         if metadata and "bit_depth" in metadata:
@@ -325,7 +325,7 @@ def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_f
             except (ValueError, TypeError):
                 pass
         results["bit_depth"] = detect_true_bit_depth(data, reported_depth)
-        
+
         # 7. Upsampling detection (Phase 2)
         reported_rate = samplerate
         if metadata and "sample_rate" in metadata:
@@ -345,7 +345,7 @@ def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_f
 def _get_empty_results(results: Dict, error_mode: bool = False, error_msg: str = "") -> Dict:
     """Generates empty or error results."""
     severity = "error" if error_mode else "unknown"
-    
+
     defaults = {
         "clipping": {"has_clipping": False, "clipping_percentage": 0.0, "severity": severity},
         "dc_offset": {"has_dc_offset": False, "dc_offset_value": 0.0, "severity": severity},
@@ -353,12 +353,12 @@ def _get_empty_results(results: Dict, error_mode: bool = False, error_msg: str =
         "bit_depth": {"is_fake_high_res": False, "estimated_depth": 0},
         "upsampling": {"is_upsampled": False, "suspected_original_rate": 0}
     }
-    
+
     for key, value in defaults.items():
         if key not in results:
             results[key] = value
-            
+
     if error_mode and "corruption" not in results:
         results["corruption"] = {"is_corrupted": True, "error": error_msg}
-        
+
     return results

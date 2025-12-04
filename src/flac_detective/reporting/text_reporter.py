@@ -109,17 +109,25 @@ class TextReporter:
         if total > 0:
             quality = (stats["authentic"] / total) * 100
             report_lines.append(f" Files: {total} | Quality: {quality:.1f}% | Authentic: {stats['authentic']} | Fake/Suspicious: {stats['fake'] + stats['suspect']}")
-            
+
             issues = []
-            if stats['duration_issues'] > 0: issues.append(f"Duration: {stats['duration_issues']}")
-            if stats['clipping_issues'] > 0: issues.append(f"Clip: {stats['clipping_issues']}")
-            if stats['dc_offset_issues'] > 0: issues.append(f"DC: {stats['dc_offset_issues']}")
-            if stats['silence_issues'] > 0: issues.append(f"Silence: {stats['silence_issues']}")
-            if stats['fake_high_res'] > 0: issues.append(f"FakeHiRes: {stats['fake_high_res']}")
-            if stats['upsampled_files'] > 0: issues.append(f"Upsampled: {stats['upsampled_files']}")
-            if stats['corrupted_files'] > 0: issues.append(f"Corrupt: {stats['corrupted_files']}")
-            if stats.get('non_flac_files', 0) > 0: issues.append(f"Non-FLAC: {stats['non_flac_files']}")
-            
+            if stats['duration_issues'] > 0:
+                issues.append(f"Duration: {stats['duration_issues']}")
+            if stats['clipping_issues'] > 0:
+                issues.append(f"Clip: {stats['clipping_issues']}")
+            if stats['dc_offset_issues'] > 0:
+                issues.append(f"DC: {stats['dc_offset_issues']}")
+            if stats['silence_issues'] > 0:
+                issues.append(f"Silence: {stats['silence_issues']}")
+            if stats['fake_high_res'] > 0:
+                issues.append(f"FakeHiRes: {stats['fake_high_res']}")
+            if stats['upsampled_files'] > 0:
+                issues.append(f"Upsampled: {stats['upsampled_files']}")
+            if stats['corrupted_files'] > 0:
+                issues.append(f"Corrupt: {stats['corrupted_files']}")
+            if stats.get('non_flac_files', 0) > 0:
+                issues.append(f"Non-FLAC: {stats['non_flac_files']}")
+
             if issues:
                 report_lines.append(" Issues: " + ", ".join(issues))
         else:
@@ -130,7 +138,7 @@ class TextReporter:
         # Suspicious files (score < 90%)
         if suspicious:
             report_lines.append(f" SUSPICIOUS FILES ({len(suspicious)})")
-            
+
             # Table header
             # Icon (4) | Score (7) | Verdict (15) | Cutoff (8) | Bitrate (8) | File (Rest)
             report_lines.append(f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}")
@@ -146,12 +154,12 @@ class TextReporter:
                 icon = self._score_icon(score, verdict)
                 score_str = f"{score}/100"
                 cutoff = f"{result.get('cutoff_freq', 0) / 1000:.1f}k"
-                
+
                 bitrate = result.get("estimated_mp3_bitrate", 0)
                 bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
-                
+
                 filename = result.get("filename", "Unknown")
-                
+
                 # Truncate filename if too long
                 max_name_len = self.width - 56
                 if len(filename) > max_name_len:
@@ -164,13 +172,16 @@ class TextReporter:
 
         # Footer
         report_lines.append("-" * self.width)
-        
+
         # Recommendations (Very compact)
         recs = []
-        if stats["fake"] > 0: recs.append("Delete Fakes")
-        if stats["suspect"] > 0: recs.append("Check Suspicious")
-        if stats["duration_issues_critical"] > 0: recs.append("Repair Duration")
-        
+        if stats["fake"] > 0:
+            recs.append("Delete Fakes")
+        if stats["suspect"] > 0:
+            recs.append("Check Suspicious")
+        if stats["duration_issues_critical"] > 0:
+            recs.append("Repair Duration")
+
         if recs:
             report_lines.append(" Action: " + ", ".join(recs))
         else:

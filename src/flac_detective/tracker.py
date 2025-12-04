@@ -107,4 +107,3 @@ class ProgressTracker:
                 logger.info(f"Progress file deleted: {self.progress_file}")
             except Exception as e:
                 logger.warning(f"Unable to delete progress file: {e}")
-

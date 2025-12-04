@@ -1,6 +1,8 @@
 """Data models for the new scoring system."""
 
-from typing import NamedTuple
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import List, NamedTuple, Optional
 
 
 class BitrateMetrics(NamedTuple):
@@ -16,3 +18,26 @@ class AudioMetadata(NamedTuple):
     bit_depth: int
     channels: int
     duration: float
+
+
+@dataclass
+class ScoringContext:
+    """Context holding all data for the scoring process."""
+    filepath: Path
+    audio_meta: AudioMetadata
+    bitrate_metrics: BitrateMetrics
+    cutoff_freq: float
+    cutoff_std: float = 0.0
+
+    # State updated during scoring
+    mp3_bitrate_detected: Optional[int] = None
+    silence_ratio: Optional[float] = None
+    current_score: int = 0
+    reasons: List[str] = field(default_factory=list)
+
+    def add_score(self, score: int, new_reasons: List[str]):
+        """Update score and reasons."""
+        self.current_score += score
+        self.reasons.extend(new_reasons)
+        # Ensure score doesn't go below 0
+        self.current_score = max(0, self.current_score)
