@@ -7,7 +7,7 @@ a strategy pattern for different quality detectors.
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 import numpy as np
 import soundfile as sf
@@ -406,7 +406,7 @@ class AudioQualityAnalyzer:
         try:
             # OPTIMIZATION: Use cache if provided, otherwise read directly
             if cache is not None:
-                logger.debug(f"⚡ CACHE: Loading full audio via cache for quality analysis")
+                logger.debug("⚡ CACHE: Loading full audio via cache for quality analysis")
                 data, samplerate = cache.get_full_audio()
                 # Convert to float32 and handle always_2d format
                 data = data.astype(np.float32)

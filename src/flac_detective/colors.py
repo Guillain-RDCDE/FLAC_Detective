@@ -1,5 +1,6 @@
 """ANSI color codes for console output."""
 
+
 class Colors:
     """ANSI color codes."""
     RESET = "\033[0m"
@@ -25,6 +26,7 @@ class Colors:
     BRIGHT_MAGENTA = "\033[95m"
     BRIGHT_CYAN = "\033[96m"
     BRIGHT_WHITE = "\033[97m"
+
 
 def colorize(text: str, color: str) -> str:
     """Wraps text in color codes."""

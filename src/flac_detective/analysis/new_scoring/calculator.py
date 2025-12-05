@@ -25,7 +25,6 @@ from .strategies import (
     Rule10Consistency,
 )
 from .verdict import determine_verdict
-from ..audio_cache import AudioCache
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +147,7 @@ def _apply_scoring_rules(
             for rule in expensive_rules:
                 rule.apply(context)
     else:
-        logger.info(f"OPTIMIZATION: Skipping both R7 and R9")
+        logger.info("OPTIMIZATION: Skipping both R7 and R9")
 
     # Rule 8: Refine with additional context if available
     # Only recalculate if MP3 was detected (which changes R8 logic)
@@ -175,7 +174,7 @@ def _apply_scoring_rules(
 
         # Re-apply R8
         rule8.apply(context)
-        logger.info(f"RULE 8 (refined): Score updated")
+        logger.info("RULE 8 (refined): Score updated")
 
     # SHORT-CIRCUIT 3: Check again after R7+R8+R9
     if context.current_score >= 86:
@@ -208,11 +207,7 @@ def new_calculate_score(
         filepath: Path to FLAC file
         cutoff_std: Standard deviation of cutoff frequency (default 0.0)
     """
-    # PHASE 3 OPTIMIZATION: Enable file read cache for this analysis
-    from ..file_cache import enable_cache, clear_cache, get_cache_stats
-
-    enable_cache()
-    logger.debug("OPTIMIZATION: File read cache ENABLED")
+    logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
     try:
         logger.info(f"\n{'='*60}")
@@ -270,8 +265,5 @@ def new_calculate_score(
         return score, verdict, confidence, reasons_str
 
     finally:
-        # PHASE 3 OPTIMIZATION: Clear cache and log stats
-        stats = get_cache_stats()
-        logger.info(f"OPTIMIZATION: Cache stats - {stats}")
-        clear_cache()
-        logger.debug("OPTIMIZATION: File read cache CLEARED")
+        # PHASE 3 OPTIMIZATION: Cache is managed locally by AudioCache
+        pass

@@ -20,6 +20,7 @@ from .silence_utils import (
     calculate_temporal_variance,
     detect_transients
 )
+from scipy.fft import rfft, rfftfreq, set_workers
 from ...analysis.window_cache import get_hanning_window
 
 logger = logging.getLogger(__name__)
@@ -96,8 +97,10 @@ def calculate_spectral_energy(
     # Use a window to reduce spectral leakage
     # PHASE 2 OPTIMIZATION: Use cached window
     window = get_hanning_window(len(audio_segment))
-    fft_result = np.fft.rfft(audio_segment * window)
-    fft_freqs = np.fft.rfftfreq(len(audio_segment), 1/sample_rate)
+    # PHASE 3 OPTIMIZATION: Use parallel FFT
+    with set_workers(-1):
+        fft_result = rfft(audio_segment * window)
+    fft_freqs = rfftfreq(len(audio_segment), 1/sample_rate)
 
     # Calculate power spectrum (magnitude squared)
     power_spectrum = np.abs(fft_result) ** 2
@@ -137,7 +140,7 @@ def analyze_silence_ratio(
     try:
         # OPTIMIZATION: Use cache if provided, otherwise read directly
         if cache is not None:
-            logger.debug(f"⚡ CACHE: Loading full audio via cache for silence analysis")
+            logger.debug("⚡ CACHE: Loading full audio via cache for silence analysis")
             data, sample_rate = cache.get_full_audio()
             # Convert from always_2d format if needed
             if data.ndim > 1 and data.shape[1] == 1:

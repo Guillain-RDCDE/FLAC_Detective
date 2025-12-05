@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .statistics import calculate_statistics, filter_suspicious
+from .statistics import calculate_statistics
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,6 @@
 import logging
 from pathlib import Path
 
-import numpy as np
 import soundfile as sf
 
 from ..config import repair_config

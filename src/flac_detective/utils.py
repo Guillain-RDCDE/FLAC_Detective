@@ -4,10 +4,9 @@ import logging
 from pathlib import Path
 from typing import List
 
-logger = logging.getLogger(__name__)
+from .colors import Colors
 
-# Logo FLAC Detective
-from .colors import Colors, colorize
+logger = logging.getLogger(__name__)
 
 # Logo FLAC Detective
 LOGO = f"""

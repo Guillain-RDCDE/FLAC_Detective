@@ -3,11 +3,11 @@
 import logging
 from pathlib import Path
 from typing import Tuple, List
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import soundfile as sf
-from scipy import signal
-from scipy.fft import rfft, rfftfreq
+from scipy.fft import rfft, rfftfreq, set_workers
 
 from ..config import spectral_config
 from .audio_cache import AudioCache
@@ -50,7 +50,8 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
         cutoff_freqs = []
         energy_ratios = []
 
-        for i in range(num_samples):
+        def _analyze_sample(i: int) -> Tuple[float, float]:
+            """Analyze a single sample."""
             # Start position of this sample
             start_time = (total_duration / (num_samples + 1)) * (i + 1) - sample_duration / 2
             start_time = max(0, start_time)
@@ -73,7 +74,9 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
             data_windowed = data * window
 
             # Calculate FFT
-            fft_vals = rfft(data_windowed)
+            # PHASE 3 OPTIMIZATION: Use parallel FFT
+            with set_workers(-1):
+                fft_vals = rfft(data_windowed)
             fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
 
             # Spectral magnitude (in dB)
@@ -82,11 +85,19 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
 
             # Detect cutoff frequency
             cutoff_freq = detect_cutoff(fft_freq, magnitude_db)
-            cutoff_freqs.append(cutoff_freq)
 
             # Calculate high frequency energy ratio (> 16 kHz)
             energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
-            energy_ratios.append(energy_ratio)
+            
+            return cutoff_freq, energy_ratio
+
+        # PHASE 4 OPTIMIZATION: Parallelize sample analysis
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(_analyze_sample, i) for i in range(num_samples)]
+            results = [f.result() for f in futures]
+
+        cutoff_freqs = [r[0] for r in results]
+        energy_ratios = [r[1] for r in results]
 
         # Take the WORST value (min) for cutoff to be more strict
         # A transcoded file will have a low cutoff in ALL samples
@@ -286,7 +297,9 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
                 data_windowed = data * window
 
                 # FFT
-                fft_vals = rfft(data_windowed)
+                # PHASE 3 OPTIMIZATION: Use parallel FFT
+                with set_workers(-1):
+                    fft_vals = rfft(data_windowed)
                 fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
 
                 magnitude = np.abs(fft_vals)
@@ -300,9 +313,14 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
                 return 0.0
 
         # PHASE 1: Analyze Start + End (2 segments)
+        # PHASE 4 OPTIMIZATION: Parallelize Start + End
         cutoffs = []
-        cutoffs.append(analyze_single_segment(0.05))   # Start
-        cutoffs.append(analyze_single_segment(0.95))   # End
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(analyze_single_segment, 0.05),
+                executor.submit(analyze_single_segment, 0.95)
+            ]
+            cutoffs = [f.result() for f in futures]
 
         # Filter valid cutoffs
         valid_cutoffs = [c for c in cutoffs if c > 0]
@@ -333,16 +351,22 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
             logger.info(f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f} in grey zone)")
 
         # PHASE 3: Analyze middle segments (25%, 50%, 75%)
+        # PHASE 4 OPTIMIZATION: Parallelize middle segments
         middle_segments = [0.25, 0.50, 0.75]
-        for center_ratio in middle_segments:
-            cutoff = analyze_single_segment(center_ratio)
-            # Insert in correct position to maintain order
-            if center_ratio == 0.25:
-                cutoffs.insert(1, cutoff)
-            elif center_ratio == 0.50:
-                cutoffs.insert(2, cutoff)
-            else:  # 0.75
-                cutoffs.insert(3, cutoff)
+        with ThreadPoolExecutor() as executor:
+            # Map center_ratio to future
+            future_to_ratio = {executor.submit(analyze_single_segment, r): r for r in middle_segments}
+            
+            results = {}
+            from concurrent.futures import as_completed
+            for future in as_completed(future_to_ratio):
+                ratio = future_to_ratio[future]
+                results[ratio] = future.result()
+
+        # Insert in correct position to maintain order
+        cutoffs.insert(1, results[0.25])
+        cutoffs.insert(2, results[0.50])
+        cutoffs.insert(3, results[0.75])
 
         # Recalculate variance with all 5 segments
         valid_cutoffs = [c for c in cutoffs if c > 0]

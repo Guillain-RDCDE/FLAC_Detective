@@ -21,7 +21,8 @@ from .analysis import FLACAnalyzer
 from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
-from .utils import LOGO, find_flac_files, find_non_flac_audio_files, Colors, colorize
+from .utils import LOGO, find_flac_files, find_non_flac_audio_files
+from .colors import Colors, colorize
 
 # Fix Windows console encoding for UTF-8 support
 if sys.platform == "win32":
