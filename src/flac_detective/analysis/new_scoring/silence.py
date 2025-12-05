@@ -49,13 +49,15 @@ def detect_silences(
     else:
         audio_mono = audio_data
 
-    # Calculate amplitude in dB
-    # Avoid log of zero by adding a small epsilon
+    # Calculate amplitude (absolute value)
     amplitude = np.abs(audio_mono)
-    db_levels = 20 * np.log10(amplitude + 1e-10)
-
+    
+    # OPTIMIZATION: Compare in linear domain to avoid expensive log10() on entire array
+    # threshold_db = 20 * log10(amp)  =>  amp = 10 ^ (threshold_db / 20)
+    threshold_linear = 10 ** (threshold_db / 20)
+    
     # Create boolean mask for silence
-    is_silence = db_levels < threshold_db
+    is_silence = amplitude < threshold_linear
 
     # Find segments
     # Pad with False to detect edges

@@ -149,8 +149,9 @@ def _apply_scoring_rules(
     # Filter rules based on cassette detection
     fast_rules: List[ScoringRule] = []
     
-    if cassette_score >= 50:
-         logger.info(f"CASSETTE DETECTED (Score {cassette_score} >= 50). Disabling Rule 1 (MP3 Bitrate).")
+    if cassette_score >= 30:
+         logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
+         logger.info(f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate).")
          # Add bonus manually as requested: "score -= 40"
          # The Context.add_score handles addition. To subtract, add negative.
          context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])

@@ -66,7 +66,7 @@ def apply_rule_11_cassette_detection(
             noise_signal = bandpass_filter(audio, noise_band_freq[0], noise_band_freq[1], sr)
             noise_energy_db = 20 * np.log10(np.std(noise_signal) + 1e-10)
             
-            if noise_energy_db > -60:  # Noise present
+            if noise_energy_db > -55:  # Noise present
                 # Check random texture (no MP3 pattern)
                 # Ensure we have enough data for correlation
                 if len(noise_signal) > 200:
@@ -88,7 +88,7 @@ def apply_rule_11_cassette_detection(
         
         for freq in freqs:
             # Ensure within Nyquist
-            if freq + 250 < sr/2:
+            if freq + 250 < sr / 2:
                 band_signal = bandpass_filter(audio, freq - 250, freq + 250, sr)
                 energy = np.std(band_signal)
                 response.append(20 * np.log10(energy + 1e-10))
@@ -111,7 +111,7 @@ def apply_rule_11_cassette_detection(
         # TEST 11C: No MP3 Pattern
         # ================================
         if not mp3_pattern_detected:
-            cassette_score += 20
+            cassette_score += 15
             reasons.append("R11C: Aucun pattern MP3 détecté (compatible cassette) (Prob. Cassette)")
             logger.info("RULE 11C: No MP3 pattern detected (compatible with cassette)")
 
@@ -121,10 +121,13 @@ def apply_rule_11_cassette_detection(
             cassette_score += 15
             reasons.append(f"R11D: Variation cutoff naturelle ({cutoff_std:.0f} Hz, wow/flutter) (Prob. Cassette)")
             logger.info(f"RULE 11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter)")
-        elif cutoff_std < 50:  # Too stable
-            cassette_score -= 20
-            reasons.append(f"R11D: Cutoff trop stable ({cutoff_std:.0f} Hz, suspect CBR) (Prob. Numérique)")
-            logger.info(f"RULE 11D: Cutoff too stable ({cutoff_std:.0f} Hz, suspect CBR)")
+        elif cutoff_std < 30:  # Very stable (digital silence/CBR)
+            cassette_score -= 10
+            reasons.append(f"R11D: Cutoff très stable ({cutoff_std:.0f} Hz, suspect digital) (Prob. Numérique)")
+            logger.info(f"RULE 11D: Cutoff very stable ({cutoff_std:.0f} Hz, suspect digital)")
+        elif cutoff_std < 50:
+            # 30-50 Hz: Neutral zone (stable cassette deck is possible)
+            logger.debug(f"RULE 11D: Cutoff stable but acceptable ({cutoff_std:.0f} Hz) - Neutral")
 
     except Exception as e:
         logger.error(f"RULE 11: Analysis error: {e}")
