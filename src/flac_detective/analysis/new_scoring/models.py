@@ -32,6 +32,7 @@ class ScoringContext:
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None
     silence_ratio: Optional[float] = None
+    mp3_pattern_detected: bool = False
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)
 

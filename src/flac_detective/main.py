@@ -390,7 +390,8 @@ def generate_final_report(
     output_dir: Path,
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
-    log_file: Path
+    log_file: Path,
+    input_paths: list[Path]
 ):
     """Generate the final report and print summary.
 
@@ -400,12 +401,13 @@ def generate_final_report(
         all_flac_files: List of FLAC files analyzed.
         all_non_flac_files: List of non-FLAC files found.
         log_file: Path to the console log file.
+        input_paths: List of user input paths (scan roots).
     """
     logger.info("\nGenerating report...")
 
     output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     reporter = TextReporter()
-    reporter.generate_report(results, output_file)
+    reporter.generate_report(results, output_file, scan_paths=input_paths)
 
     # Summary (NEW SCORING: score >= 50 = suspicious)
     suspicious_flac = [r for r in results if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
@@ -451,7 +453,7 @@ def main():
 
     results = run_analysis_loop(all_flac_files, all_non_flac_files, output_dir)
 
-    generate_final_report(results, output_dir, all_flac_files, all_non_flac_files, log_file)
+    generate_final_report(results, output_dir, all_flac_files, all_non_flac_files, log_file, paths)
 
 
 if __name__ == "__main__":

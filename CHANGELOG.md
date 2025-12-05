@@ -5,6 +5,28 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-05
+
+### Added
+- **Rule 11: Cassette Source Detection**
+  - Detects tape hiss, natural roll-off, and cutoff variance
+  - Awards 30-65 points for authentic cassette traits
+  - **Priority Execution:** Runs before MP3 check and cancels false positive MP3 detections
+- **Report Enhancement**: Relative paths in final report
+  - Suspicious files now show paths relative to scan root (e.g. `\Album\Song.flac`)
+  - Cleaner and more readable output
+
+### Changed
+- **Scoring Logic**:
+  - Rule 11 runs *before* Rule 1 (MP3 check)
+  - If cassette detected (score >= 50), Rule 1 is disabled and a -40pt bonus is applied
+  - Fixes false positives where cassette tape noise patterns resembled MP3 artifacts
+
+### Performance
+- **Optimization**:
+  - Rule 11 only activates for files with cutoff < 19 kHz
+  - Integrated into the existing multi-stage optimization pipeline
+
 ## [0.5.0] - 2025-12-04
 
 ### 🎯 Major Achievement

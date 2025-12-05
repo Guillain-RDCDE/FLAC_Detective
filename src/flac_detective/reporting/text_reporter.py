@@ -82,12 +82,13 @@ class TextReporter:
         else:  # AUTHENTIQUE
             return "[OK]"
 
-    def generate_report(self, results: list[dict[str, Any]], output_file: Path) -> None:
+    def generate_report(self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None) -> None:
         """Generates a complete text report.
 
         Args:
             results: List of analysis results.
             output_file: Output file path.
+            scan_paths: List of scan root directories to calculate relative paths.
         """
         logger.info(f"Generating text report: {output_file}")
 
@@ -158,14 +159,33 @@ class TextReporter:
                 bitrate = result.get("estimated_mp3_bitrate", 0)
                 bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
 
-                filename = result.get("filename", "Unknown")
+                # Determine display name (relative path if possible)
+                display_name = result.get("filename", "Unknown")
+                file_path_str = result.get("filepath", "")
+                
+                if scan_paths and file_path_str:
+                    try:
+                        p = Path(file_path_str)
+                        for root in scan_paths:
+                            # Check if file is inside this root
+                            # We use try/except relative_to because is_relative_to is Python 3.9+
+                            # and we want to be safe, although we likely have 3.9+
+                            try:
+                                rel_path = p.relative_to(root)
+                                # Prepend separator to indicate it's a relative path from root
+                                display_name = f"\\{rel_path}"
+                                break 
+                            except ValueError:
+                                continue
+                    except Exception:
+                        pass # Keep original filename if any error
 
                 # Truncate filename if too long
                 max_name_len = self.width - 56
-                if len(filename) > max_name_len:
-                    filename = filename[:max_name_len-3] + "..."
+                if len(display_name) > max_name_len:
+                    display_name = display_name[:max_name_len-3] + "..."
 
-                report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {filename}")
+                report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}")
 
         else:
             report_lines.append(" No suspicious files found. Collection looks clean.")

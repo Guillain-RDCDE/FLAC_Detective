@@ -15,6 +15,7 @@ from .rules import (
     apply_rule_8_nyquist_exception,
     apply_rule_9_compression_artifacts,
     apply_rule_10_multi_segment_consistency,
+    apply_rule_11_cassette_detection,
 )
 
 logger = logging.getLogger(__name__)
@@ -132,12 +133,13 @@ class Rule9CompressionArtifacts(ScoringRule):
         run_rule9 = context.cutoff_freq < 21000 or context.mp3_bitrate_detected is not None
 
         if run_rule9:
-            score, reasons, _ = apply_rule_9_compression_artifacts(
+            score, reasons, details = apply_rule_9_compression_artifacts(
                 str(context.filepath),
                 context.cutoff_freq,
                 context.mp3_bitrate_detected
             )
             context.add_score(score, reasons)
+            context.mp3_pattern_detected = details.get('mp3_noise_pattern', False)
         else:
             logger.debug("RULE 9: Skipped (cutoff >= 21000 and no MP3 detected)")
 
@@ -149,5 +151,17 @@ class Rule10Consistency(ScoringRule):
             context.current_score,
             context.audio_meta.sample_rate,
             context.bitrate_metrics.real_bitrate
+        )
+        context.add_score(score, reasons)
+
+
+class Rule11CassetteDetection(ScoringRule):
+    def apply(self, context: ScoringContext) -> None:
+        score, reasons = apply_rule_11_cassette_detection(
+            str(context.filepath),
+            context.cutoff_freq,
+            context.cutoff_std,
+            context.mp3_pattern_detected,
+            context.audio_meta.sample_rate
         )
         context.add_score(score, reasons)
