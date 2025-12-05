@@ -1,4 +1,7 @@
-"""Main FLAC file analyzer."""
+"""Main FLAC file analyzer.
+
+PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
+"""
 
 import logging
 from pathlib import Path
@@ -8,6 +11,7 @@ from .metadata import check_duration_consistency, read_metadata
 from .quality import analyze_audio_quality
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .spectrum import analyze_spectrum
+from .audio_cache import AudioCache
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +30,8 @@ class FLACAnalyzer:
     def analyze_file(self, filepath: Path) -> Dict:
         """Analyzes a FLAC file and determines if it is authentic.
 
+        PHASE 1 OPTIMIZATION: Creates AudioCache once and reuses it for all analyses.
+
         Args:
             filepath: Path to FLAC file to analyze.
 
@@ -33,18 +39,23 @@ class FLACAnalyzer:
             Dict with: filepath, filename, score, reason, cutoff_freq, metadata,
             duration_mismatch, quality issues (clipping, dc_offset, corruption).
         """
+        # PHASE 1 OPTIMIZATION: Create cache once for this file
+        cache = AudioCache(filepath)
+        
         try:
+            logger.debug(f"⚡ OPTIMIZATION: Created AudioCache for {filepath.name}")
+            
             # Read metadata
             metadata = read_metadata(filepath)
 
             # Duration consistency check (FTF criterion)
             duration_check = check_duration_consistency(filepath, metadata)
 
-            # Spectral analysis
-            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(filepath, self.sample_duration)
+            # Spectral analysis (OPTIMIZED: uses cache)
+            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(filepath, self.sample_duration, cache=cache)
 
-            # Audio quality analysis (Phase 1 & 2)
-            quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq)
+            # Audio quality analysis (OPTIMIZED: uses cache)
+            quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq, cache=cache)
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
             score, verdict, confidence, reason = new_calculate_score(
@@ -117,3 +128,7 @@ class FLACAnalyzer:
                 "is_upsampled": False,
                 "suspected_original_rate": 0,
             }
+        finally:
+            # PHASE 1 OPTIMIZATION: Clear cache after analysis
+            cache.clear()
+            logger.debug(f"⚡ OPTIMIZATION: Cleared AudioCache for {filepath.name}")

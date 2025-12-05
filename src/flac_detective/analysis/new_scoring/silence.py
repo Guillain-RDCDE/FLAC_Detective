@@ -3,6 +3,8 @@
 This module implements the logic to detect silences in audio files and analyze
 the high-frequency energy ratio between silence and music to distinguish
 between authentic FLACs and converted MP3s.
+
+PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 """
 
 import logging
@@ -114,12 +116,16 @@ def calculate_spectral_energy(
 
 
 def analyze_silence_ratio(
-    file_path: Path
+    file_path: Path,
+    cache=None
 ) -> Tuple[Optional[float], str, float, float]:
     """Analyze the ratio of HF energy between silence and music.
 
+    PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.
+
     Args:
         file_path: Path to the audio file
+        cache: Optional AudioCache instance for optimization
 
     Returns:
         Tuple of (ratio, verdict_code, silence_energy, music_energy)
@@ -127,9 +133,16 @@ def analyze_silence_ratio(
         verdict_code: "TRANSCODE", "AUTHENTIC", "UNCERTAIN", "NO_SILENCE", etc.
     """
     try:
-        # Load audio file
-        # Using soundfile directly
-        data, sample_rate = sf.read(file_path)
+        # OPTIMIZATION: Use cache if provided, otherwise read directly
+        if cache is not None:
+            logger.debug(f"⚡ CACHE: Loading full audio via cache for silence analysis")
+            data, sample_rate = cache.get_full_audio()
+            # Convert from always_2d format if needed
+            if data.ndim > 1 and data.shape[1] == 1:
+                data = data[:, 0]
+        else:
+            # Fallback to direct read
+            data, sample_rate = sf.read(file_path)
 
         # 1. Detect silences
         silences = detect_silences(data, sample_rate)

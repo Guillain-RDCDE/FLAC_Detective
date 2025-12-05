@@ -378,13 +378,16 @@ class AudioQualityAnalyzer:
             "upsampling": UpsamplingDetector(),
         }
 
-    def analyze(self, filepath: Path, metadata: Dict | None = None, cutoff_freq: float = 0.0) -> Dict[str, Any]:
+    def analyze(self, filepath: Path, metadata: Dict | None = None, cutoff_freq: float = 0.0, cache=None) -> Dict[str, Any]:
         """Complete audio quality analysis of a file.
+
+        PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.
 
         Args:
             filepath: Path to audio file.
             metadata: File metadata (optional, for bit depth/samplerate).
             cutoff_freq: Cutoff frequency (optional, for upsampling).
+            cache: Optional AudioCache instance for optimization.
 
         Returns:
             Dictionary with all quality analysis results.
@@ -401,7 +404,15 @@ class AudioQualityAnalyzer:
 
         # 2. Read file for subsequent analyses
         try:
-            data, samplerate = sf.read(filepath, dtype='float32')
+            # OPTIMIZATION: Use cache if provided, otherwise read directly
+            if cache is not None:
+                logger.debug(f"⚡ CACHE: Loading full audio via cache for quality analysis")
+                data, samplerate = cache.get_full_audio()
+                # Convert to float32 and handle always_2d format
+                data = data.astype(np.float32)
+            else:
+                # Fallback to direct read
+                data, samplerate = sf.read(filepath, dtype='float32')
 
             # 3. Clipping detection
             results["clipping"] = self.detectors["clipping"].detect(data=data)
@@ -530,7 +541,10 @@ def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
     return detector.detect(cutoff_freq=cutoff_freq, samplerate=samplerate)
 
 
-def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_freq: float = 0.0) -> Dict[str, Any]:
-    """Complete audio quality analysis (backward compatibility wrapper)."""
+def analyze_audio_quality(filepath: Path, metadata: Dict | None = None, cutoff_freq: float = 0.0, cache=None) -> Dict[str, Any]:
+    """Complete audio quality analysis (backward compatibility wrapper).
+    
+    PHASE 1 OPTIMIZATION: Supports AudioCache parameter.
+    """
     analyzer = AudioQualityAnalyzer()
-    return analyzer.analyze(filepath=filepath, metadata=metadata, cutoff_freq=cutoff_freq)
+    return analyzer.analyze(filepath=filepath, metadata=metadata, cutoff_freq=cutoff_freq, cache=cache)

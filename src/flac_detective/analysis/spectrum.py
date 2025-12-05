@@ -10,18 +10,21 @@ from scipy import signal
 from scipy.fft import rfft, rfftfreq
 
 from ..config import spectral_config
+from .audio_cache import AudioCache
 
 logger = logging.getLogger(__name__)
 
 
-def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[float, float, float]:
+def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: AudioCache = None) -> Tuple[float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
+    OPTIMIZED: Uses AudioCache to avoid multiple file reads.
 
     Args:
         filepath: Path to the audio file.
         sample_duration: Duration in seconds to analyze.
+        cache: Optional AudioCache instance for optimization.
 
     Returns:
         Tuple (cutoff_frequency, energy_ratio, cutoff_std) where:
@@ -30,6 +33,10 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[flo
         - cutoff_std: standard deviation of cutoff frequency
     """
     try:
+        # Create cache if not provided
+        if cache is None:
+            cache = AudioCache(filepath)
+
         # Read entire file to know its duration
         info = sf.info(filepath)
         total_duration = info.duration
@@ -47,14 +54,11 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0) -> Tuple[flo
             start_time = (total_duration / (num_samples + 1)) * (i + 1) - sample_duration / 2
             start_time = max(0, start_time)
             start_frame = int(start_time * samplerate)
+            frames_to_read = int(sample_duration * samplerate)
 
-            # Read sample
-            data, _ = sf.read(
-                filepath,
-                start=start_frame,
-                frames=int(sample_duration * samplerate),
-                always_2d=True,
-            )
+            # OPTIMIZATION: Use cache instead of direct sf.read
+            logger.debug(f"⚡ CACHE: Reading segment {i+1}/{num_samples} via cache")
+            data, _ = cache.get_segment(start_frame, frames_to_read)
 
             # Convert to mono if stereo
             if data.shape[1] > 1:
@@ -217,7 +221,7 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
     return float(np.mean(tranche_energies)) if tranche_energies else 0.0
 
 
-def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tuple[List[float], float]:
+def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache: AudioCache = None) -> Tuple[List[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
 
     Phase 2 Optimization: Progressive analysis
@@ -225,16 +229,23 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tup
     - If coherent (variance < 500 Hz), STOP (60% of cases)
     - Otherwise, analyze 3 more segments (25%, 50%, 75%)
 
+    PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
+
     Segments: Start (5%), 25%, 50%, 75%, End (95%)
 
     Args:
         filepath: Path to the audio file.
         progressive: If True, use progressive analysis (default). If False, analyze all 5 segments.
+        cache: Optional AudioCache instance for optimization.
 
     Returns:
         Tuple (list_of_cutoffs, cutoff_variance)
     """
     try:
+        # Create cache if not provided
+        if cache is None:
+            cache = AudioCache(filepath)
+
         info = sf.info(filepath)
         total_duration = info.duration
         samplerate = info.samplerate
@@ -254,12 +265,9 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tup
             frames_to_read = int(segment_duration * samplerate)
 
             try:
-                data, _ = sf.read(
-                    filepath,
-                    start=start_frame,
-                    frames=frames_to_read,
-                    always_2d=True,
-                )
+                # OPTIMIZATION: Use cache instead of direct sf.read
+                logger.debug(f"⚡ CACHE: Reading segment at {center_ratio*100:.0f}% via cache")
+                data, _ = cache.get_segment(start_frame, frames_to_read)
 
                 if len(data) < frames_to_read and len(data) == 0:
                     return 0.0
@@ -309,13 +317,13 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True) -> Tup
         if progressive:
             # If variance < 500 Hz, segments are coherent -> STOP
             if variance < 500:
-                logger.info(f"OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)")
+                logger.info(f"⚡ OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)")
                 # Return only 2 segments (optimization)
                 return cutoffs, variance
 
             # If variance > 1000 Hz, already know it's dynamic -> STOP
             if variance > 1000:
-                logger.info(f"OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)")
+                logger.info(f"⚡ OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)")
                 return cutoffs, variance
 
             # Otherwise (500 <= variance <= 1000), need more data
