@@ -11,6 +11,7 @@ from scipy.fft import rfft, rfftfreq
 
 from ..config import spectral_config
 from .audio_cache import AudioCache
+from .window_cache import get_hann_window
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,8 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
                 data = data[:, 0]
 
             # Apply Hann window to reduce spectral leakage
-            window = signal.windows.hann(len(data))
+            # PHASE 2 OPTIMIZATION: Use cached window
+            window = get_hann_window(len(data))
             data_windowed = data * window
 
             # Calculate FFT
@@ -279,7 +281,8 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
                     data = data[:, 0]
 
                 # Windowing
-                window = signal.windows.hann(len(data))
+                # PHASE 2 OPTIMIZATION: Use cached window
+                window = get_hann_window(len(data))
                 data_windowed = data * window
 
                 # FFT

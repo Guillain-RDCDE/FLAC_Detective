@@ -11,6 +11,8 @@ import soundfile as sf
 from scipy.fft import rfft, rfftfreq
 from scipy import signal
 
+from .window_cache import get_hann_window
+
 logger = logging.getLogger(__name__)
 
 
@@ -101,7 +103,8 @@ class AudioCache:
                 data = data[:, 0]
 
             # Windowing
-            window = signal.windows.hann(len(data))
+            # PHASE 2 OPTIMIZATION: Use cached window
+            window = get_hann_window(len(data))
             data_windowed = data * window
 
             # FFT

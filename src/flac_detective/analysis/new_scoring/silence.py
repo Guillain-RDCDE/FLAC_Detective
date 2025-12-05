@@ -20,6 +20,7 @@ from .silence_utils import (
     calculate_temporal_variance,
     detect_transients
 )
+from ...analysis.window_cache import get_hanning_window
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,8 @@ def calculate_spectral_energy(
 
     # Apply FFT
     # Use a window to reduce spectral leakage
-    window = np.hanning(len(audio_segment))
+    # PHASE 2 OPTIMIZATION: Use cached window
+    window = get_hanning_window(len(audio_segment))
     fft_result = np.fft.rfft(audio_segment * window)
     fft_freqs = np.fft.rfftfreq(len(audio_segment), 1/sample_rate)
 
