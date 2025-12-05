@@ -211,6 +211,130 @@ def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
     return all_flac_files, all_non_flac_files
 
 
+def _get_score_icon(score: int) -> str:
+    """Get colored icon based on score.
+
+    Args:
+        score: Analysis score (0-100).
+
+    Returns:
+        Colored icon string.
+    """
+    if score >= 80:  # FAKE_CERTAIN
+        return colorize("[FAKE]", Colors.RED)
+    elif score >= 50:  # FAKE_PROBABLE
+        return colorize("[SUSP]", Colors.YELLOW)
+    elif score >= 30:  # DOUTEUX
+        return colorize("[?]", Colors.YELLOW)
+    else:  # AUTHENTIQUE
+        return colorize("[OK]", Colors.GREEN)
+
+
+def _log_analysis_result(result: dict, processed: int, total: int):
+    """Log a single analysis result with progress.
+
+    Args:
+        result: Analysis result dictionary.
+        processed: Number of files processed.
+        total: Total number of files.
+    """
+    score = result.get("score", 0)
+    verdict = result.get("verdict", "UNKNOWN")
+    score_icon = _get_score_icon(score)
+
+    logger.info(
+        f"[{processed}/{total}] {score_icon} {result['filename'][:50]} "
+        f"- Score: {score}/100 - {verdict}"
+    )
+
+
+def _create_non_flac_result(non_flac_file: Path) -> dict:
+    """Create a result dictionary for a non-FLAC audio file.
+
+    Args:
+        non_flac_file: Path to the non-FLAC file.
+
+    Returns:
+        Result dictionary.
+    """
+    extension = non_flac_file.suffix.upper()[1:]  # Remove the dot and uppercase
+    return {
+        "filepath": str(non_flac_file),
+        "filename": non_flac_file.name,
+        "score": 100,  # Maximum fake score for non-FLAC
+        "verdict": "NON_FLAC",
+        "confidence": "CERTAIN",
+        "reason": f"NON-FLAC FILE ({extension}) - Must be replaced with authentic FLAC",
+        "cutoff_freq": 0,
+        "sample_rate": "N/A",
+        "bit_depth": "N/A",
+        "encoder": extension,
+        "duration_mismatch": None,
+        "duration_metadata": "N/A",
+        "duration_real": "N/A",
+        "duration_diff": "N/A",
+        "has_clipping": False,
+        "clipping_severity": "n/a",
+        "clipping_percentage": 0.0,
+        "has_dc_offset": False,
+        "dc_offset_severity": "n/a",
+        "dc_offset_value": 0.0,
+        "is_corrupted": False,
+        "corruption_error": None,
+        "has_silence_issue": False,
+        "silence_issue_type": "n/a",
+        "is_fake_high_res": False,
+        "estimated_bit_depth": 0,
+        "is_upsampled": False,
+        "suspected_original_rate": 0,
+        "estimated_mp3_bitrate": 0,
+    }
+
+
+def _process_flac_files(
+    files_to_process: list[Path],
+    tracker: ProgressTracker,
+    analyzer: FLACAnalyzer
+):
+    """Process FLAC files with multi-threading.
+
+    Args:
+        files_to_process: List of FLAC files to analyze.
+        tracker: Progress tracker instance.
+        analyzer: FLAC analyzer instance.
+    """
+    with ThreadPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
+        futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
+
+        for future in as_completed(futures):
+            result = future.result()
+            tracker.add_result(result)
+
+            # Progress display
+            processed, total = tracker.get_progress()
+            _log_analysis_result(result, processed, total)
+
+            # Periodic save
+            if processed % analysis_config.SAVE_INTERVAL == 0:
+                tracker.save()
+                logger.info(f"Progress saved ({processed}/{total})")
+
+
+def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTracker):
+    """Add non-FLAC audio files to results.
+
+    Args:
+        all_non_flac_files: List of non-FLAC files.
+        tracker: Progress tracker instance.
+    """
+    for non_flac_file in all_non_flac_files:
+        result = _create_non_flac_result(non_flac_file)
+        tracker.add_result(result)
+
+    if all_non_flac_files:
+        logger.info(f"\n{len(all_non_flac_files)} non-FLAC audio files added to report")
+
+
 def run_analysis_loop(
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
@@ -246,78 +370,13 @@ def run_analysis_loop(
         print()
 
         # Multi-threaded analysis
-        with ThreadPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
-            futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
-
-            for future in as_completed(futures):
-                result = future.result()
-                tracker.add_result(result)
-
-                # Progress display (NEW SCORING: higher = more fake)
-                processed, total = tracker.get_progress()
-                score = result.get("score", 0)
-                verdict = result.get("verdict", "UNKNOWN")
-
-                # Color coding based on new scoring system
-                if score >= 80:  # FAKE_CERTAIN
-                    score_icon = colorize("[FAKE]", Colors.RED)
-                elif score >= 50:  # FAKE_PROBABLE
-                    score_icon = colorize("[SUSP]", Colors.YELLOW)
-                elif score >= 30:  # DOUTEUX
-                    score_icon = colorize("[?]", Colors.YELLOW)
-                else:  # AUTHENTIQUE
-                    score_icon = colorize("[OK]", Colors.GREEN)
-
-                logger.info(
-                    f"[{processed}/{total}] {score_icon} {result['filename'][:50]} "
-                    f"- Score: {score}/100 - {verdict}"
-                )
-
-                # Periodic save
-                if processed % analysis_config.SAVE_INTERVAL == 0:
-                    tracker.save()
-                    logger.info(f"Progress saved ({processed}/{total})")
+        _process_flac_files(files_to_process, tracker, analyzer)
 
         # Final save
         tracker.save()
 
-    # Add non-FLAC audio files to results (they need to be replaced with FLAC)
-    for non_flac_file in all_non_flac_files:
-        extension = non_flac_file.suffix.upper()[1:]  # Remove the dot and uppercase
-        tracker.add_result({
-            "filepath": str(non_flac_file),
-            "filename": non_flac_file.name,
-            "score": 100,  # Maximum fake score for non-FLAC
-            "verdict": "NON_FLAC",
-            "confidence": "CERTAIN",
-            "reason": f"NON-FLAC FILE ({extension}) - Must be replaced with authentic FLAC",
-            "cutoff_freq": 0,
-            "sample_rate": "N/A",
-            "bit_depth": "N/A",
-            "encoder": extension,
-            "duration_mismatch": None,
-            "duration_metadata": "N/A",
-            "duration_real": "N/A",
-            "duration_diff": "N/A",
-            "has_clipping": False,
-            "clipping_severity": "n/a",
-            "clipping_percentage": 0.0,
-            "has_dc_offset": False,
-            "dc_offset_severity": "n/a",
-            "dc_offset_value": 0.0,
-            "is_corrupted": False,
-            "corruption_error": None,
-            "has_silence_issue": False,
-            "silence_issue_type": "n/a",
-            "is_fake_high_res": False,
-            "estimated_bit_depth": 0,
-            "is_upsampled": False,
-            "suspected_original_rate": 0,
-            "estimated_mp3_bitrate": 0,
-        })
-
-    if all_non_flac_files:
-        logger.info(f"\n{len(all_non_flac_files)} non-FLAC audio files added to report")
+    # Add non-FLAC audio files to results
+    _add_non_flac_results(all_non_flac_files, tracker)
 
     # Clean up progress file after successful completion
     tracker.cleanup()
