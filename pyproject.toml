@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Guillain Méjane", email = "guillain@poulpe.us"}
 ]
 keywords = ["flac", "audio", "analysis", "transcode", "detection", "mp3", "quality", "authenticity"]
 classifiers = [
