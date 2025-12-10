@@ -12,7 +12,8 @@ def apply_rule_1_mp3_bitrate(
     cutoff_freq: float,
     container_bitrate: float,
     cutoff_std: float = 0.0,
-    sample_rate: int = 44100
+    sample_rate: int = 44100,
+    energy_ratio: float = 0.0
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -28,6 +29,7 @@ def apply_rule_1_mp3_bitrate(
         container_bitrate: Physical bitrate of the FLAC file in kbps
         cutoff_std: Standard deviation of cutoff frequency
         sample_rate: Sample rate in Hz (default: 44100)
+        energy_ratio: High frequency energy ratio (default: 0.0)
 
     Returns:
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
@@ -48,15 +50,25 @@ def apply_rule_1_mp3_bitrate(
         )
         return (score, reasons), None
 
-    # EXCEPTION CRITIQUE : Cutoff exactement 20 kHz
-    # ============================================
+    # EXCEPTION CRITIQUE : Cutoff exactement 20 kHz (ENHANCED)
+    # ==========================================================
     # Problème : FFT peut arrondir 20-21 kHz à 20000 Hz pile
-    # Variance 0 = tous les segments détectent exactement 20000 Hz
-    # → Suspect arrondi plutôt que vrai MP3 320k
-    if cutoff_freq == 20000.0 and cutoff_std == 0.0:
-        logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
-        logger.info("RULE 1: Ambigu (peut être arrondi FFT) - SKIP par prudence")
-        return (0, []), None
+    # Solutions :
+    #   1. Test énergie résiduelle > 20 kHz (energy_ratio)
+    #   2. Test variance nulle (cutoff_std)
+    if cutoff_freq == 20000.0:
+        # Test 1 : Énergie résiduelle au-dessus de 20 kHz (HIGH_FREQ_THRESHOLD)
+        # Seuil minimal pour détecter présence d'énergie HF
+        if energy_ratio > 0.000001:
+            logger.info(f"RULE 1: Cutoff 20 kHz mais énergie HF = {energy_ratio:.6f}")
+            logger.info("RULE 1: Probablement arrondi FFT, pas MP3 320k - SKIP")
+            return (0, []), None
+
+        # Test 2 : Variance nulle + cutoff pile = ambigu
+        if cutoff_std == 0.0:
+            logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
+            logger.info("RULE 1: Ambigu (peut être arrondi FFT) - SKIP par prudence")
+            return (0, []), None
 
     # Safety check 2: If cutoff > 21.5 kHz, it's likely an authentic high-quality FLAC
     # MP3s never have cutoffs above 21.5 kHz (even 320 kbps tops out around 20.5-21 kHz)
