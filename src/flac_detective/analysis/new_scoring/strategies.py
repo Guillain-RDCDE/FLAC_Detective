@@ -39,7 +39,8 @@ class Rule1MP3Bitrate(ScoringRule):
             context.cutoff_freq,
             context.bitrate_metrics.real_bitrate,
             context.cutoff_std,
-            context.audio_meta.sample_rate
+            context.audio_meta.sample_rate,
+            context.energy_ratio
         )
         context.add_score(score, reasons)
         context.mp3_bitrate_detected = estimated_bitrate

@@ -278,7 +278,8 @@ def new_calculate_score(
     metadata: Dict,
     duration_check: Dict,
     filepath: Path,
-    cutoff_std: float = 0.0
+    cutoff_std: float = 0.0,
+    energy_ratio: float = 0.0
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -288,6 +289,7 @@ def new_calculate_score(
         duration_check: Duration check results
         filepath: Path to FLAC file
         cutoff_std: Standard deviation of cutoff frequency (default 0.0)
+        energy_ratio: High frequency energy ratio (default 0.0)
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -326,7 +328,8 @@ def new_calculate_score(
             audio_meta=audio_meta,
             bitrate_metrics=bitrate_metrics,
             cutoff_freq=cutoff_freq,
-            cutoff_std=cutoff_std
+            cutoff_std=cutoff_std,
+            energy_ratio=energy_ratio
         )
 
         # Apply scoring rules

@@ -28,6 +28,7 @@ class ScoringContext:
     bitrate_metrics: BitrateMetrics
     cutoff_freq: float
     cutoff_std: float = 0.0
+    energy_ratio: float = 0.0
 
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None
