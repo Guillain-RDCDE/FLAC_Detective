@@ -1,6 +1,6 @@
 # 🎵 FLAC Detective
 
-**Advanced FLAC Authenticity Analyzer - Production Ready v0.5.0**
+**Advanced FLAC Authenticity Analyzer - v0.6.1**
 
 > "Every FLAC file tells a story... I find the truth."
 
@@ -127,7 +127,6 @@ print(f"Reasons: {reasons}")
 
 ## 📖 Documentation
 
-- [**Release Notes**](RELEASE_NOTES_v0.5.0.md) - What's new in v0.5.0
 - [**Changelog**](CHANGELOG.md) - Complete version history
 - [**Technical Documentation**](docs/TECHNICAL_DOCUMENTATION.md) - Architecture and algorithms
 - [**Rule Specifications**](docs/RULE_SPECIFICATIONS.md) - Detailed rule documentation
@@ -138,12 +137,17 @@ print(f"Reasons: {reasons}")
 ```
 src/flac_detective/
 ├── analysis/
-│   ├── new_scoring/          # Advanced scoring system (v0.5.0)
-│   │   ├── rules.py          # All 12 detection rules
+│   ├── new_scoring/          # Advanced 11-rule scoring system
+│   │   ├── rules/            # Individual rule implementations
+│   │   │   ├── spectral.py   # Rules 1, 2, 8 (with 20kHz exception)
+│   │   │   ├── bitrate.py    # Rules 3, 4
+│   │   │   ├── silence.py    # Rule 7
+│   │   │   ├── artifacts.py  # Rule 9
+│   │   │   ├── consistency.py # Rule 10
+│   │   │   └── cassette.py   # Rule 11
 │   │   ├── calculator.py     # Orchestration & optimization
-│   │   ├── bitrate.py        # Bitrate calculations
-│   │   ├── silence.py        # Silence & vinyl analysis
-│   │   ├── artifacts.py      # Compression artifacts
+│   │   ├── strategies.py     # Strategy pattern implementation
+│   │   ├── models.py         # Data models (with energy_ratio)
 │   │   └── verdict.py        # Score interpretation
 │   ├── spectrum.py           # Spectral analysis
 │   └── audio_cache.py        # File read optimization
@@ -257,14 +261,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Project Stats
 
-- **Version**: 0.5.0 (Production Ready)
+- **Version**: 0.6.1
 - **Status**: Beta
 - **Python**: 3.8+
 - **License**: MIT
+- **Detection System**: 11 rules with enhanced 20 kHz exception
 - **Tested**: 759 files, 79.2% authentic rate
 
 ---
 
 **Made with ❤️ for audio enthusiasts**
 
-**FLAC Detective v0.5.0** - *Because your music deserves authenticity*
+**FLAC Detective v0.6.1** - *Because your music deserves authenticity*
