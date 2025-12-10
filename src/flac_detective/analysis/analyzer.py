@@ -59,7 +59,7 @@ class FLACAnalyzer:
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
             score, verdict, confidence, reason = new_calculate_score(
-                cutoff_freq, metadata, duration_check, filepath, cutoff_std
+                cutoff_freq, metadata, duration_check, filepath, cutoff_std, energy_ratio
             )
 
             return {
