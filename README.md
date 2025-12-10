@@ -12,9 +12,9 @@ FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes
 
 ## ✨ Features
 
-### 🎯 Advanced 12-Rule Detection System
+### 🎯 Advanced 11-Rule Detection System
 
-- **Rule 1**: MP3 Spectral Signature Detection (CBR patterns)
+- **Rule 1**: MP3 Spectral Signature Detection (CBR patterns) - *Enhanced with 20 kHz exception*
 - **Rule 2**: Cutoff Frequency Analysis vs Nyquist
 - **Rule 3**: Source vs Container Bitrate Comparison
 - **Rule 4**: Suspicious 24-bit File Detection
@@ -30,6 +30,7 @@ FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes
   - Test B: High-frequency aliasing
   - Test C: MP3 quantization noise
 - **Rule 10**: Multi-Segment Consistency Analysis
+- **Rule 11**: Cassette Detection (authentic analog source protection)
 
 ### 📊 4-Level Verdict System
 
