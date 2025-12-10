@@ -48,6 +48,16 @@ def apply_rule_1_mp3_bitrate(
         )
         return (score, reasons), None
 
+    # EXCEPTION CRITIQUE : Cutoff exactement 20 kHz
+    # ============================================
+    # Problème : FFT peut arrondir 20-21 kHz à 20000 Hz pile
+    # Variance 0 = tous les segments détectent exactement 20000 Hz
+    # → Suspect arrondi plutôt que vrai MP3 320k
+    if cutoff_freq == 20000.0 and cutoff_std == 0.0:
+        logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
+        logger.info("RULE 1: Ambigu (peut être arrondi FFT) - SKIP par prudence")
+        return (0, []), None
+
     # Safety check 2: If cutoff > 21.5 kHz, it's likely an authentic high-quality FLAC
     # MP3s never have cutoffs above 21.5 kHz (even 320 kbps tops out around 20.5-21 kHz)
     HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
