@@ -15,7 +15,7 @@ class TextReporter:
 
     def __init__(self):
         """Initialize the report generator."""
-        self.width = 100  # Report width
+        self.width = 140  # Report width (increased for better file visibility)
 
     def _header(self, title: str) -> str:
         """Generates a formatted header.
@@ -180,10 +180,11 @@ class TextReporter:
                     except Exception:
                         pass # Keep original filename if any error
 
-                # Truncate filename if too long
+                # Truncate filename if too long (show END to preserve filename)
                 max_name_len = self.width - 56
                 if len(display_name) > max_name_len:
-                    display_name = display_name[:max_name_len-3] + "..."
+                    # Truncate from the START to preserve the actual filename at the end
+                    display_name = "..." + display_name[-(max_name_len-3):]
 
                 report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}")
 
