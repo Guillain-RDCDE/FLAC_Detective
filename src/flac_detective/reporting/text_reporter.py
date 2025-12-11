@@ -1,4 +1,4 @@
-"""Text report generation with ASCII formatting."""
+﻿"""Text report generation with ASCII formatting."""
 
 import logging
 from datetime import datetime
@@ -82,6 +82,36 @@ class TextReporter:
         else:  # AUTHENTIQUE
             return "[OK]"
 
+    def _get_display_path(self, result: dict[str, Any], scan_paths: list[Path] | None = None) -> str:
+        """Get the full display path for a file (relative to scan root if possible).
+
+        Args:
+            result: Analysis result dictionary.
+            scan_paths: List of scan root directories.
+
+        Returns:
+            Full path string from scan root to file (not truncated).
+        """
+        display_name = result.get("filename", "Unknown")
+        file_path_str = result.get("filepath", "")
+
+        if scan_paths and file_path_str:
+            try:
+                p = Path(file_path_str)
+                for root in scan_paths:
+                    try:
+                        rel_path = p.relative_to(root)
+                        # Prepend separator to indicate it's a relative path from root
+                        display_name = f"\\{rel_path}"
+                        break
+                    except ValueError:
+                        continue
+            except Exception:
+                pass # Keep original filename if any error
+
+        # DO NOT TRUNCATE - show full path
+        return display_name
+
     def generate_report(self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None) -> None:
         """Generates a complete text report.
 
@@ -96,6 +126,8 @@ class TextReporter:
         stats = calculate_statistics(results)
         # NEW SCORING: score >= 50 = suspicious
         suspicious = [r for r in results if r.get("score", 0) >= 50]
+        corrupted = [r for r in results if r.get("is_corrupted", False)]
+        upsampled = [r for r in results if r.get("is_upsampled", False)]
 
         # Build report
         report_lines = []
@@ -159,37 +191,46 @@ class TextReporter:
                 bitrate = result.get("estimated_mp3_bitrate", 0)
                 bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
 
-                # Determine display name (relative path if possible)
-                display_name = result.get("filename", "Unknown")
-                file_path_str = result.get("filepath", "")
-                
-                if scan_paths and file_path_str:
-                    try:
-                        p = Path(file_path_str)
-                        for root in scan_paths:
-                            # Check if file is inside this root
-                            # We use try/except relative_to because is_relative_to is Python 3.9+
-                            # and we want to be safe, although we likely have 3.9+
-                            try:
-                                rel_path = p.relative_to(root)
-                                # Prepend separator to indicate it's a relative path from root
-                                display_name = f"\\{rel_path}"
-                                break 
-                            except ValueError:
-                                continue
-                    except Exception:
-                        pass # Keep original filename if any error
-
-                # Truncate filename if too long (show END to preserve filename)
-                max_name_len = self.width - 56
-                if len(display_name) > max_name_len:
-                    # Truncate from the START to preserve the actual filename at the end
-                    display_name = "..." + display_name[-(max_name_len-3):]
+                # Get full display path (not truncated)
+                display_name = self._get_display_path(result, scan_paths)
 
                 report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}")
 
         else:
-            report_lines.append(" No suspicious files found. Collection looks clean.")
+            report_lines.append(" No suspicious files found.")
+
+
+        report_lines.append("-" * self.width)
+
+        # Corrupted files
+        if corrupted:
+            report_lines.append(f" CORRUPTED FILES ({len(corrupted)})")
+            report_lines.append(f" {'Icon':<4} | {'File'}")
+            report_lines.append(" " + "-" * (self.width - 2))
+
+            for result in corrupted:
+                display_name = self._get_display_path(result, scan_paths)
+                report_lines.append(f" [!!] | {display_name}")
+
+        else:
+            report_lines.append(" No corrupted files found.")
+
+        report_lines.append("-" * self.width)
+
+        # Upsampled files
+        if upsampled:
+            report_lines.append(f" UPSAMPLED FILES ({len(upsampled)})")
+            report_lines.append(f" {'Icon':<4} | {'Original Rate':<15} | {'File'}")
+            report_lines.append(" " + "-" * (self.width - 2))
+
+            for result in upsampled:
+                display_name = self._get_display_path(result, scan_paths)
+                original_rate = result.get("upsampling", {}).get("suspected_original_rate", "Unknown")
+                original_rate_str = f"{original_rate} Hz" if isinstance(original_rate, int) else str(original_rate)
+                report_lines.append(f" [?]  | {original_rate_str:<15} | {display_name}")
+
+        else:
+            report_lines.append(" No upsampled files found.")
 
         # Footer
         report_lines.append("-" * self.width)
