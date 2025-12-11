@@ -1,4 +1,4 @@
-"""General utilities for the application."""
+﻿"""General utilities for the application."""
 
 import logging
 from pathlib import Path
@@ -16,13 +16,13 @@ LOGO = f"""
 ║                                                                           ║
 ║              "Every FLAC file tells a story... I find the truth"          ║
 ║                                                                           ║
-║   ┌───────────────────────────────────────────────────────────┐           ║
-║   │ {Colors.GREEN}Spectral Analysis{Colors.CYAN}         │ {Colors.GREEN}Duration Check{Colors.CYAN}              │           ║
-║   │ {Colors.GREEN}Energy Profiling{Colors.CYAN}          │ {Colors.GREEN}Metadata Validation{Colors.CYAN}         │           ║
-║   │ {Colors.GREEN}Auto Repair{Colors.CYAN}               │ {Colors.GREEN}Smart Backup{Colors.CYAN}                │           ║
-║   └───────────────────────────────────────────────────────────┘           ║
+║   ┌─────────────────────────────────────────────────────────────────────┐ ║
+║   │ {Colors.GREEN}Spectral Analysis{Colors.CYAN}         │ {Colors.GREEN}Duration Check{Colors.CYAN}                     │ ║
+║   │ {Colors.GREEN}Energy Profiling{Colors.CYAN}          │ {Colors.GREEN}Metadata Validation{Colors.CYAN}                │ ║
+║   │ {Colors.GREEN}Auto Repair{Colors.CYAN}               │ {Colors.GREEN}Smart Backup{Colors.CYAN}                       │ ║
+║   └─────────────────────────────────────────────────────────────────────┘ ║
 ║                                                                           ║
-║                         Version 0.1 - November 2025                       ║
+║                         Version 0.6.4 - December 2025                       ║
 ║                                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════╝{Colors.RESET}
 """
