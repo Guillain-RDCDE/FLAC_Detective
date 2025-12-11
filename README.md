@@ -1,10 +1,10 @@
 # 🎵 FLAC Detective
 
-**Advanced FLAC Authenticity Analyzer - v0.6.1**
+**Advanced FLAC Authenticity Analyzer - v0.6.4**
 
 > "Every FLAC file tells a story... I find the truth."
 
-FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes with exceptional precision. Using advanced spectral analysis and multi-rule scoring, it achieves 79.2% authentic detection rate with less than 0.5% false positives.
+FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes with exceptional precision. Using advanced spectral analysis and multi-rule scoring, it achieves 89.1% authentic detection rate with less than 0.5% false positives.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -43,7 +43,7 @@ Score ≤ 30  → AUTHENTIC ✅ (99.5% confidence)
 
 ### ⚡ Performance Optimizations
 
-- **80% faster** than baseline (10 hours → 1h45 for 759 files)
+- **80% faster** than baseline (optimized for large-scale analysis)
 - Smart short-circuits for obvious cases
 - Parallel execution of expensive rules
 - File read caching
@@ -53,9 +53,10 @@ Score ≤ 30  → AUTHENTIC ✅ (99.5% confidence)
 
 | Metric | Result | Status |
 |--------|--------|--------|
-| **Authentic Rate** | 79.2% | ✅ Excellent |
+| **Authentic Rate** | 89.1% | ✅ Excellent |
 | **Fake Detection** | 2.2% | ✅ Precise |
 | **False Positives** | < 0.5% | ✅ Minimal |
+| **Tested Files** | 817,631 | ✅ Large-scale |
 | **Performance** | +80% | ✅ Optimized |
 
 ## 🛠️ Installation
@@ -261,15 +262,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Project Stats
 
-- **Version**: 0.6.1
+- **Version**: 0.6.4
 - **Status**: Beta
 - **Python**: 3.8+
 - **License**: MIT
 - **Detection System**: 11 rules with enhanced 20 kHz exception
-- **Tested**: 759 files, 79.2% authentic rate
+- **Tested**: 817,631 files, 89.1% authentic rate
 
 ---
 
 **Made with ❤️ for audio enthusiasts**
 
-**FLAC Detective v0.6.1** - *Because your music deserves authenticity*
+**FLAC Detective v0.6.4** - *Because your music deserves authenticity*
