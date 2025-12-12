@@ -1,4 +1,4 @@
-﻿# 📋 RULE SPECIFICATIONS - FLAC Detective v0.6.4
+﻿# 📋 RULE SPECIFICATIONS - FLAC Detective v0.6.1
 
 ## 🎯 Overview
 
@@ -343,6 +343,15 @@ Detect characteristic MP3 noise floor patterns
 - **Variable penalty** based on artifact severity
 - Each test contributes if artifacts detected
 
+### Error Handling (v0.6.1)
+
+**Automatic Retry Mechanism**:
+- Rule 9 uses `load_audio_with_retry()` to handle temporary FLAC decoder errors
+- Up to 3 attempts with exponential backoff (0.2s → 0.3s → 0.45s)
+- On failure after retries: Returns 0 points (no penalty)
+- File is NOT marked as corrupted for temporary errors
+- See [FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md) for details
+
 ---
 
 ## 🔄 Rule 10: Multi-Segment Consistency Analysis
@@ -401,6 +410,15 @@ Characteristics:
 ### Scoring
 - **Penalty reduction** if cassette signature detected
 - Authentic analog source protection
+
+### Error Handling (v0.6.1)
+
+**Automatic Retry Mechanism**:
+- Rule 11 uses `load_audio_with_retry()` to handle temporary FLAC decoder errors
+- Up to 3 attempts with exponential backoff (0.2s → 0.3s → 0.45s)
+- On failure after retries: Returns 0 points (no penalty)
+- File is NOT marked as corrupted for temporary errors
+- See [FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md) for details
 
 ---
 
@@ -484,7 +502,24 @@ VERDICT: AUTHENTIC ✅
 
 ---
 
-## 🎯 Key Innovations (v0.6.4)
+## 🎯 Key Innovations
+
+### v0.6.1 - Error Handling
+
+**Automatic Retry Mechanism for Decoder Errors**:
+- Handles temporary "flac decoder lost sync" errors automatically
+- Rules 9 and 11 use `load_audio_with_retry()` with exponential backoff
+- Prevents false CORRUPTED status on valid files
+- Adds `partial_analysis` flag when optional rules fail temporarily
+- See [FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md)
+
+### v0.6.0 - Cassette Detection
+
+**Cassette Protection** (Rule 11): Analog source recognition
+- Gradual rolloff detection
+- Tape hiss analysis
+
+### v0.5.0 - Core Detection System
 
 1. **20 kHz Exception** (Rule 1): Dual-test system to avoid false positives
    - Energy ratio test (HF content above 20 kHz)
@@ -498,10 +533,6 @@ VERDICT: AUTHENTIC ✅
    - Progressive analysis (2→5 segments when needed)
    - Detects multi-source compilations
 
-4. **Cassette Protection** (Rule 11): Analog source recognition
-   - Gradual rolloff detection
-   - Tape hiss analysis
-
 ---
 
 ## 📚 References
@@ -509,9 +540,13 @@ VERDICT: AUTHENTIC ✅
 - **Implementation**: `src/flac_detective/analysis/new_scoring/rules/`
 - **Models**: `src/flac_detective/analysis/new_scoring/models.py`
 - **Orchestration**: `src/flac_detective/analysis/new_scoring/calculator.py`
+- **Error Handling (v0.6.1)**: `src/flac_detective/analysis/new_scoring/audio_loader.py`
+- **Documentation**:
+  - [FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md) - Technical details
+  - [GUIDE_RETRY_MECHANISM.md](GUIDE_RETRY_MECHANISM.md) - User guide
 
 ---
 
-**FLAC Detective v0.6.4** - *Advanced MP3-to-FLAC Transcode Detection*
+**FLAC Detective v0.6.1** - *Advanced MP3-to-FLAC Transcode Detection with Robust Error Handling*
 
 **Test Results**: 817,631 files analyzed | 89.1% authentic rate | <0.5% false positives

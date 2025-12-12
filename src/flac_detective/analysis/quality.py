@@ -12,6 +12,8 @@ from typing import Dict, Any
 import numpy as np
 import soundfile as sf
 
+from .new_scoring.audio_loader import load_audio_with_retry, is_temporary_decoder_error
+
 logger = logging.getLogger(__name__)
 
 
@@ -195,8 +197,22 @@ class CorruptionDetector(QualityDetector):
             Dictionary with detection results.
         """
         try:
-            # Try to read the whole file
-            data, samplerate = sf.read(filepath, dtype='float32')
+            # Try to read the file with retry mechanism
+            data, samplerate = load_audio_with_retry(str(filepath))
+            
+            # If loading failed after retries, check if it was a temporary error
+            if data is None or samplerate is None:
+                logger.warning(
+                    f"Could not load {filepath.name} after retries. "
+                    f"Not marking as corrupted (may be temporary decoder issue)."
+                )
+                return {
+                    "is_corrupted": False,
+                    "readable": True,
+                    "error": "Temporary decoder error (not marked as corrupted)",
+                    "frames_read": 0,
+                    "partial_analysis": True,
+                }
 
             # Check that data was read
             if data.size == 0:
@@ -224,13 +240,30 @@ class CorruptionDetector(QualityDetector):
             }
 
         except Exception as e:
-            logger.debug(f"Corruption detected in {filepath.name}: {e}")
-            return {
-                "is_corrupted": True,
-                "readable": False,
-                "error": str(e),
-                "frames_read": 0,
-            }
+            error_msg = str(e)
+            
+            # Check if this is a temporary decoder error
+            if is_temporary_decoder_error(error_msg):
+                logger.warning(
+                    f"Temporary decoder error in {filepath.name}: {error_msg}. "
+                    f"Not marking as corrupted."
+                )
+                return {
+                    "is_corrupted": False,
+                    "readable": True,
+                    "error": f"Temporary decoder error: {error_msg}",
+                    "frames_read": 0,
+                    "partial_analysis": True,
+                }
+            else:
+                # Real corruption
+                logger.debug(f"Corruption detected in {filepath.name}: {e}")
+                return {
+                    "is_corrupted": True,
+                    "readable": False,
+                    "error": error_msg,
+                    "frames_read": 0,
+                }
 
 
 class SilenceDetector(QualityDetector):

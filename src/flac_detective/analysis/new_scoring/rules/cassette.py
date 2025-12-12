@@ -6,6 +6,8 @@ import numpy as np
 from scipy import signal
 import soundfile as sf
 
+from ..audio_loader import load_audio_with_retry
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +49,16 @@ def apply_rule_11_cassette_detection(
         return 0, reasons
 
     try:
-        audio, sr = sf.read(file_path)
+        # Load audio file with retry mechanism
+        audio, sr = load_audio_with_retry(file_path)
+        
+        if audio is None or sr is None:
+            logger.error(
+                f"RULE 11: Failed to load audio after retries. "
+                f"Returning 0 points (no penalty for temporary decoder issues)."
+            )
+            return 0, reasons
+        
         if audio.ndim > 1:
             audio = np.mean(audio, axis=1) # Mono
         

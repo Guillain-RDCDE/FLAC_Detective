@@ -86,6 +86,7 @@ class FLACAnalyzer:
                 "dc_offset_value": quality_analysis["dc_offset"]["dc_offset_value"],
                 "is_corrupted": quality_analysis["corruption"]["is_corrupted"],
                 "corruption_error": quality_analysis["corruption"].get("error"),
+                "partial_analysis": quality_analysis["corruption"].get("partial_analysis", False),
                 # Phase 2
                 "has_silence_issue": quality_analysis["silence"]["has_silence_issue"],
                 "silence_issue_type": quality_analysis["silence"]["issue_type"],
