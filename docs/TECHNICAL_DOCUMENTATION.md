@@ -748,4 +748,4 @@ flac-detective /path/to/music --output report.txt
 ---
 
 **FLAC Detective v0.6.6 Technical Documentation**  
-**Last Updated: December 12, 2025**
+**Last Updated: 2025-12-12**
