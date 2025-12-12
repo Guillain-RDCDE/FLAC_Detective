@@ -14,6 +14,8 @@ import soundfile as sf
 from scipy import signal
 from scipy.fft import fft, fftfreq
 
+from .audio_loader import load_audio_with_retry
+
 logger = logging.getLogger(__name__)
 
 
@@ -313,8 +315,15 @@ def analyze_compression_artifacts(
     logger.info("RULE 9: Activation - Analyzing compression artifacts...")
 
     try:
-        # Load audio file
-        audio_data, sample_rate = sf.read(file_path)
+        # Load audio file with retry mechanism
+        audio_data, sample_rate = load_audio_with_retry(file_path)
+        
+        if audio_data is None or sample_rate is None:
+            logger.error(
+                f"RULE 9: Failed to load audio after retries. "
+                f"Returning 0 points (no penalty for temporary decoder issues)."
+            )
+            return 0, [], details
 
         # Test 9A: Pre-echo detection
         try:

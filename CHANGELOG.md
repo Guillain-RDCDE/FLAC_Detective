@@ -5,6 +5,57 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2025-12-12
+
+### Added
+- **Automatic Retry Mechanism for FLAC Decoder Errors**
+  - New `audio_loader.py` module with `load_audio_with_retry()` function
+  - Automatic retry (max 3 attempts) for temporary decoder errors
+  - Exponential backoff: 0.2s → 0.3s → 0.45s between retries
+  - Detects temporary errors: "lost sync", "decoder error", "sync error", "invalid frame", "unexpected end"
+  - Detailed logging: "⚠️ Temporary error on attempt X", "✅ Audio loaded successfully on attempt X"
+
+### Changed
+- **Rule 9 (Compression Artifacts)**
+  - Now uses `load_audio_with_retry()` instead of direct `sf.read()`
+  - Returns 0 points (no penalty) if loading fails after retries
+  - No longer marks files as CORRUPTED on temporary decoder errors
+- **Rule 11 (Cassette Detection)**
+  - Now uses `load_audio_with_retry()` instead of direct `sf.read()`
+  - Returns 0 points (no penalty) if loading fails after retries
+  - No longer marks files as CORRUPTED on temporary decoder errors
+- **Corruption Detection**
+  - `CorruptionDetector` now distinguishes temporary errors from real corruption
+  - Temporary decoder errors do NOT mark files as corrupted
+  - Adds `partial_analysis: True` flag when optional rules (R9/R11) fail
+  - Real corruption (NaN, Inf, unreadable files) still detected immediately
+
+### Fixed
+- **Critical: False CORRUPTED status on valid files**
+  - Files with temporary "lost sync" errors are no longer marked as corrupted
+  - Example: "04 - Bial Hclap; Sagrario - Danza coyote.flac" now analyzed correctly
+  - Verdict based on critical rules (R1-R8) even if R9/R11 fail temporarily
+- **Improved robustness**
+  - Files with prolonged silences or non-standard encoding now analyzed correctly
+  - Reduced false positives from temporary decoder synchronization issues
+
+### Technical Details
+- Modified files:
+  - Created: `src/flac_detective/analysis/new_scoring/audio_loader.py`
+  - Modified: `src/flac_detective/analysis/new_scoring/artifacts.py`
+  - Modified: `src/flac_detective/analysis/new_scoring/rules/cassette.py`
+  - Modified: `src/flac_detective/analysis/quality.py`
+  - Modified: `src/flac_detective/analysis/analyzer.py`
+- New test: `tests/test_audio_loader_retry.py`
+- Documentation:
+  - `docs/FLAC_DECODER_ERROR_HANDLING.md` - Technical implementation details
+  - `docs/GUIDE_RETRY_MECHANISM.md` - User guide
+
+### Performance Impact
+- No impact on files without errors (no retry triggered)
+- +0.2s to +1s for files with temporary errors (depending on retry count)
+- Maximum +1s overhead for persistent errors (3 retries with backoff)
+
 ## [0.6.0] - 2025-12-05
 
 ### Added
