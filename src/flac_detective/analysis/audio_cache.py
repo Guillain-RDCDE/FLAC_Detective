@@ -114,7 +114,7 @@ class AudioCache:
 
             # FFT
             # PHASE 3 OPTIMIZATION: Use parallel FFT
-            with set_workers(-1):
+            with set_workers(1):
                 fft_vals = rfft(data_windowed)
             fft_freq = rfftfreq(len(data_windowed), 1 / sr)
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "0.6.6"
+version = "0.6.7"
 description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -31,9 +31,8 @@ dependencies = [
     "numpy>=1.20.0",
     "scipy>=1.7.0",
     "mutagen>=1.45.0",
-    "openpyxl>=3.0.0",
+    "mutagen>=1.45.0",
     "soundfile>=0.10.0",
-    "matplotlib>=3.3.0",
 ]
 
 [project.optional-dependencies]
@@ -82,7 +81,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "0.6.6"
+python_version = "0.6.7"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -100,12 +99,11 @@ module = [
     "mutagen.*",
     "soundfile.*",
     "scipy.*",
-    "matplotlib.*",
 ]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "0.6.6"
+minversion = "0.6.7"
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = [

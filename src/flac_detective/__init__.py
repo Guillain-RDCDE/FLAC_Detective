@@ -1,7 +1,6 @@
 """FLAC Detective - Advanced FLAC Authenticity Analyzer."""
 
 from .analysis import FLACAnalyzer
-from .reporting import ExcelReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files
 

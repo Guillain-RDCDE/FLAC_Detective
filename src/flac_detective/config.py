@@ -1,5 +1,6 @@
 """Centralized configuration for FLAC Detective."""
 
+import os
 from dataclasses import dataclass
 
 
@@ -10,8 +11,8 @@ class AnalysisConfig:
     # Sample duration to analyze (seconds)
     SAMPLE_DURATION: float = 30.0
 
-    # Number of workers for multi-threading
-    MAX_WORKERS: int = 4
+    # Number of workers for multi-processing (defaults to CPU count)
+    MAX_WORKERS: int = os.cpu_count() or 4
 
     # Auto-save interval (number of files)
     SAVE_INTERVAL: int = 50

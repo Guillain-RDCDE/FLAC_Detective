@@ -1,4 +1,4 @@
-# ?? RULE SPECIFICATIONS - FLAC Detective v0.6.6
+# ?? RULE SPECIFICATIONS - FLAC Detective v0.6.7
 
 ## ?? Overview
 
@@ -8,10 +8,10 @@ FLAC Detective uses an advanced **11-rule detection system** with additive scori
 
 ```
 +-----------------------------------------------------------------+
-¦    0           30           60           86              150    ¦
-¦    +-----------+------------+------------+-----------------¦    ¦
-¦ AUTHENTIC   WARNING    SUSPICIOUS   FAKE_CERTAIN                ¦
-¦    ?         ?          ??           ?                     ¦
+Â¦    0           30           60           86              150    Â¦
+Â¦    +-----------+------------+------------+-----------------Â¦    Â¦
+Â¦ AUTHENTIC   WARNING    SUSPICIOUS   FAKE_CERTAIN                Â¦
+Â¦    ?         ?          ??           ?                     Â¦
 +-----------------------------------------------------------------+
 ```
 
@@ -38,12 +38,12 @@ Score = 30 ? AUTHENTIC ? (99.5% confidence)
   -------------              --------------------
   Frequency                  Frequency
       ?                          ?
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦ ? Sharp cutoff
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦    at ~20 kHz
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          +------------
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦  (No content)
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦ ? Sharp cutoff
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦    at ~20 kHz
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          +------------
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Â¦  (No content)
       +----------------?         +------------?
        0 Hz      22 kHz           0 Hz    22 kHz
 ```
@@ -62,13 +62,13 @@ Problem: FFT may round 20-21 kHz to exactly 20000 Hz
 Solutions:
 ```
 +---------------------------------------------------------+
-¦  Test 1: Residual Energy > 20 kHz                       ¦
-¦          IF energy_ratio > 0.000001 ? SKIP              ¦
-¦          (Probably FFT rounding, not MP3 320k)          ¦
-+---------------------------------------------------------¦
-¦  Test 2: Zero Variance                                  ¦
-¦          IF cutoff_std == 0.0 ? SKIP                    ¦
-¦          (Ambiguous, skip by precaution)                ¦
+Â¦  Test 1: Residual Energy > 20 kHz                       Â¦
+Â¦          IF energy_ratio > 0.000001 ? SKIP              Â¦
+Â¦          (Probably FFT rounding, not MP3 320k)          Â¦
++---------------------------------------------------------Â¦
+Â¦  Test 2: Zero Variance                                  Â¦
+Â¦          IF cutoff_std == 0.0 ? SKIP                    Â¦
+Â¦          (Ambiguous, skip by precaution)                Â¦
 +---------------------------------------------------------+
 ```
 
@@ -102,12 +102,12 @@ Sample Rate: 44.1 kHz (Nyquist = 22.05 kHz)
   Expected Cutoff:           Suspicious Cutoff:
   ----------------           ------------------
         ?                           ?
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦ ? Only 15 kHz!
+        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦                Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦                Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦                Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦ ? Only 15 kHz!
   22 kHz+------------          15 kHz+--------
-        ¦  (minimal)                 ¦
-        ¦                            ¦
+        Â¦  (minimal)                 Â¦
+        Â¦                            Â¦
         +------------?               +--------?
       Threshold: ~20 kHz           Deficit: 5 kHz
                                    Penalty: +25 pts
@@ -136,15 +136,15 @@ penalty = min(deficit / 200, 30)
    Authentic FLAC              Fake FLAC (Inflated)
    --------------              --------------------
    +--------------+            +--------------+
-   ¦              ¦            ¦              ¦
-   ¦ High-Quality ¦            ¦ MP3 128 kbps ¦ ? Low quality
-   ¦  PCM Source  ¦            ¦    Source    ¦    source
-   ¦              ¦            ¦              ¦
+   Â¦              Â¦            Â¦              Â¦
+   Â¦ High-Quality Â¦            Â¦ MP3 128 kbps Â¦ ? Low quality
+   Â¦  PCM Source  Â¦            Â¦    Source    Â¦    source
+   Â¦              Â¦            Â¦              Â¦
    +--------------+            +--------------+
-          ¦                           ¦
+          Â¦                           Â¦
           ?                           ?
    +--------------+            +--------------+
-   ¦ FLAC 900 kbps¦            ¦ FLAC 900 kbps¦ ? Heavy container!
+   Â¦ FLAC 900 kbpsÂ¦            Â¦ FLAC 900 kbpsÂ¦ ? Heavy container!
    +--------------+            +--------------+
       NORMAL                    SUSPICIOUS
                               (Inflated file)
@@ -168,9 +168,9 @@ penalty = min(deficit / 200, 30)
   Source: PCM/Analog          Source: MP3 192 kbps ? Upsampled!
   
   Dynamic Range:              Dynamic Range:
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦         ? Limited by
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦            MP3 source
+  Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+  Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦         ? Limited by
+  Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦            MP3 source
       (~120 dB)                 (~60 dB)
 ```
 
@@ -190,10 +190,10 @@ penalty = min(deficit / 200, 30)
   ------------------              -------------
   Bitrate over time:              Bitrate over time:
   kbps                            kbps
-  1400¦       ?                   1000¦------------
-  1200¦      ? ?     ?             800¦------------
-  1000¦     ?   ?   ? ?            600¦------------
-   800¦    ?     ?-?   ?           400¦------------
+  1400Â¦       ?                   1000Â¦------------
+  1200Â¦      ? ?     ?             800Â¦------------
+  1000Â¦     ?   ?   ? ?            600Â¦------------
+   800Â¦    ?     ?-?   ?           400Â¦------------
       +------------------?            +--------------?
        High variance                   Low variance
        (Natural VBR)                   (Constant)
@@ -213,10 +213,10 @@ penalty = min(deficit / 200, 30)
 
 ```
 +-----------------------------------------------------+
-¦  ?  No MP3 signature detected                       ¦
-¦  ?  Container bitrate > 700 kbps                    ¦
-¦  ?  Cutoff frequency = 19 kHz                       ¦
-¦  ?  Bitrate variance > 50 kbps                      ¦
+Â¦  ?  No MP3 signature detected                       Â¦
+Â¦  ?  Container bitrate > 700 kbps                    Â¦
+Â¦  ?  Cutoff frequency = 19 kHz                       Â¦
+Â¦  ?  Bitrate variance > 50 kbps                      Â¦
 +-----------------------------------------------------+
                       ?
           AUTHENTIC HIGH-QUALITY FLAC
@@ -244,8 +244,8 @@ Silence Analysis (High-Freq 16-22 kHz):
 ```
   Authentic Recording         Artificial Dither (Fake)
   -------------------         ------------------------
-  Music:    ¦¦¦¦¦¦¦¦          Music:    ¦¦¦¦¦¦¦¦
-  Silence:  ¦¦¦¦              Silence:  ¦¦¦¦         ? Suspicious!
+  Music:    Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦          Music:    Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+  Silence:  Â¦Â¦Â¦Â¦              Silence:  Â¦Â¦Â¦Â¦         ? Suspicious!
             (Natural)                   (Dither = noise floor)
   
   Ratio = Energy(Silence) / Energy(Music)
@@ -283,13 +283,13 @@ Sample Rate: 44.1 kHz ? Nyquist = 22.05 kHz
 Cutoff Positions:
 -----------------------------------------------------
   22.05 kHz  +--------------------------------  100% Nyquist
-             ¦
+             Â¦
   21.8 kHz   +----------  98.8%  ?  -50 pts (Very close)
-             ¦
+             Â¦
   21.0 kHz   +----------  95.2%  ?  -30 pts (Close)
-             ¦
+             Â¦
   20.0 kHz   +----------  90.7%  ?    0 pts (No bonus)
-             ¦
+             Â¦
              ?
 ```
 
@@ -298,9 +298,9 @@ Cutoff Positions:
 ```
 IF MP3 signature detected:
 +----------------------------------------------------+
-¦  silence_ratio > 0.20  ?  Bonus CANCELLED          ¦
-¦  silence_ratio > 0.15  ?  Bonus REDUCED -15        ¦
-¦  silence_ratio = 0.15  ?  Bonus APPLIED            ¦
+Â¦  silence_ratio > 0.20  ?  Bonus CANCELLED          Â¦
+Â¦  silence_ratio > 0.15  ?  Bonus REDUCED -15        Â¦
+Â¦  silence_ratio = 0.15  ?  Bonus APPLIED            Â¦
 +----------------------------------------------------+
 ```
 
@@ -322,10 +322,10 @@ Time-Frequency Analysis:
 ```
   Clean Audio:          MP3 Pre-echo:
   ------------          -------------
-       ¦                     ¦         ? Ghosting
-       ¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦
-       ¦¦¦¦¦¦  Attack        ¦¦¦¦¦¦¦¦
-       ¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦
+       Â¦                     Â¦         ? Ghosting
+       Â¦Â¦Â¦Â¦Â¦Â¦                Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+       Â¦Â¦Â¦Â¦Â¦Â¦  Attack        Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+       Â¦Â¦Â¦Â¦Â¦Â¦                Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
        +--------?            +--------?
         Time                  Time
                           (Artifacts before attack)
@@ -392,20 +392,20 @@ Frequency Response Pattern:
 Cassette Tape (Authentic):
 ----------------------------
       ?
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦?
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦ ?       ? Gradual rolloff
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦ ?         (8-12 kHz)
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦??
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦?
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦?
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦ ?       ? Gradual rolloff
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦ ?         (8-12 kHz)
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦??
+      Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦Â¦?
       +--------------------?
        0 Hz           15 kHz
 ```
 
 Characteristics:
-• Gradual high-frequency rolloff (not sharp like MP3)
-• Tape hiss (noise floor in high frequencies)
-• Limited bandwidth (typically < 15 kHz)
+Â• Gradual high-frequency rolloff (not sharp like MP3)
+Â• Tape hiss (noise floor in high frequencies)
+Â• Limited bandwidth (typically < 15 kHz)
 
 ### Scoring
 - **Penalty reduction** if cassette signature detected
@@ -426,20 +426,20 @@ Characteristics:
 
 ```
 +--------------------------------------------------------+
-¦  LEVEL 1: Absolute Protection                          ¦
-¦           +- R8 (95-98% Nyquist): -30 to -50 pts       ¦
-+--------------------------------------------------------¦
-¦  LEVEL 2: Targeted MP3 320k Protection                 ¦
-¦           +- R1 Exception (20 kHz + energy test): Skip ¦
-+--------------------------------------------------------¦
-¦  LEVEL 3: High Quality Protection                      ¦
-¦           +- R5 (High Variance): -40 pts               ¦
-¦           +- R6 (High Quality): -30 pts                ¦
-¦           +- R7 (Vinyl/Silence): -50 to -100 pts       ¦
-+--------------------------------------------------------¦
-¦  LEVEL 4: Dynamic Protection                           ¦
-¦           +- R10 (Segment Inconsistency): -20 to -30   ¦
-¦           +- R11 (Cassette): Penalty reduction         ¦
+Â¦  LEVEL 1: Absolute Protection                          Â¦
+Â¦           +- R8 (95-98% Nyquist): -30 to -50 pts       Â¦
++--------------------------------------------------------Â¦
+Â¦  LEVEL 2: Targeted MP3 320k Protection                 Â¦
+Â¦           +- R1 Exception (20 kHz + energy test): Skip Â¦
++--------------------------------------------------------Â¦
+Â¦  LEVEL 3: High Quality Protection                      Â¦
+Â¦           +- R5 (High Variance): -40 pts               Â¦
+Â¦           +- R6 (High Quality): -30 pts                Â¦
+Â¦           +- R7 (Vinyl/Silence): -50 to -100 pts       Â¦
++--------------------------------------------------------Â¦
+Â¦  LEVEL 4: Dynamic Protection                           Â¦
+Â¦           +- R10 (Segment Inconsistency): -20 to -30   Â¦
+Â¦           +- R11 (Cassette): Penalty reduction         Â¦
 +--------------------------------------------------------+
 ```
 
@@ -547,6 +547,6 @@ VERDICT: AUTHENTIC ?
 
 ---
 
-**FLAC Detective v0.6.6** - *Advanced MP3-to-FLAC Transcode Detection with Robust Error Handling*
+**FLAC Detective v0.6.7** - *Advanced MP3-to-FLAC Transcode Detection with Robust Error Handling*
 
 **Test Results**: 817,631 files analyzed | 89.1% authentic rate | <0.5% false positives

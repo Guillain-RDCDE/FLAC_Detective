@@ -1,313 +1,205 @@
 #!/usr/bin/env python3
 """
-WAV to FLAC Converter - Simple batch converter
-Converts all WAV files in a directory to FLAC format
+WAV to FLAC Converter
+Simple, efficient, and safe batch converter.
 """
 
 import os
 import sys
+import shutil
+import logging
+import argparse
 import subprocess
+import time
 from pathlib import Path
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
-# Logo simple
-LOGO = r"""
-╔═══════════════════════════════════════════════════════════╗
+# Colors for terminal
+class Colors:
+    RESET = "\033[0m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+    BOLD = "\033[1m"
+
+def colorize(text, color):
+    return f"{color}{text}{Colors.RESET}"
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger('WavToFlac')
+
+def check_flac_installed():
+    """Check if flac is available in PATH."""
+    try:
+        subprocess.run(["flac", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def convert_file(args):
+    """Convert a single file."""
+    wav_path, compression_level, verify, delete_wav = args
+    flac_path = wav_path.with_suffix(".flac")
+    
+    # Skip if FLAC exists
+    if flac_path.exists():
+        return {"status": "skipped", "file": wav_path.name, "msg": "FLAC already exists"}
+
+    # Build command
+    cmd = ["flac", f"-{compression_level}", "--silent", "--force"]
+    if verify:
+        cmd.append("--verify")
+    cmd.append(str(wav_path))
+
+    try:
+        start_time = time.time()
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        duration = time.time() - start_time
+        
+        if result.returncode == 0:
+            # Check sizes
+            wav_size = wav_path.stat().st_size
+            flac_size = flac_path.stat().st_size
+            ratio = (flac_size / wav_size) * 100
+            
+            # Delete WAV if requested
+            if delete_wav:
+                os.remove(wav_path)
+                
+            return {
+                "status": "success", 
+                "file": wav_path.name,
+                "wav_size": wav_size,
+                "flac_size": flac_size,
+                "ratio": ratio,
+                "duration": duration
+            }
+        else:
+            return {"status": "error", "file": wav_path.name, "msg": result.stderr.decode().strip()}
+            
+    except Exception as e:
+        return {"status": "error", "file": wav_path.name, "msg": str(e)}
+
+def print_banner():
+    print(f"""
+{Colors.CYAN}╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║              🎵 WAV → FLAC Converter 🎵                   ║
+║              {Colors.WHITE}🎵 WAV → FLAC Converter 🎵{Colors.CYAN}                   ║
 ║                                                           ║
 ║          Simple batch converter using official           ║
 ║                    FLAC encoder                          ║
 ║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-"""
-
-def check_flac_installed():
-    """Vérifie que l'outil flac est installé"""
-    try:
-        result = subprocess.run(['flac', '--version'], 
-                              capture_output=True, 
-                              text=True, 
-                              timeout=5)
-        if result.returncode == 0:
-            version = result.stdout.strip().split('\n')[0]
-            print(f"✅ {version}\n")
-            return True
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        pass
-    
-    print("❌ ERREUR: L'outil 'flac' n'est pas installé !\n")
-    print("Installation:")
-    print("  • Linux/Ubuntu: sudo apt install flac")
-    print("  • macOS:        brew install flac")
-    print("  • Windows:      Télécharger depuis https://xiph.org/flac/download.html\n")
-    return False
-
-def find_wav_files(directory, recursive=False):
-    """Trouve tous les fichiers WAV dans le répertoire"""
-    wav_files = []
-    
-    if recursive:
-        # Recherche récursive
-        for wav_file in Path(directory).rglob('*.wav'):
-            wav_files.append(wav_file)
-        for wav_file in Path(directory).rglob('*.WAV'):
-            wav_files.append(wav_file)
-    else:
-        # Recherche non récursive
-        for wav_file in Path(directory).glob('*.wav'):
-            wav_files.append(wav_file)
-        for wav_file in Path(directory).glob('*.WAV'):
-            wav_files.append(wav_file)
-    
-    return sorted(wav_files)
-
-def convert_wav_to_flac(wav_file, compression_level=5, verify=True, delete_wav=False):
-    """
-    Convertit un fichier WAV en FLAC
-    
-    Args:
-        wav_file: Chemin du fichier WAV
-        compression_level: Niveau de compression (0-8, défaut: 5)
-        verify: Vérifier l'intégrité après conversion
-        delete_wav: Supprimer le WAV après conversion réussie
-    
-    Returns:
-        (success, flac_file, message)
-    """
-    wav_path = Path(wav_file)
-    flac_path = wav_path.with_suffix('.flac')
-    
-    # Si le FLAC existe déjà
-    if flac_path.exists():
-        return False, None, "FLAC existe déjà"
-    
-    # Construction de la commande
-    cmd = [
-        'flac',
-        f'-{compression_level}',  # Niveau de compression
-        '--silent',                # Mode silencieux
-    ]
-    
-    if verify:
-        cmd.append('--verify')     # Vérification intégrité
-    
-    cmd.extend([
-        '--output-name', str(flac_path),
-        str(wav_path)
-    ])
-    
-    try:
-        # Exécution de la conversion
-        result = subprocess.run(cmd, 
-                              capture_output=True, 
-                              text=True, 
-                              timeout=300)
-        
-        if result.returncode == 0 and flac_path.exists():
-            # Conversion réussie
-            
-            # Supprimer le WAV si demandé
-            if delete_wav:
-                wav_path.unlink()
-                return True, flac_path, "Converti + WAV supprimé"
-            else:
-                return True, flac_path, "Converti"
-        else:
-            error_msg = result.stderr.strip() if result.stderr else "Erreur inconnue"
-            return False, None, f"Erreur: {error_msg}"
-            
-    except subprocess.TimeoutExpired:
-        return False, None, "Timeout (>5min)"
-    except Exception as e:
-        return False, None, f"Exception: {str(e)}"
-
-def format_size(size_bytes):
-    """Formate la taille en octets en format lisible"""
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} TB"
+╚═══════════════════════════════════════════════════════════╝{Colors.RESET}
+""")
 
 def main():
-    """Fonction principale"""
-    import argparse
+    # Allow drag and drop (sys.argv[1] is the folder path)
+    if len(sys.argv) == 2 and not sys.argv[1].startswith("-"):
+        target_dir = sys.argv[1]
+        sys.argv = [sys.argv[0], target_dir]
     
-    print(LOGO)
-    
-    parser = argparse.ArgumentParser(
-        description='Convertit tous les fichiers WAV d\'un répertoire en FLAC',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Exemples:
-  # Convertir tous les WAV du dossier actuel
-  python3 wav_to_flac.py .
-  
-  # Convertir avec recherche récursive
-  python3 wav_to_flac.py /path/to/music --recursive
-  
-  # Compression maximale avec suppression des WAV
-  python3 wav_to_flac.py /path/to/music --level 8 --delete-wav
-  
-  # Sans vérification (plus rapide)
-  python3 wav_to_flac.py /path/to/music --no-verify
-
-Niveaux de compression:
-  0 = Rapide, fichiers plus gros
-  5 = Équilibré (défaut)
-  8 = Lent, fichiers plus petits
-        """
-    )
-    
-    parser.add_argument('directory',
-                       help='Répertoire contenant les fichiers WAV')
-    
-    parser.add_argument('-r', '--recursive',
-                       action='store_true',
-                       help='Rechercher dans les sous-dossiers')
-    
-    parser.add_argument('-l', '--level',
-                       type=int,
-                       choices=range(0, 9),
-                       default=5,
-                       help='Niveau de compression (0-8, défaut: 5)')
-    
-    parser.add_argument('--no-verify',
-                       action='store_true',
-                       help='Ne pas vérifier l\'intégrité après conversion')
-    
-    parser.add_argument('--delete-wav',
-                       action='store_true',
-                       help='Supprimer les fichiers WAV après conversion réussie')
+    parser = argparse.ArgumentParser(description="Batch convert WAV files to FLAC.")
+    parser.add_argument("directory", nargs='?', help="Directory containing WAV files")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Search recursively")
+    parser.add_argument("-l", "--level", type=int, default=5, choices=range(0, 9), help="Compression level (0-8)")
+    parser.add_argument("--no-verify", action="store_true", help="Skip integrity verification")
+    parser.add_argument("--delete-wav", action="store_true", help="Delete WAV files after successful conversion")
     
     args = parser.parse_args()
-    
-    # Vérification de l'outil flac
-    if not check_flac_installed():
-        sys.exit(1)
-    
-    # Vérification du répertoire
-    directory = Path(args.directory)
-    if not directory.exists():
-        print(f"❌ ERREUR: Le répertoire '{directory}' n'existe pas !\n")
-        sys.exit(1)
-    
-    if not directory.is_dir():
-        print(f"❌ ERREUR: '{directory}' n'est pas un répertoire !\n")
-        sys.exit(1)
-    
-    # Recherche des fichiers WAV
-    print(f"🔍 Recherche des fichiers WAV dans: {directory}")
-    if args.recursive:
-        print("   Mode récursif activé")
-    print()
-    
-    wav_files = find_wav_files(directory, args.recursive)
-    
-    if not wav_files:
-        print("❌ Aucun fichier WAV trouvé !\n")
-        sys.exit(0)
-    
-    print(f"✅ {len(wav_files)} fichier(s) WAV trouvé(s)\n")
-    
-    # Confirmation si suppression WAV activée
-    if args.delete_wav:
-        print("⚠️  ATTENTION: Les fichiers WAV seront SUPPRIMÉS après conversion !")
-        response = input("   Continuer ? (oui/non): ").strip().lower()
-        if response not in ['oui', 'o', 'yes', 'y']:
-            print("\n❌ Conversion annulée.\n")
+
+    print_banner()
+
+    # Interactive mode if no directory provided
+    if not args.directory:
+        print(f"  {Colors.YELLOW}Drag and drop a folder here or type the path:{Colors.RESET}")
+        try:
+            user_input = input("  Path: ").strip()
+            if user_input:
+                args.directory = user_input.strip('"\'')
+            else:
+                args.directory = "."
+        except KeyboardInterrupt:
             sys.exit(0)
-        print()
+
+    root_dir = Path(args.directory)
+    if not root_dir.exists():
+        print(f"\n{Colors.RED}❌ Error: Directory not found: {root_dir}{Colors.RESET}")
+        input("Press Enter to exit...")
+        sys.exit(1)
+
+    if not check_flac_installed():
+        print(f"\n{Colors.RED}❌ Error: 'flac' command not found!{Colors.RESET}")
+        print("Please install FLAC (https://xiph.org/flac/) and add it to your PATH.")
+        input("Press Enter to exit...")
+        sys.exit(1)
+
+    # Find WAV files
+    print(f"\nScanning: {root_dir}")
+    pattern = "*.wav"
+    if args.recursive:
+        wav_files = list(root_dir.rglob(pattern))
+    else:
+        wav_files = list(root_dir.glob(pattern))
+        
+    if not wav_files:
+        print(f"{Colors.YELLOW}No WAV files found.{Colors.RESET}")
+        input("Press Enter to exit...")
+        sys.exit(0)
+        
+    print(f"{Colors.GREEN}Found {len(wav_files)} WAV files.{Colors.RESET}")
+    print(f"Options: Level {args.level}, Verify: {not args.no_verify}, Delete WAV: {args.delete_wav}")
     
-    # Affichage des paramètres
-    print("📋 Paramètres de conversion:")
-    print(f"   • Niveau compression: {args.level}")
-    print(f"   • Vérification intégrité: {'Oui' if not args.no_verify else 'Non'}")
-    print(f"   • Supprimer WAV: {'Oui' if args.delete_wav else 'Non'}")
-    print()
+    if args.delete_wav:
+        print(f"\n{Colors.RED}⚠️  WARNING: WAV files will be DELETED after conversion!{Colors.RESET}")
+        confirm = input("  Continue? (yes/no): ").lower()
+        if confirm not in ['yes', 'y']:
+            print("Aborted.")
+            sys.exit(0)
+
+    print(f"\n{Colors.CYAN}=== STARTING CONVERSION ==={Colors.RESET}\n")
     
-    # Conversion
-    print("=" * 80)
-    print("🔄 DÉBUT DE LA CONVERSION")
-    print("=" * 80)
-    print()
-    
-    converted = 0
-    skipped = 0
-    errors = 0
-    
+    success_count = 0
     total_wav_size = 0
     total_flac_size = 0
     
-    start_time = datetime.now()
+    # Process files
+    # Using ThreadPoolExecutor for speed? FLAC is single threaded so multiple files can be processed in parallel.
+    # But usually disk I/O is bottleneck. Let's use max 4 workers.
+    max_workers = min(4, os.cpu_count() or 1)
     
-    for i, wav_file in enumerate(wav_files, 1):
-        # Taille du WAV
-        wav_size = wav_file.stat().st_size
-        total_wav_size += wav_size
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        job_args = [(f, args.level, not args.no_verify, args.delete_wav) for f in wav_files]
+        results = executor.map(convert_file, job_args)
         
-        # Affichage progression
-        print(f"[{i}/{len(wav_files)}] {wav_file.name}")
-        print(f"        Taille WAV: {format_size(wav_size)}")
-        
-        # Conversion
-        success, flac_file, message = convert_wav_to_flac(
-            wav_file,
-            compression_level=args.level,
-            verify=not args.no_verify,
-            delete_wav=args.delete_wav
-        )
-        
-        if success:
-            # Taille du FLAC
-            flac_size = flac_file.stat().st_size
-            total_flac_size += flac_size
-            ratio = (flac_size / wav_size) * 100 if wav_size > 0 else 0
-            
-            print(f"        ✅ {message}")
-            print(f"        Taille FLAC: {format_size(flac_size)} ({ratio:.1f}% du WAV)")
-            converted += 1
-        elif "existe déjà" in message:
-            print(f"        ⏭️  {message}")
-            skipped += 1
-        else:
-            print(f"        ❌ {message}")
-            errors += 1
-        
-        print()
-    
-    # Statistiques finales
-    end_time = datetime.now()
-    duration = (end_time - start_time).total_seconds()
-    
-    print("=" * 80)
-    print("✅ CONVERSION TERMINÉE")
-    print("=" * 80)
-    print()
-    print(f"📊 Statistiques:")
-    print(f"   • Fichiers convertis: {converted}")
-    print(f"   • Fichiers ignorés: {skipped}")
-    print(f"   • Erreurs: {errors}")
-    print(f"   • Temps total: {duration:.1f} secondes")
-    
-    if converted > 0:
-        print()
-        print(f"💾 Taille totale:")
-        print(f"   • WAV:  {format_size(total_wav_size)}")
-        print(f"   • FLAC: {format_size(total_flac_size)}")
-        
-        if total_wav_size > 0:
-            ratio = (total_flac_size / total_wav_size) * 100
-            saved = total_wav_size - total_flac_size
-            print(f"   • Ratio: {ratio:.1f}%")
-            print(f"   • Économie: {format_size(saved)} ({100-ratio:.1f}%)")
-        
-        avg_time = duration / converted
-        print()
-        print(f"⚡ Temps moyen par fichier: {avg_time:.1f}s")
-    
-    print()
+        for i, res in enumerate(results, 1):
+            if res['status'] == 'success':
+                success_count += 1
+                total_wav_size += res['wav_size']
+                total_flac_size += res['flac_size']
+                print(f"[{i}/{len(wav_files)}] {Colors.GREEN}✓ {res['file']}{Colors.RESET}")
+                print(f"        {res['flac_size']/1024/1024:.1f} MB ({res['ratio']:.1f}%) - {res['duration']:.1f}s")
+            elif res['status'] == 'skipped':
+                print(f"[{i}/{len(wav_files)}] {Colors.YELLOW}SKIP {res['file']} (already exists){Colors.RESET}")
+            else:
+                print(f"[{i}/{len(wav_files)}] {Colors.RED}✗ {res['file']} - {res['msg']}{Colors.RESET}")
 
-if __name__ == '__main__':
-    main()
+    print(f"\n{Colors.CYAN}=== COMPLETED ==={Colors.RESET}")
+    if success_count > 0:
+        saved = (total_wav_size - total_flac_size) / 1024 / 1024
+        print(f"Converted: {success_count}/{len(wav_files)}")
+        print(f"Space saved: {saved:.1f} MB")
+        
+    input("\nPress Enter to exit...")
+
+# Fix for name 'Resources' is not defined in the code block above, I used Resources.GREEN instead of Colors.GREEN
+# Let's fix that in the file content I actually write.
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nInterrupted.")
+        sys.exit(0)
