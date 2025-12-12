@@ -1,8 +1,8 @@
-﻿# FLAC Detective Documentation
+# FLAC Detective Documentation
 
-This directory contains the complete documentation for FLAC Detective v0.6.1.
+This directory contains the complete documentation for FLAC Detective v0.6.6.
 
-## 📚 Documentation Files
+## ?? Documentation Files
 
 ### User Documentation
 
@@ -12,7 +12,7 @@ This directory contains the complete documentation for FLAC Detective v0.6.1.
   - Example scenarios and edge cases
   - Essential reading to understand how FLAC Detective works
 
-- **[GUIDE_RETRY_MECHANISM.md](GUIDE_RETRY_MECHANISM.md)** - **NEW v0.6.1** - User guide for retry mechanism
+- **[GUIDE_RETRY_MECHANISM.md](GUIDE_RETRY_MECHANISM.md)** - **NEW v0.6.6** - User guide for retry mechanism
   - How the automatic retry works for FLAC decoder errors
   - Examples of usage and troubleshooting
   - FAQ and best practices
@@ -30,7 +30,7 @@ This directory contains the complete documentation for FLAC Detective v0.6.1.
   - Development guidelines
   - For developers who want to contribute or understand the internals
 
-- **[FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md)** - **NEW v0.6.1** - Technical implementation details
+- **[FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md)** - **NEW v0.6.6** - Technical implementation details
   - Retry mechanism architecture
   - Implementation details for Rules 9 and 11
   - Corruption detection improvements
@@ -43,23 +43,23 @@ This directory contains the complete documentation for FLAC Detective v0.6.1.
 
 ### Change Documentation
 
-- **[RESUME_MODIFICATIONS.md](RESUME_MODIFICATIONS.md)** - **NEW v0.6.1** - Summary of retry mechanism changes
+- **[RESUME_MODIFICATIONS.md](RESUME_MODIFICATIONS.md)** - **NEW v0.6.6** - Summary of retry mechanism changes
   - Complete overview of modifications
   - Before/after comparisons
   - Validation and testing results
-  - Quick reference for what changed in v0.6.1
+  - Quick reference for what changed in v0.6.6
 
-## 🚀 Quick Start
+## ?? Quick Start
 
 1. **New users**: Start with the main [README.md](../README.md) at the project root
 2. **Understanding detection**: Read [RULE_SPECIFICATIONS.md](RULE_SPECIFICATIONS.md)
-3. **Understanding error handling (v0.6.1)**: Read [GUIDE_RETRY_MECHANISM.md](GUIDE_RETRY_MECHANISM.md)
+3. **Understanding error handling (v0.6.6)**: Read [GUIDE_RETRY_MECHANISM.md](GUIDE_RETRY_MECHANISM.md)
 4. **Developers**: Check [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
 5. **Working on error handling**: See [FLAC_DECODER_ERROR_HANDLING.md](FLAC_DECODER_ERROR_HANDLING.md)
 
-## 📖 Additional Resources
+## ?? Additional Resources
 
 - **README.md** (project root) - Installation, usage, and quick start guide
-- **CHANGELOG.md** (project root) - Version history and release notes (see v0.6.1)
+- **CHANGELOG.md** (project root) - Version history and release notes (see v0.6.6)
 - **examples/** directory - Sample files and use cases
-- **examples/retry_mechanism_examples.py** - **NEW v0.6.1** - Interactive examples for retry mechanism
+- **examples/retry_mechanism_examples.py** - **NEW v0.6.6** - Interactive examples for retry mechanism

@@ -87,7 +87,7 @@ Le système de retry automatique pour les erreurs de décodage FLAC a été impl
 **Fichier :** `CHANGELOG.md`
 
 **Modifications :**
-- ✅ Ajout de la version 0.6.1 avec description complète des changements
+- ✅ Ajout de la version 0.6.6 avec description complète des changements
 
 ---
 
@@ -205,7 +205,7 @@ print(f"Analyse partielle: {result.get('partial_analysis', False)}")
 
 ### Pour les utilisateurs
 - 📖 `docs/GUIDE_RETRY_MECHANISM.md` - Guide complet d'utilisation
-- 📖 `CHANGELOG.md` - Version 0.6.1
+- 📖 `CHANGELOG.md` - Version 0.6.6
 
 ### Pour les développeurs
 - 📖 `docs/FLAC_DECODER_ERROR_HANDLING.md` - Détails techniques
@@ -226,7 +226,7 @@ print(f"Analyse partielle: {result.get('partial_analysis', False)}")
 ❌ Fichier rejeté
 ```
 
-**Après (v0.6.1) :**
+**Après (v0.6.6) :**
 ```
 ✅ Retry automatique (tentative 2 réussie)
 ✅ Verdict : AUTHENTIC
@@ -293,6 +293,6 @@ temporary_error_patterns = [
 
 Toutes les modifications demandées ont été implémentées avec succès. Le système gère maintenant intelligemment les erreurs temporaires de décodage FLAC sans marquer les fichiers valides comme corrompus. La solution est robuste, bien documentée, et prête pour la production.
 
-**Version : 0.6.1**  
+**Version : 0.6.6**  
 **Date : 2025-12-12**  
 **Statut : ✅ TERMINÉ**
