@@ -1,4 +1,4 @@
-# Guide de publication sur PyPI - FLAC Detective v0.6.1
+# Guide de publication sur PyPI - FLAC Detective v0.6.6
 
 ## 🔐 Configuration du secret GitHub (À FAIRE UNE SEULE FOIS)
 
@@ -38,10 +38,10 @@ Cette méthode utilise GitHub Actions pour publier automatiquement.
 git status
 
 # 2. Créez un tag de version
-git tag -a v0.6.1 -m "Release v0.6.1 - Automatic retry for FLAC decoder errors"
+git tag -a v0.6.6 -m "Release v0.6.6 - Automatic retry for FLAC decoder errors"
 
 # 3. Poussez le tag sur GitHub
-git push origin v0.6.1
+git push origin v0.6.6
 ```
 
 **Ce qui se passe ensuite :**
@@ -95,7 +95,7 @@ Quand demandé :
 
 Après quelques minutes, vérifiez que le package est disponible :
 - **Page du projet** : https://pypi.org/project/flac-detective/
-- **Version 0.6.1** : https://pypi.org/project/flac-detective/0.6.1/
+- **Version 0.6.6** : https://pypi.org/project/flac-detective/0.6.6/
 
 ### 2. Tester l'installation
 
@@ -105,7 +105,7 @@ python -m venv test_env
 source test_env/bin/activate  # Sur Windows : test_env\Scripts\activate
 
 # Installer depuis PyPI
-pip install flac-detective==0.6.1
+pip install flac-detective==0.6.6
 
 # Vérifier la version
 flac-detective --version
@@ -118,7 +118,7 @@ flac-detective --help
 
 ## 📋 Checklist avant publication
 
-- [x] Version mise à jour dans `pyproject.toml` (0.6.1)
+- [x] Version mise à jour dans `pyproject.toml` (0.6.6)
 - [x] CHANGELOG.md mis à jour avec les notes de version
 - [x] Documentation complète (README, docs/)
 - [x] Tests passent (`pytest`)
@@ -144,7 +144,7 @@ flac-detective --help
 
 ### Erreur : "File already exists"
 
-**Cause** : La version 0.6.1 existe déjà sur PyPI.
+**Cause** : La version 0.6.6 existe déjà sur PyPI.
 
 **Solution** :
 1. Incrémentez la version (ex: 0.6.2)
@@ -164,7 +164,7 @@ git tag
 git ls-remote --tags origin
 
 # Pousser le tag si manquant
-git push origin v0.6.1
+git push origin v0.6.6
 ```
 
 ---
@@ -186,12 +186,12 @@ git push origin v0.6.1
 # 2. Mettre à jour CHANGELOG.md
 # 3. Commiter les changements
 git add pyproject.toml CHANGELOG.md
-git commit -m "chore: Bump version to 0.6.1"
+git commit -m "chore: Bump version to 0.6.6"
 git push
 
 # 4. Créer et pousser le tag
-git tag -a v0.6.1 -m "Release v0.6.1"
-git push origin v0.6.1
+git tag -a v0.6.6 -m "Release v0.6.6"
+git push origin v0.6.6
 
 # 5. Attendre que GitHub Actions publie automatiquement
 # Suivre sur : https://github.com/GuillainM/FLAC_Detective/actions
@@ -200,5 +200,5 @@ git push origin v0.6.1
 ---
 
 **Date de création** : 12 décembre 2025  
-**Version** : 0.6.1  
+**Version** : 0.6.6  
 **Auteur** : Guillain Méjane

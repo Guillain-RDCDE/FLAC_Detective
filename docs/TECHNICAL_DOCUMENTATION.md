@@ -1,8 +1,8 @@
-# FLAC Detective v0.6.1 - Technical Documentation
+# FLAC Detective v0.6.6 - Technical Documentation
 
 ## Overview
 
-FLAC Detective is an advanced audio analysis tool designed to detect MP3-to-FLAC transcodes with exceptional precision. Version 0.6.1 builds on the production-ready v0.5.0 (79.2% authentic detection rate, <0.5% false positive rate) by adding robust error handling for temporary FLAC decoder errors.
+FLAC Detective is an advanced audio analysis tool designed to detect MP3-to-FLAC transcodes with exceptional precision. Version 0.6.6 builds on the production-ready v0.5.0 (79.2% authentic detection rate, <0.5% false positive rate) by adding robust error handling for temporary FLAC decoder errors.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ src/flac_detective/
 │   │   ├── bitrate.py        # Bitrate analysis
 │   │   ├── silence.py        # Silence & vinyl detection
 │   │   ├── artifacts.py      # Compression artifacts
-│   │   ├── audio_loader.py   # NEW v0.6.1: Retry mechanism for decoder errors
+│   │   ├── audio_loader.py   # NEW v0.6.6: Retry mechanism for decoder errors
 │   │   ├── rules/            # Scoring rules directory
 │   │   │   ├── __init__.py
 │   │   │   ├── artifacts.py  # Rule 9
@@ -33,7 +33,7 @@ src/flac_detective/
 └── main.py                   # CLI entry point
 ```
 
-## Error Handling and Retry Mechanism (v0.6.1)
+## Error Handling and Retry Mechanism (v0.6.6)
 
 ### Problem Statement
 
@@ -106,7 +106,7 @@ def load_audio_with_retry(file_path, max_attempts=3, initial_delay=0.2,
 # Before (v0.6.0)
 audio_data, sample_rate = sf.read(file_path)
 
-# After (v0.6.1)
+# After (v0.6.6)
 audio_data, sample_rate = load_audio_with_retry(file_path)
 if audio_data is None or sample_rate is None:
     logger.error("RULE 9: Failed to load audio after retries. Returning 0 points.")
@@ -127,7 +127,7 @@ if audio_data is None or sample_rate is None:
 # Before (v0.6.0)
 audio, sr = sf.read(file_path)
 
-# After (v0.6.1)
+# After (v0.6.6)
 audio, sr = load_audio_with_retry(file_path)
 if audio is None or sr is None:
     logger.error("RULE 11: Failed to load audio after retries. Returning 0 points.")
@@ -222,7 +222,7 @@ Indicates that some optional rules (R9, R11) failed due to temporary errors:
     "verdict": "AUTHENTIC",
     "score": 25,
     "is_corrupted": False,
-    "partial_analysis": True,  # NEW in v0.6.1
+    "partial_analysis": True,  # NEW in v0.6.6
     "corruption_error": "Temporary decoder error (not marked as corrupted)"
 }
 ```
@@ -699,8 +699,8 @@ flac-detective /path/to/music --output report.txt
 **Issue**: Inconsistent results  
 **Solution**: Check file read cache is enabled
 
-**Issue**: Files marked as CORRUPTED with "lost sync" error (v0.6.1)  
-**Solution**: Update to v0.6.1 which includes automatic retry mechanism
+**Issue**: Files marked as CORRUPTED with "lost sync" error (v0.6.6)  
+**Solution**: Update to v0.6.6 which includes automatic retry mechanism
 
 **Issue**: "flac decoder lost sync" in logs  
 **Solution**: This is now handled automatically. Check for "✅ Audio loaded successfully on attempt X" message
@@ -747,5 +747,5 @@ flac-detective /path/to/music --output report.txt
 
 ---
 
-**FLAC Detective v0.6.1 Technical Documentation**  
+**FLAC Detective v0.6.6 Technical Documentation**  
 **Last Updated: December 12, 2025**

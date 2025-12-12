@@ -1,10 +1,10 @@
-# Documentation Updates Summary - v0.6.1
+# Documentation Updates Summary - v0.6.6
 
 ## ✅ Fichiers de documentation mis à jour
 
 ### 1. **docs/README.md**
 **Modifications :**
-- ✅ Version mise à jour : v0.6.4 → v0.6.1
+- ✅ Version mise à jour : v0.6.4 → v0.6.6
 - ✅ Ajout de GUIDE_RETRY_MECHANISM.md dans la section "User Documentation"
 - ✅ Ajout de FLAC_DECODER_ERROR_HANDLING.md dans la section "Technical Documentation"
 - ✅ Ajout de LOGIC_FLOW.md dans la liste
@@ -18,13 +18,13 @@
 
 ### 2. **docs/TECHNICAL_DOCUMENTATION.md**
 **Modifications :**
-- ✅ Version mise à jour : v0.5.0 → v0.6.1
-- ✅ Overview mis à jour pour mentionner les améliorations v0.6.1
+- ✅ Version mise à jour : v0.5.0 → v0.6.6
+- ✅ Overview mis à jour pour mentionner les améliorations v0.6.6
 - ✅ Architecture diagram mis à jour avec :
   - audio_loader.py (nouveau module)
   - rules/ directory structure
   - quality.py (corruption detection)
-- ✅ **Nouvelle section complète** : "Error Handling and Retry Mechanism (v0.6.1)"
+- ✅ **Nouvelle section complète** : "Error Handling and Retry Mechanism (v0.6.6)"
   - Problem Statement
   - Solution Architecture
   - Core Functions (is_temporary_decoder_error, load_audio_with_retry)
@@ -38,7 +38,7 @@
   - "flac decoder lost sync" in logs
   - File has partial_analysis: True flag
   - Want to see retry attempts in logs
-- ✅ Footer mis à jour : v0.5.0 → v0.6.1, date : December 12, 2025
+- ✅ Footer mis à jour : v0.5.0 → v0.6.6, date : December 12, 2025
 
 **Statut :** ✅ Complété
 
@@ -46,23 +46,23 @@
 
 ### 3. **docs/RULE_SPECIFICATIONS.md**
 **Modifications :**
-- ✅ Version mise à jour : v0.6.4 → v0.6.1
-- ✅ **Nouvelle sous-section** pour Rule 9 : "Error Handling (v0.6.1)"
+- ✅ Version mise à jour : v0.6.4 → v0.6.6
+- ✅ **Nouvelle sous-section** pour Rule 9 : "Error Handling (v0.6.6)"
   - Automatic Retry Mechanism
   - Up to 3 attempts with exponential backoff
   - Returns 0 points on failure (no penalty)
   - File NOT marked as corrupted
   - Link vers FLAC_DECODER_ERROR_HANDLING.md
-- ✅ **Nouvelle sous-section** pour Rule 11 : "Error Handling (v0.6.1)"
+- ✅ **Nouvelle sous-section** pour Rule 11 : "Error Handling (v0.6.6)"
   - Même contenu que Rule 9
 - ✅ Section "Key Innovations" restructurée par version :
-  - v0.6.1 - Error Handling (nouveau)
+  - v0.6.6 - Error Handling (nouveau)
   - v0.6.0 - Cassette Detection
   - v0.5.0 - Core Detection System
 - ✅ Section References enrichie :
   - Ajout de audio_loader.py
   - Ajout de liens vers FLAC_DECODER_ERROR_HANDLING.md et GUIDE_RETRY_MECHANISM.md
-- ✅ Footer mis à jour : v0.6.4 → v0.6.1, ajout "with Robust Error Handling"
+- ✅ Footer mis à jour : v0.6.4 → v0.6.6, ajout "with Robust Error Handling"
 
 **Statut :** ✅ Complété
 
@@ -144,7 +144,7 @@
 
 ### 9. **CHANGELOG.md**
 **Modifications :**
-- ✅ Nouvelle section v0.6.1 - 2025-12-12
+- ✅ Nouvelle section v0.6.6 - 2025-12-12
 - ✅ Sous-sections : Added, Changed, Fixed, Technical Details, Performance Impact
 - ✅ Description complète des changements
 - ✅ Liste des fichiers modifiés
@@ -201,11 +201,11 @@ GUIDE_RETRY_MECHANISM.md
 
 ### Versions cohérentes
 
-Tous les documents mentionnent la version **v0.6.1** de manière cohérente :
-- ✅ docs/README.md : v0.6.1
-- ✅ docs/TECHNICAL_DOCUMENTATION.md : v0.6.1
-- ✅ docs/RULE_SPECIFICATIONS.md : v0.6.1
-- ✅ CHANGELOG.md : v0.6.1
+Tous les documents mentionnent la version **v0.6.6** de manière cohérente :
+- ✅ docs/README.md : v0.6.6
+- ✅ docs/TECHNICAL_DOCUMENTATION.md : v0.6.6
+- ✅ docs/RULE_SPECIFICATIONS.md : v0.6.6
+- ✅ CHANGELOG.md : v0.6.6
 
 ### Date cohérente
 
@@ -242,7 +242,7 @@ Tous les documents mis à jour mentionnent : **December 12, 2025**
 - [x] Tests créés et validés
 - [x] Exemples pratiques fournis
 - [x] Références croisées cohérentes
-- [x] Versions cohérentes (v0.6.1)
+- [x] Versions cohérentes (v0.6.6)
 - [x] Dates cohérentes (December 12, 2025)
 - [x] Liens entre documents fonctionnels
 - [x] Structure claire et navigable
@@ -252,7 +252,7 @@ Tous les documents mis à jour mentionnent : **December 12, 2025**
 
 ## 🎉 Conclusion
 
-La documentation du projet FLAC Detective a été **entièrement mise à jour** pour refléter les améliorations de la version 0.6.1, notamment le nouveau mécanisme de retry pour les erreurs de décodage FLAC.
+La documentation du projet FLAC Detective a été **entièrement mise à jour** pour refléter les améliorations de la version 0.6.6, notamment le nouveau mécanisme de retry pour les erreurs de décodage FLAC.
 
 **Statistiques :**
 - 3 fichiers existants mis à jour

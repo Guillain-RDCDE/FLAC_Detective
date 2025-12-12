@@ -59,8 +59,8 @@ Une fois le secret configuré, vous pourrez publier sur PyPI de deux façons :
 
 ```bash
 # Créer et pousser un tag de version
-git tag -a v0.6.1 -m "Release v0.6.1"
-git push origin v0.6.1
+git tag -a v0.6.6 -m "Release v0.6.6"
+git push origin v0.6.6
 ```
 
 GitHub Actions publiera automatiquement le package sur PyPI.
@@ -103,4 +103,4 @@ Si vous rencontrez des problèmes :
 ---
 
 **Date** : 12 décembre 2025  
-**Version** : 0.6.1
+**Version** : 0.6.6
