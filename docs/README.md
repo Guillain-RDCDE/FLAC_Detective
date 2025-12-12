@@ -1,6 +1,6 @@
 # FLAC Detective Documentation
 
-This directory contains the complete documentation for FLAC Detective v0.6.6
+This directory contains the complete documentation for FLAC Detective v0.6.7
 
 ## ?? Documentation Files
 

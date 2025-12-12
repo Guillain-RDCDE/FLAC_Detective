@@ -5,6 +5,18 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.7] - 2025-12-12
+
+### Changed
+- **Performance Optimization**: Switched from multi-threading to **multi-processing** (ProcessPoolExecutor).
+  - Bypasses Python GIL for true parallel analysis on all CPU cores.
+  - Significant speedup on large datasets.
+- **Reporting**:
+  - Improved console log aesthetics with colored verdicts and aligned columns.
+  - Removed unused Excel reporting module (`openpyxl` dependency removed).
+  - Removed unused `matplotlib` dependency.
+- **Cleanup**: Cleaned up internal threading in spectral analysis to avoid thread over-subscription.
+
 ## [0.6.6] - 2025-12-12
 
 ### Added

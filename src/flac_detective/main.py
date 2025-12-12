@@ -13,7 +13,7 @@ Multi-criteria detection:
 import logging
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -243,10 +243,35 @@ def _log_analysis_result(result: dict, processed: int, total: int):
     verdict = result.get("verdict", "UNKNOWN")
     score_icon = _get_score_icon(score)
 
-    logger.info(
-        f"[{processed}/{total}] {score_icon} {result['filename'][:50]} "
-        f"- Score: {score}/100 - {verdict}"
+    # Aesthetic improvement for log output
+    # Format: [Progress] [ICON] Verdict Score  Filename
+    # Example: [12/50] [OK]  Clean   0/100  MySong.flac
+    
+    score_str = f"{score}/100"
+    
+    # Verdict color
+    verdict_color = Colors.GREEN
+    if score >= 80: verdict_color = Colors.RED
+    elif score >= 50: verdict_color = Colors.YELLOW
+    elif score >= 30: verdict_color = Colors.YELLOW
+    
+    verdict_str = colorize(f"{verdict:<15}", verdict_color)
+    filename_str = result['filename']
+    if len(filename_str) > 50:
+        filename_str = filename_str[:47] + "..."
+        
+    log_msg = (
+        f"[{processed:03d}/{total:03d}] "
+        f"{score_icon:<8} "  # Includes color codes, actual length is small
+        f"{verdict_str} "
+        f"{score_str:>7}  "
+        f"{filename_str}"
     )
+    
+    # We log directly the formatted message to avoid double timestamp if logger adds one,
+    # but here logger format includes timestamp.
+    # To avoid "INFO - " prefix breaking alignment, we rely on standard logging but formatted data.
+    logger.info(log_msg)
 
 
 def _create_non_flac_result(non_flac_file: Path) -> dict:
@@ -297,14 +322,14 @@ def _process_flac_files(
     tracker: ProgressTracker,
     analyzer: FLACAnalyzer
 ):
-    """Process FLAC files with multi-threading.
+    """Process FLAC files with multi-processing.
 
     Args:
         files_to_process: List of FLAC files to analyze.
         tracker: Progress tracker instance.
         analyzer: FLAC analyzer instance.
     """
-    with ThreadPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
+    with ProcessPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
         futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
 
         for future in as_completed(futures):
@@ -367,10 +392,10 @@ def run_analysis_loop(
 
         logger.info(f"Resuming: {processed}/{total} files already processed")
         logger.info(f"{len(files_to_process)} files remaining to analyze")
-        logger.info(f"Multi-threading: {analysis_config.MAX_WORKERS} workers")
+        logger.info(f"Multi-processing: {analysis_config.MAX_WORKERS} workers")
         print()
 
-        # Multi-threaded analysis
+        # Multi-process analysis
         _process_flac_files(files_to_process, tracker, analyzer)
 
         # Final save

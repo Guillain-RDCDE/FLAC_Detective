@@ -1,4 +1,4 @@
-# FLAC Detective v0.6.6 - Technical Documentation
+# FLAC Detective v0.6.7 - Technical Documentation
 
 ## Overview
 

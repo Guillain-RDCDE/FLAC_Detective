@@ -3,7 +3,6 @@
 import logging
 from pathlib import Path
 from typing import Tuple, List
-from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import soundfile as sf
@@ -75,7 +74,8 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
 
             # Calculate FFT
             # PHASE 3 OPTIMIZATION: Use parallel FFT
-            with set_workers(-1):
+            # Limit FFT to 1 worker to avoid thread explosion in multiprocess context
+            with set_workers(1):
                 fft_vals = rfft(data_windowed)
             fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
 
@@ -92,10 +92,8 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
             return cutoff_freq, energy_ratio
 
         # PHASE 4 OPTIMIZATION: Parallelize sample analysis
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(_analyze_sample, i) for i in range(num_samples)]
-            results = [f.result() for f in futures]
-
+        # Draw samples sequentially to avoid thread overhead
+        results = [_analyze_sample(i) for i in range(num_samples)]
         cutoff_freqs = [r[0] for r in results]
         energy_ratios = [r[1] for r in results]
 
@@ -298,7 +296,8 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
 
                 # FFT
                 # PHASE 3 OPTIMIZATION: Use parallel FFT
-                with set_workers(-1):
+                # Limit FFT to 1 worker
+                with set_workers(1):
                     fft_vals = rfft(data_windowed)
                 fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
 
@@ -313,14 +312,8 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
                 return 0.0
 
         # PHASE 1: Analyze Start + End (2 segments)
-        # PHASE 4 OPTIMIZATION: Parallelize Start + End
-        cutoffs = []
-        with ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(analyze_single_segment, 0.05),
-                executor.submit(analyze_single_segment, 0.95)
-            ]
-            cutoffs = [f.result() for f in futures]
+        # Analyze Start + End (Sequential)
+        cutoffs = [analyze_single_segment(0.05), analyze_single_segment(0.95)]
 
         # Filter valid cutoffs
         valid_cutoffs = [c for c in cutoffs if c > 0]
@@ -351,17 +344,9 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
             logger.info(f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f} in grey zone)")
 
         # PHASE 3: Analyze middle segments (25%, 50%, 75%)
-        # PHASE 4 OPTIMIZATION: Parallelize middle segments
+        # Analyze middle segments (Sequential)
         middle_segments = [0.25, 0.50, 0.75]
-        with ThreadPoolExecutor() as executor:
-            # Map center_ratio to future
-            future_to_ratio = {executor.submit(analyze_single_segment, r): r for r in middle_segments}
-            
-            results = {}
-            from concurrent.futures import as_completed
-            for future in as_completed(future_to_ratio):
-                ratio = future_to_ratio[future]
-                results[ratio] = future.result()
+        results = {r: analyze_single_segment(r) for r in middle_segments}
 
         # Insert in correct position to maintain order
         cutoffs.insert(1, results[0.25])
