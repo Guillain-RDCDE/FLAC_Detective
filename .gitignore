@@ -79,3 +79,13 @@ test_output*.txt
 # Environments
 .env
 .env.local
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.backup
+*.backup.py
+*_backup.py
+.cleanup_plan.md
+VERSION_UPDATE_*.md
+

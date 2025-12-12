@@ -132,6 +132,8 @@ print(f"Reasons: {reasons}")
 - [**Technical Documentation**](docs/TECHNICAL_DOCUMENTATION.md) - Architecture and algorithms
 - [**Rule Specifications**](docs/RULE_SPECIFICATIONS.md) - Detailed rule documentation
 - [**Performance Guide**](docs/PERFORMANCE_OPTIMIZATIONS.md) - Optimization strategies
+- [**Project Structure**](PROJECT_STRUCTURE.md) - Directory layout and file descriptions
+- [**Version Management**](docs/VERSION_MANAGEMENT.md) - Release workflow guide
 
 ## 🏗️ Architecture
 
