@@ -16,6 +16,38 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
+
+# RICH INTEGRATION
+try:
+    from rich.console import Console
+    from rich.progress import (
+        Progress,
+        SpinnerColumn,
+        TextColumn,
+        BarColumn,
+        TaskProgressColumn,
+        TimeRemainingColumn,
+    )
+    from rich.logging import RichHandler
+    from rich.theme import Theme
+    
+    # Custom theme for FLAC Detective
+    custom_theme = Theme({
+        "info": "dim cyan",
+        "warning": "yellow",
+        "error": "bold red",
+        "success": "bold green",
+        "fake": "bold red",
+        "suspicious": "bold yellow",
+        "authentic": "bold green",
+    })
+    
+    console = Console(theme=custom_theme)
+    HAS_RICH = True
+except ImportError:
+    HAS_RICH = False
+    console = None
 
 from .analysis import FLACAnalyzer
 from .config import analysis_config
@@ -24,22 +56,66 @@ from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files, find_non_flac_audio_files
 from .colors import Colors, colorize
 
-# Fix Windows console encoding for UTF-8 support
+# Fix Windows console encoding for UTF-8 support (Standard approach)
 if sys.platform == "win32":
-    # Set console to UTF-8 mode
     os.system("chcp 65001 > nul 2>&1")
-    # Reconfigure stdout/stderr for UTF-8
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-    if hasattr(sys.stderr, 'reconfigure'):
-        sys.stderr.reconfigure(encoding='utf-8')
 
-# Configuration du logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%H:%M:%S",
-)
+# Configure Logging
+# If Rich is available, we use RichHandler for beautiful console logs
+# But we ALWAYS keep a FileHandler for the persistent log file
+def setup_logging(output_dir: Path) -> Path:
+    """Setup logging: Rich for console (if avail), File for persistence.
+
+    Args:
+        output_dir: Directory where the log file will be saved.
+
+    Returns:
+        Path to the created log file.
+    """
+    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
+
+    # Root logger
+    root_log = logging.getLogger()
+    root_log.setLevel(logging.INFO)
+    
+    # Remove existing handlers to avoid duplicates
+    root_log.handlers = []
+
+    # File Handler (Always detailed)
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    file_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
+    file_handler.setFormatter(file_formatter)
+    root_log.addHandler(file_handler)
+
+    # Console Handler
+    if HAS_RICH:
+        # Rich Handler for beautiful output
+        rich_handler = RichHandler(
+            console=console, 
+            show_time=True, 
+            omit_repeated_times=False,
+            show_path=False,
+            rich_tracebacks=True
+        )
+        rich_handler.setLevel(logging.INFO)
+        root_log.addHandler(rich_handler)
+    else:
+        # Standard Console Handler (Legacy fallback)
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(file_formatter)
+        root_log.addHandler(console_handler)
+
+    logger = logging.getLogger(__name__)
+    if not HAS_RICH:
+        logger.info(f"Console log will be saved to: {log_file}")
+    else:
+        console.print(f"[dim]Log file: {log_file}[/dim]")
+        
+    return log_file
+
 logger = logging.getLogger(__name__)
 
 
@@ -231,9 +307,9 @@ def _get_score_icon(score: int) -> str:
         return colorize("[OK]", Colors.GREEN)
 
 
-def _log_analysis_result(result: dict, processed: int, total: int):
-    """Log a single analysis result with progress.
-
+def _log_formatted_result(result: dict, processed: int, total: int):
+    """Log analysis result with Rich formatting.
+    
     Args:
         result: Analysis result dictionary.
         processed: Number of files processed.
@@ -241,37 +317,42 @@ def _log_analysis_result(result: dict, processed: int, total: int):
     """
     score = result.get("score", 0)
     verdict = result.get("verdict", "UNKNOWN")
-    score_icon = _get_score_icon(score)
+    filename = result['filename']
+    
+    # Icons and Styles
+    if score >= 80: 
+        icon = "❌"
+        style = "fake"
+        verdict = "FAKE"
+    elif score >= 50: 
+        icon = "⚠️ "
+        style = "suspicious"
+        verdict = "SUSPICIOUS"
+    elif score >= 30: 
+        icon = "❓"
+        style = "warning"
+        verdict = "WARNING"
+    else: 
+        icon = "✅"
+        style = "authentic"
+        verdict = "AUTHENTIC"
 
-    # Aesthetic improvement for log output
-    # Format: [Progress] [ICON] Verdict Score  Filename
-    # Example: [12/50] [OK]  Clean   0/100  MySong.flac
-    
-    score_str = f"{score}/100"
-    
-    # Verdict color
-    verdict_color = Colors.GREEN
-    if score >= 80: verdict_color = Colors.RED
-    elif score >= 50: verdict_color = Colors.YELLOW
-    elif score >= 30: verdict_color = Colors.YELLOW
-    
-    verdict_str = colorize(f"{verdict:<15}", verdict_color)
-    filename_str = result['filename']
-    if len(filename_str) > 50:
-        filename_str = filename_str[:47] + "..."
-        
-    log_msg = (
-        f"[{processed:03d}/{total:03d}] "
-        f"{score_icon:<8} "  # Includes color codes, actual length is small
-        f"{verdict_str} "
-        f"{score_str:>7}  "
-        f"{filename_str}"
-    )
-    
-    # We log directly the formatted message to avoid double timestamp if logger adds one,
-    # but here logger format includes timestamp.
-    # To avoid "INFO - " prefix breaking alignment, we rely on standard logging but formatted data.
-    logger.info(log_msg)
+    # Truncate filename gracefully
+    if len(filename) > 50:
+        filename = filename[:47] + "..."
+
+    # Rich formatted message
+    if HAS_RICH:
+        # We rely on RichHandler for the timestamp and base formatting
+        # Here we just construct the nice message content
+        msg = f"[{style}]{icon} {verdict:<12} {score:>3}/100[/]  {filename}"
+        logger.info(msg, extra={"markup": True})
+    else:
+        # Fallback for standard logging
+        score_str = f"{score}/100"
+        msg = f"[{processed:03d}/{total:03d}] {icon} {verdict:<12} {score_str:>7}  {filename}"
+        logger.info(msg)
+
 
 
 def _create_non_flac_result(non_flac_file: Path) -> dict:
@@ -322,28 +403,67 @@ def _process_flac_files(
     tracker: ProgressTracker,
     analyzer: FLACAnalyzer
 ):
-    """Process FLAC files with multi-processing.
+    """Process FLAC files with multi-processing and rich progress.
 
     Args:
         files_to_process: List of FLAC files to analyze.
         tracker: Progress tracker instance.
         analyzer: FLAC analyzer instance.
     """
+    total_files = len(files_to_process)
+    
+    # Define Progress Bar Columns
+    columns = [
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TimeRemainingColumn(),
+    ]
+    
+    # Use Rich Progress if available
+    if HAS_RICH:
+        progress_ctx = Progress(*columns, console=console)
+    else:
+        # Dummy context manager for no-rich mode
+        from contextlib import nullcontext
+        progress_ctx = nullcontext()
+
     with ProcessPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
         futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
+        
+        processed_count = 0
+        
+        # Start Progress Block
+        if HAS_RICH:
+             with progress_ctx as progress:
+                task_id = progress.add_task("[cyan]Analyzing audio files...", total=total_files)
+                
+                for future in as_completed(futures):
+                    result = future.result()
+                    tracker.add_result(result)
+                    processed_count += 1
+                    
+                    # Update Progress
+                    progress.update(task_id, advance=1)
+                    
+                    # Log result (will appear above progress bar thanks to RichHandler)
+                    _log_formatted_result(result, processed_count, total_files)
 
-        for future in as_completed(futures):
-            result = future.result()
-            tracker.add_result(result)
+                    # Periodic save
+                    if processed_count % analysis_config.SAVE_INTERVAL == 0:
+                        tracker.save()
+        else:
+            # Fallback for standard console
+            for future in as_completed(futures):
+                result = future.result()
+                tracker.add_result(result)
+                processed_count += 1
+                
+                _log_formatted_result(result, processed_count, total_files)
 
-            # Progress display
-            processed, total = tracker.get_progress()
-            _log_analysis_result(result, processed, total)
-
-            # Periodic save
-            if processed % analysis_config.SAVE_INTERVAL == 0:
-                tracker.save()
-                logger.info(f"Progress saved ({processed}/{total})")
+                if processed_count % analysis_config.SAVE_INTERVAL == 0:
+                    tracker.save()
 
 
 def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTracker):

@@ -33,6 +33,7 @@ dependencies = [
     "mutagen>=1.45.0",
     "mutagen>=1.45.0",
     "soundfile>=0.10.0",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]
