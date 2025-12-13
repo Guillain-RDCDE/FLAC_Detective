@@ -4,6 +4,8 @@
 
 > "Every FLAC file tells a story... I find the truth."
 
+![FLAC Detective Console Preview](assets/console_preview.png)
+
 FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes with exceptional precision. Using advanced spectral analysis and multi-rule scoring, it achieves 89.1% authentic detection rate with less than 0.5% false positives.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
