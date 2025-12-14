@@ -1,7 +1,7 @@
 """Cassette audio source detection (Rule 11)."""
 
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import numpy as np
 from scipy import signal
 import soundfile as sf
@@ -22,7 +22,10 @@ def apply_rule_11_cassette_detection(
     cutoff_freq: float,
     cutoff_std: float,
     mp3_pattern_detected: bool,
-    sample_rate: int
+    cutoff_std: float,
+    mp3_pattern_detected: bool,
+    sample_rate: int,
+    audio_data: Optional[object] = None
 ) -> Tuple[int, List[str]]:
     """Apply Rule 11: Cassette Audio Source Detection.
 
@@ -49,10 +52,23 @@ def apply_rule_11_cassette_detection(
         return 0, reasons
 
     try:
-        # Load audio file with retry mechanism
-        audio, sr = load_audio_with_retry(file_path)
+    try:
+        # Load audio file with retry mechanism if not provided
+        audio = None
+        sr = sample_rate
+
+        if audio_data is not None:
+             logger.info("RULE 11: Using pre-loaded audio data (cached)")
+             audio = audio_data
+             # Assume sample_rate matches the one provided in args
+        else:
+             logger.info("RULE 11: Loading audio from file (no cache provided)...")
+             audio, sr = load_audio_with_retry(file_path)
+             if sr != sample_rate and sr is not None:
+                 # Minimal check, though if we loaded from file, we trust this new SR.
+                 pass
         
-        if audio is None or sr is None:
+        if audio is None:
             logger.error(
                 f"RULE 11: Failed to load audio after retries. "
                 f"Returning 0 points (no penalty for temporary decoder issues)."
@@ -81,10 +97,20 @@ def apply_rule_11_cassette_detection(
                 # Check random texture (no MP3 pattern)
                 # Ensure we have enough data for correlation
                 if len(noise_signal) > 200:
-                    autocorr = np.corrcoef(
-                        noise_signal[:-100],
-                        noise_signal[100:]
-                    )[0, 1]
+                    try:
+                        # Check variation to avoid Div/0
+                        std_check = np.std(noise_signal)
+                        if std_check < 1e-6:
+                             autocorr = 0.0
+                        else:
+                             autocorr = np.corrcoef(
+                                noise_signal[:-100],
+                                noise_signal[100:]
+                            )[0, 1]
+                            if np.isnan(autocorr):
+                                autocorr = 0.0
+                    except Exception:
+                        autocorr = 0.0
                     
                     if abs(autocorr) < 0.2:  # White/Pink noise (Random)
                         cassette_score += 30

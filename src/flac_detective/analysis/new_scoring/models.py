@@ -36,6 +36,10 @@ class ScoringContext:
     mp3_pattern_detected: bool = False
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)
+    
+    # Cache for heavy rules (Rule 9/11) - Avoids reloading file
+    audio_data: Optional[object] = None  # Using object to avoid numpy dependency in models
+    loaded_sample_rate: Optional[int] = None
 
     def add_score(self, score: int, new_reasons: List[str]):
         """Update score and reasons."""
