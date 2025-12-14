@@ -1,6 +1,6 @@
 # 🎵 FLAC Detective
 
-**Advanced FLAC Authenticity Analyzer - v0.6.7**
+**Advanced FLAC Authenticity Analyzer - v0.6.8**
 
 > "Every FLAC file tells a story... I find the truth."
 
@@ -266,7 +266,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Project Stats
 
-- **Version**: 0.6.7
+- **Version**: 0.6.8
 - **Status**: Beta
 - **Python**: 3.8+
 - **License**: MIT
@@ -277,4 +277,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for audio enthusiasts**
 
-**FLAC Detective v0.6.7** - *Because your music deserves authenticity*
+**FLAC Detective v0.6.8** - *Because your music deserves authenticity*
