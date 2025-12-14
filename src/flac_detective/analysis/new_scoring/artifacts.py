@@ -162,12 +162,22 @@ def detect_hf_aliasing(
         seg_a = band_a[i:i + segment_length]
         seg_b_inv = band_b_inverted[i:i + segment_length]
 
+        if np.std(seg_a) < 1e-6 or np.std(seg_b_inv) < 1e-6:
+             correlations.append(0.0)
+             continue
+
         # Normalize
         seg_a = seg_a / (np.std(seg_a) + 1e-10)
         seg_b_inv = seg_b_inv / (np.std(seg_b_inv) + 1e-10)
 
         # Correlation
-        corr = np.abs(np.corrcoef(seg_a, seg_b_inv)[0, 1])
+        try:
+            corr = np.abs(np.corrcoef(seg_a, seg_b_inv)[0, 1])
+            if np.isnan(corr):
+                corr = 0.0
+        except Exception:
+            corr = 0.0
+            
         correlations.append(corr)
 
     if not correlations:
@@ -277,7 +287,9 @@ def detect_mp3_noise_pattern(
 def analyze_compression_artifacts(
     file_path: str,
     cutoff_freq: float,
-    mp3_bitrate_detected: Optional[int]
+    mp3_bitrate_detected: Optional[int],
+    audio_data: Optional[np.ndarray] = None,
+    sample_rate: Optional[int] = None
 ) -> Tuple[int, list, dict]:
     """Analyze file for psychoacoustic compression artifacts (Rule 9).
 
@@ -290,6 +302,8 @@ def analyze_compression_artifacts(
         file_path: Path to the FLAC file
         cutoff_freq: Detected cutoff frequency in Hz
         mp3_bitrate_detected: MP3 bitrate from Rule 1 (or None)
+        audio_data: Optional pre-loaded audio data
+        sample_rate: Optional sample rate of pre-loaded data
 
     Returns:
         Tuple of (score_delta, list_of_reasons, details_dict)
@@ -315,8 +329,12 @@ def analyze_compression_artifacts(
     logger.info("RULE 9: Activation - Analyzing compression artifacts...")
 
     try:
-        # Load audio file with retry mechanism
-        audio_data, sample_rate = load_audio_with_retry(file_path)
+        # Load audio file with retry mechanism if not provided
+        if audio_data is None or sample_rate is None:
+            logger.info("RULE 9: Loading audio from file (no cache provided)...")
+            audio_data, sample_rate = load_audio_with_retry(file_path)
+        else:
+            logger.info("RULE 9: Using pre-loaded audio data (cached)")
         
         if audio_data is None or sample_rate is None:
             logger.error(

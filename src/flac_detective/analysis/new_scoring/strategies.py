@@ -137,7 +137,9 @@ class Rule9CompressionArtifacts(ScoringRule):
             score, reasons, details = apply_rule_9_compression_artifacts(
                 str(context.filepath),
                 context.cutoff_freq,
-                context.mp3_bitrate_detected
+                context.mp3_bitrate_detected,
+                audio_data=context.audio_data,
+                sample_rate=context.loaded_sample_rate
             )
             context.add_score(score, reasons)
             context.mp3_pattern_detected = details.get('mp3_noise_pattern', False)
@@ -163,6 +165,7 @@ class Rule11CassetteDetection(ScoringRule):
             context.cutoff_freq,
             context.cutoff_std,
             context.mp3_pattern_detected,
-            context.audio_meta.sample_rate
+            context.audio_meta.sample_rate,
+            audio_data=context.audio_data
         )
         context.add_score(score, reasons)

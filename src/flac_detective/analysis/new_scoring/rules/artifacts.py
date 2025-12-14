@@ -7,7 +7,9 @@ from ..artifacts import analyze_compression_artifacts
 def apply_rule_9_compression_artifacts(
     file_path: str,
     cutoff_freq: float,
-    mp3_bitrate_detected: Optional[int]
+    mp3_bitrate_detected: Optional[int],
+    audio_data: Optional[object] = None,
+    sample_rate: Optional[int] = None
 ) -> Tuple[int, List[str], dict]:
     """Apply Rule 9: Psychoacoustic Compression Artifacts Detection.
 
@@ -39,6 +41,8 @@ def apply_rule_9_compression_artifacts(
         file_path: Path to the FLAC file
         cutoff_freq: Detected cutoff frequency in Hz
         mp3_bitrate_detected: Detected MP3 bitrate from Rule 1 (or None)
+        audio_data: Optional pre-loaded audio data (numpy array)
+        sample_rate: Optional sample rate of pre-loaded data
 
     Returns:
         Tuple of (score_delta, list_of_reasons, details_dict)
@@ -48,7 +52,9 @@ def apply_rule_9_compression_artifacts(
     score, reasons, details = analyze_compression_artifacts(
         file_path,
         cutoff_freq,
-        mp3_bitrate_detected
+        mp3_bitrate_detected,
+        audio_data=audio_data,
+        sample_rate=sample_rate
     )
 
     return score, reasons, details

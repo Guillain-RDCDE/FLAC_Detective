@@ -26,6 +26,7 @@ from .strategies import (
     Rule11CassetteDetection,
 )
 from .verdict import determine_verdict
+from .audio_loader import load_audio_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -126,152 +127,163 @@ def _apply_scoring_rules(
     run_rule11_early = context.cutoff_freq < 19000
     cassette_score = 0
     
-    if run_rule11_early:
-        logger.info("Executing Rule 11 (Cassette) EARLY as priority...")
+    # MEMORY OPTIMIZATION: Manage audio buffer scope
+    try:
+        if run_rule11_early:
+            logger.info("Executing Rule 11 (Cassette) EARLY as priority...")
+            
+            # Pre-load audio for R11 (and likely R9 later)
+            logger.debug("OPTIMIZATION: Pre-loading full audio for Rule 11...")
+            audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+            context.audio_data = audio_data
+            context.loaded_sample_rate = sample_rate
+
+            rule11.apply(context)
+            
+            # Extract the score contribution from R11
+            cassette_score = context.current_score - initial_r8_score
+
+        # ========== PHASE 1: FAST RULES (R1-R6) ==========
+        # These are cheap (<0.01s total), always execute
+        logger.debug("OPTIMIZATION: Executing fast rules (R1-R6)...")
+
+        # Filter rules based on cassette detection
+        fast_rules: List[ScoringRule] = []
         
-        # We need MP3 pattern from R9 for R11 to be accurate on test 11C.
-        # Let's quickly run R9C if possible, or just proceed. 
-        # Proceeding without R9C might miss the "+20pts No MP3 Pattern" bonus or be less accurate.
-        # Let's perform a lightweight R9C? No, let's just run logic as is.
-        
-        rule11.apply(context)
-        
-        # Extract the score contribution from R11
-        # Since context accumulates score, we need to see how much it increased.
-        # We should have tracked previous score.
-        # But since this is start (after R8), current_score = R8 score + R11 score.
-        cassette_score = context.current_score - initial_r8_score
-
-    # ========== PHASE 1: FAST RULES (R1-R6) ==========
-    # These are cheap (<0.01s total), always execute
-    logger.debug("OPTIMIZATION: Executing fast rules (R1-R6)...")
-
-    # Filter rules based on cassette detection
-    fast_rules: List[ScoringRule] = []
-    
-    if cassette_score >= 30:
-         logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
-         logger.info(f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate).")
-         # Add bonus manually as requested: "score -= 40"
-         # The Context.add_score handles addition. To subtract, add negative.
-         context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])
-         
-         # Skip Rule 1
-         fast_rules = [
-            Rule2Cutoff(),
-            Rule3SourceVsContainer(),
-            Rule424BitSuspect(),
-            Rule5HighVariance(),
-            Rule6HighQualityProtection(),
-        ]
-    else:
-        # Standard execution
-        fast_rules = [
-            Rule1MP3Bitrate(),
-            Rule2Cutoff(),
-            Rule3SourceVsContainer(),
-            Rule424BitSuspect(),
-            Rule5HighVariance(),
-            Rule6HighQualityProtection(),
-        ]
-
-    for rule in fast_rules:
-        rule.apply(context)
-
-    logger.info(f"OPTIMIZATION: Fast rules + R8 (+R11?) score = {context.current_score}")
-
-    # SHORT-CIRCUIT 1: If already FAKE_CERTAIN (≥86), stop here
-    if context.current_score >= 86:
-        logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)")
-        context.reasons.append("⚡ Analyse rapide : FAKE_CERTAIN détecté sans règles coûteuses")
-        return context.current_score, context.reasons
-
-    # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
-    if context.current_score < 10 and context.mp3_bitrate_detected is None:
-        logger.info(f"OPTIMIZATION: Fast path for authentic file (score={context.current_score}, no MP3)")
-        context.reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
-        return context.current_score, context.reasons
-
-    # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
-    # Determine which expensive rules to run
-    run_rule7 = 19000 <= context.cutoff_freq <= 21500
-    run_rule9 = context.cutoff_freq < 21000 or context.mp3_bitrate_detected is not None
-    run_rule11 = context.cutoff_freq < 19000
-
-    expensive_rules: List[ScoringRule] = []
-    if run_rule7:
-        expensive_rules.append(Rule7SilenceAnalysis())
-    if run_rule9:
-        expensive_rules.append(Rule9CompressionArtifacts())
-    if run_rule11 and cassette_score == 0:
-        # Only run R11 here if it wasn't run early (i.e., if logic changed)
-        # But we determined run_rule11 based on cutoff.
-        # If run_rule11_early was True, we already ran it.
-        # So we shouldn't run it again.
-        pass
-        # expensive_rules.append(Rule11CassetteDetection())  <-- Removed from here
-
-    if expensive_rules:
-        if len(expensive_rules) > 1:
-            logger.info("OPTIMIZATION PHASE 3: Running expensive rules (R7/R9/R11) sequentially")
-            # Note: Since context is not thread-safe for concurrent writes,
-            # we need to be careful. However, R7 updates silence_ratio and R9 updates nothing in context except score.
-            # But "add_score" modifies shared state.
-            # So true parallel execution with a shared mutable context is risky without locks.
-            # Let's revert to sequential execution for safety with the Strategy pattern,
-            # OR use temporary contexts/results.
-
-            # For simplicity and safety with the new pattern, we'll run them sequentially.
-            # The performance hit is acceptable for readability unless profiling shows otherwise.
-            logger.info("Running expensive rules sequentially for safety...")
-            for rule in expensive_rules:
-                rule.apply(context)
+        if cassette_score >= 30:
+             logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
+             logger.info(f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate).")
+             # Add bonus manually as requested: "score -= 40"
+             # The Context.add_score handles addition. To subtract, add negative.
+             context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])
+             
+             # Skip Rule 1
+             fast_rules = [
+                Rule2Cutoff(),
+                Rule3SourceVsContainer(),
+                Rule424BitSuspect(),
+                Rule5HighVariance(),
+                Rule6HighQualityProtection(),
+            ]
         else:
-            for rule in expensive_rules:
-                rule.apply(context)
-    else:
-        logger.info("OPTIMIZATION: Skipping expensive rules (R7/R9/R11)")
+            # Standard execution
+            fast_rules = [
+                Rule1MP3Bitrate(),
+                Rule2Cutoff(),
+                Rule3SourceVsContainer(),
+                Rule424BitSuspect(),
+                Rule5HighVariance(),
+                Rule6HighQualityProtection(),
+            ]
 
-    # Rule 8: Refine with additional context if available
-    # Only recalculate if MP3 was detected (which changes R8 logic)
-    if context.mp3_bitrate_detected is not None:
-        logger.debug("OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio...")
+        for rule in fast_rules:
+            rule.apply(context)
 
-        # Backtrack: Remove the previous R8 score/reasons
-        context.current_score -= initial_r8_score
-        # We need to be careful removing reasons.
-        # Ideally, we'd tag them, but for now we just filter them out if they match exactly.
-        # This is a bit brittle. A better way is to not apply R8 first, but R8 logic says "ALWAYS FIRST".
-        # Actually, R8 depends on MP3 detection.
-        # The original code applied R8 first with None/None, then refined.
+        logger.info(f"OPTIMIZATION: Fast rules + R8 (+R11?) score = {context.current_score}")
 
-        # Let's just re-apply R8. The context will add the new score.
-        # We need to subtract the old score first.
-        # Since we know R8 was the FIRST thing applied, we can't easily isolate its contribution
-        # unless we stored it (which we did in initial_r8_score).
+        # SHORT-CIRCUIT 1: If already FAKE_CERTAIN (≥86), stop here
+        if context.current_score >= 86:
+            logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)")
+            context.reasons.append("⚡ Analyse rapide : FAKE_CERTAIN détecté sans règles coûteuses")
+            return context.current_score, context.reasons
 
-        # Remove old reasons
-        for reason in initial_r8_reasons:
-            if reason in context.reasons:
-                context.reasons.remove(reason)
+        # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
+        if context.current_score < 10 and context.mp3_bitrate_detected is None:
+            logger.info(f"OPTIMIZATION: Fast path for authentic file (score={context.current_score}, no MP3)")
+            context.reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
+            return context.current_score, context.reasons
 
-        # Re-apply R8
-        rule8.apply(context)
-        logger.info("RULE 8 (refined): Score updated")
+        # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
+        # Determine which expensive rules to run
+        run_rule7 = 19000 <= context.cutoff_freq <= 21500
+        run_rule9 = context.cutoff_freq < 21000 or context.mp3_bitrate_detected is not None
+        # Logic fix: if R11 already ran early (cutoff < 19000), we don't run it here.
+        # Check if R11 needed and NOT ran yet
+        run_rule11 = (context.cutoff_freq < 19000) and (not run_rule11_early)
 
-    # SHORT-CIRCUIT 3: Check again after R7+R8+R9+R11
-    if context.current_score >= 86:
-        logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules")
+        expensive_rules: List[ScoringRule] = []
+        if run_rule7:
+            expensive_rules.append(Rule7SilenceAnalysis())
+        if run_rule9:
+            expensive_rules.append(Rule9CompressionArtifacts())
+        if run_rule11 and cassette_score == 0:
+             expensive_rules.append(Rule11CassetteDetection())
+
+        if expensive_rules:
+            # Check if we need to load audio (if NOT already loaded by R11 early)
+            need_full_audio = any(isinstance(r, (Rule9CompressionArtifacts, Rule11CassetteDetection)) for r in expensive_rules)
+            
+            if need_full_audio and context.audio_data is None:
+                logger.debug("OPTIMIZATION: Pre-loading full audio for Rules 9/11 (Phase 2)...")
+                audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+                context.audio_data = audio_data
+                context.loaded_sample_rate = sample_rate
+            
+            if len(expensive_rules) > 1:
+                logger.info("OPTIMIZATION PHASE 3: Running expensive rules (R7/R9/R11) sequentially")
+                # Note: Since context is not thread-safe for concurrent writes,
+                # we need to be careful. However, R7 updates silence_ratio and R9 updates nothing in context except score.
+                # But "add_score" modifies shared state.
+                # So true parallel execution with a shared mutable context is risky without locks.
+                # Let's revert to sequential execution for safety with the Strategy pattern,
+                # OR use temporary contexts/results.
+
+                # For simplicity and safety with the new pattern, we'll run them sequentially.
+                # The performance hit is acceptable for readability unless profiling shows otherwise.
+                logger.info("Running expensive rules sequentially for safety...")
+                for rule in expensive_rules:
+                    rule.apply(context)
+            else:
+                for rule in expensive_rules:
+                    rule.apply(context)
+        else:
+            logger.info("OPTIMIZATION: Skipping expensive rules (R7/R9/R11)")
+
+        # Rule 8: Refine with additional context if available
+        # Only recalculate if MP3 was detected (which changes R8 logic)
+        if context.mp3_bitrate_detected is not None:
+            logger.debug("OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio...")
+
+            # Backtrack: Remove the previous R8 score/reasons
+            context.current_score -= initial_r8_score
+            # We need to be careful removing reasons.
+            # Ideally, we'd tag them, but for now we just filter them out if they match exactly.
+            # This is a bit brittle. A better way is to not apply R8 first, but R8 logic says "ALWAYS FIRST".
+            # Actually, R8 depends on MP3 detection.
+            # The original code applied R8 first with None/None, then refined.
+
+            # Remove old reasons
+            for reason in initial_r8_reasons:
+                if reason in context.reasons:
+                    context.reasons.remove(reason)
+
+            # Re-apply R8
+            rule8.apply(context)
+            logger.info("RULE 8 (refined): Score updated")
+
+        # SHORT-CIRCUIT 3: Check again after R7+R8+R9+R11
+        if context.current_score >= 86:
+            logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules")
+            return context.current_score, context.reasons
+
+        # Rule 10: Only if score > 30 (already suspect)
+        if context.current_score > 30:
+            logger.info(f"OPTIMIZATION: Activating Rule 10 (score {context.current_score} > 30)")
+            Rule10Consistency().apply(context)
+        else:
+            logger.info(f"OPTIMIZATION: Skipping Rule 10 (score {context.current_score} ≤ 30)")
+
         return context.current_score, context.reasons
 
-    # Rule 10: Only if score > 30 (already suspect)
-    if context.current_score > 30:
-        logger.info(f"OPTIMIZATION: Activating Rule 10 (score {context.current_score} > 30)")
-        Rule10Consistency().apply(context)
-    else:
-        logger.info(f"OPTIMIZATION: Skipping Rule 10 (score {context.current_score} ≤ 30)")
-
-    return context.current_score, context.reasons
+    finally:
+        # CLEANUP MEMORY
+        if context.audio_data is not None:
+            logger.debug("OPTIMIZATION: Releasing audio buffer memory")
+            context.audio_data = None
+            context.loaded_sample_rate = None
+            # Force GC to avoid bad_alloc in loop
+            import gc
+            gc.collect()
 
 
 def new_calculate_score(
