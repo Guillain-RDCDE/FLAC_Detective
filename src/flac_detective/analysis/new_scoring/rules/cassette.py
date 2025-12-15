@@ -6,7 +6,7 @@ import numpy as np
 from scipy import signal
 import soundfile as sf
 
-from ..audio_loader import load_audio_with_retry
+from ..audio_loader import load_audio_segment
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +22,14 @@ def apply_rule_11_cassette_detection(
     cutoff_freq: float,
     cutoff_std: float,
     mp3_pattern_detected: bool,
-    cutoff_std: float,
-    mp3_pattern_detected: bool,
     sample_rate: int,
     audio_data: Optional[object] = None
 ) -> Tuple[int, List[str]]:
     """Apply Rule 11: Cassette Audio Source Detection.
 
-    Detects if the file originates from a cassette tape.
-    High score = High likelyhood of being a cassette (Authentic).
+    Detects if the file originates from a cassette tape by analyzing a
+    60-second segment from the middle of the file. This approach avoids
+    loading the entire file into memory.
 
     Args:
         file_path: Path to the FLAC file.
@@ -46,41 +45,31 @@ def apply_rule_11_cassette_detection(
     cassette_score = 0
     reasons = []
 
-    # Activation condition: cutoff < 19 kHz (cassette limitation)
     if cutoff_freq >= 19000:
         logger.debug(f"RULE 11: Skipped (cutoff {cutoff_freq:.0f} >= 19000)")
         return 0, reasons
 
     try:
-    try:
-        # Load audio file with retry mechanism if not provided
-        audio = None
-        sr = sample_rate
+        info = sf.info(file_path)
+        duration = info.duration
+        sr = info.samplerate
 
-        if audio_data is not None:
-             logger.info("RULE 11: Using pre-loaded audio data (cached)")
-             audio = audio_data
-             # Assume sample_rate matches the one provided in args
-        else:
-             logger.info("RULE 11: Loading audio from file (no cache provided)...")
-             audio, sr = load_audio_with_retry(file_path)
-             if sr != sample_rate and sr is not None:
-                 # Minimal check, though if we loaded from file, we trust this new SR.
-                 pass
-        
+        segment_duration = 60.0
+        start_sec = max(0, (duration - segment_duration) / 2)
+        actual_duration = min(segment_duration, duration)
+
+        audio, sr_loaded = load_audio_segment(
+            file_path, start_sec=start_sec, duration_sec=actual_duration
+        )
+
         if audio is None:
-            logger.error(
-                f"RULE 11: Failed to load audio after retries. "
-                f"Returning 0 points (no penalty for temporary decoder issues)."
-            )
+            logger.error("RULE 11: Failed to load the audio segment for analysis.")
             return 0, reasons
-        
+
         if audio.ndim > 1:
-            audio = np.mean(audio, axis=1) # Mono
-        
+            audio = np.mean(audio, axis=1)
+
         # TEST 11A: Constant Tape Hiss
-        # ====================================
-        # Filter high band (above musical cutoff)
         if cutoff_freq < 16000:
             noise_band_freq = (cutoff_freq + 1000, 18000)
         else:
@@ -104,11 +93,11 @@ def apply_rule_11_cassette_detection(
                              autocorr = 0.0
                         else:
                              autocorr = np.corrcoef(
-                                noise_signal[:-100],
-                                noise_signal[100:]
-                            )[0, 1]
-                            if np.isnan(autocorr):
-                                autocorr = 0.0
+                                 noise_signal[:-100],
+                                 noise_signal[100:]
+                             )[0, 1]
+                             if np.isnan(autocorr):
+                                 autocorr = 0.0
                     except Exception:
                         autocorr = 0.0
                     
