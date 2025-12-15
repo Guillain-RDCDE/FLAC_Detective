@@ -4,9 +4,36 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
+
+
+def _convert_numpy_types(obj: Any) -> Any:
+    """Convert numpy types to Python native types for JSON serialization.
+
+    Args:
+        obj: Object that may contain numpy types.
+
+    Returns:
+        Object with numpy types converted to Python native types.
+    """
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: _convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_numpy_types(item) for item in obj]
+    else:
+        return obj
 
 
 class ProgressTracker:
@@ -49,8 +76,10 @@ class ProgressTracker:
         """Saves current state."""
         self.data["last_update"] = datetime.now().isoformat()
         try:
+            # Convert numpy types to Python native types before serialization
+            data_to_save = _convert_numpy_types(self.data)
             with open(self.progress_file, "w", encoding="utf-8") as f:
-                json.dump(self.data, f, indent=2, ensure_ascii=False)
+                json.dump(data_to_save, f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Error saving progress.json: {e}")
 
