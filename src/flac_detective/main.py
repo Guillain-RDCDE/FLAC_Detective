@@ -540,10 +540,14 @@ def _cleanup_console_log_if_empty(log_file: Path) -> bool:
         True if log file was kept (has errors/warnings), False if deleted.
     """
     try:
-        # Flush all logging handlers to ensure file is written
+        # Close all file handlers to allow file deletion on Windows
         root_logger = logging.getLogger()
-        for handler in root_logger.handlers[:]:
+        file_handlers = [h for h in root_logger.handlers if isinstance(h, logging.FileHandler)]
+
+        for handler in file_handlers:
             handler.flush()
+            handler.close()
+            root_logger.removeHandler(handler)
 
         if not log_file.exists():
             return False
@@ -570,7 +574,7 @@ def _cleanup_console_log_if_empty(log_file: Path) -> bool:
 
     except Exception as e:
         # If we can't check/delete, keep the file
-        logger.debug(f"Could not cleanup log file: {e}")
+        logger.warning(f"Could not cleanup log file: {e}")
         return True
 
 
