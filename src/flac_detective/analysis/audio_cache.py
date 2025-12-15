@@ -12,6 +12,7 @@ import soundfile as sf
 from scipy.fft import rfft, rfftfreq, set_workers
 
 from .window_cache import get_hann_window
+from .new_scoring.audio_loader import load_audio_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,9 @@ class AudioCache:
             with self._lock:
                 if self._full_audio is None:  # Double-check pattern
                     logger.debug(f"CACHE: Loading full audio from {self.filepath.name}")
-                    data, sr = sf.read(self.filepath, always_2d=True)
+                    data, sr = load_audio_with_retry(str(self.filepath), always_2d=True)
+                    if data is None:
+                        raise RuntimeError(f"Failed to load audio from {self.filepath} after retries")
                     self._full_audio = (data, sr)
         else:
             logger.debug(f"CACHE: Using cached full audio for {self.filepath.name}")
@@ -68,12 +71,16 @@ class AudioCache:
             with self._lock:
                 if key not in self._segments:  # Double-check pattern
                     logger.debug(f"CACHE: Loading segment {start_frame}-{start_frame+frames} from {self.filepath.name}")
-                    data, sr = sf.read(
-                        self.filepath,
+                    data, sr = load_audio_with_retry(
+                        str(self.filepath),
                         start=start_frame,
                         frames=frames,
                         always_2d=True
                     )
+                    if data is None:
+                         # Segment load failure is less critical, maybe return empty?
+                         # But let's be consistent and raise, caught by caller
+                         raise RuntimeError(f"Failed to load segment from {self.filepath} after retries")
                     self._segments[key] = (data, sr)
         else:
             logger.debug(f"CACHE: Using cached segment {start_frame}-{start_frame+frames}")

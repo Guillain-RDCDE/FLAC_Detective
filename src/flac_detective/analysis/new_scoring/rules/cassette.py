@@ -22,8 +22,6 @@ def apply_rule_11_cassette_detection(
     cutoff_freq: float,
     cutoff_std: float,
     mp3_pattern_detected: bool,
-    cutoff_std: float,
-    mp3_pattern_detected: bool,
     sample_rate: int,
     audio_data: Optional[object] = None
 ) -> Tuple[int, List[str]]:
@@ -51,7 +49,6 @@ def apply_rule_11_cassette_detection(
         logger.debug(f"RULE 11: Skipped (cutoff {cutoff_freq:.0f} >= 19000)")
         return 0, reasons
 
-    try:
     try:
         # Load audio file with retry mechanism if not provided
         audio = None
@@ -107,8 +104,8 @@ def apply_rule_11_cassette_detection(
                                 noise_signal[:-100],
                                 noise_signal[100:]
                             )[0, 1]
-                            if np.isnan(autocorr):
-                                autocorr = 0.0
+                             if np.isnan(autocorr):
+                                 autocorr = 0.0
                     except Exception:
                         autocorr = 0.0
                     

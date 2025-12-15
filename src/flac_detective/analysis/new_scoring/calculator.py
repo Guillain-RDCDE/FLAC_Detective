@@ -134,7 +134,15 @@ def _apply_scoring_rules(
             
             # Pre-load audio for R11 (and likely R9 later)
             logger.debug("OPTIMIZATION: Pre-loading full audio for Rule 11...")
-            audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+            
+            if context.cache is not None:
+                # Use shared cache from FLACAnalyzer
+                logger.debug("OPTIMIZATION: Using shared AudioCache for Rule 11")
+                audio_data, sample_rate = context.cache.get_full_audio()
+            else:
+                logger.debug("OPTIMIZATION: No shared cache, loading from file")
+                audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+                
             context.audio_data = audio_data
             context.loaded_sample_rate = sample_rate
 
@@ -213,9 +221,15 @@ def _apply_scoring_rules(
             # Check if we need to load audio (if NOT already loaded by R11 early)
             need_full_audio = any(isinstance(r, (Rule9CompressionArtifacts, Rule11CassetteDetection)) for r in expensive_rules)
             
+            
             if need_full_audio and context.audio_data is None:
                 logger.debug("OPTIMIZATION: Pre-loading full audio for Rules 9/11 (Phase 2)...")
-                audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+                if context.cache is not None:
+                     logger.debug("OPTIMIZATION: Using shared AudioCache for Phase 2")
+                     audio_data, sample_rate = context.cache.get_full_audio()
+                else:
+                     audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+                     
                 context.audio_data = audio_data
                 context.loaded_sample_rate = sample_rate
             
@@ -292,7 +306,8 @@ def new_calculate_score(
     duration_check: Dict,
     filepath: Path,
     cutoff_std: float = 0.0,
-    energy_ratio: float = 0.0
+    energy_ratio: float = 0.0,
+    cache = None
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -303,6 +318,7 @@ def new_calculate_score(
         filepath: Path to FLAC file
         cutoff_std: Standard deviation of cutoff frequency (default 0.0)
         energy_ratio: High frequency energy ratio (default 0.0)
+        cache: Optional AudioCache instance (contains pre-loaded full audio)
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -342,7 +358,8 @@ def new_calculate_score(
             bitrate_metrics=bitrate_metrics,
             cutoff_freq=cutoff_freq,
             cutoff_std=cutoff_std,
-            energy_ratio=energy_ratio
+            energy_ratio=energy_ratio,
+            cache=cache  # Pass shared cache to context
         )
 
         # Apply scoring rules
