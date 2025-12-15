@@ -5,6 +5,10 @@ import time
 from typing import Tuple, Optional
 import numpy as np
 import soundfile as sf
+import tempfile
+import shutil
+import subprocess
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +87,20 @@ def load_audio_with_retry(
                 logger.error(f"Non-temporary error, not retrying: {error_msg}")
                 break
     
-    # All attempts failed
+    # All attempts failed, try to repair and load again
+    logger.warning(f"All attempts to load {file_path} failed. Attempting repair...")
+    repaired_path = repair_flac_file(file_path)
+
+    if repaired_path:
+        try:
+            audio_data, sample_rate = sf.read(repaired_path, **kwargs)
+            logger.info(f"✅ Successfully loaded repaired file: {repaired_path}")
+            os.remove(repaired_path)
+            return audio_data, sample_rate
+        except Exception as e:
+            logger.error(f"❌ Failed to load repaired file {repaired_path}: {e}")
+            os.remove(repaired_path)
+
     return None, None
 
 
@@ -123,7 +140,71 @@ def load_audio_segment(
             else:
                 logger.error(f"Non-temporary error loading audio segment: {error_msg}")
                 break
+
+    # All attempts failed, try to repair and load again
+    logger.warning(f"All attempts to load segment from {file_path} failed. Attempting repair...")
+    repaired_path = repair_flac_file(file_path)
+
+    if repaired_path:
+        try:
+            with sf.SoundFile(repaired_path, "r") as f:
+                sr = f.samplerate
+                start_frame = int(start_sec * sr)
+                frames_to_read = int(duration_sec * sr)
+                f.seek(start_frame)
+                data = f.read(frames_to_read)
+                logger.info(f"✅ Successfully loaded segment from repaired file: {repaired_path}")
+                os.remove(repaired_path)
+                return data, sr
+        except Exception as e:
+            logger.error(f"❌ Failed to load segment from repaired file {repaired_path}: {e}")
+            os.remove(repaired_path)
+
     return None, None
+
+
+def repair_flac_file(original_path: str) -> Optional[str]:
+    """Repair a FLAC file by re-encoding it with the official FLAC tool.
+
+    Args:
+        original_path: Path to the possibly corrupted FLAC file.
+
+    Returns:
+        Path to the repaired temporary file, or None on failure.
+    """
+    try:
+        # Create a temporary file to store the repaired version
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, f"repaired_{os.path.basename(original_path)}")
+
+        shutil.copy2(original_path, temp_path)
+
+        logger.info(f"Attempting to repair {original_path} at {temp_path}")
+
+        # Use the FLAC command-line tool to re-encode and fix errors
+        command = [
+            "flac",
+            "--best",
+            "--verify",
+            "-f",  # Force overwrite of the temporary file
+            temp_path
+        ]
+
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+
+        if result.returncode == 0:
+            logger.info(f"✅ Successfully repaired {original_path}")
+            return temp_path
+        else:
+            logger.error(f"❌ Failed to repair {original_path}. Error: {result.stderr}")
+            os.remove(temp_path)
+            return None
+
+    except (FileNotFoundError, shutil.Error, subprocess.SubprocessError) as e:
+        logger.error(f"❌ An exception occurred during FLAC repair: {e}")
+        if 'temp_path' in locals() and os.path.exists(temp_path):
+            os.remove(temp_path)
+        return None
 
 
 def sf_blocks(
