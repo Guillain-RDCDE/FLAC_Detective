@@ -83,8 +83,8 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
             magnitude = np.abs(fft_vals)
             magnitude_db = 20 * np.log10(magnitude + 1e-10)
 
-            # Detect cutoff frequency
-            cutoff_freq = detect_cutoff(fft_freq, magnitude_db)
+            # Detect cutoff frequency (pass samplerate for adaptive detection)
+            cutoff_freq = detect_cutoff(fft_freq, magnitude_db, samplerate)
 
             # Calculate high frequency energy ratio (> 16 kHz)
             energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
@@ -121,23 +121,42 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
         return 0, 0, 0
 
 
-def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray) -> float:
-    """Detects cutoff frequency with a robust method.
+def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100) -> float:
+    """Detects cutoff frequency with a robust method adapted to sample rate.
 
     Method based on percentiles:
-    1. Calculates reference energy in a safe zone (10-14 kHz)
-    2. Analyzes spectrum by 500 Hz slices starting from 14 kHz
+    1. Calculates reference energy in a safe zone (adaptive based on sample rate)
+    2. Analyzes spectrum by slices starting from an adaptive frequency
     3. Detects a true cutoff = several consecutive slices below threshold
 
     Args:
         frequencies: Array of frequencies.
         magnitude_db: Array of magnitudes in dB.
+        samplerate: Sample rate of the audio file (Hz).
 
     Returns:
         Detected cutoff frequency in Hz.
     """
-    # Focus on frequencies > REFERENCE_FREQ_LOW
-    high_freq_mask = frequencies > spectral_config.REFERENCE_FREQ_LOW
+    # Adaptive parameters based on sample rate
+    # For high-res files (>48kHz), scale reference zone and scan start proportionally
+    nyquist_freq = samplerate / 2.0
+
+    # Calculate adaptive parameters (as percentage of Nyquist frequency)
+    # Reference zone: 45-65% of Nyquist for standard files, adjusted for hi-res
+    if samplerate <= 48000:
+        # Standard resolution (44.1/48 kHz) - use fixed values optimized for MP3 detection
+        reference_freq_low = spectral_config.REFERENCE_FREQ_LOW
+        reference_freq_high = spectral_config.REFERENCE_FREQ_HIGH
+        cutoff_scan_start = spectral_config.CUTOFF_SCAN_START
+    else:
+        # High resolution (88.2/96/176.4/192 kHz) - scale proportionally
+        scale_factor = samplerate / 44100.0
+        reference_freq_low = int(spectral_config.REFERENCE_FREQ_LOW * scale_factor)
+        reference_freq_high = int(spectral_config.REFERENCE_FREQ_HIGH * scale_factor)
+        cutoff_scan_start = int(spectral_config.CUTOFF_SCAN_START * scale_factor)
+
+    # Focus on frequencies > reference_freq_low
+    high_freq_mask = frequencies > reference_freq_low
     if not np.any(high_freq_mask):
         return float(frequencies[-1])
 
@@ -156,10 +175,9 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray) -> float:
     tranche_size_hz = spectral_config.TRANCHE_SIZE
     freq_max = freq_high[-1]
 
-    # Calculate reference (median energy between REFERENCE_FREQ_LOW-REFERENCE_FREQ_HIGH)
-    # This zone is safe even for a 128kbps MP3 (which cuts at 16k)
-    ref_mask = (freq_high >= spectral_config.REFERENCE_FREQ_LOW) & (
-        freq_high <= spectral_config.REFERENCE_FREQ_HIGH
+    # Calculate reference (median energy between reference_freq_low-reference_freq_high)
+    ref_mask = (freq_high >= reference_freq_low) & (
+        freq_high <= reference_freq_high
     )
     if np.any(ref_mask):
         reference_energy = np.percentile(mag_smooth[ref_mask], 50)
@@ -169,8 +187,8 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray) -> float:
     # Cutoff threshold
     cutoff_threshold = reference_energy - spectral_config.CUTOFF_THRESHOLD_DB
 
-    # Slice by slice analysis starting from CUTOFF_SCAN_START
-    current_freq = spectral_config.CUTOFF_SCAN_START
+    # Slice by slice analysis starting from cutoff_scan_start
+    current_freq = cutoff_scan_start
     consecutive_low = 0
 
     while current_freq < freq_max:
