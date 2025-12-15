@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "0.6.7"
+__version__ = "0.6.9"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2025-12-12"
-__release_name__ = "Performance Optimization and Cleanup"
+__release_date__ = "2025-12-15"
+__release_name__ = "High-Resolution Audio Fix and JSON Serialization"
 
 # Metadata
 __author__ = "Guillain Méjane"
