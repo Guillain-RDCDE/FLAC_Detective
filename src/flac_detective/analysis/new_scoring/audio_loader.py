@@ -34,7 +34,8 @@ def load_audio_with_retry(
     file_path: str,
     max_attempts: int = 5,
     initial_delay: float = 0.2,
-    backoff_multiplier: float = 2.0
+    backoff_multiplier: float = 2.0,
+    **kwargs
 ) -> Tuple[Optional[np.ndarray], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
 
@@ -46,6 +47,7 @@ def load_audio_with_retry(
         max_attempts: Maximum number of attempts (default: 5)
         initial_delay: Initial delay between retries in seconds (default: 0.2)
         backoff_multiplier: Multiplier for exponential backoff (default: 2.0)
+        **kwargs: Additional keyword arguments to pass to soundfile.read()
 
     Returns:
         Tuple of (audio_data, sample_rate) on success, or (None, None) on failure
@@ -56,7 +58,7 @@ def load_audio_with_retry(
     for attempt in range(1, max_attempts + 1):
         try:
             logger.debug(f"Loading audio (attempt {attempt}/{max_attempts}): {file_path}")
-            audio_data, sample_rate = sf.read(file_path)
+            audio_data, sample_rate = sf.read(file_path, **kwargs)
             
             if attempt > 1:
                 logger.info(f"✅ Audio loaded successfully on attempt {attempt}")
