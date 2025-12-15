@@ -14,7 +14,7 @@ import soundfile as sf
 from scipy import signal
 from scipy.fft import fft, fftfreq
 
-from .audio_loader import load_audio_with_retry
+from .audio_loader import load_audio_with_retry, load_audio_segment
 
 logger = logging.getLogger(__name__)
 
@@ -329,10 +329,26 @@ def analyze_compression_artifacts(
     logger.info("RULE 9: Activation - Analyzing compression artifacts...")
 
     try:
-        # Load audio file with retry mechanism if not provided
+        # If audio data is not provided, load a segment to avoid memory issues
         if audio_data is None or sample_rate is None:
-            logger.info("RULE 9: Loading audio from file (no cache provided)...")
-            audio_data, sample_rate = load_audio_with_retry(file_path)
+            try:
+                info = sf.info(file_path)
+                duration = info.duration
+
+                # For very long files, analyze a 60s segment from the middle
+                if duration > 60:
+                    start_sec = max(0, duration / 2 - 30)
+                    logger.info("RULE 9: Loading 60s segment from middle of large file...")
+                    audio_data, sample_rate = load_audio_segment(
+                        file_path, start_sec=start_sec, duration_sec=60
+                    )
+                else:
+                    logger.info("RULE 9: Loading full audio from short file...")
+                    audio_data, sample_rate = load_audio_with_retry(file_path)
+
+            except Exception as e:
+                logger.error(f"RULE 9: Could not get audio info or load segment: {e}")
+                return 0, [], details
         else:
             logger.info("RULE 9: Using pre-loaded audio data (cached)")
         
