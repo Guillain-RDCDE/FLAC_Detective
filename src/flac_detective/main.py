@@ -530,6 +530,50 @@ def run_analysis_loop(
     return tracker.get_results()
 
 
+def _cleanup_console_log_if_empty(log_file: Path) -> bool:
+    """Delete console log file if it's empty or contains no errors/warnings.
+
+    Args:
+        log_file: Path to the console log file.
+
+    Returns:
+        True if log file was kept (has errors/warnings), False if deleted.
+    """
+    try:
+        # Flush all logging handlers to ensure file is written
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            handler.flush()
+
+        if not log_file.exists():
+            return False
+
+        # Check if file is empty or contains only INFO messages
+        with open(log_file, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+
+        # If empty, delete
+        if not content:
+            log_file.unlink()
+            return False
+
+        # Check if there are any ERROR or WARNING messages
+        has_errors = 'ERROR' in content or 'WARNING' in content
+
+        if not has_errors:
+            # No errors or warnings, safe to delete
+            log_file.unlink()
+            return False
+
+        # Keep the log file (has errors/warnings)
+        return True
+
+    except Exception as e:
+        # If we can't check/delete, keep the file
+        logger.debug(f"Could not cleanup log file: {e}")
+        return True
+
+
 def generate_final_report(
     results: list[dict],
     output_dir: Path,
@@ -559,6 +603,9 @@ def generate_final_report(
     fake_certain = [r for r in results if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
     non_flac_count = len(all_non_flac_files)
 
+    # Check if console log contains errors/warnings, delete if empty or no issues
+    log_file_kept = _cleanup_console_log_if_empty(log_file)
+
     print()
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
@@ -568,7 +615,8 @@ def generate_final_report(
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
     print(f"  Text report: {output_file.name}")
-    print(f"  Console log: {log_file.name}")
+    if log_file_kept:
+        print(f"  Console log: {log_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
 
 
