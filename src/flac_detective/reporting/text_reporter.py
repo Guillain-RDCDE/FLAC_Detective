@@ -225,7 +225,10 @@ class TextReporter:
 
             for result in upsampled:
                 display_name = self._get_display_path(result, scan_paths)
-                original_rate = result.get("upsampling", {}).get("suspected_original_rate", "Unknown")
+                # Check both old format (nested) and new format (flat)
+                original_rate = result.get("suspected_original_rate") or result.get("upsampling", {}).get("suspected_original_rate", "Unknown")
+                if original_rate == 0:
+                    original_rate = "Unknown"
                 original_rate_str = f"{original_rate} Hz" if isinstance(original_rate, int) else str(original_rate)
                 report_lines.append(f" [?]  | {original_rate_str:<15} | {display_name}")
 
