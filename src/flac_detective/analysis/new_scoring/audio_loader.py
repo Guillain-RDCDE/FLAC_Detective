@@ -87,6 +87,45 @@ def load_audio_with_retry(
     return None, None
 
 
+def load_audio_segment(
+    file_path: str,
+    start_sec: float,
+    duration_sec: float,
+    max_attempts: int = 5,
+    initial_delay: float = 0.2,
+    backoff_multiplier: float = 2.0,
+) -> Tuple[Optional[np.ndarray], Optional[int]]:
+    """Load a specific segment of an audio file with retry logic."""
+    delay = initial_delay
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with sf.SoundFile(file_path, "r") as f:
+                sr = f.samplerate
+                start_frame = int(start_sec * sr)
+                frames_to_read = int(duration_sec * sr)
+                f.seek(start_frame)
+                data = f.read(frames_to_read)
+                return data, sr
+        except Exception as e:
+            error_msg = str(e)
+            if is_temporary_decoder_error(error_msg):
+                if attempt < max_attempts:
+                    logger.warning(
+                        f"⚠️  Temporary error loading segment on attempt {attempt}: {error_msg}"
+                    )
+                    logger.info(f"Retrying in {delay:.1f}s...")
+                    time.sleep(delay)
+                    delay *= backoff_multiplier
+                else:
+                    logger.error(
+                        f"❌ Failed to load audio segment after {max_attempts} attempts: {error_msg}"
+                    )
+            else:
+                logger.error(f"Non-temporary error loading audio segment: {error_msg}")
+                break
+    return None, None
+
+
 def sf_blocks(
     file_path: str,
     blocksize: int = 16384,
