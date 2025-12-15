@@ -87,6 +87,26 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
+## Dependencies
+
+FLAC Detective now uses the official `flac` command-line tool to automatically repair corrupted files. You must have this tool installed on your system for the repair functionality to work.
+
+### Installing `flac`
+
+- **On Debian/Ubuntu:**
+  ```bash
+  sudo apt-get update
+  sudo apt-get install flac
+  ```
+
+- **On macOS (using Homebrew):**
+  ```bash
+  brew install flac
+  ```
+
+- **On Windows:**
+  You can download the official binaries from the [Xiph.org foundation website](https://xiph.org/flac/download.html).
+
 ## 🚀 Usage
 
 ### Command Line
