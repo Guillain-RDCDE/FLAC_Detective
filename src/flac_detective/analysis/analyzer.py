@@ -13,6 +13,9 @@ from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .spectrum import analyze_spectrum
 from .audio_cache import AudioCache
 
+import shutil
+import tempfile
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,27 +42,46 @@ class FLACAnalyzer:
             Dict with: filepath, filename, score, reason, cutoff_freq, metadata,
             duration_mismatch, quality issues (clipping, dc_offset, corruption).
         """
-        # PHASE 1 OPTIMIZATION: Create cache once for this file
-        cache = AudioCache(filepath)
+        # I/O STABILITY STRATEGY: "Copy-to-Temp"
+        # Copy file to local temp dir to avoid external drive I/O errors during analysis
+        temp_path = None
         
         try:
+            # Create a named temp file (but we want to control the path/extension)
+            # We create a temp file, close it, and overwrite it with copy
+            with tempfile.NamedTemporaryFile(suffix=".flac", delete=False) as tmp:
+                temp_path = Path(tmp.name)
+            
+            # Copy source to temp
+            # Using copy2 to preserve metadata (timestamps) although typically not critical for analysis content
+            logger.debug(f"I/O STABILITY: Copying {filepath.name} to local temp {temp_path}")
+            shutil.copy2(filepath, temp_path)
+            
+            # PHASE 1 OPTIMIZATION: Create cache using the LOCAL TEMP copy
+            # All subsequent reads will hit this local file (SSD/HDD) instead of USB/Network
+            cache = AudioCache(temp_path)
+        
             logger.debug(f"⚡ OPTIMIZATION: Created AudioCache for {filepath.name}")
             
             # Read metadata
             metadata = read_metadata(filepath)
 
             # Duration consistency check (FTF criterion)
-            duration_check = check_duration_consistency(filepath, metadata)
+            # Use ORIGINAL filepath for reporting, but TEMP path for reading could be safer?
+            # Duration check uses Mutagen/Soundfile. Let's use TEMP path for safety.
+            duration_check = check_duration_consistency(temp_path, metadata)
 
-            # Spectral analysis (OPTIMIZED: uses cache)
-            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(filepath, self.sample_duration, cache=cache)
+            # Spectral analysis (OPTIMIZED: uses cache -> points to TEMP)
+            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(temp_path, self.sample_duration, cache=cache)
 
-            # Audio quality analysis (OPTIMIZED: uses cache)
-            quality_analysis = analyze_audio_quality(filepath, metadata, cutoff_freq, cache=cache)
+            # Audio quality analysis (OPTIMIZED: uses cache -> points to TEMP)
+            quality_analysis = analyze_audio_quality(temp_path, metadata, cutoff_freq, cache=cache)
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
+            # We must pass 'filepath' (original) for logging/reporting purposes, 
+            # but ensure 'context.cache' (temp) is used for heavy lifting.
             score, verdict, confidence, reason = new_calculate_score(
-                cutoff_freq, metadata, duration_check, filepath, cutoff_std, energy_ratio
+                cutoff_freq, metadata, duration_check, temp_path, cutoff_std, energy_ratio, cache=cache
             )
 
             return {
@@ -130,6 +152,15 @@ class FLACAnalyzer:
                 "suspected_original_rate": 0,
             }
         finally:
-            # PHASE 1 OPTIMIZATION: Clear cache after analysis
-            cache.clear()
-            logger.debug(f"⚡ OPTIMIZATION: Cleared AudioCache for {filepath.name}")
+            # Cleanup resources
+            if 'cache' in locals():
+                cache.clear()
+                logger.debug(f"⚡ OPTIMIZATION: Cleared AudioCache for {filepath.name}")
+            
+            # Delete temp file
+            if temp_path and temp_path.exists():
+                try:
+                    temp_path.unlink()
+                    logger.debug(f"I/O STABILITY: Deleted temp file {temp_path}")
+                except Exception as e:
+                    logger.warning(f"Could not delete temp file {temp_path}: {e}")

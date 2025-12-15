@@ -40,6 +40,7 @@ class ScoringContext:
     # Cache for heavy rules (Rule 9/11) - Avoids reloading file
     audio_data: Optional[object] = None  # Using object to avoid numpy dependency in models
     loaded_sample_rate: Optional[int] = None
+    cache: Optional[object] = None # AudioCache instance
 
     def add_score(self, score: int, new_reasons: List[str]):
         """Update score and reasons."""
