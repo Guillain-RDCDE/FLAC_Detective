@@ -5,6 +5,48 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-16
+
+### 🚀 Major Features
+
+#### Partial File Reading (Graceful Degradation)
+- **New**: `sf_blocks_partial()` function for reading partial audio data when full decode fails
+- **Enhanced**: `AudioCache` now automatically falls back to partial loading on decoder errors
+- **Improved**: Analyzer and quality checks now work with partial data
+- **Impact**: Problematic but valid FLAC files can now be analyzed instead of being marked as CORRUPTED
+
+#### Energy-Based Cutoff Detection
+- **New**: Fallback cutoff detection using cumulative energy analysis (90% threshold)
+- **Improved**: Detects MP3 upscales with high-frequency noise that fool magnitude-based detection
+- **Enhanced**: Spectrum analysis now works directly with cached audio for partial files
+- **Fixed**: Proper conversion from dB to linear magnitude for energy calculations
+- **Impact**: MP3-to-FLAC upscales are now correctly detected (e.g., ~10-16kHz cutoff vs false 22kHz)
+
+### Changed
+- **audio_loader.py**: Added `sf_blocks_partial()` with retry logic and exponential backoff
+- **audio_cache.py**: Added partial loading fallback and `is_partial()` tracking method
+- **spectrum.py**:
+  - Now uses cached audio data directly instead of re-reading from file
+  - Added energy-based cutoff fallback when slice-based method fails
+  - Only triggers when cutoff < 85% of Nyquist frequency
+- **analyzer.py**: Simplified to use AudioCache's partial handling
+- **quality.py**: Skips corruption check when cache is provided, handles partial analysis
+
+### Fixed
+- **Critical**: Files with decoder errors no longer falsely marked as CORRUPTED
+- **Example**: "Banda lobourou.flac" (MP3 upscale with decoder errors) now correctly detected as FAKE instead of CORRUPTED
+- **Cutoff Detection**: Files with noise in high frequencies now correctly show ~10-16kHz cutoff instead of 22kHz (Nyquist)
+
+### Technical Details
+- Partial reads collect all successful chunks before decoder error occurs
+- Energy-based detection finds where 90% of cumulative energy is reached
+- Maintains backward compatibility with existing authentic file detection
+- No impact on files without decoder errors
+
+### Performance Impact
+- No performance impact for normal files (new code paths only trigger on errors)
+- Slight improvement for files with decoder errors (analyzed instead of rejected)
+
 ## [0.6.7] - 2025-12-12
 
 ### Changed
