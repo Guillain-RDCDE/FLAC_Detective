@@ -3,5 +3,4 @@
 from .analysis import FLACAnalyzer
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files
-
-__version__ = "0.7.0"
+from .__version__ import __version__
