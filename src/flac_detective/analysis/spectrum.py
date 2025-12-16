@@ -247,9 +247,15 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate:
 
             # If energy-based cutoff is significantly lower than Nyquist, use it
             # This indicates energy concentration in lower frequencies (MP3 signature)
-            if energy_cutoff < nyquist_freq * 0.85:  # Less than 85% of Nyquist
+            # BUT: Only if it's in the realistic MP3 cutoff range (15kHz+)
+            # Very low cutoffs (< 10kHz) are usually just bass concentration, not transcoding
+            if 15000 < energy_cutoff < nyquist_freq * 0.95:  # Realistic MP3 range
                 logger.debug(f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)")
                 return float(energy_cutoff)
+            elif energy_cutoff < 15000:
+                logger.debug(f"Energy concentration at {energy_cutoff:.0f} Hz (bass, not cutoff)")
+                # Bass concentration but no MP3 cutoff signature - likely authentic
+                return float(freq_max)
 
     # If energy-based also didn't find anything suspicious, truly authentic
     logger.debug(f"No cutoff detected, full spectrum up to {freq_max:.0f} Hz")
