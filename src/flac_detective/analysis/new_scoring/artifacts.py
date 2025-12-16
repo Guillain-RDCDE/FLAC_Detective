@@ -37,6 +37,12 @@ def detect_preecho_artifacts(
     Returns:
         Tuple of (percentage_affected, num_transients, num_with_preecho)
     """
+    # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
+    max_samples = int(30 * sample_rate)  # 30 seconds max
+    if len(audio_data) > max_samples:
+        logger.debug(f"ARTIFACTS: Limiting pre-echo analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        audio_data = audio_data[:max_samples]
+
     # Convert to mono if stereo
     if audio_data.ndim > 1:
         audio_data = np.mean(audio_data, axis=1)
@@ -48,9 +54,16 @@ def detect_preecho_artifacts(
     threshold_linear = 10 ** (threshold_db / 20.0)
 
     # Find transients (sharp peaks)
-    # Use envelope detection
-    analytic_signal = signal.hilbert(audio_data)
-    envelope = np.abs(analytic_signal)
+    # Use envelope detection - OPTIMIZED: process in chunks to reduce memory
+    chunk_size = int(5 * sample_rate)  # 5 second chunks
+    envelope = np.zeros(len(audio_data))
+
+    for i in range(0, len(audio_data), chunk_size):
+        chunk_end = min(i + chunk_size, len(audio_data))
+        chunk = audio_data[i:chunk_end]
+        analytic_signal = signal.hilbert(chunk)
+        envelope[i:chunk_end] = np.abs(analytic_signal)
+        del analytic_signal  # Free memory immediately
 
     # Smooth envelope
     window_size = int(0.001 * sample_rate)  # 1ms window
@@ -130,6 +143,12 @@ def detect_hf_aliasing(
     Returns:
         Correlation coefficient (0-1, higher = more aliasing)
     """
+    # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
+    max_samples = int(30 * sample_rate)  # 30 seconds max
+    if len(audio_data) > max_samples:
+        logger.debug(f"ARTIFACTS: Limiting aliasing analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        audio_data = audio_data[:max_samples]
+
     # Convert to mono if stereo
     if audio_data.ndim > 1:
         audio_data = np.mean(audio_data, axis=1)
@@ -207,6 +226,12 @@ def detect_mp3_noise_pattern(
     Returns:
         True if MP3 noise pattern detected, False otherwise
     """
+    # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
+    max_samples = int(30 * sample_rate)  # 30 seconds max
+    if len(audio_data) > max_samples:
+        logger.debug(f"ARTIFACTS: Limiting MP3 noise analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        audio_data = audio_data[:max_samples]
+
     # Convert to mono if stereo
     if audio_data.ndim > 1:
         audio_data = np.mean(audio_data, axis=1)
@@ -335,12 +360,12 @@ def analyze_compression_artifacts(
                 info = sf.info(file_path)
                 duration = info.duration
 
-                # For very long files, analyze a 60s segment from the middle
-                if duration > 60:
-                    start_sec = max(0, duration / 2 - 30)
-                    logger.info("RULE 9: Loading 60s segment from middle of large file...")
+                # For very long files, analyze a 30s segment from the middle (MEMORY OPTIMIZED)
+                if duration > 30:
+                    start_sec = max(0, duration / 2 - 15)
+                    logger.info("RULE 9: Loading 30s segment from middle of large file (memory optimized)...")
                     audio_data, sample_rate = load_audio_segment(
-                        file_path, start_sec=start_sec, duration_sec=60
+                        file_path, start_sec=start_sec, duration_sec=30
                     )
                 else:
                     logger.info("RULE 9: Loading full audio from short file...")
