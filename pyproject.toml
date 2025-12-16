@@ -82,7 +82,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "0.6.7"
+python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -104,7 +104,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "0.6.7"
+minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = [
