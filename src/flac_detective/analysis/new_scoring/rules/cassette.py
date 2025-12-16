@@ -28,8 +28,8 @@ def apply_rule_11_cassette_detection(
     """Apply Rule 11: Cassette Audio Source Detection.
 
     Detects if the file originates from a cassette tape by analyzing a
-    60-second segment from the middle of the file. This approach avoids
-    loading the entire file into memory.
+    30-second segment from the middle of the file (MEMORY OPTIMIZED).
+    This approach avoids loading the entire file into memory.
 
     Args:
         file_path: Path to the FLAC file.
@@ -54,7 +54,8 @@ def apply_rule_11_cassette_detection(
         duration = info.duration
         sr = info.samplerate
 
-        segment_duration = 60.0
+        # MEMORY OPTIMIZATION: Reduced from 60s to 30s
+        segment_duration = 30.0
         start_sec = max(0, (duration - segment_duration) / 2)
         actual_duration = min(segment_duration, duration)
 
