@@ -77,8 +77,8 @@ def load_audio_with_retry(
             # Check if this is a temporary error
             if is_temporary_decoder_error(error_msg):
                 if attempt < max_attempts:
-                    logger.warning(f"⚠️  Temporary error on attempt {attempt}: {error_msg}")
-                    logger.info(f"Retrying in {delay:.1f}s...")
+                    logger.debug(f"Temporary error on attempt {attempt}: {error_msg}")
+                    logger.debug(f"Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     delay *= backoff_multiplier
                 else:
@@ -89,7 +89,7 @@ def load_audio_with_retry(
                 break
     
     # All attempts failed, try to repair and load again
-    logger.warning(f"All attempts to load {file_path} failed. Attempting repair...")
+    logger.debug(f"All attempts to load {file_path} failed. Attempting repair...")
     repaired_path = repair_flac_file(file_path)
 
     if repaired_path:
@@ -128,10 +128,10 @@ def load_audio_segment(
             error_msg = str(e)
             if is_temporary_decoder_error(error_msg):
                 if attempt < max_attempts:
-                    logger.warning(
-                        f"⚠️  Temporary error loading segment on attempt {attempt}: {error_msg}"
+                    logger.debug(
+                        f"Temporary error loading segment on attempt {attempt}: {error_msg}"
                     )
-                    logger.info(f"Retrying in {delay:.1f}s...")
+                    logger.debug(f"Retrying in {delay:.1f}s...")
                     time.sleep(delay)
                     delay *= backoff_multiplier
                 else:
@@ -143,7 +143,7 @@ def load_audio_segment(
                 break
 
     # All attempts failed, try to repair and load again
-    logger.warning(f"All attempts to load segment from {file_path} failed. Attempting repair...")
+    logger.debug(f"All attempts to load segment from {file_path} failed. Attempting repair...")
     repaired_path = repair_flac_file(file_path)
 
     if repaired_path:
@@ -266,10 +266,10 @@ def sf_blocks(
                 error_msg = str(e)
                 if is_temporary_decoder_error(error_msg):
                     if attempt < max_attempts:
-                        logger.warning(
-                            f"⚠️  Temporary error on attempt {attempt} reading from frame {current_frame}: {error_msg}"
+                        logger.debug(
+                            f"Temporary error on attempt {attempt} reading from frame {current_frame}: {error_msg}"
                         )
-                        logger.info(f"Retrying in {delay:.1f}s...")
+                        logger.debug(f"Retrying in {delay:.1f}s...")
                         time.sleep(delay)
                         delay *= backoff_multiplier
                     else:
@@ -285,45 +285,6 @@ def sf_blocks(
 
         if not read_successful:
             break
-
-
-def load_audio_segment(
-    file_path: str,
-    start_sec: float,
-    duration_sec: float,
-    max_attempts: int = 5,
-    initial_delay: float = 0.2,
-    backoff_multiplier: float = 2.0,
-) -> Tuple[Optional[np.ndarray], Optional[int]]:
-    """Load a specific segment of an audio file with retry logic."""
-    delay = initial_delay
-    for attempt in range(1, max_attempts + 1):
-        try:
-            with sf.SoundFile(file_path, "r") as f:
-                sr = f.samplerate
-                start_frame = int(start_sec * sr)
-                frames_to_read = int(duration_sec * sr)
-                f.seek(start_frame)
-                data = f.read(frames_to_read)
-                return data, sr
-        except Exception as e:
-            error_msg = str(e)
-            if is_temporary_decoder_error(error_msg):
-                if attempt < max_attempts:
-                    logger.warning(
-                        f"⚠️  Temporary error loading segment on attempt {attempt}: {error_msg}"
-                    )
-                    logger.info(f"Retrying in {delay:.1f}s...")
-                    time.sleep(delay)
-                    delay *= backoff_multiplier
-                else:
-                    logger.error(
-                        f"❌ Failed to load audio segment after {max_attempts} attempts: {error_msg}"
-                    )
-            else:
-                logger.error(f"Non-temporary error loading audio segment: {error_msg}")
-                break
-    return None, None
 
 
 def sf_blocks_partial(
@@ -396,15 +357,15 @@ def sf_blocks_partial(
 
                 if is_temporary_decoder_error(error_msg):
                     if attempt < max_attempts:
-                        logger.warning(
-                            f"⚠️  Temporary error on attempt {attempt} reading from frame {current_frame}: {error_msg}"
+                        logger.debug(
+                            f"Temporary error on attempt {attempt} reading from frame {current_frame}: {error_msg}"
                         )
-                        logger.info(f"Retrying in {delay:.1f}s...")
+                        logger.debug(f"Retrying in {delay:.1f}s...")
                         time.sleep(delay)
                         delay *= backoff_multiplier
                     else:
                         # Max attempts reached - return what we have
-                        logger.warning(
+                        logger.debug(
                             f"Failed to read from frame {current_frame} after {max_attempts} attempts"
                         )
                         if chunks:
