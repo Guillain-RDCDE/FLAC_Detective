@@ -31,28 +31,17 @@ Ces erreurs déclenchent le mécanisme de retry. Les autres erreurs (fichier int
 
 ## Logs et débogage
 
-### Logs en mode normal
+### Logs en mode production (par défaut)
 
 Lors d'une analyse réussie après retry, vous verrez dans les logs :
 
 ```
-⚠️  Temporary error on attempt 1: flac decoder lost sync
-Retrying in 0.2s...
 ✅ Audio loaded successfully on attempt 2
 ```
 
-### Logs en cas d'échec après 3 tentatives
+*Les tentatives de retry ne sont pas affichées en production pour garder la console propre.*
 
-```
-⚠️  Temporary error on attempt 1: flac decoder lost sync
-Retrying in 0.2s...
-⚠️  Temporary error on attempt 2: flac decoder lost sync
-Retrying in 0.3s...
-❌ Failed after 3 attempts: flac decoder lost sync
-RULE 9: Failed to load audio after retries. Returning 0 points (no penalty for temporary decoder issues).
-```
-
-### Activer les logs détaillés
+### Logs en mode DEBUG (pour débogage)
 
 Pour voir tous les détails du processus de retry, activez le niveau de log DEBUG :
 
@@ -61,7 +50,35 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
-Ou en ligne de commande :
+Vous verrez alors:
+
+```
+Temporary error on attempt 1: flac decoder lost sync
+Retrying in 0.2s...
+Temporary error on attempt 2: flac decoder lost sync
+Retrying in 0.3s...
+✅ Audio loaded successfully on attempt 3
+```
+
+### Logs en cas d'échec après 5 tentatives
+
+```
+Temporary error on attempt 1: flac decoder lost sync
+Retrying in 0.2s...
+Temporary error on attempt 2: flac decoder lost sync
+Retrying in 0.4s...
+Temporary error on attempt 3: flac decoder lost sync
+Retrying in 0.8s...
+Temporary error on attempt 4: flac decoder lost sync
+Retrying in 1.6s...
+Temporary error on attempt 5: flac decoder lost sync
+❌ Failed after 5 attempts: flac decoder lost sync
+RULE 9: Failed to load audio after retries. Returning 0 points (no penalty for temporary decoder issues).
+```
+
+### Activer les logs détaillés en ligne de commande
+
+En ligne de commande :
 
 ```bash
 python -m flac_detective --log-level DEBUG [autres options]
@@ -76,7 +93,7 @@ python -m flac_detective --log-level DEBUG [autres options]
 - ✅ Verdict basé sur toutes les règles (R1-R11)
 - ✅ Pas de flag `partial_analysis`
 
-### Fichier avec erreur temporaire persistante (3 échecs)
+### Fichier avec erreur temporaire persistante (5 échecs)
 
 - ⚠️ Analyse partielle effectuée
 - ⚠️ Règles R9 et R11 contribuent 0 points

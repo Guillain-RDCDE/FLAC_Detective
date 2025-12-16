@@ -75,23 +75,27 @@ Ce module fournit :
 
 **Après :**
 1. Premier appel à `load_audio_with_retry()` échoue
-2. Log : "⚠️ Temporary error on attempt 1: flac decoder lost sync"
+2. Log DEBUG : "Temporary error on attempt 1: flac decoder lost sync"
 3. Attente de 0.2s
 4. Deuxième tentative réussit
-5. Log : "✅ Audio loaded successfully on attempt 2"
+5. Log INFO : "✅ Audio loaded successfully on attempt 2"
 6. Analyse continue normalement
 7. Verdict basé sur toutes les règles (AUTHENTIC si score faible)
 
-### Cas 2 : Échec après 3 tentatives
+**Note**: En mode production, seul le succès final est affiché. Les logs de retry apparaissent seulement en mode DEBUG.
+
+### Cas 2 : Échec après 5 tentatives
 
 **Après :**
-1. 3 tentatives échouent
-2. Log : "❌ Failed after 3 attempts: flac decoder lost sync"
+1. 5 tentatives échouent
+2. Log ERROR : "❌ Failed after 5 attempts: flac decoder lost sync"
 3. Règle 9/11 retourne 0 points (contribution neutre)
 4. `CorruptionDetector` ne marque PAS comme corrompu (erreur temporaire)
 5. Flag `partial_analysis: True` ajouté aux résultats
 6. Verdict basé sur les règles critiques (R1-R8)
 7. Fichier marqué CORRUPTED **uniquement** si les règles critiques échouent
+
+**Note**: Les tentatives de retry ne sont affichées en console que si vous activez le mode DEBUG.
 
 ### Cas 3 : Vraie corruption (NaN, fichier illisible)
 

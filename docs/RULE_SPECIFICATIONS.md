@@ -1,6 +1,6 @@
-# ?? RULE SPECIFICATIONS - FLAC Detective v0.6.7
+# RULE SPECIFICATIONS - FLAC Detective v0.7.0
 
-## ?? Overview
+## Overview
 
 FLAC Detective uses an advanced **11-rule detection system** with additive scoring (0-150 points).
 
@@ -8,18 +8,11 @@ FLAC Detective uses an advanced **11-rule detection system** with additive scori
 
 ```
 +-----------------------------------------------------------------+
-¦    0           30           60           86              150    ¦
-¦    +-----------+------------+------------+-----------------¦    ¦
-¦ AUTHENTIC   WARNING    SUSPICIOUS   FAKE_CERTAIN                ¦
-¦    ?         ?          ??           ?                     ¦
+| Score 0-30      | Score 31-60     | Score 61-85     | Score 86+   |
+| AUTHENTIC ✅    | WARNING ⚡      | SUSPICIOUS ⚠️   | FAKE_CERTAIN ❌ |
+| 99.5% confidence| Manual review   | High confidence | 100% confidence |
 +-----------------------------------------------------------------+
 ```
-
-Score = 86 ? FAKE_CERTAIN ? (100% confidence)
-Score 61-85 ? SUSPICIOUS ?? (High confidence)
-Score 31-60 ? WARNING ? (Manual review recommended)
-Score = 30 ? AUTHENTIC ? (99.5% confidence)
-
 
 **Philosophy**: Higher score = More fake
 - Penalties increase score (suspicious indicators)
@@ -27,106 +20,99 @@ Score = 30 ? AUTHENTIC ? (99.5% confidence)
 
 ---
 
-## ?? Rule 1: MP3 Spectral Signature Detection (CBR)
-
-**Objective**: Detect CBR MP3s transcoded to FLAC
-
-### Visual Concept
-
-```
-  Authentic FLAC              MP3 ? FLAC Transcode
-  -------------              --------------------
-  Frequency                  Frequency
-      ?                          ?
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦ ? Sharp cutoff
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦¦¦¦¦¦¦¦¦¦¦¦¦    at ~20 kHz
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          +------------
-      ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦          ¦  (No content)
-      +----------------?         +------------?
-       0 Hz      22 kHz           0 Hz    22 kHz
-```
-
-### Detection Logic
-
-**Safety Check 1: Nyquist Exception**
-```
-IF cutoff >= 95% Nyquist ? SKIP (likely anti-aliasing filter)
-```
-
-**CRITICAL EXCEPTION: Exactly 20 kHz Cutoff (ENHANCED)**
-
-Problem: FFT may round 20-21 kHz to exactly 20000 Hz
-
-Solutions:
-```
-+---------------------------------------------------------+
-¦  Test 1: Residual Energy > 20 kHz                       ¦
-¦          IF energy_ratio > 0.000001 ? SKIP              ¦
-¦          (Probably FFT rounding, not MP3 320k)          ¦
-+---------------------------------------------------------¦
-¦  Test 2: Zero Variance                                  ¦
-¦          IF cutoff_std == 0.0 ? SKIP                    ¦
-¦          (Ambiguous, skip by precaution)                ¦
-+---------------------------------------------------------+
-```
-
-### MP3 Bitrate Signatures
-
-```
-Cutoff Freq  ?  Estimated MP3 Bitrate
--------------------------------------
-  11 kHz     ?     128 kbps
-  15 kHz     ?     192 kbps
-  16 kHz     ?     224 kbps
-  19 kHz     ?     256 kbps
-  20 kHz     ?     320 kbps
-```
-
-### Scoring
-- **+50 points** if MP3 signature detected AND container bitrate matches expected range
-- **Example**: cutoff = 20 kHz + container = 800 kbps ? +50 pts (MP3 320k detected)
-
----
-
-## ?? Rule 2: Cutoff Frequency vs Nyquist
+## Rule 2: Cutoff Frequency vs Nyquist (UPDATED v0.7.0)
 
 **Objective**: Penalize files with suspiciously low frequency content
 
+### What Changed in v0.7.0
+
+**Critical Fix**: Added 15 kHz minimum threshold for energy-based cutoff detection
+
+**Problem Fixed**:
+- Bass-heavy music with concentrated energy at 2-3 kHz was incorrectly identified as MP3
+- Led to 77% false positive rate (198/59 SUSPICIOUS/AUTHENTIC ratio)
+- Quality score was 20.2% instead of 83.6%
+
+**Solution**:
+```python
+# Energy-based cutoff detection now requires:
+# 1. Cutoff frequency between 15 kHz - 22.05 kHz (realistic MP3 range)
+# 2. Bass concentration below 15 kHz is legitimate audio, not MP3 artifact
+
+if cutoff_energy < 15000:  # Bass concentration
+    cutoff_energy = sample_rate  # Reset to realistic value (authentic)
+else:  # Between 15-22 kHz: legitimate MP3 cutoff range
+    # Apply penalty
+```
+
+**Impact**:
+- Authentic files: +314% (59→244)
+- False positives: -77% (198→46)
+- Quality score: 20.2% → 83.6%
+
+### How It Works
+
+The rule uses TWO methods to detect MP3 cutoff:
+
+1. **Slice-Based Method** (Primary - detects magnitude drop)
+   - FFT slicing to find spectral energy boundaries
+   - Best for clean MP3 signatures
+
+2. **Energy-Based Method** (Fallback - detects cumulative energy)
+   - Finds where 90% of cumulative energy is concentrated
+   - Only triggered if slice method is inconclusive
+   - **NEW**: Only considers 15-22 kHz range as suspicious
+   - Bass energy below 15 kHz = authentic music property
+
 ### Visual Concept
 
-Sample Rate: 44.1 kHz (Nyquist = 22.05 kHz)
-
 ```
-  Expected Cutoff:           Suspicious Cutoff:
-  ----------------           ------------------
-        ?                           ?
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦
-        ¦¦¦¦¦¦¦¦¦¦¦¦¦                ¦¦¦¦¦¦¦¦¦ ? Only 15 kHz!
-  22 kHz+------------          15 kHz+--------
-        ¦  (minimal)                 ¦
-        ¦                            ¦
-        +------------?               +--------?
-      Threshold: ~20 kHz           Deficit: 5 kHz
-                                   Penalty: +25 pts
+  Expected Cutoff (Authentic):     Suspicious Cutoff (MP3):
+  ──────────────────────────       ──────────────────────
+  Frequency Spectrum               Frequency Spectrum
+      ▲                                ▲
+      │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               │▓▓▓▓▓▓▓▓▓▓▓▓▓
+      │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               │▓▓▓▓▓▓▓▓▓▓▓▓▓
+  22kHz┤▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               │▓▓▓▓▓▓▓▓▓▓▓▓▓ ← Sharp cutoff
+      │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               │▓▓▓▓▓▓▓▓▓▓▓▓▓    at ~20 kHz
+      │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               └─────────────
+      │                                   (No content)
+  ────┴──────────────────→          ────┴──────────────→
+      0 Hz           22 kHz              0 Hz        22 kHz
+
+  Bass example (authentic):
+  ──────────────────────
+  │▓▓▓▓▓▓▓▓
+  │▓▓▓▓▓▓▓▓ ← Energy concentrated 2-3 kHz
+  │▓▓▓▓▓▓▓▓    (Legitimate bass content)
+  │▓
+  │▓ ← Still authentic (no MP3 cutoff pattern)
+  └──────→
+   0    22kHz
 ```
 
 ### Calculation
 
 ```
+Energy-based cutoff detection:
+1. Find frequency where 90% of cumulative energy is concentrated
+2. If cutoff < 15 kHz → BASS concentration, mark as AUTHENTIC
+3. If 15 kHz ≤ cutoff ≤ 22 kHz → Potential MP3 cutoff, apply penalty
+4. If cutoff > 22 kHz (Nyquist) → Skip (anti-aliasing filter)
+
+Penalty calculation:
 deficit = threshold - cutoff_freq
 penalty = min(deficit / 200, 30)
 ```
 
 ### Scoring
-- **+0 to +30 points** based on deficit
-- Formula: `+1 pt` per 200 Hz below threshold, capped at 30 pts
+- **+0 to +30 points** based on deficit from Nyquist
+- Formula: `+1 point` per 200 Hz below 22 kHz threshold, capped at 30 pts
+- **Bass concentration (< 15 kHz)**: No penalty, marked as authentic
 
 ---
 
-## ?? Rule 3: Source vs Container Bitrate Comparison
+## Rule 3: Source vs Container Bitrate Comparison
 
 **Objective**: Detect "inflated" files (low-quality source in heavy container)
 
@@ -134,18 +120,18 @@ penalty = min(deficit / 200, 30)
 
 ```
    Authentic FLAC              Fake FLAC (Inflated)
-   --------------              --------------------
-   +--------------+            +--------------+
-   ¦              ¦            ¦              ¦
-   ¦ High-Quality ¦            ¦ MP3 128 kbps ¦ ? Low quality
-   ¦  PCM Source  ¦            ¦    Source    ¦    source
-   ¦              ¦            ¦              ¦
-   +--------------+            +--------------+
-          ¦                           ¦
-          ?                           ?
-   +--------------+            +--------------+
-   ¦ FLAC 900 kbps¦            ¦ FLAC 900 kbps¦ ? Heavy container!
-   +--------------+            +--------------+
+   ──────────────              ──────────────────
+   ┌──────────────┐            ┌──────────────┐
+   │              │            │              │
+   │ High-Quality │            │ MP3 128 kbps │ ← Low quality
+   │  PCM Source  │            │    Source    │    source
+   │              │            │              │
+   └──────────────┘            └──────────────┘
+          │                           │
+          ▼                           ▼
+   ┌──────────────┐            ┌──────────────┐
+   │ FLAC 900 kbps│            │ FLAC 900 kbps│ ← Heavy container!
+   └──────────────┘            └──────────────┘
       NORMAL                    SUSPICIOUS
                               (Inflated file)
 ```
@@ -155,7 +141,7 @@ penalty = min(deficit / 200, 30)
 
 ---
 
-## ?? Rule 4: Suspicious 24-bit File Detection
+## Rule 4: Suspicious 24-bit File Detection
 
 **Objective**: Identify fake High-Res files (upsampled from lossy)
 
@@ -163,14 +149,14 @@ penalty = min(deficit / 200, 30)
 
 ```
   Real 24-bit FLAC            Fake 24-bit FLAC
-  ----------------            ----------------
+  ────────────────            ────────────────
   Bit Depth: 24               Bit Depth: 24
-  Source: PCM/Analog          Source: MP3 192 kbps ? Upsampled!
+  Source: PCM/Analog          Source: MP3 192 kbps ← Upsampled!
   
   Dynamic Range:              Dynamic Range:
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦         ? Limited by
-  ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦        ¦¦¦¦¦¦¦¦            MP3 source
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        ▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        ▓▓▓▓▓▓▓▓         ← Limited by
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        ▓▓▓▓▓▓▓▓            MP3 source
       (~120 dB)                 (~60 dB)
 ```
 
@@ -179,7 +165,7 @@ penalty = min(deficit / 200, 30)
 
 ---
 
-## ?? Rule 5: High Variance Protection (VBR)
+## Rule 5: High Variance Protection (VBR)
 
 **Objective**: Identify natural FLAC characteristics (Variable Bit Rate)
 
@@ -187,16 +173,16 @@ penalty = min(deficit / 200, 30)
 
 ```
   Authentic VBR FLAC              CBR Transcode
-  ------------------              -------------
+  ──────────────────              ──────────────
   Bitrate over time:              Bitrate over time:
   kbps                            kbps
-  1400¦       ?                   1000¦------------
-  1200¦      ? ?     ?             800¦------------
-  1000¦     ?   ?   ? ?            600¦------------
-   800¦    ?     ?-?   ?           400¦------------
-      +------------------?            +--------------?
-       High variance                   Low variance
-       (Natural VBR)                   (Constant)
+  1400│       ╱                   1000│────────────
+  1200│      ╱ ╲     ╱             800│────────────
+  1000│     ╱   ╲   ╱ ╲            600│────────────
+   800│    ╱     ╲─╱   ╲           400│────────────
+      └──────────────────→           └─────────────→
+       High variance                  Low variance
+       (Natural VBR)                  (Constant)
 ```
 
 ### Scoring
