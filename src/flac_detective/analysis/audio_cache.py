@@ -12,7 +12,7 @@ import soundfile as sf
 from scipy.fft import rfft, rfftfreq, set_workers
 
 from .window_cache import get_hann_window
-from .new_scoring.audio_loader import load_audio_with_retry
+from .new_scoring.audio_loader import load_audio_with_retry, sf_blocks_partial
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ class AudioCache:
         self._spectrum: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
         self._cutoff: Optional[float] = None
         self._lock = Lock()
+        self._is_partial = False  # Track if audio data is partial
 
     def get_full_audio(self) -> Tuple[np.ndarray, int]:
         """Get full audio data (cached).
@@ -47,13 +48,39 @@ class AudioCache:
                 if self._full_audio is None:  # Double-check pattern
                     logger.debug(f"CACHE: Loading full audio from {self.filepath.name}")
                     data, sr = load_audio_with_retry(str(self.filepath), always_2d=True)
+
                     if data is None:
-                        raise RuntimeError(f"Failed to load audio from {self.filepath} after retries")
+                        # Full load failed - try partial load
+                        logger.warning(f"CACHE: Full load failed for {self.filepath.name}, attempting partial load")
+                        data_partial, sr_partial, is_complete = sf_blocks_partial(str(self.filepath))
+
+                        if data_partial is None:
+                            raise RuntimeError(f"Failed to load any audio data from {self.filepath}")
+
+                        # Convert to 2D if needed (to match always_2d=True behavior)
+                        if data_partial.ndim == 1:
+                            data = data_partial.reshape(-1, 1)
+                        else:
+                            data = data_partial
+
+                        sr = sr_partial
+                        self._is_partial = not is_complete
+
+                        logger.info(f"CACHE: Loaded partial audio: {len(data)} frames ({'complete' if is_complete else 'partial'})")
+
                     self._full_audio = (data, sr)
         else:
             logger.debug(f"CACHE: Using cached full audio for {self.filepath.name}")
 
         return self._full_audio
+
+    def is_partial(self) -> bool:
+        """Check if cached audio is partial (incomplete read).
+
+        Returns:
+            True if audio data is partial, False otherwise
+        """
+        return self._is_partial
 
     def get_segment(self, start_frame: int, frames: int) -> Tuple[np.ndarray, int]:
         """Get audio segment (cached).

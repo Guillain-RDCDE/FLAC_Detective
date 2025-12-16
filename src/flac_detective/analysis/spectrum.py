@@ -37,10 +37,15 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
         if cache is None:
             cache = AudioCache(filepath)
 
-        # Read entire file to know its duration
-        info = sf.info(filepath)
-        total_duration = info.duration
-        samplerate = info.samplerate
+        # Get actual audio data to know real duration (handles partial files)
+        full_audio, samplerate = cache.get_full_audio()
+        actual_frames = len(full_audio)
+        total_duration = actual_frames / samplerate
+
+        # Check if we're working with partial data
+        is_partial = cache.is_partial()
+        if is_partial:
+            logger.warning(f"Working with partial audio data: {actual_frames} frames ({total_duration:.1f}s)")
 
         # Take 3 samples: start, middle, end (or just 1 if too short)
         num_samples = 3 if total_duration > 90 else 1
@@ -57,9 +62,16 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
             start_frame = int(start_time * samplerate)
             frames_to_read = int(sample_duration * samplerate)
 
-            # OPTIMIZATION: Use cache instead of direct sf.read
-            logger.debug(f"⚡ CACHE: Reading segment {i+1}/{num_samples} via cache")
-            data, _ = cache.get_segment(start_frame, frames_to_read)
+            # Ensure we don't read beyond available data (for partial files)
+            if start_frame + frames_to_read > actual_frames:
+                frames_to_read = max(0, actual_frames - start_frame)
+                if frames_to_read == 0:
+                    logger.warning(f"Sample {i+1} beyond available data, skipping")
+                    return 0.0, 0.0
+
+            # Extract segment from cached full audio
+            logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
+            data = full_audio[start_frame:start_frame + frames_to_read]
 
             # Convert to mono if stereo
             if data.shape[1] > 1:
@@ -216,7 +228,30 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate:
 
         current_freq += tranche_size_hz
 
-    # No cutoff detected -> authentic
+    # No cutoff detected with slice method -> try energy-based fallback
+    # This catches MP3 upscales that have noise in high frequencies
+    logger.debug(f"No cutoff detected with slice method, trying energy-based detection")
+
+    # Energy-based detection: find where 90% of cumulative energy is reached
+    # Convert dB back to linear magnitude: magnitude = 10^(magnitude_db/20)
+    magnitude_linear = 10 ** (magnitude_db / 20.0)
+    energy = magnitude_linear ** 2  # Energy is square of linear magnitude
+    cumulative_energy = np.cumsum(energy)
+    total_energy = cumulative_energy[-1]
+
+    if total_energy > 0:
+        # Find where we reach 90% of total energy
+        energy_90_idx = np.where(cumulative_energy >= 0.90 * total_energy)[0]
+        if len(energy_90_idx) > 0:
+            energy_cutoff = frequencies[energy_90_idx[0]]
+
+            # If energy-based cutoff is significantly lower than Nyquist, use it
+            # This indicates energy concentration in lower frequencies (MP3 signature)
+            if energy_cutoff < nyquist_freq * 0.85:  # Less than 85% of Nyquist
+                logger.debug(f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)")
+                return float(energy_cutoff)
+
+    # If energy-based also didn't find anything suspicious, truly authentic
     logger.debug(f"No cutoff detected, full spectrum up to {freq_max:.0f} Hz")
     return float(freq_max)
 

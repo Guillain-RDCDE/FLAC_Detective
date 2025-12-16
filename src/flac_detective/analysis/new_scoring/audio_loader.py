@@ -27,8 +27,8 @@ def is_temporary_decoder_error(error_message: str) -> bool:
         "decoder error",
         "sync error",
         "invalid frame",
-        "unexpected end"
-	"unknown error"  # NEW: Can occur on valid files, worth retrying
+        "unexpected end",
+        "unknown error"  # NEW: Can occur on valid files, worth retrying
     ]
     
     error_lower = error_message.lower()
@@ -324,3 +324,118 @@ def load_audio_segment(
                 logger.error(f"Non-temporary error loading audio segment: {error_msg}")
                 break
     return None, None
+
+
+def sf_blocks_partial(
+    file_path: str,
+    blocksize: int = 16384,
+    dtype: str = "float32",
+    max_attempts: int = 5,
+    initial_delay: float = 0.2,
+    backoff_multiplier: float = 2.0,
+) -> Tuple[Optional[np.ndarray], Optional[int], bool]:
+    """Read audio in chunks, returning partial data if full read fails.
+
+    This function attempts to read an entire audio file in blocks. If reading
+    fails mid-stream due to decoder errors, it returns whatever data was
+    successfully read before the error occurred, allowing for partial analysis.
+
+    Args:
+        file_path: Path to the audio file.
+        blocksize: The size of each chunk to read.
+        dtype: The data type to read.
+        max_attempts: Maximum number of retry attempts per block.
+        initial_delay: Initial delay between retries.
+        backoff_multiplier: Multiplier for exponential backoff.
+
+    Returns:
+        Tuple of (audio_data, sample_rate, is_complete):
+        - audio_data: Concatenated audio chunks (None if no data read)
+        - sample_rate: Sample rate of the audio file (None if cannot read info)
+        - is_complete: True if entire file was read, False if partial
+    """
+    chunks = []
+    sample_rate = None
+    current_frame = 0
+
+    try:
+        info = sf.info(file_path)
+        sample_rate = info.samplerate
+        total_frames = info.frames
+    except Exception as e:
+        logger.error(f"Cannot read file info from {file_path}: {e}")
+        return None, None, False
+
+    logger.debug(f"Starting partial block read of {file_path} ({total_frames} frames)")
+
+    # Read chunks until we hit an error or reach end
+    while current_frame < total_frames:
+        delay = initial_delay
+        read_successful = False
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                with sf.SoundFile(file_path, "r") as f:
+                    f.seek(current_frame)
+                    chunk = f.read(blocksize, dtype=dtype)
+
+                    if len(chunk) == 0:
+                        # Reached end of file
+                        logger.debug(f"Reached end of file at frame {current_frame}")
+                        current_frame = total_frames
+                        read_successful = True
+                        break
+
+                    chunks.append(chunk)
+                    current_frame = f.tell()
+                    read_successful = True
+                    break
+
+            except Exception as e:
+                error_msg = str(e)
+
+                if is_temporary_decoder_error(error_msg):
+                    if attempt < max_attempts:
+                        logger.warning(
+                            f"⚠️  Temporary error on attempt {attempt} reading from frame {current_frame}: {error_msg}"
+                        )
+                        logger.info(f"Retrying in {delay:.1f}s...")
+                        time.sleep(delay)
+                        delay *= backoff_multiplier
+                    else:
+                        # Max attempts reached - return what we have
+                        logger.warning(
+                            f"Failed to read from frame {current_frame} after {max_attempts} attempts"
+                        )
+                        if chunks:
+                            logger.info(f"Returning partial data: {current_frame}/{total_frames} frames ({len(chunks)} chunks)")
+                            combined = np.concatenate(chunks)
+                            return combined, sample_rate, False  # Not complete
+                        else:
+                            logger.error("No data could be read before error")
+                            return None, None, False
+                else:
+                    # Non-temporary error
+                    logger.error(
+                        f"Non-temporary error reading from frame {current_frame}: {error_msg}"
+                    )
+                    if chunks:
+                        logger.info(f"Returning partial data: {current_frame}/{total_frames} frames")
+                        combined = np.concatenate(chunks)
+                        return combined, sample_rate, False  # Not complete
+                    else:
+                        return None, None, False
+
+        if not read_successful:
+            # Failed to read this block
+            break
+
+    # Successfully read entire file
+    if chunks:
+        combined = np.concatenate(chunks)
+        is_complete = (current_frame >= total_frames)
+        logger.debug(f"Read {current_frame}/{total_frames} frames ({'complete' if is_complete else 'partial'})")
+        return combined, sample_rate, is_complete
+    else:
+        logger.error("No data could be read")
+        return None, None, False
