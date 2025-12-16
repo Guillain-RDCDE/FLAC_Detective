@@ -1,6 +1,6 @@
 # 🎵 FLAC Detective
 
-**Advanced FLAC Authenticity Analyzer - v0.6.9**
+**Advanced FLAC Authenticity Analyzer - v0.7.0**
 
 > "Every FLAC file tells a story... I find the truth."
 
@@ -50,6 +50,17 @@ Score ≤ 30  → AUTHENTIC ✅ (99.5% confidence)
 - Parallel execution of expensive rules
 - File read caching
 - Progressive analysis (2→5 segments when needed)
+
+### 🆕 v0.7.0 New Features
+
+- **Partial File Reading**: Gracefully handles FLAC files with decoder errors
+  - Reads partial audio data when full decode fails
+  - Enables analysis of problematic but valid files
+  - Prevents false "CORRUPTED" verdicts
+- **Energy-Based Cutoff Detection**: Improved MP3 upscale detection
+  - Fallback detection using cumulative energy analysis
+  - Catches MP3-to-FLAC upscales with high-frequency noise
+  - More accurate cutoff frequency detection (~10-16kHz vs false 22kHz)
 
 ### 🎯 Production Metrics
 
@@ -286,15 +297,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Project Stats
 
-- **Version**: 0.6.8
+- **Version**: 0.7.0
 - **Status**: Beta
 - **Python**: 3.8+
 - **License**: MIT
 - **Detection System**: 11 rules with enhanced 20 kHz exception
 - **Tested**: 817,631 files, 89.1% authentic rate
+- **New in v0.7.0**: Partial file reading & energy-based cutoff detection
 
 ---
 
 **Made with ❤️ for audio enthusiasts**
 
-**FLAC Detective v0.6.9** - *Because your music deserves authenticity*
+**FLAC Detective v0.7.0** - *Because your music deserves authenticity*
