@@ -59,10 +59,13 @@ class FLACAnalyzer:
             
             # PHASE 1 OPTIMIZATION: Create cache using the LOCAL TEMP copy
             # All subsequent reads will hit this local file (SSD/HDD) instead of USB/Network
+            # AudioCache now handles partial loading internally
             cache = AudioCache(temp_path)
-        
             logger.debug(f"⚡ OPTIMIZATION: Created AudioCache for {filepath.name}")
-            
+
+            # Check if cache loaded partial data
+            is_partial_analysis = cache.is_partial()
+
             # Read metadata
             metadata = read_metadata(filepath)
 
@@ -78,11 +81,15 @@ class FLACAnalyzer:
             quality_analysis = analyze_audio_quality(temp_path, metadata, cutoff_freq, cache=cache)
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
-            # We must pass 'filepath' (original) for logging/reporting purposes, 
+            # We must pass 'filepath' (original) for logging/reporting purposes,
             # but ensure 'context.cache' (temp) is used for heavy lifting.
             score, verdict, confidence, reason = new_calculate_score(
                 cutoff_freq, metadata, duration_check, temp_path, cutoff_std, energy_ratio, cache=cache
             )
+
+            # Add note if analysis was partial
+            if is_partial_analysis:
+                reason += " (analysé à partir d'une lecture partielle du fichier)"
 
             return {
                 "filepath": str(filepath),
@@ -108,7 +115,8 @@ class FLACAnalyzer:
                 "dc_offset_value": quality_analysis["dc_offset"]["dc_offset_value"],
                 "is_corrupted": quality_analysis["corruption"]["is_corrupted"],
                 "corruption_error": quality_analysis["corruption"].get("error"),
-                "partial_analysis": quality_analysis["corruption"].get("partial_analysis", False),
+                "partial_analysis": quality_analysis["corruption"].get("partial_analysis", False) or is_partial_analysis,
+                "is_partial_analysis": is_partial_analysis,
                 # Phase 2
                 "has_silence_issue": quality_analysis["silence"]["has_silence_issue"],
                 "silence_issue_type": quality_analysis["silence"]["issue_type"],

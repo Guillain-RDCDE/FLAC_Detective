@@ -311,16 +311,30 @@ class CorruptionDetector(QualityDetector):
             error_msg = str(e)
             is_temp = is_temporary_decoder_error(error_msg)
 
-            logger.warning(
-                f"Corruption check {'failed' if not is_temp else 'found temporary error'} for {filepath.name}: {error_msg}"
-            )
-            return {
-                "is_corrupted": not is_temp,  # Only mark as corrupted if it's NOT a temporary error
-                "readable": False,
-                "error": error_msg,
-                "frames_read": frames_read,
-                "partial_analysis": True,  # Indicate that we can't be sure about the rest of the analysis
-            }
+            # If we read SOME frames before error, it's a partial read (not fully corrupt)
+            if frames_read > 0:
+                logger.warning(
+                    f"Partial read for {filepath.name}: {frames_read} frames read before error: {error_msg}"
+                )
+                return {
+                    "is_corrupted": False,  # NOT corrupted - just incomplete
+                    "readable": True,  # We CAN read it partially
+                    "error": error_msg,
+                    "frames_read": frames_read,
+                    "partial_analysis": True,  # Analysis will be partial
+                }
+            else:
+                # Zero frames read - truly corrupted
+                logger.error(
+                    f"Corruption check failed for {filepath.name}: {error_msg} (0 frames readable)"
+                )
+                return {
+                    "is_corrupted": not is_temp,  # Only mark as corrupted if it's NOT a temporary error
+                    "readable": False,
+                    "error": error_msg,
+                    "frames_read": 0,
+                    "partial_analysis": True,
+                }
 
 
 class SilenceDetector(QualityDetector):
@@ -605,21 +619,36 @@ class AudioQualityAnalyzer:
         results = {}
 
         # 1. Check corruption first
-        corruption_result = self.detectors["corruption"].detect(filepath=filepath)
+        # If cache is provided and has data, skip corruption check (cache already loaded data)
+        if cache is not None:
+            logger.debug(f"Skipping corruption check for {filepath.name} - using cache")
+            corruption_result = {
+                "is_corrupted": False,
+                "readable": True,
+                "error": None,
+                "frames_read": 0,  # Unknown but we have cache
+                "partial_analysis": getattr(cache, '_is_partial', False)
+            }
+        else:
+            corruption_result = self.detectors["corruption"].detect(filepath=filepath)
+
         results["corruption"] = corruption_result
 
         # If file is corrupted, cannot perform other analyses
         if corruption_result["is_corrupted"]:
             return self._get_empty_results(results, error_mode=False)
 
-        # If corruption check passed but indicated a temp error, we might not be able to proceed
-        if corruption_result.get("partial_analysis"):
+        # If partial_analysis but cache is provided, continue with partial data
+        if corruption_result.get("partial_analysis") and cache is None:
             logger.warning(
                 f"Cannot perform full quality analysis for {filepath.name} due to temporary read errors."
             )
             return self._get_empty_results(
                 results, error_mode=True, error_msg="Partial analysis due to read errors"
             )
+        elif corruption_result.get("partial_analysis") and cache is not None:
+            logger.info(f"Proceeding with partial data analysis for {filepath.name} using cache")
+
         try:
             # No longer reading the full file here.
             # Detectors will read the file themselves in a memory-efficient way.
