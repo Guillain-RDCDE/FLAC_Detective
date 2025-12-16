@@ -28,6 +28,7 @@ def is_temporary_decoder_error(error_message: str) -> bool:
         "sync error",
         "invalid frame",
         "unexpected end"
+	"unknown error"  # NEW: Can occur on valid files, worth retrying
     ]
     
     error_lower = error_message.lower()
