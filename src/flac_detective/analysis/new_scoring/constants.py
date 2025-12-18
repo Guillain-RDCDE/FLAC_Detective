@@ -57,3 +57,24 @@ CUTOFF_THRESHOLDS = {
 
 # Nyquist percentage for unknown sample rates
 NYQUIST_PERCENTAGE = 0.45
+# ========== RULE 1 ENHANCEMENT: Minimum Container Bitrate Thresholds ==========
+# Authentic FLAC files have minimum bitrates based on audio quality
+# MP3 sources recompressed as FLAC show artificially low bitrates
+
+# Absolute minimum for MP3 source detection (kbps)
+# Files below this are almost certainly from low-bitrate MP3 sources
+MIN_BITRATE_FOR_AUTHENTIC_FLAC = 160
+
+# For stereo 16-bit 44.1kHz FLAC (most common format)
+# Apparent bitrate = 44100 Hz * 16 bits * 2 channels / 1000 = 1411.2 kbps
+# Real bitrate should be 40-70% of apparent (due to FLAC compression)
+# So real bitrate range: 564-988 kbps (typical: 700-800 kbps)
+# Anything significantly below 320 kbps is suspicious
+
+# Red flag: Files with container bitrate < 160 kbps
+# These are typically MP3 sources that were upscaled to FLAC
+BITRATE_RED_FLAG_THRESHOLD = 160
+
+# Extreme red flag: Files with container bitrate < 128 kbps
+# These are definitely from very low-quality MP3 sources (or worse)
+BITRATE_CRITICAL_THRESHOLD = 128

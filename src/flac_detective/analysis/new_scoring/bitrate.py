@@ -66,6 +66,7 @@ def calculate_real_bitrate(filepath: Path, duration: float) -> float:
 
         # Bitrate = (file_size_bytes × 8) / (duration_seconds × 1000)
         bitrate_kbps = (file_size_bytes * 8) / (duration * 1000)
+        logger.warning(f">>> BITRATE CALC: {filepath.name} | Size: {file_size_bytes} bytes | Duration: {duration:.3f}s | Bitrate: {bitrate_kbps:.1f} kbps")
         logger.info(f"Real bitrate calculated: {bitrate_kbps:.1f} kbps (size={file_size_bytes} bytes, duration={duration:.1f}s)")
         return bitrate_kbps
 
