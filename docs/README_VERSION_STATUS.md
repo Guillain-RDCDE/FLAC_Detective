@@ -1,6 +1,6 @@
 # 📋 Documentation Version Status
 
-## Current Version: v0.8.0
+## Current Version: v0.7.0
 
 Last Updated: December 18, 2025
 
@@ -36,7 +36,7 @@ Last Updated: December 18, 2025
 ### ⚠️ OUTDATED - DO NOT USE FOR IMPLEMENTATION
 
 These files describe Rule 1 with **direct bitrate thresholds** (< 128 kbps, < 160 kbps) 
-which were **reverted in v0.8.0**. They are kept for historical reference only.
+which were **reverted in v0.7.0**. They are kept for historical reference only.
 
 - 📜 [RULE1_ENHANCEMENT_BITRATE_DETECTION.md](RULE1_ENHANCEMENT_BITRATE_DETECTION.md) - **OBSOLETE**
   - Documents direct bitrate checks (reverted)
@@ -66,7 +66,7 @@ which were **reverted in v0.8.0**. They are kept for historical reference only.
 
 ## 📊 Implementation Status
 
-### Rule 1: MP3 Spectral Signature Detection (v0.8.0)
+### Rule 1: MP3 Spectral Signature Detection (v0.7.0)
 
 **Current Status**: ✅ **SPECTRAL-ONLY**
 
@@ -75,7 +75,7 @@ which were **reverted in v0.8.0**. They are kept for historical reference only.
 │  Rule 1 Implementation Summary           │
 ├─────────────────────────────────────────┤
 │ Method          │ Spectral analysis      │
-│ Bitrate checks  │ ❌ Reverted (v0.8.0)   │
+│ Bitrate checks  │ ❌ Reverted (v0.7.0)   │
 │ Points awarded  │ +50 if match found     │
 │ Safety checks   │ ✅ 5 implemented       │
 │ False positives │ 0 in production scan   │
@@ -92,9 +92,8 @@ which were **reverted in v0.8.0**. They are kept for historical reference only.
 5. Container bitrate range matching
 
 **History**:
-- v0.7.0: Spectral-only Rule 1 (baseline)
-- v0.7.1: Enhanced with direct bitrate checks (128/160 kbps thresholds)
-- v0.8.0: Reverted to spectral-only (current, stable)
+- v0.7.0: Spectral-only Rule 1 with safety guards (current, stable)
+- (Experimental phases: Direct bitrate checks tested and reverted)
 
 ---
 
@@ -102,7 +101,7 @@ which were **reverted in v0.8.0**. They are kept for historical reference only.
 
 ### Detection Change
 
-**REVERTED** (v0.8.0):
+**REVERTED** (v0.7.0):
 ```python
 # Direct bitrate thresholds (caused faux positifs)
 if container_bitrate < 128 kbps:
@@ -111,7 +110,7 @@ elif container_bitrate < 160 kbps:
     return +40 points  # REMOVED - false positives
 ```
 
-**CURRENT** (v0.8.0):
+**CURRENT** (v0.7.0):
 ```python
 # Spectral signature only (reliable)
 cutoff_freq = estimate_spectral_cutoff()

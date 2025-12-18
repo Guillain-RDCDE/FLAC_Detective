@@ -174,7 +174,7 @@ CHECK 2: Cutoff == 20000 exactly ?
 
 ## Statistiques de changement
 
-### Production scan (v0.8.0)
+### Production scan (v0.7.0)
 
 | Collection | Volume | Fichiers | Score AUTHENTIC | Score SUSPICIOUS | Verdict |
 |---|---|---|---|---|---|
@@ -202,15 +202,15 @@ Rule 1 Detections (Spectral): 1 file certain
 
 ## 🎯 Conclusion
 
-**Implémentation actuelle (v0.8.0)** : Rule 1 Spectral-Only Detection
+**Implémentation actuelle (v0.7.0)** : Rule 1 Spectral-Only Detection
 - Détecte via signature spectrale uniquement (fiable, sans faux positifs)
 - Utilise sécurités multiples contre les faux positifs (Nyquist checks, variance, ambiguity)
 - Vol. 2 & 3 non détectés = CORRECT (authenticité préservée via cutoff 22050 Hz)
 
 **Historique des changements**:
 1. Initial Rule 1: Spectral analysis (baseline)
-2. Enhanced with direct bitrate checks (faux positifs détectés)
-3. Reverted to spectral-only (v0.8.0, current)
+2. Enhanced with direct bitrate checks (experimental, faux positifs détectés)
+3. Reverted to spectral-only (v0.7.0, current)
 
 **Résultat final** : Meilleure stabilité, moins de faux positifs
 - 100 fichiers authentiques correctement classés
