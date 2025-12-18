@@ -8,7 +8,7 @@
 > - **Never used Python?** → [QUICKSTART.md](QUICKSTART.md) (3 minutes!)
 > - **Looking for guidance?** → [WELCOME.md](WELCOME.md) (choose your path)
 
-![FLAC Detective Console Preview](assets/console_preview.png)
+![FLAC Detective Banner](assets/flac_detective_banner.png)
 
 FLAC Detective is a professional-grade tool for detecting MP3-to-FLAC transcodes with exceptional precision. Using advanced spectral analysis and multi-rule scoring, it achieves 89.1% authentic detection rate with less than 0.5% false positives.
 
