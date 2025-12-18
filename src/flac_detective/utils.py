@@ -1,4 +1,4 @@
-﻿"""General utilities for the application."""
+"""General utilities for the application."""
 
 import logging
 from pathlib import Path
@@ -18,29 +18,45 @@ except (ValueError, ImportError):
     _date_str = __release_date__
 
 _version_str = f"Version {__version__} - {_date_str}"
-# Center version string in 75 characters width
-_padding = 75 - len(_version_str)
+# Center version string - box interior is 77 visible characters
+_padding = 77 - len(_version_str)
 _left_pad = " " * (_padding // 2)
-_right_pad = " " * (_padding - len(_left_pad))
+_right_pad = " " * (_padding - (_padding // 2))
 _version_line = f"{_left_pad}{_version_str}{_right_pad}"
 
 # Logo FLAC Detective
+# Each line inside ║...║ must be exactly 77 visible characters (not counting ANSI codes)
 LOGO = f"""
-{Colors.CYAN}╔═══════════════════════════════════════════════════════════════════════════╗
-║                                                                           ║
-║                          {Colors.BRIGHT_WHITE}FLAC DETECTIVE{Colors.CYAN}                                   ║
-║                                                                           ║
-║              "Every FLAC file tells a story... I find the truth"          ║
-║                                                                           ║
-║   ┌─────────────────────────────────────────────────────────────────────┐ ║
-║   │ {Colors.GREEN}Spectral Analysis{Colors.CYAN}         │ {Colors.GREEN}Duration Check{Colors.CYAN}                          │ ║
-║   │ {Colors.GREEN}Energy Profiling{Colors.CYAN}          │ {Colors.GREEN}Metadata Validation{Colors.CYAN}                     │ ║
-║   │ {Colors.GREEN}Auto Repair{Colors.CYAN}               │ {Colors.GREEN}Smart Backup{Colors.CYAN}                            │ ║
-║   └─────────────────────────────────────────────────────────────────────┘ ║
-║                                                                           ║
+{Colors.CYAN}╔═════════════════════════════════════════════════════════════════════════════╗
+║                                                                             ║
+║   {Colors.BRIGHT_WHITE}███████╗██╗      █████╗  ██████╗                                          {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██╔════╝██║     ██╔══██╗██╔════╝                                          {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}█████╗  ██║     ███████║██║                                               {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██╔══╝  ██║     ██╔══██║██║                                               {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██║     ███████╗██║  ██║╚██████╗                                          {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝                                          {Colors.CYAN}║
+║                                                                             ║
+║   {Colors.BRIGHT_WHITE}██████╗ ███████╗████████╗███████╗ ██████╗████████╗██╗██╗   ██╗███████╗    {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝██║██║   ██║██╔════╝    {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██║  ██║█████╗     ██║   █████╗  ██║        ██║   ██║██║   ██║█████╗      {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██║  ██║██╔══╝     ██║   ██╔══╝  ██║        ██║   ██║╚██╗ ██╔╝██╔══╝      {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}██████╔╝███████╗   ██║   ███████╗╚██████╗   ██║   ██║ ╚████╔╝ ███████╗    {Colors.CYAN}║
+║   {Colors.BRIGHT_WHITE}╚═════╝ ╚══════╝   ╚═╝   ╚══════╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝    {Colors.CYAN}║
+║                                                                             ║
+║              {Colors.GREEN}█  ▊  ▏   Audio Intelligence Engine   ▏  ▊  █{Colors.CYAN}                  ║
+║                                                                             ║
+║   {Colors.GREEN}Spectral Frequency Analysis{Colors.CYAN}  •  {Colors.GREEN}Metadata Validation{Colors.CYAN}  •  {Colors.GREEN}Auto Repair{Colors.CYAN}       ║
+║   {Colors.GREEN}Energy Profile Detection{Colors.CYAN}     •  {Colors.GREEN}Duration Integrity{Colors.CYAN}   •  {Colors.GREEN}Smart Recovery{Colors.CYAN}    ║
+║                                                                             ║
+║         Every FLAC file tells a story... I find the truth                   ║
+║                                                                             ║
+║   ═══════════════════════════════════════════════════════════════════════   ║
+║   ⚙️  Hunting Down Fake FLACs & Corrupted Files Since 2025                  ║
+║   ═══════════════════════════════════════════════════════════════════════   ║
+║                                                                             ║
 ║{_version_line}║
-║                                                                           ║
-╚═══════════════════════════════════════════════════════════════════════════╝{Colors.RESET}
+║                                                                             ║
+╚═════════════════════════════════════════════════════════════════════════════╝{Colors.RESET}
 """
 
 
