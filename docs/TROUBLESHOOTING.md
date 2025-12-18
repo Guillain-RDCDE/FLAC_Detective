@@ -224,7 +224,7 @@ Title: Rule 1 scores all files as SUSPICIOUS
 Environment:
 - Python 3.9.2
 - Windows 10
-- FLAC Detective v0.8.0
+- FLAC Detective v0.7.0
 
 Steps:
 1. Copied 100 authentic FLAC files to D:\FLACs

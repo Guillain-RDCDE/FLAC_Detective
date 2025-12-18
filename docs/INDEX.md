@@ -1,22 +1,8 @@
-# 📚 FLAC Detective Documentation Index
+# 📚 Documentation Index
 
-Welcome to FLAC Detective documentation! This index helps you find what you need.
+See [README.md](README.md) for the complete documentation overview.
 
-**📌 Version Note**: See [README_VERSION_STATUS.md](README_VERSION_STATUS.md) for current implementation status.
-
-## 🚀 Getting Started
-
-**New to FLAC Detective?** Start here:
-- [GETTING_STARTED.md](GETTING_STARTED.md) - Installation & first scan
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System design & components
-
-## 📖 User Documentation
-
-**How to use FLAC Detective:**
-- [RULES.md](RULES.md) - Detailed rule specifications (Rules 1-11)
-- [EXAMPLES.md](EXAMPLES.md) - Usage examples & scenarios
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues & solutions
-- [BEFORE_AFTER_COMPARISON.md](BEFORE_AFTER_COMPARISON.md) - Analysis examples
+This file is deprecated. Please use **README.md** as your starting point for navigating the documentation.
 
 ## 🔧 Development & Contributing
 
@@ -36,7 +22,7 @@ Welcome to FLAC Detective documentation! This index helps you find what you need
 
 **Important for implementation**:
 - [README_VERSION_STATUS.md](README_VERSION_STATUS.md) - **START HERE** - Current vs Legacy documentation
-  - Lists which files are current (v0.8.0)
+  - Lists which files are current (v0.7.0)
   - Marks obsolete files (kept for history)
   - Explains what changed and why
 
