@@ -5,6 +5,13 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2025-12-18
+
+### Fixed
+- **README Image Display on PyPI**: Fixed broken banner image by using absolute GitHub URL instead of relative path
+  - Changed from `assets/flac_detective_banner.png` to full GitHub raw URL
+  - Ensures proper display on PyPI package page
+
 ## [0.7.0] - 2025-12-16
 
 ### 🚀 Major Features
