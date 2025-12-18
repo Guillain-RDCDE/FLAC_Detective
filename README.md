@@ -4,7 +4,9 @@
 
 > "Every FLAC file tells a story... I find the truth."
 
-> **👋 New here?** See [WELCOME.md](WELCOME.md) for quick navigation based on what you want to do!
+> **👋 New here?** 
+> - **Never used Python?** → [QUICKSTART.md](QUICKSTART.md) (3 minutes!)
+> - **Looking for guidance?** → [WELCOME.md](WELCOME.md) (choose your path)
 
 ![FLAC Detective Console Preview](assets/console_preview.png)
 
@@ -74,51 +76,119 @@ Score ≤ 30  → AUTHENTIC ✅ (99.5% confidence)
 | **Tested Files** | 817,631 | ✅ Large-scale |
 | **Performance** | +80% | ✅ Optimized |
 
-## 🛠️ Installation
+## 🛠️ Installation Guide
 
-### From PyPI (Recommended)
+> **👤 New to Python?** Follow the **"Installation Simple pour Débutants"** section below!
+
+### ⚡ Installation Simple pour Débutants
+
+**Si vous n'avez JAMAIS utilisé Python, commencez ici!**
+
+#### Étape 1: Vérifier que Python est installé
+
+1. Ouvrez **Terminal** (Mac/Linux) ou **PowerShell** (Windows)
+2. Tapez: `python --version`
+3. Vous devriez voir `Python 3.8+` ou plus récent
+
+**Si ça ne marche pas?**
+- Téléchargez Python depuis [python.org](https://www.python.org/downloads/)
+- **⚠️ Windows**: Lors de l'installation, cochez "Add Python to PATH" ✅
+- Fermez puis réouvrez Terminal/PowerShell
+
+#### Étape 2: Installer FLAC Detective
+
+C'est la partie facile! Tapez simplement:
 
 ```bash
 pip install flac-detective
 ```
 
-### From Source
+Attendez que l'installation se termine (cela prendra 1-2 minutes).
+
+#### Étape 3: Tester que ça fonctionne
+
+Tapez:
+```bash
+flac-detective --help
+```
+
+Si vous voyez de l'aide s'afficher → **C'est bon! ✅**
+
+#### Étape 4: Utiliser FLAC Detective
+
+Allez dans votre dossier de musique et tapez:
 
 ```bash
-# Clone the repository
+flac-detective .
+```
+
+(Le point `.` signifie "le dossier actuel")
+
+**Exemples:**
+
+```bash
+# Analyser le dossier courant
+flac-detective .
+
+# Analyser un dossier spécifique
+flac-detective /chemin/vers/mes/flac
+
+# Générer un rapport en fichier
+flac-detective . --output rapport.txt
+```
+
+---
+
+### 📦 Installation Avancée (Pour Développeurs)
+
+#### À partir de PyPI (Recommandé pour les utilisateurs)
+
+```bash
+pip install flac-detective
+```
+
+#### À partir du code source (Pour contributeurs)
+
+```bash
+# Cloner le dépôt
 git clone https://github.com/GuillainM/FLAC_Detective.git
 cd FLAC_Detective
 
-# Create virtual environment
+# Créer un environnement virtuel Python
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Install in development mode
+# Activer l'environnement
+# Mac/Linux:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
+# Installer en mode développement
 pip install -e .
 
-# Install development dependencies
+# Installer les dépendances de développement
 pip install -e ".[dev]"
 ```
 
-## Dependencies
+## 📦 Dépendances Système
 
-FLAC Detective now uses the official `flac` command-line tool to automatically repair corrupted files. You must have this tool installed on your system for the repair functionality to work.
+FLAC Detective nécessite l'outil `flac` pour certaines fonctionnalités avancées.
 
-### Installing `flac`
+### Installation de `flac`
 
-- **On Debian/Ubuntu:**
-  ```bash
-  sudo apt-get update
-  sudo apt-get install flac
-  ```
+**Debian/Ubuntu:**
+```bash
+sudo apt-get update
+sudo apt-get install flac
+```
 
-- **On macOS (using Homebrew):**
-  ```bash
-  brew install flac
-  ```
+**macOS (avec Homebrew):**
+```bash
+brew install flac
+```
 
-- **On Windows:**
-  You can download the official binaries from the [Xiph.org foundation website](https://xiph.org/flac/download.html).
+**Windows:**
+Téléchargez les binaires officiels: [Xiph.org FLAC](https://xiph.org/flac/download.html)
 
 ## 🚀 Usage
 
@@ -140,6 +210,27 @@ flac-detective /path/to/music --verbose
 # Custom output file
 flac-detective /path/to/music --output report.txt
 ```
+
+### 🆘 Dépannage pour Débutants
+
+**Problème: "Command not found: flac-detective"**
+
+Solution: L'installation n'a peut-être pas fonctionné correctement. Essayez:
+```bash
+pip install --upgrade flac-detective
+```
+
+**Problème: "pip: command not found"**
+
+Solution: Python n'est pas correctement installé. Suivez l'Étape 1 ci-dessus.
+
+**Problème: "No FLAC files found"**
+
+Vérifiez que:
+1. Vous avez des fichiers `.flac` dans le dossier
+2. Vous êtes dans le bon dossier (utilisez `cd` pour naviguer)
+
+**Besoin d'aide?** Consultez [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) pour plus de solutions.
 
 ### Python API
 

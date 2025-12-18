@@ -6,7 +6,11 @@
 
 ### 👤 I want to **USE** FLAC Detective to analyze FLAC files
 
-**Start here:**
+**START HERE - Quick & Easy:**
+1. **First time?** Read: [QUICKSTART.md](QUICKSTART.md) - 3 minutes installation
+2. **Ready?** Come back and read: [docs/EXAMPLES.md](docs/EXAMPLES.md)
+
+**Or detailed path:**
 1. Read: [README.md](README.md) - Features and overview
 2. Install: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 3. Learn: [docs/RULES.md](docs/RULES.md) - How detection works
