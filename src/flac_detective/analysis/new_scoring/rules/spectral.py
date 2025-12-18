@@ -8,6 +8,7 @@ from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
 logger = logging.getLogger(__name__)
 
 
+
 def apply_rule_1_mp3_bitrate(
     cutoff_freq: float,
     container_bitrate: float,
@@ -140,6 +141,7 @@ def apply_rule_1_mp3_bitrate(
             )
 
     return (score, reasons), None
+
 
 
 def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List[str]]:
