@@ -83,7 +83,7 @@ class FLACAnalyzer:
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
             # We must pass 'filepath' (original) for logging/reporting purposes,
             # but ensure 'context.cache' (temp) is used for heavy lifting.
-            logger.warning(f">>> ANALYZING FILE: {filepath.name} | Cutoff: {cutoff_freq:.0f} Hz | Volume check")
+            logger.debug(f"Analyzing file: {filepath.name} | Cutoff: {cutoff_freq:.0f} Hz")
             score, verdict, confidence, reason = new_calculate_score(
                 cutoff_freq, metadata, duration_check, temp_path, cutoff_std, energy_ratio, cache=cache
             )

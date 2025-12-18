@@ -35,9 +35,9 @@ class ScoringRule(ABC):
 
 class Rule1MP3Bitrate(ScoringRule):
     def apply(self, context: ScoringContext) -> None:
-        logger.warning(
-            f">>> RULE 1 CONTEXT: real_bitrate={context.bitrate_metrics.real_bitrate:.1f} kbps | "
-            f"duration={context.audio_meta.duration:.3f}s | file={context.filepath.name}"
+        logger.debug(
+            f"Rule 1: real_bitrate={context.bitrate_metrics.real_bitrate:.1f} kbps | "
+            f"duration={context.audio_meta.duration:.3f}s"
         )
         (score, reasons), estimated_bitrate = apply_rule_1_mp3_bitrate(
             context.cutoff_freq,
