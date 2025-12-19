@@ -23,13 +23,15 @@ class AudioCache:
     Avoids multiple file reads and redundant FFT calculations.
     """
 
-    def __init__(self, filepath: Path):
+    def __init__(self, filepath: Path, original_filepath: Optional[Path] = None):
         """Initialize cache for a specific file.
 
         Args:
-            filepath: Path to the audio file
+            filepath: Path to the audio file (may be temporary)
+            original_filepath: Original file path (for diagnostic reporting)
         """
         self.filepath = filepath
+        self.original_filepath = original_filepath or filepath
         self._full_audio: Optional[Tuple[np.ndarray, int]] = None
         self._segments: dict = {}
         self._spectrum: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
@@ -47,12 +49,12 @@ class AudioCache:
             with self._lock:
                 if self._full_audio is None:  # Double-check pattern
                     logger.debug(f"CACHE: Loading full audio from {self.filepath.name}")
-                    data, sr = load_audio_with_retry(str(self.filepath), always_2d=True)
+                    data, sr = load_audio_with_retry(str(self.filepath), always_2d=True, original_filepath=str(self.original_filepath))
 
                     if data is None:
                         # Full load failed - try partial load
                         logger.warning(f"CACHE: Full load failed for {self.filepath.name}, attempting partial load")
-                        data_partial, sr_partial, is_complete = sf_blocks_partial(str(self.filepath))
+                        data_partial, sr_partial, is_complete = sf_blocks_partial(str(self.filepath), original_filepath=str(self.original_filepath))
 
                         if data_partial is None:
                             raise RuntimeError(f"Failed to load any audio data from {self.filepath}")
@@ -102,7 +104,8 @@ class AudioCache:
                         str(self.filepath),
                         start=start_frame,
                         frames=frames,
-                        always_2d=True
+                        always_2d=True,
+                        original_filepath=str(self.original_filepath)
                     )
                     if data is None:
                          # Segment load failure is less critical, maybe return empty?

@@ -12,6 +12,7 @@ from .quality import analyze_audio_quality
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .spectrum import analyze_spectrum
 from .audio_cache import AudioCache
+from .diagnostic_tracker import get_tracker
 
 import shutil
 import tempfile
@@ -60,7 +61,8 @@ class FLACAnalyzer:
             # PHASE 1 OPTIMIZATION: Create cache using the LOCAL TEMP copy
             # All subsequent reads will hit this local file (SSD/HDD) instead of USB/Network
             # AudioCache now handles partial loading internally
-            cache = AudioCache(temp_path)
+            # Pass original filepath for diagnostic tracking
+            cache = AudioCache(temp_path, original_filepath=filepath)
             logger.debug(f"⚡ OPTIMIZATION: Created AudioCache for {filepath.name}")
 
             # Check if cache loaded partial data
@@ -91,6 +93,9 @@ class FLACAnalyzer:
             # Add note if analysis was partial
             if is_partial_analysis:
                 reason += " (analysé à partir d'une lecture partielle du fichier)"
+
+            # Increment files analyzed counter
+            get_tracker().increment_files_analyzed()
 
             return {
                 "filepath": str(filepath),
