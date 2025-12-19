@@ -22,6 +22,7 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 - **🛡️ Protection Layers**: Prevents false positives for vinyl rips, cassette transfers, and high-quality MP3s
 - **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
 - **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
+- **🔨 Automatic Repair**: Corrupted FLAC files are automatically repaired with full metadata preservation
 
 ---
 
@@ -93,11 +94,26 @@ The tool implements a multi-layer protection system to prevent false positives:
 
 ---
 
-## 🆕 What's New in v0.7.0
+## 🆕 What's New in v0.8.0
 
-### Partial File Reading
-- Gracefully handles FLAC files with decoder errors
-- Analyzes partial audio data when full decode fails
+### Automatic FLAC Repair with Metadata Preservation
+- **Smart Corruption Detection**: Automatically identifies corrupted FLAC files during analysis
+- **Decode-Through-Errors**: Recovers maximum audio data from corrupted files using `flac --decode-through-errors`
+- **Complete Metadata Preservation**: Extracts and restores all tags (TITLE, ARTIST, ALBUM, etc.) and album art
+- **Automatic Source Replacement**: Replaces corrupted files with repaired versions (creates `.corrupted.bak` backups)
+- **Integrity Verification**: All repaired files validated with `flac --test` before replacement
+- **6-Step Repair Process**:
+  1. Extract metadata (tags + pictures)
+  2. Decode with error recovery
+  3. Re-encode to clean FLAC
+  4. Restore all metadata
+  5. Verify integrity
+  6. Replace source with backup
+
+### Enhanced Diagnostics
+- Detailed repair logging with step-by-step progress
+- Diagnostic tracking for all repair operations
+- Clear success/failure indicators
 - Reduces false "CORRUPTED" verdicts
 
 ### Energy-Based Cutoff Detection
