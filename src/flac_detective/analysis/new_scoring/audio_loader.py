@@ -2,8 +2,9 @@
 
 import logging
 import time
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, List, Any, Generator
 import numpy as np
+from numpy.typing import NDArray
 import soundfile as sf
 import tempfile
 import shutil
@@ -12,13 +13,16 @@ import os
 
 from ..diagnostic_tracker import get_tracker, IssueType
 
+# Type variable for mutagen availability
+MUTAGEN_AVAILABLE: bool
+
 try:
     from mutagen.flac import FLAC, Picture
     MUTAGEN_AVAILABLE = True
 except ImportError:
     MUTAGEN_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def is_temporary_decoder_error(error_message: str) -> bool:
@@ -49,8 +53,8 @@ def load_audio_with_retry(
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
     original_filepath: Optional[str] = None,
-    **kwargs
-) -> Tuple[Optional[np.ndarray], Optional[int]]:
+    **kwargs: Any
+) -> Tuple[Optional[NDArray[np.float64]], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
 
     This function attempts to load a FLAC file using soundfile.read() with
@@ -68,10 +72,10 @@ def load_audio_with_retry(
         Tuple of (audio_data, sample_rate) on success, or (None, None) on failure
     """
     # Use original filepath for diagnostic tracking, or file_path if not provided
-    tracking_path = original_filepath or file_path
+    tracking_path: str = original_filepath or file_path
 
-    delay = initial_delay
-    last_error = None
+    delay: float = initial_delay
+    last_error: Optional[Exception] = None
     
     for attempt in range(1, max_attempts + 1):
         try:
@@ -159,9 +163,9 @@ def load_audio_segment(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
-) -> Tuple[Optional[np.ndarray], Optional[int]]:
+) -> Tuple[Optional[NDArray[np.float64]], Optional[int]]:
     """Load a specific segment of an audio file with retry logic."""
-    delay = initial_delay
+    delay: float = initial_delay
     for attempt in range(1, max_attempts + 1):
         try:
             with sf.SoundFile(file_path, "r") as f:
@@ -212,7 +216,7 @@ def load_audio_segment(
     return None, None
 
 
-def _extract_metadata(flac_path: str) -> Optional[dict]:
+def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
     """Extract all metadata from a FLAC file.
 
     Args:
@@ -226,18 +230,18 @@ def _extract_metadata(flac_path: str) -> Optional[dict]:
         return None
 
     try:
-        audio = FLAC(flac_path)
+        audio: FLAC = FLAC(flac_path)
 
         # Extract all tags
-        tags = {}
+        tags: Dict[str, List[str]] = {}
         if audio.tags:
-            for key, value in audio.tags:
+            for key, value in audio.tags:  # type: ignore[union-attr]
                 if key not in tags:
                     tags[key] = []
                 tags[key].extend(value if isinstance(value, list) else [value])
 
         # Extract all pictures (album art)
-        pictures = list(audio.pictures) if audio.pictures else []
+        pictures: List[Picture] = list(audio.pictures) if audio.pictures else []
 
         logger.debug(f"  Extracted {len(tags)} tag types and {len(pictures)} picture(s)")
 
@@ -251,7 +255,7 @@ def _extract_metadata(flac_path: str) -> Optional[dict]:
         return None
 
 
-def _restore_metadata(flac_path: str, metadata: dict) -> bool:
+def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> bool:
     """Restore metadata to a FLAC file.
 
     Args:
@@ -265,16 +269,16 @@ def _restore_metadata(flac_path: str, metadata: dict) -> bool:
         return False
 
     try:
-        audio = FLAC(flac_path)
+        audio: FLAC = FLAC(flac_path)
 
         # Restore tags
         audio.clear()
-        tags = metadata.get('tags', {})
+        tags: Dict[str, List[str]] = metadata.get('tags', {})
         for key, values in tags.items():
             audio[key] = values
 
         # Restore pictures
-        pictures = metadata.get('pictures', [])
+        pictures: List[Picture] = metadata.get('pictures', [])
         for picture in pictures:
             audio.add_picture(picture)
 
@@ -311,17 +315,17 @@ def repair_flac_file(
     Returns:
         Path to the repaired temporary file, or None on failure.
     """
-    wav_path = None
-    repaired_path = None
-    metadata = None
+    wav_path: Optional[str] = None
+    repaired_path: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
     try:
-        temp_dir = tempfile.gettempdir()
-        base_name = os.path.splitext(os.path.basename(corrupted_path))[0]
+        temp_dir: str = tempfile.gettempdir()
+        base_name: str = os.path.splitext(os.path.basename(corrupted_path))[0]
         wav_path = os.path.join(temp_dir, f"repair_{base_name}.wav")
         repaired_path = os.path.join(temp_dir, f"repaired_{os.path.basename(corrupted_path)}")
 
-        display_name = os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
+        display_name: str = os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
         logger.info(f"Attempting to repair {display_name}")
 
         # Step 0: Extract metadata from original file
@@ -468,7 +472,7 @@ def sf_blocks(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
-) -> Tuple[Optional[np.ndarray], Optional[int]]:
+) -> Generator[NDArray[np.float32], None, None]:
     """Read audio in chunks with a retry mechanism for temporary errors.
 
     This function reads audio in chunks to avoid loading the entire file into
@@ -486,19 +490,18 @@ def sf_blocks(
         backoff_multiplier: Multiplier for exponential backoff.
 
     Returns:
-        A tuple containing the audio data and sample rate, or (None, None) if
-        reading fails.
+        Generator yielding audio chunks as numpy arrays.
     """
-    current_frame = 0
+    current_frame: int = 0
     try:
-        total_frames = sf.info(file_path).frames
+        total_frames: int = sf.info(file_path).frames
     except Exception as e:
         logger.error(f"Could not open or read info from {file_path}: {e}")
         return
 
     while current_frame < total_frames:
-        delay = initial_delay
-        read_successful = False
+        delay: float = initial_delay
+        read_successful: bool = False
         for attempt in range(1, max_attempts + 1):
             try:
                 with sf.SoundFile(file_path, "r") as f:
@@ -548,7 +551,7 @@ def sf_blocks_partial(
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
     original_filepath: Optional[str] = None,
-) -> Tuple[Optional[np.ndarray], Optional[int], bool]:
+) -> Tuple[Optional[NDArray[np.float32]], Optional[int], bool]:
     """Read audio in chunks, returning partial data if full read fails.
 
     This function attempts to read an entire audio file in blocks. If reading
@@ -571,16 +574,16 @@ def sf_blocks_partial(
         - is_complete: True if entire file was read, False if partial
     """
     # Use original filepath for diagnostic tracking, or file_path if not provided
-    tracking_path = original_filepath or file_path
+    tracking_path: str = original_filepath or file_path
 
-    chunks = []
-    sample_rate = None
-    current_frame = 0
+    chunks: List[NDArray[np.float32]] = []
+    sample_rate: Optional[int] = None
+    current_frame: int = 0
 
     try:
         info = sf.info(file_path)
         sample_rate = info.samplerate
-        total_frames = info.frames
+        total_frames: int = info.frames
     except Exception as e:
         logger.error(f"Cannot read file info from {file_path}: {e}")
         return None, None, False
@@ -589,8 +592,8 @@ def sf_blocks_partial(
 
     # Read chunks until we hit an error or reach end
     while current_frame < total_frames:
-        delay = initial_delay
-        read_successful = False
+        delay: float = initial_delay
+        read_successful: bool = False
 
         for attempt in range(1, max_attempts + 1):
             try:
@@ -684,10 +687,10 @@ def sf_blocks_partial(
 
     # Successfully read entire file
     if chunks:
-        combined = np.concatenate(chunks)
-        is_complete = (current_frame >= total_frames)
+        final_combined: NDArray[np.float32] = np.concatenate(chunks)
+        is_complete: bool = (current_frame >= total_frames)
         logger.debug(f"Read {current_frame}/{total_frames} frames ({'complete' if is_complete else 'partial'})")
-        return combined, sample_rate, is_complete
+        return final_combined, sample_rate, is_complete
     else:
         logger.error("No data could be read")
         return None, None, False
