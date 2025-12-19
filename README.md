@@ -21,7 +21,7 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 - **🔍 Advanced Analysis**: Spectral analysis, compression artifact detection, and multi-segment validation
 - **🛡️ Protection Layers**: Prevents false positives for vinyl rips, cassette transfers, and high-quality MP3s
 - **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
-- **🔧 Graceful Error Handling**: Partial file reading for corrupted or problematic FLAC files
+- **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
 
 ---
 
@@ -237,10 +237,9 @@ src/flac_detective/
 
 ## 📚 Documentation
 
+- [**Getting Started**](GETTING_STARTED_NEW_USERS.md) - Quick start guide for new users
+- [**Diagnostic & Troubleshooting**](DIAGNOSTIC_TROUBLESHOOTING.md) - Error handling and troubleshooting
 - [**Changelog**](CHANGELOG.md) - Version history and release notes
-- [**Technical Documentation**](docs/TECHNICAL_DOCUMENTATION.md) - Architecture and algorithms
-- [**Rule Specifications**](docs/RULE_SPECIFICATIONS.md) - Detailed rule documentation
-- [**Performance Guide**](docs/PERFORMANCE_OPTIMIZATIONS.md) - Optimization strategies
 - [**Project Structure**](PROJECT_STRUCTURE.md) - Codebase organization
 
 ---

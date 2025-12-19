@@ -50,6 +50,7 @@ except ImportError:
     console = None
 
 from .analysis import FLACAnalyzer
+from .analysis.diagnostic_tracker import get_tracker, reset_tracker
 from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
@@ -93,18 +94,20 @@ def setup_logging(output_dir: Path) -> Path:
     if HAS_RICH:
         # Rich Handler for beautiful output
         rich_handler = RichHandler(
-            console=console, 
-            show_time=True, 
+            console=console,
+            show_time=True,
             omit_repeated_times=False,
             show_path=False,
             rich_tracebacks=True
         )
-        rich_handler.setLevel(logging.INFO)
+        # Set to WARNING to reduce noise from retry/partial read messages
+        # All details are still saved to the log file
+        rich_handler.setLevel(logging.WARNING)
         root_log.addHandler(rich_handler)
     else:
         # Standard Console Handler (Legacy fallback)
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
+        console_handler.setLevel(logging.WARNING)
         console_handler.setFormatter(file_formatter)
         root_log.addHandler(console_handler)
 
@@ -602,6 +605,21 @@ def generate_final_report(
     reporter = TextReporter()
     reporter.generate_report(results, output_file, scan_paths=input_paths)
 
+    # Generate diagnostic report if there were issues
+    tracker = get_tracker()
+    stats = tracker.get_statistics()
+    diagnostic_report_path = None
+
+    if stats["files_with_issues"] > 0:
+        diagnostic_report_path = output_dir / f"flac_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        diagnostic_report = tracker.generate_report()
+
+        with open(diagnostic_report_path, 'w', encoding='utf-8') as f:
+            f.write(diagnostic_report)
+
+        logger.warning(f"\n⚠️  {stats['files_with_issues']} file(s) had reading issues during analysis")
+        logger.warning(f"   Diagnostic report saved to: {diagnostic_report_path.name}")
+
     # Summary (NEW SCORING: score >= 50 = suspicious)
     suspicious_flac = [r for r in results if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
     fake_certain = [r for r in results if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
@@ -618,7 +636,14 @@ def generate_final_report(
     print(f"  {colorize('Fake/Suspicious FLAC files', Colors.RED)}: {len(suspicious_flac)} (including {len(fake_certain)} certain fakes)")
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
+
+    # Show diagnostic warning if there were issues
+    if stats["files_with_issues"] > 0:
+        print(f"  {colorize('⚠️  Files with reading issues', Colors.YELLOW)}: {stats['files_with_issues']} ({stats['critical_failures']} critical)")
+
     print(f"  Text report: {output_file.name}")
+    if diagnostic_report_path:
+        print(f"  {colorize('Diagnostic report', Colors.YELLOW)}: {diagnostic_report_path.name}")
     if log_file_kept:
         print(f"  Console log: {log_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
@@ -626,6 +651,9 @@ def generate_final_report(
 
 def main():
     """Main function."""
+    # Reset diagnostic tracker at the start of analysis
+    reset_tracker()
+
     paths = parse_arguments()
 
     print()

@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import os
 
+from ..diagnostic_tracker import get_tracker, IssueType
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +42,7 @@ def load_audio_with_retry(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
+    original_filepath: Optional[str] = None,
     **kwargs
 ) -> Tuple[Optional[np.ndarray], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
@@ -52,11 +55,15 @@ def load_audio_with_retry(
         max_attempts: Maximum number of attempts (default: 5)
         initial_delay: Initial delay between retries in seconds (default: 0.2)
         backoff_multiplier: Multiplier for exponential backoff (default: 2.0)
+        original_filepath: Original file path for diagnostic reporting (default: None)
         **kwargs: Additional keyword arguments to pass to soundfile.read()
 
     Returns:
         Tuple of (audio_data, sample_rate) on success, or (None, None) on failure
     """
+    # Use original filepath for diagnostic tracking, or file_path if not provided
+    tracking_path = original_filepath or file_path
+
     delay = initial_delay
     last_error = None
     
@@ -82,14 +89,32 @@ def load_audio_with_retry(
                     time.sleep(delay)
                     delay *= backoff_multiplier
                 else:
-                    logger.error(f"❌ Failed after {max_attempts} attempts: {error_msg}")
+                    logger.warning(f"Failed after {max_attempts} attempts: {error_msg}")
+                    # Track this issue
+                    get_tracker().record_issue(
+                        filepath=tracking_path,
+                        issue_type=IssueType.DECODER_SYNC_LOST if "lost sync" in error_msg.lower() else IssueType.READ_FAILED,
+                        message=error_msg,
+                        retry_count=max_attempts
+                    )
             else:
                 # Not a temporary error, don't retry
-                logger.error(f"Non-temporary error, not retrying: {error_msg}")
+                logger.warning(f"Non-temporary error, not retrying: {error_msg}")
+                get_tracker().record_issue(
+                    filepath=tracking_path,
+                    issue_type=IssueType.READ_FAILED,
+                    message=f"Non-temporary error: {error_msg}",
+                    retry_count=attempt
+                )
                 break
-    
+
     # All attempts failed, try to repair and load again
     logger.debug(f"All attempts to load {file_path} failed. Attempting repair...")
+    get_tracker().record_issue(
+        filepath=tracking_path,
+        issue_type=IssueType.REPAIR_ATTEMPTED,
+        message="Attempting FLAC repair after read failures"
+    )
     repaired_path = repair_flac_file(file_path)
 
     if repaired_path:
@@ -99,8 +124,19 @@ def load_audio_with_retry(
             os.remove(repaired_path)
             return audio_data, sample_rate
         except Exception as e:
-            logger.error(f"❌ Failed to load repaired file {repaired_path}: {e}")
+            logger.warning(f"Failed to load repaired file {repaired_path}: {e}")
+            get_tracker().record_issue(
+                filepath=tracking_path,
+                issue_type=IssueType.REPAIR_FAILED,
+                message=f"Repair failed: {str(e)}"
+            )
             os.remove(repaired_path)
+    else:
+        get_tracker().record_issue(
+            filepath=tracking_path,
+            issue_type=IssueType.REPAIR_FAILED,
+            message="FLAC repair process returned no file"
+        )
 
     return None, None
 
@@ -294,6 +330,7 @@ def sf_blocks_partial(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
+    original_filepath: Optional[str] = None,
 ) -> Tuple[Optional[np.ndarray], Optional[int], bool]:
     """Read audio in chunks, returning partial data if full read fails.
 
@@ -308,6 +345,7 @@ def sf_blocks_partial(
         max_attempts: Maximum number of retry attempts per block.
         initial_delay: Initial delay between retries.
         backoff_multiplier: Multiplier for exponential backoff.
+        original_filepath: Original file path for diagnostic reporting (default: None).
 
     Returns:
         Tuple of (audio_data, sample_rate, is_complete):
@@ -315,6 +353,9 @@ def sf_blocks_partial(
         - sample_rate: Sample rate of the audio file (None if cannot read info)
         - is_complete: True if entire file was read, False if partial
     """
+    # Use original filepath for diagnostic tracking, or file_path if not provided
+    tracking_path = original_filepath or file_path
+
     chunks = []
     sample_rate = None
     current_frame = 0
@@ -369,22 +410,55 @@ def sf_blocks_partial(
                             f"Failed to read from frame {current_frame} after {max_attempts} attempts"
                         )
                         if chunks:
-                            logger.info(f"Returning partial data: {current_frame}/{total_frames} frames ({len(chunks)} chunks)")
+                            logger.debug(f"Returning partial data: {current_frame}/{total_frames} frames ({len(chunks)} chunks)")
+                            get_tracker().record_issue(
+                                filepath=tracking_path,
+                                issue_type=IssueType.PARTIAL_READ,
+                                message=f"Partial read after decoder errors: {error_msg}",
+                                frames_read=current_frame,
+                                total_frames=total_frames,
+                                retry_count=max_attempts
+                            )
                             combined = np.concatenate(chunks)
                             return combined, sample_rate, False  # Not complete
                         else:
-                            logger.error("No data could be read before error")
+                            logger.warning("No data could be read before error")
+                            get_tracker().record_issue(
+                                filepath=tracking_path,
+                                issue_type=IssueType.READ_FAILED,
+                                message="No data could be read before error",
+                                frames_read=0,
+                                total_frames=total_frames,
+                                retry_count=max_attempts
+                            )
                             return None, None, False
                 else:
                     # Non-temporary error
-                    logger.error(
+                    logger.debug(
                         f"Non-temporary error reading from frame {current_frame}: {error_msg}"
                     )
                     if chunks:
-                        logger.info(f"Returning partial data: {current_frame}/{total_frames} frames")
+                        logger.debug(f"Returning partial data: {current_frame}/{total_frames} frames")
+                        issue_type = IssueType.SEEK_FAILED if "seek" in error_msg.lower() else IssueType.PARTIAL_READ
+                        get_tracker().record_issue(
+                            filepath=tracking_path,
+                            issue_type=issue_type,
+                            message=f"Non-temporary error: {error_msg}",
+                            frames_read=current_frame,
+                            total_frames=total_frames,
+                            retry_count=attempt
+                        )
                         combined = np.concatenate(chunks)
                         return combined, sample_rate, False  # Not complete
                     else:
+                        get_tracker().record_issue(
+                            filepath=tracking_path,
+                            issue_type=IssueType.READ_FAILED,
+                            message=f"Non-temporary error, no data read: {error_msg}",
+                            frames_read=0,
+                            total_frames=total_frames,
+                            retry_count=attempt
+                        )
                         return None, None, False
 
         if not read_successful:
