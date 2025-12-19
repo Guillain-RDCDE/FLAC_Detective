@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .statistics import calculate_statistics
+from ..__version__ import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ class TextReporter:
 
         # Compact Header
         report_lines.append("=" * self.width)
-        report_lines.append(f" FLAC DETECTIVE REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        report_lines.append(f" FLAC DETECTIVE REPORT v{__version__} - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         report_lines.append("=" * self.width)
 
         # Global statistics (Compact)
