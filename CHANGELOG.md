@@ -5,12 +5,60 @@ All notable changes to FLAC Detective will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.2] - 2025-12-18
+## [0.7.2] - 2025-12-19
+
+### Added
+- **Comprehensive Diagnostic System**: New `DiagnosticTracker` tracks all file reading issues
+  - 7 issue types: PARTIAL_READ, DECODER_SYNC_LOST, READ_FAILED, REPAIR_ATTEMPTED, REPAIR_FAILED, SEEK_FAILED, CORRUPTED
+  - Automatic retry mechanism with exponential backoff (5 attempts, 0.2s initial delay)
+  - Partial file reading fallback for graceful degradation
+  - Copy-to-temp strategy to minimize I/O errors from network/USB drives
+  - Generates detailed diagnostic reports when issues are encountered
+- **Improved Logging System**:
+  - Console logging level changed from INFO to WARNING (reduces noise during analysis)
+  - Diagnostic summary displayed at end: "Files with reading issues: X (Y critical)"
+  - Full DEBUG logging preserved in file for troubleshooting
+  - Clear distinction between temporary I/O errors and actual file corruption
+- **New Documentation**:
+  - `DIAGNOSTIC_TROUBLESHOOTING.md`: Comprehensive guide to error handling and diagnostics
+  - `tools/README.md`: Documentation for utility scripts
+- **Development Tools** (in `tools/` directory):
+  - `diagnose_flac.py`: Verify FLAC file integrity using official flac tool
+  - `test_diagnostic.py`: Test diagnostic tracking system
+  - `run_analysis.py`: Run analysis with encoding fixes for Windows
+
+### Changed
+- **audio_loader.py**: Pass original filepath through for proper diagnostic tracking
+- **audio_cache.py**: Track original filepath separately from temp path
+- **analyzer.py**: Implement copy-to-temp strategy for I/O stability
+- **main.py**: Display diagnostic summary and generate report when issues found
+- **Project Structure**: Moved all utility scripts to `tools/` directory for better organization
 
 ### Fixed
 - **README Image Display on PyPI**: Fixed broken banner image by using absolute GitHub URL instead of relative path
   - Changed from `assets/flac_detective_banner.png` to full GitHub raw URL
   - Ensures proper display on PyPI package page
+- **File Path Tracking**: Original file paths now correctly tracked through temp file copies
+- **Console Output**: Eliminated error message spam during analysis while maintaining full diagnostic tracking
+
+### Removed
+- Outdated documentation files: `QUICKSTART.md`, `WELCOME.md`, `DIAGNOSTIC_GUIDE.md`
+- Temporary debug and output files from repository
+
+### Technical Details
+- Diagnostic tracker uses thread-safe singleton pattern
+- Original filepath passed through: AudioCache → audio_loader functions
+- Retry configuration: max_attempts=5, initial_delay=0.2s, backoff_multiplier=2.0
+- Temporary error patterns: "lost sync", "decoder error", "sync error", "invalid frame", "unexpected end", "unknown error"
+- Copy-to-temp uses `shutil.copy2()` to preserve metadata
+- Diagnostic reports generated in output directory with timestamp
+
+### User Experience
+- Clean progress bar during scan without error spam
+- Clear end summary showing number of files with issues
+- Detailed diagnostic report available for investigation
+- Maintains confidence in results despite I/O issues
+- Partial analysis explicitly noted in results: "(analysé à partir d'une lecture partielle du fichier)"
 
 ## [0.7.0] - 2025-12-16
 
