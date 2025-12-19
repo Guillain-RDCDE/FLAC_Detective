@@ -12,6 +12,12 @@ import os
 
 from ..diagnostic_tracker import get_tracker, IssueType
 
+try:
+    from mutagen.flac import FLAC, Picture
+    MUTAGEN_AVAILABLE = True
+except ImportError:
+    MUTAGEN_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,7 +121,12 @@ def load_audio_with_retry(
         issue_type=IssueType.REPAIR_ATTEMPTED,
         message="Attempting FLAC repair after read failures"
     )
-    repaired_path = repair_flac_file(file_path)
+    # Repair the corrupted file and replace the original source if successful
+    repaired_path = repair_flac_file(
+        corrupted_path=file_path,
+        source_path=original_filepath,
+        replace_source=True  # Replace source file on successful repair
+    )
 
     if repaired_path:
         try:
@@ -180,7 +191,8 @@ def load_audio_segment(
 
     # All attempts failed, try to repair and load again
     logger.debug(f"All attempts to load segment from {file_path} failed. Attempting repair...")
-    repaired_path = repair_flac_file(file_path)
+    # Note: load_audio_segment doesn't have original_filepath, so no source replacement here
+    repaired_path = repair_flac_file(corrupted_path=file_path)
 
     if repaired_path:
         try:
@@ -200,48 +212,253 @@ def load_audio_segment(
     return None, None
 
 
-def repair_flac_file(original_path: str) -> Optional[str]:
-    """Repair a FLAC file by re-encoding it with the official FLAC tool.
+def _extract_metadata(flac_path: str) -> Optional[dict]:
+    """Extract all metadata from a FLAC file.
 
     Args:
-        original_path: Path to the possibly corrupted FLAC file.
+        flac_path: Path to FLAC file
+
+    Returns:
+        Dictionary with tags and pictures, or None on failure
+    """
+    if not MUTAGEN_AVAILABLE:
+        logger.warning("Mutagen not available - metadata will not be preserved")
+        return None
+
+    try:
+        audio = FLAC(flac_path)
+
+        # Extract all tags
+        tags = {}
+        if audio.tags:
+            for key, value in audio.tags:
+                if key not in tags:
+                    tags[key] = []
+                tags[key].extend(value if isinstance(value, list) else [value])
+
+        # Extract all pictures (album art)
+        pictures = list(audio.pictures) if audio.pictures else []
+
+        logger.debug(f"  Extracted {len(tags)} tag types and {len(pictures)} picture(s)")
+
+        return {
+            'tags': tags,
+            'pictures': pictures
+        }
+
+    except Exception as e:
+        logger.warning(f"Failed to extract metadata: {e}")
+        return None
+
+
+def _restore_metadata(flac_path: str, metadata: dict) -> bool:
+    """Restore metadata to a FLAC file.
+
+    Args:
+        flac_path: Path to FLAC file
+        metadata: Dictionary with tags and pictures
+
+    Returns:
+        True on success, False on failure
+    """
+    if not MUTAGEN_AVAILABLE or not metadata:
+        return False
+
+    try:
+        audio = FLAC(flac_path)
+
+        # Restore tags
+        audio.clear()
+        tags = metadata.get('tags', {})
+        for key, values in tags.items():
+            audio[key] = values
+
+        # Restore pictures
+        pictures = metadata.get('pictures', [])
+        for picture in pictures:
+            audio.add_picture(picture)
+
+        audio.save()
+
+        logger.debug(f"  Restored {len(tags)} tag types and {len(pictures)} picture(s)")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to restore metadata: {e}")
+        return False
+
+
+def repair_flac_file(
+    corrupted_path: str,
+    source_path: Optional[str] = None,
+    replace_source: bool = False
+) -> Optional[str]:
+    """Repair a corrupted FLAC file using decode-through-errors + re-encode.
+
+    This function repairs FLAC files with decoder errors by:
+    1. Extracting metadata (tags, album art) from original file
+    2. Decoding to WAV with --decode-through-errors (recovers what's possible)
+    3. Re-encoding the clean WAV to FLAC
+    4. Restoring all metadata to the repaired FLAC
+    5. Verifying the repaired FLAC integrity
+    6. Optionally replacing the source file with the repaired version
+
+    Args:
+        corrupted_path: Path to the corrupted FLAC file to repair.
+        source_path: Original source file path (if corrupted_path is a temp copy).
+        replace_source: If True and repair succeeds, replace source_path with repaired file.
 
     Returns:
         Path to the repaired temporary file, or None on failure.
     """
+    wav_path = None
+    repaired_path = None
+    metadata = None
+
     try:
-        # Create a temporary file to store the repaired version
         temp_dir = tempfile.gettempdir()
-        temp_path = os.path.join(temp_dir, f"repaired_{os.path.basename(original_path)}")
+        base_name = os.path.splitext(os.path.basename(corrupted_path))[0]
+        wav_path = os.path.join(temp_dir, f"repair_{base_name}.wav")
+        repaired_path = os.path.join(temp_dir, f"repaired_{os.path.basename(corrupted_path)}")
 
-        shutil.copy2(original_path, temp_path)
+        display_name = os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
+        logger.info(f"Attempting to repair {display_name}")
 
-        logger.info(f"Attempting to repair {original_path} at {temp_path}")
+        # Step 0: Extract metadata from original file
+        logger.debug(f"  Step 0: Extracting metadata")
+        metadata = _extract_metadata(corrupted_path)
+        if metadata:
+            tag_count = len(metadata.get('tags', {}))
+            pic_count = len(metadata.get('pictures', []))
+            logger.debug(f"  ✅ Extracted {tag_count} tags, {pic_count} picture(s)")
+        else:
+            logger.warning(f"  ⚠️  Could not extract metadata (will be lost)")
 
-        # Use the FLAC command-line tool to re-encode and fix errors
-        command = [
+        # Step 1: Decode FLAC to WAV with error recovery
+        logger.debug(f"  Step 1: Decoding with error recovery to {os.path.basename(wav_path)}")
+        decode_command = [
             "flac",
-            "--best",
-            "--verify",
-            "-f",  # Force overwrite of the temporary file
-            temp_path
+            "--decode",
+            "--decode-through-errors",  # Continue decoding despite errors
+            "--silent",  # Reduce noise in logs
+            corrupted_path,
+            "-o", wav_path
         ]
 
-        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        decode_result = subprocess.run(
+            decode_command,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=120
+        )
 
-        if result.returncode == 0:
-            logger.info(f"✅ Successfully repaired {original_path}")
-            return temp_path
-        else:
-            logger.error(f"❌ Failed to repair {original_path}. Error: {result.stderr}")
-            os.remove(temp_path)
+        # Check if WAV was created (even if there were errors during decoding)
+        if not os.path.exists(wav_path) or os.path.getsize(wav_path) == 0:
+            logger.error(f"  ❌ Failed to decode: no WAV output created")
             return None
 
-    except (FileNotFoundError, shutil.Error, subprocess.SubprocessError) as e:
-        logger.error(f"❌ An exception occurred during FLAC repair: {e}")
-        if 'temp_path' in locals() and os.path.exists(temp_path):
-            os.remove(temp_path)
+        wav_size_mb = os.path.getsize(wav_path) / (1024 * 1024)
+        logger.debug(f"  ✅ Decoded to WAV ({wav_size_mb:.1f} MB)")
+
+        # Step 2: Re-encode WAV to FLAC
+        logger.debug(f"  Step 2: Re-encoding to FLAC")
+        encode_command = [
+            "flac",
+            "--best",
+            "--silent",
+            "-f",  # Force overwrite
+            wav_path,
+            "-o", repaired_path
+        ]
+
+        encode_result = subprocess.run(
+            encode_command,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=120
+        )
+
+        if encode_result.returncode != 0:
+            logger.error(f"  ❌ Failed to re-encode WAV to FLAC")
+            logger.debug(f"     Error: {encode_result.stderr}")
+            return None
+
+        # Step 3: Restore metadata to repaired file
+        logger.debug(f"  Step 3: Restoring metadata")
+        if metadata:
+            if _restore_metadata(repaired_path, metadata):
+                logger.debug(f"  ✅ Metadata restored successfully")
+            else:
+                logger.warning(f"  ⚠️  Failed to restore metadata")
+        else:
+            logger.debug(f"  ⚠️  No metadata to restore")
+
+        # Step 4: Verify repaired FLAC integrity
+        logger.debug(f"  Step 4: Verifying repaired FLAC")
+        verify_command = [
+            "flac",
+            "--test",
+            "--silent",
+            repaired_path
+        ]
+
+        verify_result = subprocess.run(
+            verify_command,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60
+        )
+
+        if verify_result.returncode != 0:
+            logger.warning(f"  ⚠️  Repaired FLAC still has issues")
+            logger.debug(f"     Error: {verify_result.stderr}")
+            return None
+
+        repaired_size_mb = os.path.getsize(repaired_path) / (1024 * 1024)
+        logger.info(f"  ✅ Successfully repaired and verified ({repaired_size_mb:.1f} MB)")
+
+        # Step 5: Replace source file if requested
+        if replace_source and source_path and os.path.exists(source_path):
+            try:
+                # Create backup of original corrupted file
+                backup_path = source_path + ".corrupted.bak"
+                logger.info(f"  💾 Creating backup: {os.path.basename(backup_path)}")
+                shutil.copy2(source_path, backup_path)
+
+                # Replace original with repaired version
+                logger.info(f"  🔄 Replacing original file with repaired version")
+                shutil.copy2(repaired_path, source_path)
+
+                logger.info(f"  ✅ Original file replaced successfully")
+                get_tracker().record_issue(
+                    filepath=source_path,
+                    issue_type=IssueType.REPAIR_ATTEMPTED,
+                    message=f"File successfully repaired and replaced (backup: {os.path.basename(backup_path)})"
+                )
+            except Exception as replace_error:
+                logger.error(f"  ❌ Failed to replace source file: {replace_error}")
+                # Don't fail the whole repair - we still have the repaired temp file
+
+        return repaired_path
+
+    except subprocess.TimeoutExpired:
+        logger.error(f"  ❌ Repair timeout (>120s)")
         return None
+
+    except Exception as e:
+        logger.error(f"  ❌ Repair exception: {e}")
+        return None
+
+    finally:
+        # Cleanup intermediate WAV file
+        if wav_path and os.path.exists(wav_path):
+            try:
+                os.remove(wav_path)
+            except Exception:
+                pass  # Best effort cleanup
 
 
 def sf_blocks(
