@@ -294,11 +294,16 @@ Contributions are welcome! Here's how you can help:
 git clone https://github.com/YOUR_USERNAME/FLAC_Detective.git
 cd FLAC_Detective
 
+# Install development dependencies
+pip install -e ".[dev]"
+
 # Create feature branch
 git checkout -b feature/amazing-feature
 
-# Make changes and test
-pytest
+# Make changes and run tests
+pytest tests/unit/ -v                    # Unit tests
+pytest tests/integration/ -v             # Integration tests
+pytest --cov=flac_detective              # With coverage
 
 # Format code
 black src tests
@@ -309,6 +314,24 @@ git commit -m "Add amazing feature"
 git push origin feature/amazing-feature
 
 # Open Pull Request on GitHub
+```
+
+**Python Version Requirements:**
+- **Supported:** Python 3.8 - 3.12
+- **Testing:** Use Python 3.8-3.12 for running tests (scipy/numpy compatibility)
+
+**Running Tests:**
+```bash
+# Run all unit tests
+pytest tests/unit/ -v
+
+# Run integration tests
+pytest tests/integration/ -v
+
+# Run with coverage report
+pytest --cov=flac_detective --cov-report=html
+
+# See tests/TESTING_STATUS.md for detailed testing guide
 ```
 
 ---
@@ -335,4 +358,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**FLAC Detective v0.7.0** - *Maintaining authentic lossless audio collections*
+**FLAC Detective v0.8.0** - *Maintaining authentic lossless audio collections*
