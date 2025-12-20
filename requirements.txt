@@ -1,5 +1,0 @@
-numpy
-scipy
-mutagen
-soundfile
-rich
