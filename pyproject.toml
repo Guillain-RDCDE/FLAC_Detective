@@ -171,7 +171,7 @@ disable = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.8.0"
+version = "0.9.1"
 tag_format = "v$version"
 update_changelog_on_bump = true
 version_files = [
@@ -180,3 +180,16 @@ version_files = [
 ]
 bump_message = "bump: version $current_version → $new_version"
 major_version_zero = false
+
+# Flake8 configuration
+# Note: flake8 doesn't support pyproject.toml natively yet, so .flake8 file is still needed
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "E266", "E501", "W503", "D100", "D104", "D107"]
+max-complexity = 12
+exclude = [".git", "__pycache__", ".venv", "venv", "build", "dist", ".eggs", "*.egg-info", ".mypy_cache", ".pytest_cache"]
+per-file-ignores = [
+    "tests/*:D100,D101,D102,D103,S101",
+    "__init__.py:F401,D104"
+]
+docstring-convention = "google"
