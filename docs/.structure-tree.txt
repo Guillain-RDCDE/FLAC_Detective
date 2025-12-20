@@ -1,0 +1,47 @@
+FLAC Detective - Documentation Structure
+=========================================
+
+docs/
+│
+├── 📄 README.md                    [Documentation overview]
+├── 📄 index.md                     [START HERE - Navigation hub]
+│
+├── 👤 FOR USERS
+│   ├── 📄 getting-started.md       [Installation & first analysis]
+│   └── 📄 user-guide.md            [Complete usage guide]
+│
+├── 💻 FOR DEVELOPERS  
+│   ├── 📄 api-reference.md         [Python API documentation]
+│   ├── 📄 technical-details.md     [Architecture & algorithms]
+│   └── 📄 contributing.md          [Development guide]
+│
+├── 📁 archive/                     [Old documentation - preserved]
+│   ├── user-guide/
+│   ├── technical/
+│   ├── reference/
+│   ├── development/
+│   ├── automation/
+│   ├── ci-cd/
+│   └── pypi/
+│
+└── 📁 Sphinx files (optional)
+    ├── conf.py
+    ├── index.rst
+    ├── Makefile
+    └── make.bat
+
+Summary
+-------
+✅ 6 core documentation files (down from 50+)
+✅ Simple navigation (index.md)
+✅ All content preserved (consolidated intelligently)
+✅ Old structure archived (not deleted)
+✅ Professional but maintainable
+
+Quick Start
+-----------
+1. New users    → docs/getting-started.md
+2. Usage guide  → docs/user-guide.md  
+3. Python API   → docs/api-reference.md
+4. How it works → docs/technical-details.md
+5. Contribute   → docs/contributing.md
