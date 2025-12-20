@@ -4,7 +4,7 @@ FLAC Detective - Project Structure
 Root Directory (Production Files Only)
 ---------------------------------------
 ├── README.md                    # Main project documentation
-├── PROJECT_OVERVIEW.md          # Complete project structure guide
+├── docs/PROJECT_OVERVIEW.md     # Complete project structure guide
 ├── CHANGELOG.md                 # Version history
 ├── CONTRIBUTING.md              # Contribution guidelines
 ├── CODE_OF_CONDUCT.md          # Community standards
@@ -99,7 +99,7 @@ Quick Start
 1. Users: Start at docs/user-guide/GETTING_STARTED.md
 2. Developers: Start at docs/development/CONTRIBUTING.md
 3. API Users: Start at docs/reference/PYTHON_API_GUIDE.md
-4. Overview: Read PROJECT_OVERVIEW.md
+4. Overview: Read docs/PROJECT_OVERVIEW.md
 
 Key Features
 ------------

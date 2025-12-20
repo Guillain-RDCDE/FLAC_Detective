@@ -150,7 +150,7 @@ This structure ensures you find what you need quickly, without navigating throug
 ## Still Can't Find What You Need?
 
 1. Check the [main README](../README.md) for overview
-2. Browse the [Project Overview](../PROJECT_OVERVIEW.md) for complete structure
+2. Browse the [Project Overview](PROJECT_OVERVIEW.md) for complete structure
 3. Search the [GitHub Issues](https://github.com/GuillainM/FLAC_Detective/issues)
 4. Ask in [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
 
