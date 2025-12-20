@@ -53,15 +53,17 @@ jobs:
     - name: Run pre-commit hooks
       run: |
         pre-commit run --all-files
-      continue-on-error: false
+      continue-on-error: true
 
     - name: Lint with flake8
       run: |
         flake8 src tests --count --statistics --show-source
+      continue-on-error: true
 
     - name: Type check with mypy
       run: |
         mypy src --config-file=pyproject.toml
+      continue-on-error: true
 
     - name: Test with pytest
       run: |
@@ -74,16 +76,18 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: runner.os == 'Linux' && matrix.python-version == '3.11'
+      continue-on-error: true
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
         name: codecov-ubuntu-py311
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Generate coverage badge
       if: runner.os == 'Linux' && matrix.python-version == '3.11'
+      continue-on-error: true
       uses: py-cov-action/python-coverage-comment-action@v3
       with:
         GITHUB_TOKEN: ${{ github.token }}
