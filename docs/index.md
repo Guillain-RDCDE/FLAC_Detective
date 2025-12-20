@@ -11,7 +11,7 @@ Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files
 ### For Developers
 - **[API Reference](api-reference.md)** - Python API documentation and examples
 - **[Technical Details](technical-details.md)** - Architecture, detection rules, algorithms
-- **[Contributing](contributing.md)** - Development setup, contributing guidelines
+- **[Contributing](../CONTRIBUTING.md)** - Development setup, contributing guidelines
 
 ## What is FLAC Detective?
 
@@ -69,7 +69,7 @@ This documentation is organized into 6 focused documents:
 3. **[user-guide.md](user-guide.md)** - Complete usage guide with examples
 4. **[api-reference.md](api-reference.md)** - Python API documentation
 5. **[technical-details.md](technical-details.md)** - How it works under the hood
-6. **[contributing.md](contributing.md)** - Development and contribution guide
+6. **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Development and contribution guide
 
 ## Common Tasks
 
@@ -83,7 +83,7 @@ This documentation is organized into 6 focused documents:
 → Read [Technical Details](technical-details.md)
 
 ### I want to contribute code or report bugs
-→ Read [Contributing](contributing.md)
+→ Read [Contributing](../CONTRIBUTING.md)
 
 ## External Resources
 
