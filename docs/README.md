@@ -11,7 +11,7 @@ We've simplified the documentation structure to just **6 essential files**:
 3. **[user-guide.md](user-guide.md)** - Complete usage guide with examples
 4. **[api-reference.md](api-reference.md)** - Python API documentation
 5. **[technical-details.md](technical-details.md)** - How it works (architecture + rules)
-6. **[contributing.md](contributing.md)** - Development and contribution guide
+6. **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Development and contribution guide
 
 ## Quick Links
 
@@ -22,15 +22,7 @@ We've simplified the documentation structure to just **6 essential files**:
 **For Developers**:
 - Want to use the API? → [API Reference](api-reference.md)
 - Curious how it works? → [Technical Details](technical-details.md)
-- Want to contribute? → [Contributing](contributing.md)
-
-## What Happened to the Old Documentation?
-
-The previous documentation structure had 50+ files across 8 directories. While comprehensive, it was overwhelming and hard to maintain.
-
-**Old structure** → Moved to `archive/` folder (still available if needed)
-
-**New structure** → 6 focused documents with all essential information
+- Want to contribute? → [Contributing](../CONTRIBUTING.md)
 
 ## External Resources
 
