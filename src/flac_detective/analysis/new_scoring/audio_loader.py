@@ -217,13 +217,44 @@ def load_audio_segment(
 
 
 def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
-    """Extract all metadata from a FLAC file.
+    """Extract all metadata from a FLAC file including tags and embedded pictures.
+
+    This function uses the Mutagen library to read all Vorbis comment tags and
+    embedded pictures (album art) from a FLAC file. The extracted metadata can
+    be used to preserve this information when repairing corrupted FLAC files.
 
     Args:
-        flac_path: Path to FLAC file
+        flac_path: Absolute or relative path to the FLAC file to extract metadata from.
 
     Returns:
-        Dictionary with tags and pictures, or None on failure
+        Dictionary with 'tags' and 'pictures' keys on success:
+            - 'tags': Dict[str, List[str]] mapping tag names to their values
+            - 'pictures': List[Picture] containing all embedded images
+        Returns None if:
+            - Mutagen library is not available
+            - File cannot be read
+            - Metadata extraction fails
+
+    Examples:
+        >>> metadata = _extract_metadata("song.flac")
+        >>> if metadata:
+        ...     print(f"Tags: {len(metadata['tags'])}")
+        ...     print(f"Pictures: {len(metadata['pictures'])}")
+        ...     # Example tags: {'TITLE': ['My Song'], 'ARTIST': ['Artist Name']}
+        Tags: 5
+        Pictures: 1
+
+        >>> # Handle missing Mutagen gracefully
+        >>> metadata = _extract_metadata("song.flac")
+        >>> if metadata is None:
+        ...     print("Metadata extraction not available or failed")
+        Metadata extraction not available or failed
+
+    Note:
+        - Requires the 'mutagen' library to be installed
+        - Preserves multi-value tags (e.g., multiple artists)
+        - All tag names are case-sensitive as per FLAC/Vorbis specification
+        - Common tags include: TITLE, ARTIST, ALBUM, DATE, GENRE, TRACKNUMBER
     """
     if not MUTAGEN_AVAILABLE:
         logger.warning("Mutagen not available - metadata will not be preserved")
@@ -256,14 +287,67 @@ def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
 
 
 def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> bool:
-    """Restore metadata to a FLAC file.
+    """Restore metadata to a FLAC file from a previously extracted metadata dictionary.
+
+    This function writes Vorbis comment tags and embedded pictures back to a FLAC
+    file, typically used after repairing a corrupted file to preserve its original
+    metadata. All existing metadata in the target file is cleared before restoration
+    to ensure an exact match with the source metadata.
 
     Args:
-        flac_path: Path to FLAC file
-        metadata: Dictionary with tags and pictures
+        flac_path: Absolute or relative path to the FLAC file to restore metadata to.
+                   The file must exist and be a valid FLAC file.
+        metadata: Dictionary containing metadata to restore, must have the structure:
+                  {
+                      'tags': Dict[str, List[str]],  # Tag names to values
+                      'pictures': List[Picture]       # Embedded images
+                  }
+                  Can be None, in which case the function returns False.
 
     Returns:
-        True on success, False on failure
+        True if metadata was successfully restored and saved.
+        False if:
+            - Mutagen library is not available
+            - metadata parameter is None or empty
+            - File cannot be opened or written
+            - Metadata restoration fails for any reason
+
+    Examples:
+        >>> # Extract and restore metadata during repair
+        >>> original_metadata = _extract_metadata("corrupted.flac")
+        >>> # ... repair process creates "repaired.flac" ...
+        >>> success = _restore_metadata("repaired.flac", original_metadata)
+        >>> if success:
+        ...     print("Metadata successfully restored")
+        Metadata successfully restored
+
+        >>> # Restore specific metadata
+        >>> metadata = {
+        ...     'tags': {
+        ...         'TITLE': ['My Song'],
+        ...         'ARTIST': ['Artist Name'],
+        ...         'ALBUM': ['Album Title']
+        ...     },
+        ...     'pictures': []  # No album art
+        ... }
+        >>> _restore_metadata("new_file.flac", metadata)
+        True
+
+        >>> # Handle missing metadata gracefully
+        >>> _restore_metadata("file.flac", None)
+        False
+
+    Note:
+        - Requires the 'mutagen' library to be installed
+        - Clears ALL existing metadata before restoring (not a merge operation)
+        - Preserves the exact structure of multi-value tags
+        - Automatically saves changes to the file
+        - Changes are written atomically by the Mutagen library
+        - Tag names are case-sensitive per FLAC/Vorbis specification
+
+    See Also:
+        _extract_metadata: Extract metadata from a FLAC file
+        repair_flac_file: Complete repair workflow using both functions
     """
     if not MUTAGEN_AVAILABLE or not metadata:
         return False

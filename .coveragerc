@@ -1,0 +1,39 @@
+# Coverage.py configuration for FLAC Detective
+# This file is an alternative to [tool.coverage] in pyproject.toml
+# Note: pyproject.toml configuration takes precedence if both exist
+
+[run]
+source = src
+branch = True
+omit =
+    */tests/*
+    */__pycache__/*
+    */site-packages/*
+    */.venv/*
+    */venv/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+fail_under = 80
+
+# Exclude these patterns from coverage requirements
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+    # Defensive programming
+    except Exception:  # pragma: no cover
+
+[html]
+directory = htmlcov
+title = FLAC Detective Coverage Report
+
+[xml]
+output = coverage.xml

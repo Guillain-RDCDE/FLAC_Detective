@@ -4,8 +4,13 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
+[![Documentation Status](https://readthedocs.org/projects/flac-detective/badge/?version=latest)](https://flac-detective.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-beta-yellow)](https://github.com/GuillainM/FLAC_Detective)
+[![Coverage Badge](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GuillainM/FLAC_Detective/python-coverage-comment-action-data/endpoint.json)](https://htmlpreview.github.io/?https://github.com/GuillainM/FLAC_Detective/blob/python-coverage-comment-action-data/htmlcov/index.html)
+[![codecov](https://codecov.io/gh/GuillainM/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/GuillainM/FLAC_Detective)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
 **Advanced FLAC Authenticity Analyzer for Detecting MP3-to-FLAC Transcodes**
 
@@ -30,11 +35,27 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ### Installation
 
+#### Option 1: Install via pip (Recommended)
+
 ```bash
 pip install flac-detective
 ```
 
+#### Option 2: Run with Docker
+
+```bash
+# Pull from GitHub Container Registry
+docker pull ghcr.io/guillainm/flac-detective:latest
+
+# Analyze files
+docker run --rm -v /path/to/audio:/data ghcr.io/guillainm/flac-detective:latest /data
+```
+
+**📦 See [Docker Guide](docs/automation/DOCKER_GUIDE.md) for complete Docker usage documentation.**
+
 ### Basic Usage
+
+#### Command Line
 
 ```bash
 # Analyze current directory
@@ -48,6 +69,19 @@ flac-detective /path/to/music --format json
 
 # Verbose output with detailed analysis
 flac-detective /path/to/music --verbose
+```
+
+#### Docker
+
+```bash
+# Analyze a directory
+docker run --rm -v /path/to/audio:/data ghcr.io/guillainm/flac-detective:latest /data
+
+# With repair enabled
+docker run --rm -v /path/to/audio:/data ghcr.io/guillainm/flac-detective:latest /data --repair
+
+# Generate JSON report
+docker run --rm -v /path/to/audio:/data ghcr.io/guillainm/flac-detective:latest /data --format json > report.json
 ```
 
 ---
@@ -149,23 +183,21 @@ flac-detective /path/to/music --verbose
 ### Python API
 
 ```python
-from flac_detective.analysis.new_scoring import new_calculate_score
+from flac_detective import FLACAnalyzer
 from pathlib import Path
 
-# Analyze a FLAC file
-filepath = Path("/path/to/file.flac")
-score, verdict, confidence, reasons = new_calculate_score(
-    cutoff_freq=20500,
-    metadata={"sample_rate": 44100, "bit_depth": 16, "channels": 2},
-    duration_check={"duration": 180.5},
-    filepath=filepath
-)
+# Create analyzer
+analyzer = FLACAnalyzer(sample_duration=30.0)
 
-print(f"Verdict: {verdict}")
-print(f"Score: {score}/150")
-print(f"Confidence: {confidence}")
-print(f"Detection Reasons: {reasons}")
+# Analyze a file
+result = analyzer.analyze_file(Path('song.flac'))
+
+print(f"Verdict: {result['verdict']}")
+print(f"Score: {result['score']}/100")
+print(f"Reason: {result['reason']}")
 ```
+
+**📚 Full API documentation available at [flac-detective.readthedocs.io](https://flac-detective.readthedocs.io)**
 
 ---
 
@@ -234,6 +266,34 @@ pytest --cov=flac_detective --cov-report=html
 pytest tests/test_new_scoring_rules.py -v
 ```
 
+### Version Management & Releases
+
+FLAC Detective uses [Commitizen](https://commitizen-tools.github.io/commitizen/) for automated changelog generation and version management.
+
+```bash
+# Install pre-commit hooks (includes commit message validation)
+pre-commit install --hook-type commit-msg
+
+# Create a conventional commit interactively
+cz commit
+
+# Bump version and update CHANGELOG automatically
+cz bump --changelog
+
+# Or use the helper script
+python scripts/bump_version.py --dry-run  # Preview changes
+python scripts/bump_version.py --push     # Bump and push to trigger release
+```
+
+All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+- `feat:` - New features (bumps MINOR version)
+- `fix:` - Bug fixes (bumps PATCH version)
+- `docs:` - Documentation changes
+- `refactor:` - Code refactoring
+- `perf:` - Performance improvements
+
+See [docs/ci-cd/CHANGELOG_AUTOMATION.md](docs/ci-cd/CHANGELOG_AUTOMATION.md) for detailed documentation.
+
 ### Project Structure
 
 ```
@@ -253,10 +313,28 @@ src/flac_detective/
 
 ## 📚 Documentation
 
-- [**Getting Started**](GETTING_STARTED_NEW_USERS.md) - Quick start guide for new users
-- [**Diagnostic & Troubleshooting**](DIAGNOSTIC_TROUBLESHOOTING.md) - Error handling and troubleshooting
+### 📖 Official Documentation
+
+**[Read the full documentation on Read the Docs](https://flac-detective.readthedocs.io)**
+
+The complete documentation includes:
+- **User Guide**: Getting started, usage examples, troubleshooting
+- **API Reference**: Complete Python API documentation with examples
+- **Technical Documentation**: Architecture, algorithms, scoring rules
+- **Development Guide**: Contributing, testing, code quality
+
+### 📄 Additional Resources
+
+Complete documentation available in the [docs/](docs/) directory:
+
+- [**Documentation Index**](docs/README.md) - Complete documentation structure
+- [**Getting Started**](docs/user-guide/GETTING_STARTED.md) - Quick start guide for new users
+- [**Troubleshooting**](docs/user-guide/TROUBLESHOOTING.md) - Common issues and solutions
+- [**Docker Guide**](docs/automation/DOCKER_GUIDE.md) - Complete Docker installation and usage
+- [**API Reference**](docs/reference/API_DOCUMENTATION.md) - Python API documentation
+- [**Technical Documentation**](docs/technical/TECHNICAL_DOCUMENTATION.md) - Architecture and algorithms
+- [**Contributing Guide**](docs/development/CONTRIBUTING.md) - Development guidelines
 - [**Changelog**](CHANGELOG.md) - Version history and release notes
-- [**Project Structure**](PROJECT_STRUCTURE.md) - Codebase organization
 
 ---
 
@@ -280,12 +358,31 @@ src/flac_detective/
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+Contributions are welcome! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
-1. **Report Issues**: Found a bug? [Open an issue](https://github.com/GuillainM/FLAC_Detective/issues)
-2. **Suggest Features**: Have an idea? Start a [discussion](https://github.com/GuillainM/FLAC_Detective/discussions)
-3. **Submit PRs**: Fork the repo, create a feature branch, and submit a pull request
-4. **Improve Docs**: Documentation improvements are always appreciated
+### 📋 Issue Templates
+
+We provide templates for different types of contributions:
+
+1. **🐛 [Bug Report](https://github.com/GuillainM/FLAC_Detective/issues/new?template=bug_report.yml)**: Report bugs or unexpected behavior
+2. **✨ [Feature Request](https://github.com/GuillainM/FLAC_Detective/issues/new?template=feature_request.yml)**: Suggest new features or enhancements
+3. **⚡ [Performance Issue](https://github.com/GuillainM/FLAC_Detective/issues/new?template=performance_issue.yml)**: Report slow performance or resource issues
+4. **📝 [Documentation Issue](https://github.com/GuillainM/FLAC_Detective/issues/new?template=documentation.yml)**: Report documentation problems
+5. **❓ [Question](https://github.com/GuillainM/FLAC_Detective/issues/new?template=question.yml)**: Ask questions about usage
+
+**[View Issue Templates Guide](docs/ci-cd/ISSUE_TEMPLATES_GUIDE.md)** for detailed information.
+
+### How to Contribute
+
+1. **Report Issues**: Use the appropriate [issue template](https://github.com/GuillainM/FLAC_Detective/issues/new/choose)
+2. **Suggest Features**: Submit a [feature request](https://github.com/GuillainM/FLAC_Detective/issues/new?template=feature_request.yml)
+3. **Start Discussions**: Join [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
+4. **Submit PRs**: Read [CONTRIBUTING.md](CONTRIBUTING.md) first, then fork the repo, create a feature branch, and submit a pull request
+5. **Improve Docs**: Documentation improvements are always appreciated
+
+### Community Guidelines
+
+Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) to maintain a welcoming and inclusive environment for all contributors.
 
 ### Development Workflow
 
@@ -297,6 +394,10 @@ cd FLAC_Detective
 # Install development dependencies
 pip install -e ".[dev]"
 
+# Set up pre-commit hooks for code quality
+python scripts/setup_precommit.py
+# Or manually: pre-commit install
+
 # Create feature branch
 git checkout -b feature/amazing-feature
 
@@ -305,11 +406,14 @@ pytest tests/unit/ -v                    # Unit tests
 pytest tests/integration/ -v             # Integration tests
 pytest --cov=flac_detective              # With coverage
 
-# Format code
-black src tests
-isort src tests
+# Code quality checks (runs automatically on commit via pre-commit hooks)
+pre-commit run --all-files               # Run all checks manually
+black src tests                          # Format code
+isort src tests                          # Sort imports
+flake8 src tests                         # Lint code
+mypy src                                 # Type check
 
-# Commit and push
+# Commit and push (pre-commit hooks run automatically)
 git commit -m "Add amazing feature"
 git push origin feature/amazing-feature
 
@@ -336,6 +440,37 @@ pytest --cov=flac_detective --cov-report=html
 
 ---
 
+## 🔒 Security
+
+Security is a priority for FLAC Detective. We use multiple automated tools to ensure code and dependency security.
+
+### Security Features
+
+- **🛡️ Dependabot**: Automated dependency updates for security patches
+- **🔍 CodeQL**: Static code analysis for vulnerability detection
+- **🚨 Bandit**: Python security linter
+- **📦 Safety & Pip-audit**: Dependency vulnerability scanners
+- **📋 Security Policy**: Responsible disclosure process
+
+### Reporting Vulnerabilities
+
+**Please do NOT report security vulnerabilities through public GitHub issues.**
+
+Email security issues to: **guillain@poulpe.us**
+
+See [SECURITY.md](SECURITY.md) for:
+- Supported versions
+- Reporting guidelines
+- Security best practices
+- Vulnerability disclosure process
+
+### Security Documentation
+
+- [**SECURITY.md**](SECURITY.md) - Official security policy
+- [**Security Guide**](docs/ci-cd/SECURITY_GUIDE.md) - Comprehensive security documentation
+
+---
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -358,4 +493,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**FLAC Detective v0.8.0** - *Maintaining authentic lossless audio collections*
+**FLAC Detective v0.9.0** - *Maintaining authentic lossless audio collections*

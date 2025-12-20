@@ -1,0 +1,133 @@
+name: ⚡ Performance Issue
+description: Report slow performance or high resource usage
+title: "[Performance]: "
+labels: ["performance", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a performance issue! This helps us optimize FLAC Detective.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following
+      options:
+        - label: I have searched existing performance issues
+          required: true
+        - label: I am using the latest version of FLAC Detective
+          required: true
+        - label: I have tried the suggestions in the [troubleshooting guide](https://github.com/GuillainM/FLAC_Detective/blob/main/DIAGNOSTIC_TROUBLESHOOTING.md)
+          required: false
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Performance Issue Type
+      description: What kind of performance issue are you experiencing?
+      options:
+        - Slow analysis speed
+        - High memory usage
+        - High CPU usage
+        - Disk I/O issues
+        - Long startup time
+        - Unresponsive / hangs
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the performance issue
+      placeholder: |
+        When analyzing files, the process is very slow...
+        Memory usage increases to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this performance issue?
+      placeholder: |
+        1. Run `flac-detective /path/to/large/library`
+        2. Observe that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Performance Metrics
+      description: Provide concrete performance metrics if available
+      placeholder: |
+        - Files analyzed: 1000
+        - Time taken: 45 minutes
+        - CPU usage: 100% (sustained)
+        - Memory usage: 8 GB
+        - Disk type: HDD / SSD / NVMe / Network drive
+        - Expected time: ~15 minutes based on file count
+      value: |
+        - Files analyzed:
+        - Time taken:
+        - CPU usage:
+        - Memory usage:
+        - Disk type:
+        - Expected performance:
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: System information
+      placeholder: |
+        - OS: Windows 11
+        - Python version: 3.11.5
+        - FLAC Detective version: 0.8.0
+        - CPU: Intel i7-12700K
+        - RAM: 16 GB
+        - Disk: Samsung 980 Pro NVMe SSD
+      value: |
+        - OS:
+        - Python version:
+        - FLAC Detective version:
+        - CPU:
+        - RAM:
+        - Disk:
+    validations:
+      required: true
+
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Comparison (Optional)
+      description: How does performance compare to previous versions or expectations?
+      placeholder: |
+        - Version 0.7.0: 100 files in 5 minutes
+        - Version 0.8.0: 100 files in 20 minutes
+        - Or: I expected X but got Y
+
+  - type: textarea
+    id: profiling
+    attributes:
+      label: Profiling Data (Optional)
+      description: If you've done any profiling, paste results here
+      render: shell
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: |
+        - Network drive vs local drive
+        - Large files vs many small files
+        - Specific file characteristics

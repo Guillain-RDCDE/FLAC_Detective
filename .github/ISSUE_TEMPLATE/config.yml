@@ -1,0 +1,25 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://flac-detective.readthedocs.io
+    about: Read the full documentation on Read the Docs
+
+  - name: 💬 GitHub Discussions
+    url: https://github.com/GuillainM/FLAC_Detective/discussions
+    about: Ask questions and discuss ideas with the community
+
+  - name: 🚀 Getting Started Guide
+    url: https://github.com/GuillainM/FLAC_Detective/blob/main/GETTING_STARTED_NEW_USERS.md
+    about: New to FLAC Detective? Start here!
+
+  - name: 🔧 Troubleshooting Guide
+    url: https://github.com/GuillainM/FLAC_Detective/blob/main/DIAGNOSTIC_TROUBLESHOOTING.md
+    about: Common issues and solutions
+
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/GuillainM/FLAC_Detective/security/advisories/new
+    about: Report security vulnerabilities privately (DO NOT create a public issue)
+
+  - name: 💼 Commercial Support
+    url: mailto:guillain@poulpe.us
+    about: Contact for commercial support, custom development, or consulting

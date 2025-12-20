@@ -1,0 +1,56 @@
+# Codecov configuration for FLAC Detective
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%           # Minimum coverage required
+        threshold: 2%         # Allow 2% drop before failing
+        base: auto
+        if_ci_failed: error
+
+    patch:
+      default:
+        target: 80%           # New code must have 80% coverage
+        threshold: 5%         # Allow 5% variance for new code
+        base: auto
+
+  precision: 2                # Decimal places for coverage percentage
+  round: down
+  range: 70..100              # Coverage range (red to green)
+
+comment:
+  layout: "diff, flags, files, footer"
+  behavior: default
+  require_changes: false      # Always comment, even if no changes
+  require_base: false
+  require_head: true
+  show_carryforward_flags: true
+
+ignore:
+  - "tests/**/*"              # Don't include test files in coverage
+  - "**/__pycache__/**"
+  - "**/site-packages/**"
+  - "setup.py"
+  - "**/__init__.py"          # Don't require coverage for __init__ files
+
+# Flag configuration for different test types
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true        # Use previous coverage if flag is missing
+
+# GitHub Checks integration
+github_checks:
+  annotations: true           # Show annotations on PRs
+
+# PR comments configuration
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no

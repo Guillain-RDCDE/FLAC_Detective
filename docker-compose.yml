@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  flac-detective:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flac-detective:latest
+    container_name: flac-detective
+
+    # Mount local directory with FLAC files
+    volumes:
+      - ./audio_files:/data:rw
+
+    # Override default command
+    # Example: docker-compose run --rm flac-detective /data/myfile.flac
+    command: ["--help"]
+
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+
+    # Environment variables
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+
+    # Read-only root filesystem (except /tmp and /data)
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M,noexec,nosuid,nodev
+
+    # User override (if needed)
+    # user: "1000:1000"
+
+  # Development service with source code mounted
+  flac-detective-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flac-detective:dev
+    container_name: flac-detective-dev
+
+    volumes:
+      - ./audio_files:/data:rw
+      - ./src:/app/src:ro  # Mount source for development
+
+    command: ["--help"]
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true

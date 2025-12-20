@@ -67,10 +67,10 @@ mypy src/
 
 ## Submitting Changes
 
-1. **Commit** with clear messages:
+1. **Commit** with clear messages following [Conventional Commits](https://www.conventionalcommits.org/):
    ```
    feat: Add Rule 12 for streaming artifacts
-   
+
    - Detects streaming compression patterns
    - Analyzes bitrate discontinuities
    - Fixes #123
@@ -82,6 +82,9 @@ mypy src/
    - Reference to related issues
    - Screenshot/output if relevant
    - Tests included
+   - Complete the PR template
+
+**📖 See [Pull Request Guide](docs/PULL_REQUEST_GUIDE.md) for detailed PR guidelines.**
 
 ## Pull Request Process
 

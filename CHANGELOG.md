@@ -1,395 +1,111 @@
-# Changelog
+## Unreleased
 
-All notable changes to FLAC Detective will be documented in this file.
+## v0.9.0 (2024-12-20)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### Feat
 
-## [0.8.0] - 2025-12-19
+- **docs**: Complete project restructuring and documentation overhaul
+  - Reorganized documentation into audience-specific directories (user-guide, technical, reference, development, automation, ci-cd)
+  - Created comprehensive documentation index and navigation guide
+  - Added PROJECT_OVERVIEW.md for complete project structure visualization
+  - Added DOCUMENTATION_GUIDE.md for easy documentation navigation
+  - Consolidated and removed duplicate documentation files (15+ files cleaned)
+  - Created professional root directory structure (removed 9+ temporary implementation files)
+  - Added STRUCTURE.txt for project structure visualization
+  - Updated all documentation cross-references to reflect new structure
+  - Improved .gitignore to prevent future clutter (build artifacts, temporary files)
 
-### Added
-- **🔨 Automatic FLAC Repair with Complete Metadata Preservation**
-  - New `repair_flac_file()` function using decode-through-errors strategy
-  - 6-step repair process: extract metadata → decode with error recovery → re-encode → restore metadata → verify → replace source
-  - Full metadata preservation: all tags (TITLE, ARTIST, ALBUM, DATE, etc.) and album art automatically extracted and restored
-  - Automatic source file replacement with `.corrupted.bak` backup creation
-  - Integrity verification using `flac --test` before replacement
-  - Works on files with decoder sync errors, lost sync, and other corruption types
+### Chore
 
-- **Metadata Extraction/Restoration System**
-  - `_extract_metadata()`: Extracts all Vorbis comments and embedded pictures from FLAC files
-  - `_restore_metadata()`: Restores complete metadata to repaired FLAC files
-  - Uses Mutagen library for reliable tag and picture handling
-  - Preserves exact metadata structure including multi-value tags
+- Clean up build artifacts and temporary directories (flac_detective-0.7.1/, flac_detective-0.8.0/, dist/, api/, _templates/)
+- Remove obsolete documentation (CLEANUP_LOG.md, INDEX.md, IMPROVEMENTS_SUMMARY.md, etc.)
+- Standardize documentation structure for production readiness
 
-- **Enhanced Repair Logging**
-  - Step-by-step progress indicators (Step 0-5)
-  - Success/failure indicators for each repair stage
-  - Metadata extraction/restoration confirmation
-  - File size reporting (WAV intermediate, final FLAC)
-  - Diagnostic tracking integration for repair operations
+## v0.8.0 (2024-12-19)
 
-- **Integration Tests & Examples**
-  - `tests/integration/test_source_integrity.py`: Validates source file integrity
-  - `tests/integration/test_copy_integrity.py`: Tests copy operation integrity
-  - `tests/integration/test_parallel_copy_stress.py`: Stress tests parallel operations
-  - `examples/repair/test_repair_corrupted.py`: Interactive repair testing
-  - `examples/repair/check_metadata.py`: Metadata preservation validation
-  - Comprehensive README files for test and example directories
+### Feat
 
-### Changed
-- **audio_loader.py** (`repair_flac_file` function - lines 279-449):
-  - Complete rewrite using `flac --decode --decode-through-errors` instead of direct re-encode
-  - Added metadata extraction before decode and restoration after re-encode
-  - Improved error handling with specific timeouts (120s decode/encode, 60s verify)
-  - Enhanced logging with detailed step information
-  - Better cleanup of intermediate WAV files in finally block
+- Add automatic FLAC repair with complete metadata preservation (v0.8.0)
+- Add comprehensive diagnostic tracking and error handling system
 
-- **Project Structure**:
-  - Created `tests/integration/` directory for integration tests
-  - Created `examples/repair/` directory for repair examples
-  - Added README files to test and example directories
-  - Cleaned up root directory (removed temporary test scripts)
+## v0.7.2 (2025-12-18)
 
-### Fixed
-- **Critical Metadata Loss Bug**: Repaired FLAC files now preserve all original metadata
-  - Previous version: Metadata was lost during repair (empty tags, no album art)
-  - Current version: 100% metadata preservation including multi-value tags and pictures
-  - Validated with byte-by-byte comparison of album art (MD5 hash match)
+### Fix
 
-- **Repair Success Rate**: Improved from 0% to 100% on tested corrupted files
-  - Old method (`flac --verify`) failed on all corrupted files
-  - New method successfully repairs files with sync errors and decoder issues
-  - Tested on real-world corrupted files (Iceland part 2, Greenland)
+- Bump to v0.7.2 for PyPI image fix
 
-### Technical Details
-- Repair process uses official FLAC tool with `--decode-through-errors` flag
-- WAV intermediate format ensures clean audio extraction
-- Re-encoding uses `--best` compression for optimal quality
-- Metadata uses Mutagen FLAC class for reliable tag handling
-- Pictures preserved as binary Picture objects
-- Source replacement uses `shutil.copy2()` to preserve file timestamps
-- Diagnostic tracker records all repair attempts and outcomes
-- Thread-safe metadata operations
+## v0.7.1 (2025-12-18)
 
-### User Experience
-- Corrupted files automatically repaired during normal scans
-- No user intervention required for repair process
-- Original corrupted files safely backed up
-- Clear logging shows repair progress
-- Repaired files indistinguishable from originals (same metadata, artwork)
-- Collection automatically cleaned during analysis
+### Fix
 
-### Testing
-- Verified on 2 real corrupted FLAC files (56-60 MB each)
-- 100% success rate on files with LOST_SYNC errors
-- Perfect metadata preservation validated (10 tags + 1 picture each)
-- Album art preservation confirmed via MD5 hash comparison
-- Repaired files pass `flac --test` integrity check
-- Integration tests cover copy integrity, parallel operations, and source validation
+- Update banner image URL for PyPI display
 
-## [0.7.2] - 2025-12-19
+## v0.7.0 (2025-12-18)
 
-### Added
-- **Comprehensive Diagnostic System**: New `DiagnosticTracker` tracks all file reading issues
-  - 7 issue types: PARTIAL_READ, DECODER_SYNC_LOST, READ_FAILED, REPAIR_ATTEMPTED, REPAIR_FAILED, SEEK_FAILED, CORRUPTED
-  - Automatic retry mechanism with exponential backoff (5 attempts, 0.2s initial delay)
-  - Partial file reading fallback for graceful degradation
-  - Copy-to-temp strategy to minimize I/O errors from network/USB drives
-  - Generates detailed diagnostic reports when issues are encountered
-- **Improved Logging System**:
-  - Console logging level changed from INFO to WARNING (reduces noise during analysis)
-  - Diagnostic summary displayed at end: "Files with reading issues: X (Y critical)"
-  - Full DEBUG logging preserved in file for troubleshooting
-  - Clear distinction between temporary I/O errors and actual file corruption
-- **New Documentation**:
-  - `DIAGNOSTIC_TROUBLESHOOTING.md`: Comprehensive guide to error handling and diagnostics
-  - `tools/README.md`: Documentation for utility scripts
-- **Development Tools** (in `tools/` directory):
-  - `diagnose_flac.py`: Verify FLAC file integrity using official flac tool
-  - `test_diagnostic.py`: Test diagnostic tracking system
-  - `run_analysis.py`: Run analysis with encoding fixes for Windows
+### Feat
 
-### Changed
-- **audio_loader.py**: Pass original filepath through for proper diagnostic tracking
-- **audio_cache.py**: Track original filepath separately from temp path
-- **analyzer.py**: Implement copy-to-temp strategy for I/O stability
-- **main.py**: Display diagnostic summary and generate report when issues found
-- **Project Structure**: Moved all utility scripts to `tools/` directory for better organization
+- **v0.7.0**: Partial file reading and improved cutoff detection
 
-### Fixed
-- **README Image Display on PyPI**: Fixed broken banner image by using absolute GitHub URL instead of relative path
-  - Changed from `assets/flac_detective_banner.png` to full GitHub raw URL
-  - Ensures proper display on PyPI package page
-- **File Path Tracking**: Original file paths now correctly tracked through temp file copies
-- **Console Output**: Eliminated error message spam during analysis while maintaining full diagnostic tracking
+### Fix
 
-### Removed
-- Outdated documentation files: `QUICKSTART.md`, `WELCOME.md`, `DIAGNOSTIC_GUIDE.md`
-- Temporary debug and output files from repository
+- Remove debug messages cluttering console output
+- Correct versioning - ensure all documentation references v0.7.0 only
+- **version**: Centralize version management in __version__.py
+- **audio-loader**: Add unknown error to temporary error patterns
 
-### Technical Details
-- Diagnostic tracker uses thread-safe singleton pattern
-- Original filepath passed through: AudioCache → audio_loader functions
-- Retry configuration: max_attempts=5, initial_delay=0.2s, backoff_multiplier=2.0
-- Temporary error patterns: "lost sync", "decoder error", "sync error", "invalid frame", "unexpected end", "unknown error"
-- Copy-to-temp uses `shutil.copy2()` to preserve metadata
-- Diagnostic reports generated in output directory with timestamp
+### Perf
 
-### User Experience
-- Clean progress bar during scan without error spam
-- Clear end summary showing number of files with issues
-- Detailed diagnostic report available for investigation
-- Maintains confidence in results despite I/O issues
-- Partial analysis explicitly noted in results: "(analysé à partir d'une lecture partielle du fichier)"
+- **rules**: Optimize memory usage for Rules 9 and 11
 
-## [0.7.0] - 2025-12-16
+## v0.6.9 (2025-12-15)
 
-### 🚀 Major Features
+### Feat
 
-#### Partial File Reading (Graceful Degradation)
-- **New**: `sf_blocks_partial()` function for reading partial audio data when full decode fails
-- **Enhanced**: `AudioCache` now automatically falls back to partial loading on decoder errors
-- **Improved**: Analyzer and quality checks now work with partial data
-- **Impact**: Problematic but valid FLAC files can now be analyzed instead of being marked as CORRUPTED
+- **logging**: Auto-delete empty console log files
+- **analysis**: Add FLAC repair and improve memory usage
+- Improve memory usage and error handling in audio analysis
 
-#### Energy-Based Cutoff Detection (FIXED)
-- **Fixed**: Energy-based cutoff detection now correctly handles bass-heavy music
-- **Added**: 15 kHz minimum threshold to distinguish bass concentration from MP3 cutoff
-- **Impact**: 
-  - False positives reduced by **77%** (198→46 SUSPICIOUS files)
-  - Authentic files correctly identified: **+314%** (59→244 AUTHENTIC)
-  - Quality score improved: **20.2% → 83.6%** (+312%)
-- **Example**: Music with heavy 2-3 kHz bass now correctly identified as AUTHENTIC instead of FAKE
+### Fix
 
-### 🎨 Console Output Improvements
-- **Improved**: Removed verbose `logger.warning()` calls from retry mechanism
-- **Result**: Clean console output during analysis - only successes and errors shown
-- **Preserved**: Debug mode still shows full retry attempt details
-- **Impact**: Better UX for batch analysis and production use
+- **logging**: Close file handlers before deleting empty log files
+- **spectrum**: Adapt cutoff detection for high-resolution audio files
+- **tracker**: Convert numpy types to Python native types for JSON serialization
+- **analysis**: Prevent memory errors and fix audio loading
+- **audio**: Allow kwargs in load_audio_with_retry
 
-### ♻️ Code Quality
-- **Cleanup**: Removed 9 temporary debug files from repository
-- **Result**: Clean, professional project structure for new contributors
+## v0.6.8 (2025-12-14)
 
-### Changed
-- **audio_loader.py**: 
-  - Added `sf_blocks_partial()` with retry logic and exponential backoff
-  - Converted retry attempt warnings to DEBUG level (lines 43-44, 133-134, 270-271, 359-360)
-- **audio_cache.py**: Added partial loading fallback and `is_partial()` tracking method
-- **spectrum.py**:
-  - Now uses cached audio data directly instead of re-reading from file
-  - Added energy-based cutoff fallback when slice-based method fails
-  - **NEW**: Added 15 kHz minimum threshold for energy-based cutoff (lines 250-263)
-  - Only triggers when cutoff < 85% of Nyquist frequency
-- **analyzer.py**: Simplified to use AudioCache's partial handling
-- **quality.py**: Skips corruption check when cache is provided, handles partial analysis
+## v0.6.7 (2025-12-12)
 
-### Fixed
-- **Critical**: Files with decoder errors no longer falsely marked as CORRUPTED
-- **Critical**: Bass-heavy music no longer misidentified as MP3 transodes
-- **Example**: "Banda lobourou.flac" (MP3 upscale with decoder errors) now correctly detected as FAKE instead of CORRUPTED
-- **Cutoff Detection**: Files with noise in high frequencies now correctly show ~10-16kHz cutoff instead of 22kHz (Nyquist)
-- **Console Noise**: Retry attempt warnings no longer spam console output
+## v0.6.6 (2025-12-12)
 
-### Technical Details
-- Partial reads collect all successful chunks before decoder error occurs
-- Energy-based detection finds where 90% of cumulative energy is reached
-- Energy concentration below 15 kHz is now recognized as legitimate audio characteristic (bass) instead of MP3 artifact
-- Maintains backward compatibility with existing authentic file detection
-- No impact on files without decoder errors
+### Feat
 
-### Performance Impact
-- No performance impact for normal files (new code paths only trigger on errors)
-- Slight improvement for files with decoder errors (analyzed instead of rejected)
-- Console I/O slightly faster due to fewer logging calls
+- Implement centralized version management system
+- Add automatic retry mechanism for FLAC decoder errors (v0.6.1)
+- Add corrupted and upsampled sections to reports with full paths
+- **rule1**: Add energy_ratio parameter for enhanced 20 kHz detection
+- **scoring**: optimize Rule 7 and adjust Rule 11 thresholds
+- **rules**: Implement Rule 11 Cassette Detection and relative path reporting (v0.6.0)
 
-## [0.6.7] - 2025-12-12
+### Fix
 
-### Changed
-- **Performance Optimization**: Switched from multi-threading to **multi-processing** (ProcessPoolExecutor).
-  - Bypasses Python GIL for true parallel analysis on all CPU cores.
-  - Significant speedup on large datasets.
-- **Reporting**:
-  - Improved console log aesthetics with colored verdicts and aligned columns.
-  - Removed unused Excel reporting module (`openpyxl` dependency removed).
-  - Removed unused `matplotlib` dependency.
-- **Cleanup**: Cleaned up internal threading in spectral analysis to avoid thread over-subscription.
+- Update splash screen version and fix ASCII art alignment
+- **ci**: Make all CI steps non-blocking to prevent failure emails
+- **ci**: Update GitHub Actions workflow to use pyproject.toml
+- **docs**: Correct detection system to 11 rules and bump version to 0.6.1
+- **build**: Update license format to modern SPDX expression
+- **rule1**: Add 20 kHz cutoff exception to prevent false positives
+- **build**: Fix pip installation by correcting README path in pyproject.toml
 
-## [0.6.6] - 2025-12-12
+## v0.5.0 (2025-12-04)
 
-### Added
-- **Automatic Retry Mechanism for FLAC Decoder Errors**
-  - New `audio_loader.py` module with `load_audio_with_retry()` function
-  - Automatic retry (max 3 attempts) for temporary decoder errors
-  - Exponential backoff: 0.2s → 0.3s → 0.45s between retries
-  - Detects temporary errors: "lost sync", "decoder error", "sync error", "invalid frame", "unexpected end"
-  - Detailed logging: "⚠️ Temporary error on attempt X", "✅ Audio loaded successfully on attempt X"
+### Feat
 
-### Changed
-- **Rule 9 (Compression Artifacts)**
-  - Now uses `load_audio_with_retry()` instead of direct `sf.read()`
-  - Returns 0 points (no penalty) if loading fails after retries
-  - No longer marks files as CORRUPTED on temporary decoder errors
-- **Rule 11 (Cassette Detection)**
-  - Now uses `load_audio_with_retry()` instead of direct `sf.read()`
-  - Returns 0 points (no penalty) if loading fails after retries
-  - No longer marks files as CORRUPTED on temporary decoder errors
-- **Corruption Detection**
-  - `CorruptionDetector` now distinguishes temporary errors from real corruption
-  - Temporary decoder errors do NOT mark files as corrupted
-  - Adds `partial_analysis: True` flag when optional rules (R9/R11) fail
-  - Real corruption (NaN, Inf, unreadable files) still detected immediately
+- Release v0.4.0 - Major optimizations (80% faster) and scoring improvements (Rule 10, Rule 8 refined)
+- Implement spectral bitrate estimation and enhanced scoring rules
 
-### Fixed
-- **Critical: False CORRUPTED status on valid files**
-  - Files with temporary "lost sync" errors are no longer marked as corrupted
-  - Example: "04 - Bial Hclap; Sagrario - Danza coyote.flac" now analyzed correctly
-  - Verdict based on critical rules (R1-R8) even if R9/R11 fail temporarily
-- **Improved robustness**
-  - Files with prolonged silences or non-standard encoding now analyzed correctly
-  - Reduced false positives from temporary decoder synchronization issues
+### Fix
 
-### Technical Details
-- Modified files:
-  - Created: `src/flac_detective/analysis/new_scoring/audio_loader.py`
-  - Modified: `src/flac_detective/analysis/new_scoring/artifacts.py`
-  - Modified: `src/flac_detective/analysis/new_scoring/rules/cassette.py`
-  - Modified: `src/flac_detective/analysis/quality.py`
-  - Modified: `src/flac_detective/analysis/analyzer.py`
-- New test: `tests/test_audio_loader_retry.py`
-- Documentation:
-  - `docs/FLAC_DECODER_ERROR_HANDLING.md` - Technical implementation details
-  - `docs/GUIDE_RETRY_MECHANISM.md` - User guide
-
-### Performance Impact
-- No impact on files without errors (no retry triggered)
-- +0.2s to +1s for files with temporary errors (depending on retry count)
-- Maximum +1s overhead for persistent errors (3 retries with backoff)
-
-## [0.6.0] - 2025-12-05
-
-### Added
-- **Rule 11: Cassette Source Detection**
-  - Detects tape hiss, natural roll-off, and cutoff variance
-  - Awards 30-65 points for authentic cassette traits
-  - **Priority Execution:** Runs before MP3 check and cancels false positive MP3 detections
-- **Report Enhancement**: Relative paths in final report
-  - Suspicious files now show paths relative to scan root (e.g. `\Album\Song.flac`)
-  - Cleaner and more readable output
-
-### Changed
-- **Scoring Logic**:
-  - Rule 11 runs *before* Rule 1 (MP3 check)
-  - If cassette detected (score >= 50), Rule 1 is disabled and a -40pt bonus is applied
-  - Fixes false positives where cassette tape noise patterns resembled MP3 artifacts
-
-### Performance
-- **Optimization**:
-  - Rule 11 only activates for files with cutoff < 19 kHz
-  - Integrated into the existing multi-stage optimization pipeline
-
-## [0.5.0] - 2025-12-04
-
-### 🎯 Major Achievement
-- **79.2% authentic detection rate** on production dataset (759 files)
-- **2.2% fake detection rate** with near-zero false positives (< 0.5%)
-- **80% performance improvement** through intelligent optimizations
-
-### Added
-- **Rule 8: Nyquist Exception** - Protects authentic files with cutoff near Nyquist frequency
-  - 95% Nyquist threshold for global protection
-  - 90% Nyquist threshold for MP3 320 kbps specific protection
-- **Rule 9: Compression Artifacts Detection** (3 phases)
-  - Phase A: Pre-echo detection (MDCT ghosting)
-  - Phase B: High-frequency aliasing detection
-  - Phase C: MP3 quantization noise patterns
-- **Rule 10: Multi-Segment Consistency Analysis**
-  - Validates anomalies across 5 file segments
-  - Detects dynamic mastering vs global transcoding
-- **Rule 7 Enhancement: 3-Phase Vinyl Detection**
-  - Phase 1: Dither detection (existing)
-  - Phase 2: Vinyl surface noise detection (new)
-  - Phase 3: Clicks & pops detection (new)
-
-### Changed
-- **Rule 1: MP3 Bitrate Detection** - Enhanced with multiple safeguards
-  - Added 95% Nyquist exception (global)
-  - Added 90% Nyquist exception (320 kbps specific)
-  - Added variance check (cutoff_std > 100 Hz)
-  - Widened 320 kbps container range: (700, 950) → (700, 1050) kbps
-- **Rule Execution Order** - R8 now calculated FIRST and applied BEFORE short-circuit
-  - Ensures authentic files near Nyquist are protected even if R1-R6 give high scores
-  - Prevents false positives from early termination
-- **Scoring System** - Refined thresholds
-  - FAKE_CERTAIN: ≥ 86 points
-  - SUSPICIOUS: 61-85 points
-  - WARNING: 31-60 points
-  - AUTHENTIC: ≤ 30 points
-
-### Performance Optimizations
-- **Phase 1: Smart Short-Circuits** (~70% time reduction)
-  - Fast path for authentic files (score < 10, no MP3 detected)
-  - Early termination for certain fakes (score ≥ 86 after R1-R6+R8)
-- **Phase 2: Progressive Rule 10** (~17% time reduction)
-  - Starts with 2 segments, expands to 5 only if needed
-- **Phase 3: Parallel Execution** (~6% time reduction)
-  - R7 and R9 run in parallel when both are needed
-- **File Read Cache** - Avoids multiple reads of the same file
-- **Total Performance Gain: ~80%** (10 hours → 1h45 for 759 files)
-
-### Fixed
-- **Critical: Short-circuit bug** - R8 was not applied before early termination
-- **False positives on 21 kHz cutoff** - Files with cutoff at 95% Nyquist incorrectly flagged as MP3 320k
-- **False positives on 20.2-20.8 kHz** - Zone between 90-95% Nyquist now protected for 320k detection
-- **Vinyl rips misdetection** - R7 Phase 2 & 3 now correctly identify authentic vinyl sources
-
-### Technical Improvements
-- Modularized scoring system into separate files:
-  - `rules.py` - All scoring rules
-  - `bitrate.py` - Bitrate calculations
-  - `silence.py` - Silence and vinyl analysis
-  - `artifacts.py` - Compression artifacts detection
-  - `calculator.py` - Main scoring orchestration
-  - `verdict.py` - Score interpretation
-- Comprehensive unit tests for all rules
-- Improved logging with optimization markers
-- Better error handling and edge case coverage
-
-### Documentation
-- Complete rule specifications in English
-- Performance optimization documentation
-- Vinyl detection methodology
-- Nyquist exception rationale
-
-## [0.2.0] - 2025-12-01
-
-### Added
-- Initial new scoring system implementation
-- Rules 1-6 basic implementation
-- Text and JSON report generation
-
-### Changed
-- Migrated from old scoring to new multi-rule system
-
-## [0.1.0] - 2025-11-29
-
-### Added
-- Initial release
-- Basic spectral analysis
-- Simple scoring mechanism
-- Text report output
-
----
-
-## Version Comparison
-
-| Version | Authentic Rate | Fake Rate | Performance | False Positives |
-|---------|---------------|-----------|-------------|-----------------|
-| 0.1.0   | ~93% | ~6% | Baseline | ~6% |
-| 0.2.0   | ~76% | ~6% | Baseline | ~2% |
-| 0.5.0   | **79.2%** | **2.2%** | **+80%** | **< 0.5%** |
-
-[0.5.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.5.0
-[0.2.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.2.0
-[0.1.0]: https://github.com/GuillainM/FLAC_Detective/releases/tag/v0.1.0
+- Add 21kHz cutoff threshold to reduce false positives
+- Correct type annotations for mypy compliance
