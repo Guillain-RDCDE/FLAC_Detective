@@ -1,0 +1,110 @@
+name: 📝 Documentation Issue
+description: Report missing, unclear, or incorrect documentation
+title: "[Docs]: "
+labels: ["documentation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the documentation! Report issues or suggest improvements.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following
+      options:
+        - label: I have searched existing documentation issues
+          required: true
+        - label: I have checked the [latest documentation](https://flac-detective.readthedocs.io)
+          required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Documentation Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation
+        - Unclear / confusing explanation
+        - Incorrect information
+        - Outdated documentation
+        - Broken links
+        - Typo / grammar
+        - Missing examples
+        - Code examples don't work
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is the documentation issue?
+      options:
+        - README.md
+        - API Reference (Read the Docs)
+        - Getting Started Guide
+        - Python API Guide
+        - Troubleshooting Guide
+        - Technical Documentation
+        - Code comments / docstrings
+        - GitHub Wiki
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the documentation issue
+      placeholder: |
+        The documentation for X is unclear because...
+        The example in section Y doesn't work...
+        There's no documentation for...
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Documentation
+      description: Quote or link to the current documentation
+      placeholder: |
+        Current text: "..."
+        Link: https://flac-detective.readthedocs.io/...
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: |
+        It should say...
+        Add an example showing...
+        Clarify that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: |
+        - Related issues
+        - Screenshots
+        - Example use cases that need documentation
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      description: Can you help improve the documentation?
+      options:
+        - label: I am willing to submit a pull request to fix this documentation issue
+          required: false

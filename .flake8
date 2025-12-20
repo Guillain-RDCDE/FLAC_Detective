@@ -1,17 +1,65 @@
+# Flake8 configuration for FLAC Detective
+# flake8 doesn't support pyproject.toml natively, so we use .flake8
+
 [flake8]
+# Maximum line length (matches Black)
 max-line-length = 100
-extend-ignore = E203, E266, E501, W503
+
+# Extend the default ignore list
+extend-ignore =
+    # E203: whitespace before ':' (conflicts with Black)
+    E203,
+    # E266: too many leading '#' for block comment
+    E266,
+    # E501: line too long (handled by Black)
+    E501,
+    # W503: line break before binary operator (conflicts with Black)
+    W503,
+    # D100: Missing docstring in public module (too strict)
+    D100,
+    # D104: Missing docstring in public package (too strict)
+    D104,
+    # D107: Missing docstring in __init__ (too strict)
+    D107,
+
+# Max complexity for McCabe
+max-complexity = 12
+
+# Exclude these directories
 exclude =
     .git,
     __pycache__,
+    .venv,
+    venv,
+    env,
     build,
     dist,
     .eggs,
     *.egg-info,
-    .venv,
-    venv,
-    env,
+    .mypy_cache,
+    .pytest_cache,
+    .tox,
+    htmlcov,
+    tests/test_data,
+
+# Per-file ignores
 per-file-ignores =
-    __init__.py:F401,D104
-max-complexity = 10
+    # Tests can use assert and don't need full docstrings
+    tests/*:D100,D101,D102,D103,S101,
+    # __init__.py files can have unused imports and skip package docstrings
+    __init__.py:F401,D104,
+    # Setup and config files
+    setup.py:D100,
+    conftest.py:D100,
+
+# Docstring conventions (Google style)
 docstring-convention = google
+
+# Show source code for errors
+show-source = True
+
+# Count the number of occurrences of each error/warning code
+count = True
+
+# Print the total number of errors
+statistics = True

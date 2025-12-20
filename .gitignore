@@ -56,6 +56,9 @@ dmypy.json
 # Linting
 .ruff_cache/
 
+# Pre-commit
+.pre-commit-cache/
+
 # Project specific
 progress.json
 *.xlsx
@@ -88,4 +91,18 @@ test_output*.txt
 *_backup.py
 .cleanup_plan.md
 VERSION_UPDATE_*.md
+*_IMPLEMENTATION.md
+IMPLEMENTATION_COMPLETE.md
+AUTOMATION_COMPLETE.md
+
+# Build artifacts
+flac_detective-*/
+_templates/
+api/
+nul
+
+# Sphinx documentation
+docs/_build/
+docs/_autosummary/
+docs/.buildinfo
 

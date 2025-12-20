@@ -1,0 +1,274 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  metadata:
+    name: Extract Dependabot Metadata
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    outputs:
+      dependency-names: ${{ steps.metadata.outputs.dependency-names }}
+      dependency-type: ${{ steps.metadata.outputs.dependency-type }}
+      update-type: ${{ steps.metadata.outputs.update-type }}
+      package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+      previous-version: ${{ steps.metadata.outputs.previous-version }}
+      new-version: ${{ steps.metadata.outputs.new-version }}
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log dependency info
+        run: |
+          echo "📦 Dependency: ${{ steps.metadata.outputs.dependency-names }}"
+          echo "🔄 Update type: ${{ steps.metadata.outputs.update-type }}"
+          echo "📊 Dependency type: ${{ steps.metadata.outputs.dependency-type }}"
+          echo "🌍 Ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}"
+          echo "📈 Version: ${{ steps.metadata.outputs.previous-version }} → ${{ steps.metadata.outputs.new-version }}"
+
+  auto-label:
+    name: Auto-Label PR
+    runs-on: ubuntu-latest
+    needs: metadata
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Add update-type label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const updateType = '${{ needs.metadata.outputs.update-type }}';
+            const dependencyType = '${{ needs.metadata.outputs.dependency-type }}';
+
+            const labels = ['dependencies'];
+
+            // Add update type label
+            if (updateType === 'version-update:semver-major') {
+              labels.push('semver-major', 'needs-review');
+            } else if (updateType === 'version-update:semver-minor') {
+              labels.push('semver-minor', 'auto-merge-candidate');
+            } else if (updateType === 'version-update:semver-patch') {
+              labels.push('semver-patch', 'auto-merge-candidate');
+            }
+
+            // Add dependency type label
+            if (dependencyType === 'direct:production') {
+              labels.push('production-dependency');
+            } else if (dependencyType === 'direct:development') {
+              labels.push('dev-dependency');
+            }
+
+            // Add ecosystem label
+            const ecosystem = '${{ needs.metadata.outputs.package-ecosystem }}';
+            if (ecosystem === 'pip') {
+              labels.push('python');
+            } else if (ecosystem === 'github-actions') {
+              labels.push('github-actions');
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+
+            console.log(`Added labels: ${labels.join(', ')}`);
+
+  auto-approve:
+    name: Auto-Approve Safe Updates
+    runs-on: ubuntu-latest
+    needs: metadata
+    if: |
+      github.actor == 'dependabot[bot]' &&
+      (needs.metadata.outputs.update-type == 'version-update:semver-patch' ||
+       needs.metadata.outputs.update-type == 'version-update:semver-minor')
+
+    steps:
+      - name: Approve PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'APPROVE',
+              body: `🤖 Auto-approved by Dependabot Auto-Merge workflow\n\n` +
+                    `✅ Safe ${context.payload.pull_request.labels.some(l => l.name === 'semver-patch') ? 'patch' : 'minor'} update\n` +
+                    `📦 Dependency: ${{ needs.metadata.outputs.dependency-names }}\n` +
+                    `📈 Version: ${{ needs.metadata.outputs.previous-version }} → ${{ needs.metadata.outputs.new-version }}\n\n` +
+                    `This PR will be auto-merged once all CI checks pass.`
+            });
+
+            console.log('✅ PR approved');
+
+  wait-for-ci:
+    name: Wait for CI Checks
+    runs-on: ubuntu-latest
+    needs: [metadata, auto-approve]
+    if: |
+      github.actor == 'dependabot[bot]' &&
+      (needs.metadata.outputs.update-type == 'version-update:semver-patch' ||
+       needs.metadata.outputs.update-type == 'version-update:semver-minor')
+
+    steps:
+      - name: Wait for required checks
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            console.log(`PR Status: ${pullRequest.state}`);
+            console.log(`Mergeable: ${pullRequest.mergeable}`);
+            console.log(`Mergeable State: ${pullRequest.mergeable_state}`);
+
+  auto-merge:
+    name: Auto-Merge PR
+    runs-on: ubuntu-latest
+    needs: [metadata, wait-for-ci]
+    if: |
+      github.actor == 'dependabot[bot]' &&
+      (needs.metadata.outputs.update-type == 'version-update:semver-patch' ||
+       (needs.metadata.outputs.update-type == 'version-update:semver-minor' &&
+        needs.metadata.outputs.dependency-type == 'direct:development'))
+
+    steps:
+      - name: Enable auto-merge
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const updateType = '${{ needs.metadata.outputs.update-type }}';
+            const dependencyType = '${{ needs.metadata.outputs.dependency-type }}';
+
+            // Auto-merge conditions:
+            // 1. All patch updates (dev + production)
+            // 2. Minor updates for dev dependencies only
+            const shouldAutoMerge =
+              updateType === 'version-update:semver-patch' ||
+              (updateType === 'version-update:semver-minor' && dependencyType === 'direct:development');
+
+            if (!shouldAutoMerge) {
+              console.log('❌ Does not meet auto-merge criteria');
+              return;
+            }
+
+            try {
+              // Enable auto-merge with squash
+              await github.rest.pulls.enableAutoMerge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                merge_method: 'squash'
+              });
+
+              console.log('✅ Auto-merge enabled');
+
+              // Add comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `🤖 **Auto-merge enabled**\n\n` +
+                      `This PR will be automatically merged once all required checks pass.\n\n` +
+                      `**Details:**\n` +
+                      `- Update type: ${updateType}\n` +
+                      `- Dependency type: ${dependencyType}\n` +
+                      `- Merge method: Squash\n\n` +
+                      `_To disable auto-merge, comment \`@dependabot cancel merge\`_`
+              });
+
+            } catch (error) {
+              console.error('❌ Failed to enable auto-merge:', error);
+
+              // Add comment about failure
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `⚠️ **Auto-merge failed**\n\n` +
+                      `Could not enable auto-merge: ${error.message}\n\n` +
+                      `This PR requires manual review and merge.`
+              });
+            }
+
+  notify-manual-review:
+    name: Notify Manual Review Required
+    runs-on: ubuntu-latest
+    needs: metadata
+    if: |
+      github.actor == 'dependabot[bot]' &&
+      needs.metadata.outputs.update-type == 'version-update:semver-major'
+
+    steps:
+      - name: Add needs-review comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🔍 **Manual review required**\n\n` +
+                    `This is a **major version update** and requires careful review:\n\n` +
+                    `📦 Dependency: ${{ needs.metadata.outputs.dependency-names }}\n` +
+                    `📈 Version: ${{ needs.metadata.outputs.previous-version }} → ${{ needs.metadata.outputs.new-version }}\n` +
+                    `⚠️ Update type: Major (breaking changes possible)\n\n` +
+                    `**Review checklist:**\n` +
+                    `- [ ] Check CHANGELOG/release notes for breaking changes\n` +
+                    `- [ ] Review CI test results\n` +
+                    `- [ ] Test locally if needed\n` +
+                    `- [ ] Update code if API changes required\n\n` +
+                    `Once reviewed and approved, merge manually or use:\n` +
+                    `\`@dependabot merge\``
+            });
+
+  summary:
+    name: Auto-Merge Summary
+    runs-on: ubuntu-latest
+    needs: [metadata, auto-merge, notify-manual-review]
+    if: always() && github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Create summary
+        run: |
+          echo "## 🤖 Dependabot Auto-Merge Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Dependency:** ${{ needs.metadata.outputs.dependency-names }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Update Type:** ${{ needs.metadata.outputs.update-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Dependency Type:** ${{ needs.metadata.outputs.dependency-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ needs.metadata.outputs.previous-version }} → ${{ needs.metadata.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          UPDATE_TYPE="${{ needs.metadata.outputs.update-type }}"
+          DEPENDENCY_TYPE="${{ needs.metadata.outputs.dependency-type }}"
+
+          if [[ "$UPDATE_TYPE" == "version-update:semver-patch" ]]; then
+            echo "✅ **Status:** Auto-merge enabled (patch update)" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$UPDATE_TYPE" == "version-update:semver-minor" && "$DEPENDENCY_TYPE" == "direct:development" ]]; then
+            echo "✅ **Status:** Auto-merge enabled (minor dev dependency)" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$UPDATE_TYPE" == "version-update:semver-minor" ]]; then
+            echo "⚠️ **Status:** Manual review required (minor production dependency)" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$UPDATE_TYPE" == "version-update:semver-major" ]]; then
+            echo "🔍 **Status:** Manual review required (major update)" >> $GITHUB_STEP_SUMMARY
+          fi

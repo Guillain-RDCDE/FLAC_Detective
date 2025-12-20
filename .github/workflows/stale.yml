@@ -1,0 +1,84 @@
+name: Mark stale issues and PRs
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # Allow manual triggering
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          # Issue configuration
+          stale-issue-message: |
+            👋 This issue has been automatically marked as stale because it has not had recent activity.
+
+            It will be closed in **7 days** if no further activity occurs.
+
+            If you believe this issue is still relevant:
+            - Add a comment to remove the stale label
+            - Provide additional context or updates
+
+            Thank you for your contributions to FLAC Detective! 🎵
+
+          close-issue-message: |
+            🔒 This issue has been automatically closed due to inactivity.
+
+            If you believe this should be reopened:
+            - Comment on this issue with updated information
+            - Create a new issue with reference to this one
+
+            Thank you for your understanding!
+
+          # Pull request configuration
+          stale-pr-message: |
+            👋 This pull request has been automatically marked as stale because it has not had recent activity.
+
+            It will be closed in **7 days** if no further activity occurs.
+
+            If you're still working on this:
+            - Push new commits or add a comment
+            - Resolve any conflicts
+            - Request a review
+
+            Thank you for your contribution! 🙏
+
+          close-pr-message: |
+            🔒 This pull request has been automatically closed due to inactivity.
+
+            If you'd like to continue this work:
+            - Reopen this PR with updates
+            - Create a new PR referencing this one
+
+            Thank you for your contribution!
+
+          # Timing configuration
+          days-before-stale: 60        # Mark as stale after 60 days of inactivity
+          days-before-close: 7         # Close 7 days after marking stale
+          days-before-pr-stale: 45     # PRs become stale faster (45 days)
+          days-before-pr-close: 7      # Same close delay for PRs
+
+          # Label configuration
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,critical,roadmap,help wanted,good first issue'
+          exempt-pr-labels: 'pinned,security,work-in-progress,do-not-close'
+          exempt-milestones: true      # Don't mark issues with milestones as stale
+          exempt-all-assignees: false  # Assigned issues can still become stale
+          exempt-draft-pr: true        # Don't mark draft PRs as stale
+
+          # Operation limits
+          operations-per-run: 30       # Limit operations to avoid rate limiting
+
+          # Comment behavior
+          remove-stale-when-updated: true  # Remove stale label when activity resumes
+
+          # Debugging
+          debug-only: false            # Set to true for testing without taking action

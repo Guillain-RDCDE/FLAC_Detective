@@ -1,0 +1,94 @@
+# Dependabot configuration for FLAC Detective
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # Python dependencies (pip)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    # Automatically merge minor and patch updates
+    open-pull-requests-limit: 10
+    reviewers:
+      - "GuillainM"
+    assignees:
+      - "GuillainM"
+    labels:
+      - "dependencies"
+      - "python"
+      - "automated"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+      include: "scope"
+    # Group updates for related dependencies
+    groups:
+      # Scientific computing libraries
+      scientific:
+        patterns:
+          - "numpy"
+          - "scipy"
+      # Audio libraries
+      audio:
+        patterns:
+          - "mutagen"
+          - "soundfile"
+      # Development tools
+      development:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "isort"
+          - "flake8*"
+          - "mypy"
+          - "pylint"
+          - "bandit"
+          - "safety"
+          - "pre-commit"
+      # Documentation
+      documentation:
+        patterns:
+          - "sphinx*"
+          - "myst-parser"
+    # Only update to compatible versions
+    versioning-strategy: increase
+    # Allow automatic rebasing when target branch updates
+    rebase-strategy: auto
+    # Ignore specific dependencies if needed
+    ignore:
+      # Example: Pin specific version if needed
+      # - dependency-name: "numpy"
+      #   versions: ["2.x"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "GuillainM"
+    assignees:
+      - "GuillainM"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    # Group all GitHub Actions updates
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    # Allow automatic rebasing when target branch updates
+    rebase-strategy: auto

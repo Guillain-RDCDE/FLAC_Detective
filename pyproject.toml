@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "0.8.0"
+version = "0.9.0"
 description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -43,8 +43,23 @@ dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
+    "flake8-docstrings>=1.7.0",
+    "flake8-bugbear>=23.0.0",
+    "flake8-comprehensions>=3.14.0",
+    "flake8-simplify>=0.21.0",
     "mypy>=1.0.0",
     "pylint>=2.17.0",
+    "pre-commit>=3.5.0",
+    "bandit>=1.7.0",
+    "interrogate>=1.5.0",
+    "safety>=3.0.0",
+    "commitizen>=3.0.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-autodoc-typehints>=1.25.0",
+    "myst-parser>=2.0.0",
 ]
 
 [project.scripts]
@@ -135,6 +150,8 @@ omit = [
 precision = 2
 show_missing = true
 skip_covered = false
+# Fail if coverage is below this threshold
+fail_under = 80
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -151,3 +168,15 @@ disable = [
     "C0111",  # missing-docstring
     "R0903",  # too-few-public-methods
 ]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.8.0"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version_files = [
+    "pyproject.toml:version",
+    "src/flac_detective/__init__.py:__version__"
+]
+bump_message = "bump: version $current_version → $new_version"
+major_version_zero = false
