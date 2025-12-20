@@ -51,7 +51,7 @@ docker pull ghcr.io/guillainm/flac-detective:latest
 docker run --rm -v /path/to/audio:/data ghcr.io/guillainm/flac-detective:latest /data
 ```
 
-**📦 See [Docker Guide](docs/automation/DOCKER_GUIDE.md) for complete Docker usage documentation.**
+**📦 See [Getting Started](docs/getting-started.md) for complete installation and usage documentation.**
 
 ### Basic Usage
 
@@ -191,7 +191,7 @@ print(f"Score: {result['score']}/100")
 print(f"Reason: {result['reason']}")
 ```
 
-**📚 See [API Documentation](docs/reference/API_DOCUMENTATION.md) and [Python API Guide](docs/reference/PYTHON_API_GUIDE.md) for complete API reference**
+**📚 See [API Reference](docs/api-reference.md) for complete Python API documentation**
 
 ---
 
@@ -309,13 +309,12 @@ src/flac_detective/
 
 Complete documentation is available in the [docs/](docs/) directory:
 
-- [**Documentation Index**](docs/README.md) - Complete documentation structure
-- [**Getting Started**](docs/user-guide/GETTING_STARTED.md) - Quick start guide for new users
-- [**Troubleshooting**](docs/user-guide/TROUBLESHOOTING.md) - Common issues and solutions
-- [**Docker Guide**](docs/automation/DOCKER_GUIDE.md) - Complete Docker installation and usage
-- [**API Reference**](docs/reference/API_DOCUMENTATION.md) - Python API documentation
-- [**Technical Documentation**](docs/technical/TECHNICAL_DOCUMENTATION.md) - Architecture and algorithms
-- [**Contributing Guide**](docs/development/CONTRIBUTING.md) - Development guidelines
+- [**Documentation Index**](docs/index.md) - Start here! Overview and navigation
+- [**Getting Started**](docs/getting-started.md) - Installation and first analysis
+- [**User Guide**](docs/user-guide.md) - Complete usage guide with examples
+- [**API Reference**](docs/api-reference.md) - Python API documentation
+- [**Technical Details**](docs/technical-details.md) - Architecture, rules, and algorithms
+- [**Contributing**](docs/contributing.md) - Development and contribution guide
 - [**Changelog**](CHANGELOG.md) - Version history and release notes
 
 ---
