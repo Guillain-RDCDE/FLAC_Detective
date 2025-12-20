@@ -128,37 +128,31 @@ The tool implements a multi-layer protection system to prevent false positives:
 
 ---
 
-## 🆕 What's New in v0.8.0
+## 🆕 What's New in v0.9.0
 
-### Automatic FLAC Repair with Metadata Preservation
-- **Smart Corruption Detection**: Automatically identifies corrupted FLAC files during analysis
-- **Decode-Through-Errors**: Recovers maximum audio data from corrupted files using `flac --decode-through-errors`
-- **Complete Metadata Preservation**: Extracts and restores all tags (TITLE, ARTIST, ALBUM, etc.) and album art
-- **Automatic Source Replacement**: Replaces corrupted files with repaired versions (creates `.corrupted.bak` backups)
-- **Integrity Verification**: All repaired files validated with `flac --test` before replacement
-- **6-Step Repair Process**:
-  1. Extract metadata (tags + pictures)
-  2. Decode with error recovery
-  3. Re-encode to clean FLAC
-  4. Restore all metadata
-  5. Verify integrity
-  6. Replace source with backup
+### Complete Project Restructuring and Documentation Overhaul
+- **Professional Documentation Structure**: Reorganized all documentation into audience-specific directories (user-guide, technical, reference, development, automation, ci-cd)
+- **Comprehensive Navigation**: Added PROJECT_OVERVIEW.md and DOCUMENTATION_GUIDE.md for easy navigation
+- **Clean Root Directory**: Removed 9+ temporary implementation files and build artifacts
+- **113 Total Changes**: 78 new files added, professional project structure, production-ready organization
+- **Enhanced Discoverability**: Clear separation between user docs, technical docs, API reference, and developer guides
 
-### Enhanced Diagnostics
-- Detailed repair logging with step-by-step progress
-- Diagnostic tracking for all repair operations
-- Clear success/failure indicators
-- Reduces false "CORRUPTED" verdicts
+### Complete CI/CD Automation
+- **GitHub Actions Workflows**: Automated testing, building, security scanning, and releases
+- **Docker Support**: Pre-built images on GitHub Container Registry
+- **Security Scanning**: CodeQL, Bandit, Safety, pip-audit
+- **Automated Releases**: PyPI publishing via Trusted Publishers
+- **Performance Benchmarking**: Automated performance regression detection
+- **Code Quality**: Pre-commit hooks, coverage reporting, linting
 
-### Energy-Based Cutoff Detection
-- **Critical Fix**: Bass-heavy music no longer misidentified as MP3
-- Added 15 kHz minimum threshold to distinguish bass from MP3 artifacts
-- **Impact**: 77% reduction in false positives
+### Community Standards
+- **CODE_OF_CONDUCT.md**: Community guidelines and standards
+- **CONTRIBUTING.md**: Comprehensive contribution guide
+- **SECURITY.md**: Security policy and vulnerability reporting
+- **Issue Templates**: Bug reports, feature requests, performance issues, documentation, questions
+- **Pull Request Template**: Structured PR workflow
 
-### Quality Improvements
-- False positives: **198 → 46** (-77%)
-- Authentic detection: **59 → 244** (+314%)
-- Overall quality score: **20.2% → 83.6%**
+For previous releases, see [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
@@ -197,7 +191,7 @@ print(f"Score: {result['score']}/100")
 print(f"Reason: {result['reason']}")
 ```
 
-**📚 Full API documentation available at [flac-detective.readthedocs.io](https://flac-detective.readthedocs.io)**
+**📚 See [API Documentation](docs/reference/API_DOCUMENTATION.md) and [Python API Guide](docs/reference/PYTHON_API_GUIDE.md) for complete API reference**
 
 ---
 
@@ -292,7 +286,7 @@ All commits must follow the [Conventional Commits](https://www.conventionalcommi
 - `refactor:` - Code refactoring
 - `perf:` - Performance improvements
 
-See [docs/ci-cd/CHANGELOG_AUTOMATION.md](docs/ci-cd/CHANGELOG_AUTOMATION.md) for detailed documentation.
+See [Changelog Automation Guide](docs/ci-cd/CHANGELOG_AUTOMATION.md) for detailed documentation on version management.
 
 ### Project Structure
 
@@ -313,19 +307,7 @@ src/flac_detective/
 
 ## 📚 Documentation
 
-### 📖 Official Documentation
-
-**[Read the full documentation on Read the Docs](https://flac-detective.readthedocs.io)**
-
-The complete documentation includes:
-- **User Guide**: Getting started, usage examples, troubleshooting
-- **API Reference**: Complete Python API documentation with examples
-- **Technical Documentation**: Architecture, algorithms, scoring rules
-- **Development Guide**: Contributing, testing, code quality
-
-### 📄 Additional Resources
-
-Complete documentation available in the [docs/](docs/) directory:
+Complete documentation is available in the [docs/](docs/) directory:
 
 - [**Documentation Index**](docs/README.md) - Complete documentation structure
 - [**Getting Started**](docs/user-guide/GETTING_STARTED.md) - Quick start guide for new users
