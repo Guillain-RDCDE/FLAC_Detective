@@ -1,5 +1,27 @@
 ## Unreleased
 
+## v0.9.1 (2024-12-20)
+
+### Docs
+
+- **BREAKING**: Restructure documentation to minimal 6-file system
+  - Consolidated 50+ documentation files into 6 essential, focused documents
+  - New structure: index.md, getting-started.md, user-guide.md, api-reference.md, technical-details.md, contributing.md
+  - Moved old documentation structure to docs/archive/ (preserved, not deleted)
+  - Updated all README.md links to point to new documentation
+  - Added RESTRUCTURING_SUMMARY.md for migration guide
+  - Eliminated documentation redundancy (90% reduction in file count)
+  - Improved navigation with central index.md hub
+  - Enhanced maintainability: 6 files vs 50+ files to maintain
+  - Better user experience: clear progression from basics to advanced topics
+  - All essential information preserved through intelligent consolidation
+
+### Chore
+
+- Clean up root directory structure
+- Fix README issues and translate CHANGELOG_AUTOMATION to English
+- Make GitHub Actions workflows more resilient
+
 ## v0.9.0 (2024-12-20)
 
 ### Feat
