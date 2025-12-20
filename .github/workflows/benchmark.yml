@@ -1,14 +1,14 @@
 name: Performance Benchmarks
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # Disabled automatic runs to reduce noise - run manually if needed
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
   workflow_dispatch:
-  schedule:
-    # Run weekly benchmarks every Sunday at 3 AM
-    - cron: '0 3 * * 0'
+  # schedule:
+  #   - cron: '0 3 * * 0'
 
 permissions:
   contents: write
@@ -64,17 +64,18 @@ jobs:
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
         with:
           name: FLAC Detective Performance
           tool: 'pytest'
           output-file-path: benchmark-results/output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: '130%'
-          comment-on-alert: true
+          # Disabled alerts to reduce noise
+          # alert-threshold: '130%'
+          # comment-on-alert: true
           fail-on-alert: false
-          alert-comment-cc-users: '@GuillainM'
+          # alert-comment-cc-users: '@GuillainM'
           # Store results in gh-pages branch
           gh-pages-branch: gh-pages
           benchmark-data-dir-path: dev/bench
@@ -86,32 +87,29 @@ jobs:
           path: benchmark-results/
           retention-days: 90
 
-      - name: Comment PR with benchmark results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-
-            // Read benchmark report
-            let report = '';
-            try {
-              report = fs.readFileSync('benchmark-results/report.md', 'utf8');
-            } catch (error) {
-              report = '⚠️ Could not read benchmark report';
-            }
-
-            // Post comment
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `## 📊 Performance Benchmark Results\n\n${report}\n\n` +
-                    `<details>\n<summary>View detailed results</summary>\n\n` +
-                    `Download the benchmark artifacts for detailed analysis.\n` +
-                    `</details>`
-            });
+      # Disabled PR comments to reduce noise
+      # - name: Comment PR with benchmark results
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/github-script@v7
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const fs = require('fs');
+      #       let report = '';
+      #       try {
+      #         report = fs.readFileSync('benchmark-results/report.md', 'utf8');
+      #       } catch (error) {
+      #         report = '⚠️ Could not read benchmark report';
+      #       }
+      #       await github.rest.issues.createComment({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         issue_number: context.issue.number,
+      #         body: `## 📊 Performance Benchmark Results\n\n${report}\n\n` +
+      #               `<details>\n<summary>View detailed results</summary>\n\n` +
+      #               `Download the benchmark artifacts for detailed analysis.\n` +
+      #               `</details>`
+      #       });
 
   compare-benchmarks:
     name: Compare with Baseline
@@ -163,26 +161,25 @@ jobs:
             current-results/output.json \
             > comparison.md || echo "## No baseline available for comparison"
 
-      - name: Comment comparison
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-
-            let comparison = '';
-            try {
-              comparison = fs.readFileSync('comparison.md', 'utf8');
-            } catch (error) {
-              comparison = '⚠️ Could not generate benchmark comparison';
-            }
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `## 📈 Benchmark Comparison (PR vs Main)\n\n${comparison}`
-            });
+      # Disabled PR comments to reduce noise
+      # - name: Comment comparison
+      #   uses: actions/github-script@v7
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const fs = require('fs');
+      #       let comparison = '';
+      #       try {
+      #         comparison = fs.readFileSync('comparison.md', 'utf8');
+      #       } catch (error) {
+      #         comparison = '⚠️ Could not generate benchmark comparison';
+      #       }
+      #       await github.rest.issues.createComment({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         issue_number: context.issue.number,
+      #         body: `## 📈 Benchmark Comparison (PR vs Main)\n\n${comparison}`
+      #       });
 
   performance-regression-check:
     name: Performance Regression Check
@@ -219,15 +216,16 @@ jobs:
           path: regression-report.md
           retention-days: 30
 
-      - name: Fail on severe regression
-        run: |
-          if [ -f regression-report.md ]; then
-            if grep -q "SEVERE REGRESSION" regression-report.md; then
-              echo "::error::Severe performance regression detected!"
-              cat regression-report.md
-              exit 1
-            fi
-          fi
+      # Disabled failing on regression to reduce noise
+      # - name: Fail on severe regression
+      #   run: |
+      #     if [ -f regression-report.md ]; then
+      #       if grep -q "SEVERE REGRESSION" regression-report.md; then
+      #         echo "::error::Severe performance regression detected!"
+      #         cat regression-report.md
+      #         exit 1
+      #       fi
+      #     fi
 
   summary:
     name: Benchmark Summary

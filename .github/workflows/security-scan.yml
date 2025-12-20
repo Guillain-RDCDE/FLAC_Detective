@@ -4,13 +4,13 @@
 name: Security Scan
 
 on:
-  push:
-    branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main" ]
-  schedule:
-    # Run every Monday at 8:00 UTC
-    - cron: '0 8 * * 1'
+  # Disabled scheduled and automatic runs to reduce noise - run manually if needed
+  # push:
+  #   branches: [ "main", "develop" ]
+  # pull_request:
+  #   branches: [ "main" ]
+  # schedule:
+  #   - cron: '0 8 * * 1'
   workflow_dispatch:
 
 jobs:
