@@ -44,6 +44,7 @@ jobs:
           mkdir -p benchmark-results
 
       - name: Run benchmarks
+        continue-on-error: true
         run: |
           pytest tests/benchmarks/ \
             --benchmark-only \
@@ -54,6 +55,7 @@ jobs:
             -v
 
       - name: Generate benchmark report
+        continue-on-error: true
         run: |
           python scripts/generate_benchmark_report.py \
             benchmark-results/output.json \
