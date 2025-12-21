@@ -1,4 +1,4 @@
-﻿"""Text report generation with ASCII formatting."""
+"""Text report generation with ASCII formatting."""
 
 import logging
 from datetime import datetime

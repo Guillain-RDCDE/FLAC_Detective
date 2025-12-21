@@ -1,0 +1,22 @@
+# Bandit security scanner configuration for FLAC Detective
+# https://bandit.readthedocs.io/
+
+# Directories and files to exclude from scanning
+exclude_dirs:
+  - /tests/
+  - /.venv/
+  - /venv/
+  - /build/
+  - /dist/
+  - /.eggs/
+  - /.mypy_cache/
+  - /.pytest_cache/
+  - /.tox/
+  - /htmlcov/
+
+# Test IDs to skip
+# B101: assert_used - We use asserts legitimately in our code
+# B404: import_subprocess - We need subprocess for FLAC decoding
+skips:
+  - B101
+  - B404

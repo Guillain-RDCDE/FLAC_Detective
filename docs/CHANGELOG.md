@@ -50,19 +50,19 @@
 - Add automatic FLAC repair with complete metadata preservation (v0.8.0)
 - Add comprehensive diagnostic tracking and error handling system
 
-## v0.7.2 (2025-12-18)
+## v0.7.2 (2024-12-18)
 
 ### Fix
 
 - Bump to v0.7.2 for PyPI image fix
 
-## v0.7.1 (2025-12-18)
+## v0.7.1 (2024-12-18)
 
 ### Fix
 
 - Update banner image URL for PyPI display
 
-## v0.7.0 (2025-12-18)
+## v0.7.0 (2024-12-18)
 
 ### Feat
 
@@ -79,7 +79,7 @@
 
 - **rules**: Optimize memory usage for Rules 9 and 11
 
-## v0.6.9 (2025-12-15)
+## v0.6.9 (2024-12-15)
 
 ### Feat
 
@@ -95,11 +95,11 @@
 - **analysis**: Prevent memory errors and fix audio loading
 - **audio**: Allow kwargs in load_audio_with_retry
 
-## v0.6.8 (2025-12-14)
+## v0.6.8 (2024-12-14)
 
-## v0.6.7 (2025-12-12)
+## v0.6.7 (2024-12-12)
 
-## v0.6.6 (2025-12-12)
+## v0.6.6 (2024-12-12)
 
 ### Feat
 
@@ -120,7 +120,7 @@
 - **rule1**: Add 20 kHz cutoff exception to prevent false positives
 - **build**: Fix pip installation by correcting README path in pyproject.toml
 
-## v0.5.0 (2025-12-04)
+## v0.5.0 (2024-12-04)
 
 ### Feat
 
