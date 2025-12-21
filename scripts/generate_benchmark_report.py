@@ -15,8 +15,8 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def format_time(seconds):
@@ -43,10 +43,10 @@ def format_ops(ops_per_sec):
 
 def generate_report(benchmark_file):
     """Generate benchmark report from JSON file."""
-    with open(benchmark_file, 'r') as f:
+    with open(benchmark_file, "r") as f:
         data = json.load(f)
 
-    benchmarks = data.get('benchmarks', [])
+    benchmarks = data.get("benchmarks", [])
 
     if not benchmarks:
         print("⚠️ No benchmarks found in file")
@@ -55,7 +55,7 @@ def generate_report(benchmark_file):
     # Group benchmarks by test file
     groups = {}
     for bench in benchmarks:
-        group = bench.get('group', 'default')
+        group = bench.get("group", "default")
         if group not in groups:
             groups[group] = []
         groups[group].append(bench)
@@ -66,8 +66,8 @@ def generate_report(benchmark_file):
     print(f"**Test Groups**: {len(groups)}\n")
 
     # Print overall statistics
-    all_means = [b['stats']['mean'] for b in benchmarks]
-    all_medians = [b['stats']['median'] for b in benchmarks]
+    all_means = [b["stats"]["mean"] for b in benchmarks]
+    all_medians = [b["stats"]["median"] for b in benchmarks]
 
     print("### Overall Statistics\n")
     print(f"- **Fastest Test**: {format_time(min(all_means))}")
@@ -81,26 +81,28 @@ def generate_report(benchmark_file):
         print("| Test | Mean | Min | Max | Std Dev | Ops/s |")
         print("|------|------|-----|-----|---------|-------|")
 
-        for bench in sorted(group_benchmarks, key=lambda x: x['stats']['mean']):
-            name = bench['name']
-            stats = bench['stats']
+        for bench in sorted(group_benchmarks, key=lambda x: x["stats"]["mean"]):
+            name = bench["name"]
+            stats = bench["stats"]
 
             # Truncate long names
             if len(name) > 50:
                 name = name[:47] + "..."
 
-            print(f"| {name} | "
-                  f"{format_time(stats['mean'])} | "
-                  f"{format_time(stats['min'])} | "
-                  f"{format_time(stats['max'])} | "
-                  f"{format_time(stats['stddev'])} | "
-                  f"{format_ops(stats.get('ops', 0))} |")
+            print(
+                f"| {name} | "
+                f"{format_time(stats['mean'])} | "
+                f"{format_time(stats['min'])} | "
+                f"{format_time(stats['max'])} | "
+                f"{format_time(stats['stddev'])} | "
+                f"{format_ops(stats.get('ops', 0))} |"
+            )
 
         print()
 
     # Print slowest benchmarks
     print("### 🐢 Slowest 5 Benchmarks\n")
-    slowest = sorted(benchmarks, key=lambda x: x['stats']['mean'], reverse=True)[:5]
+    slowest = sorted(benchmarks, key=lambda x: x["stats"]["mean"], reverse=True)[:5]
 
     for i, bench in enumerate(slowest, 1):
         print(f"{i}. **{bench['name']}**: {format_time(bench['stats']['mean'])}")
@@ -109,7 +111,7 @@ def generate_report(benchmark_file):
 
     # Print fastest benchmarks
     print("### ⚡ Fastest 5 Benchmarks\n")
-    fastest = sorted(benchmarks, key=lambda x: x['stats']['mean'])[:5]
+    fastest = sorted(benchmarks, key=lambda x: x["stats"]["mean"])[:5]
 
     for i, bench in enumerate(fastest, 1):
         print(f"{i}. **{bench['name']}**: {format_time(bench['stats']['mean'])}")
@@ -120,11 +122,11 @@ def generate_report(benchmark_file):
     print("### 📈 Performance Grades\n")
 
     # Categorize by speed
-    very_fast = sum(1 for b in benchmarks if b['stats']['mean'] < 0.001)  # < 1ms
-    fast = sum(1 for b in benchmarks if 0.001 <= b['stats']['mean'] < 0.01)  # 1-10ms
-    moderate = sum(1 for b in benchmarks if 0.01 <= b['stats']['mean'] < 0.1)  # 10-100ms
-    slow = sum(1 for b in benchmarks if 0.1 <= b['stats']['mean'] < 1.0)  # 100ms-1s
-    very_slow = sum(1 for b in benchmarks if b['stats']['mean'] >= 1.0)  # > 1s
+    very_fast = sum(1 for b in benchmarks if b["stats"]["mean"] < 0.001)  # < 1ms
+    fast = sum(1 for b in benchmarks if 0.001 <= b["stats"]["mean"] < 0.01)  # 1-10ms
+    moderate = sum(1 for b in benchmarks if 0.01 <= b["stats"]["mean"] < 0.1)  # 10-100ms
+    slow = sum(1 for b in benchmarks if 0.1 <= b["stats"]["mean"] < 1.0)  # 100ms-1s
+    very_slow = sum(1 for b in benchmarks if b["stats"]["mean"] >= 1.0)  # > 1s
 
     print(f"- ⚡ Very Fast (< 1ms): {very_fast}")
     print(f"- 🚀 Fast (1-10ms): {fast}")
@@ -135,8 +137,8 @@ def generate_report(benchmark_file):
     print()
 
     # Machine info
-    if 'machine_info' in data:
-        info = data['machine_info']
+    if "machine_info" in data:
+        info = data["machine_info"]
         print("### 💻 Machine Info\n")
         print(f"- **Platform**: {info.get('system', 'Unknown')} {info.get('release', '')}")
         print(f"- **Processor**: {info.get('processor', 'Unknown')}")
@@ -149,9 +151,7 @@ def main():
         description="Generate benchmark report from pytest-benchmark JSON"
     )
     parser.add_argument(
-        'benchmark_file',
-        type=Path,
-        help='Path to pytest-benchmark JSON output file'
+        "benchmark_file", type=Path, help="Path to pytest-benchmark JSON output file"
     )
 
     args = parser.parse_args()

@@ -18,7 +18,7 @@ from .silence_utils import (
     calculate_energy_db,
     calculate_autocorrelation,
     calculate_temporal_variance,
-    detect_transients
+    detect_transients,
 )
 from scipy.fft import rfft, rfftfreq, set_workers
 from ...analysis.window_cache import get_hanning_window
@@ -27,10 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def detect_silences(
-    audio_data: np.ndarray,
-    sample_rate: int,
-    threshold_db: float = -40.0,
-    min_duration: float = 0.5
+    audio_data: np.ndarray, sample_rate: int, threshold_db: float = -40.0, min_duration: float = 0.5
 ) -> List[Tuple[int, int]]:
     """Detect silent segments in audio data.
 
@@ -51,11 +48,11 @@ def detect_silences(
 
     # Calculate amplitude (absolute value)
     amplitude = np.abs(audio_mono)
-    
+
     # OPTIMIZATION: Compare in linear domain to avoid expensive log10() on entire array
     # threshold_db = 20 * log10(amp)  =>  amp = 10 ^ (threshold_db / 20)
     threshold_linear = 10 ** (threshold_db / 20)
-    
+
     # Create boolean mask for silence
     is_silence = amplitude < threshold_linear
 
@@ -78,9 +75,7 @@ def detect_silences(
 
 
 def calculate_spectral_energy(
-    audio_segment: np.ndarray,
-    sample_rate: int,
-    freq_range: Tuple[int, int] = (16000, 22000)
+    audio_segment: np.ndarray, sample_rate: int, freq_range: Tuple[int, int] = (16000, 22000)
 ) -> float:
     """Calculate normalized spectral energy in a specific frequency band.
 
@@ -102,7 +97,7 @@ def calculate_spectral_energy(
     # PHASE 3 OPTIMIZATION: Use parallel FFT
     with set_workers(-1):
         fft_result = rfft(audio_segment * window)
-    fft_freqs = rfftfreq(len(audio_segment), 1/sample_rate)
+    fft_freqs = rfftfreq(len(audio_segment), 1 / sample_rate)
 
     # Calculate power spectrum (magnitude squared)
     power_spectrum = np.abs(fft_result) ** 2
@@ -122,10 +117,7 @@ def calculate_spectral_energy(
     return float(normalized_energy)
 
 
-def analyze_silence_ratio(
-    file_path: Path,
-    cache=None
-) -> Tuple[Optional[float], str, float, float]:
+def analyze_silence_ratio(file_path: Path, cache=None) -> Tuple[Optional[float], str, float, float]:
     """Analyze the ratio of HF energy between silence and music.
 
     PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.
@@ -223,9 +215,7 @@ def analyze_silence_ratio(
 
 
 def detect_vinyl_noise(
-    audio_data: np.ndarray,
-    sample_rate: int,
-    cutoff_freq: float
+    audio_data: np.ndarray, sample_rate: int, cutoff_freq: float
 ) -> Tuple[bool, dict]:
     """Detect vinyl surface noise above the musical cutoff (Phase 2).
 
@@ -242,12 +232,7 @@ def detect_vinyl_noise(
     Returns:
         Tuple of (is_vinyl, details_dict)
     """
-    details = {
-        'energy_db': -100.0,
-        'autocorr': 0.0,
-        'temporal_variance': 0.0,
-        'is_vinyl': False
-    }
+    details = {"energy_db": -100.0, "autocorr": 0.0, "temporal_variance": 0.0, "is_vinyl": False}
 
     # Convert to mono if stereo
     if audio_data.ndim > 1:
@@ -262,7 +247,7 @@ def detect_vinyl_noise(
 
     # 1. Measure average energy in dB
     energy_db = calculate_energy_db(noise_band)
-    details['energy_db'] = energy_db
+    details["energy_db"] = energy_db
 
     logger.debug(f"VINYL: Noise energy = {energy_db:.1f} dB")
 
@@ -273,12 +258,12 @@ def detect_vinyl_noise(
 
     # 2. Calculate autocorrelation (texture analysis)
     autocorr = calculate_autocorrelation(noise_band, sample_rate)
-    details['autocorr'] = autocorr
+    details["autocorr"] = autocorr
     logger.debug(f"VINYL: Autocorrelation = {autocorr:.3f}")
 
     # 3. Measure temporal constancy
     temporal_variance = calculate_temporal_variance(noise_band, sample_rate)
-    details['temporal_variance'] = temporal_variance
+    details["temporal_variance"] = temporal_variance
     logger.debug(f"VINYL: Temporal variance = {temporal_variance:.2f} dB")
 
     # Decision criteria for vinyl noise:
@@ -286,13 +271,9 @@ def detect_vinyl_noise(
     # 2. Autocorrelation < 0.3 (random, not patterned)
     # 3. Temporal variance < 5dB (constant)
 
-    is_vinyl = (
-        energy_db > -70 and
-        details['autocorr'] < 0.3 and
-        details['temporal_variance'] < 5.0
-    )
+    is_vinyl = energy_db > -70 and details["autocorr"] < 0.3 and details["temporal_variance"] < 5.0
 
-    details['is_vinyl'] = is_vinyl
+    details["is_vinyl"] = is_vinyl
 
     if is_vinyl:
         logger.info(
@@ -308,10 +289,7 @@ def detect_vinyl_noise(
     return is_vinyl, details
 
 
-def detect_clicks_and_pops(
-    audio_data: np.ndarray,
-    sample_rate: int
-) -> Tuple[int, float]:
+def detect_clicks_and_pops(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, float]:
     """Detect clicks and pops typical of vinyl records (Phase 3).
 
     Vinyl records have brief transients (clicks/pops) from dust and scratches.

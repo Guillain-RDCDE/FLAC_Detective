@@ -7,8 +7,9 @@ Tests the performance of:
 - Partial loading fallback
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from flac_detective.analysis.audio_cache import AudioCache
 from flac_detective.analysis.new_scoring.audio_loader import (
@@ -33,11 +34,7 @@ class TestAudioLoadingBenchmarks:
 
     def test_audio_cache_creation(self, benchmark, benchmark_audio_file):
         """Benchmark AudioCache initialization."""
-        result = benchmark(
-            AudioCache,
-            benchmark_audio_file,
-            30.0
-        )
+        result = benchmark(AudioCache, benchmark_audio_file, 30.0)
         assert result is not None
 
     def test_audio_cache_reuse(self, benchmark, benchmark_audio_file):
@@ -52,11 +49,7 @@ class TestAudioLoadingBenchmarks:
 
     def test_partial_loading(self, benchmark, benchmark_audio_file):
         """Benchmark partial audio loading (fallback mode)."""
-        result = benchmark(
-            sf_blocks_partial,
-            benchmark_audio_file,
-            blocksize=4096
-        )
+        result = benchmark(sf_blocks_partial, benchmark_audio_file, blocksize=4096)
         assert result is not None
 
 
@@ -89,13 +82,14 @@ class TestCachePerformance:
     def test_cache_miss_performance(self, benchmark):
         """Benchmark cache miss (new file each time)."""
         import tempfile
-        import soundfile as sf
+
         import numpy as np
+        import soundfile as sf
 
         def create_and_cache():
             # Create temp file
             audio = np.random.randn(44100, 2) * 0.5
-            temp_file = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
+            temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
             temp_path = Path(temp_file.name)
             sf.write(temp_path, audio, 44100)
 

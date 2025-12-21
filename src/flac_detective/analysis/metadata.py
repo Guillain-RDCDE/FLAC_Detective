@@ -28,9 +28,7 @@ def read_metadata(filepath: Path) -> Dict:
             "bit_depth": info.bits_per_sample,
             "channels": info.channels,
             "duration": info.length,
-            "encoder": audio.get("encoder", ["Unknown"])[0]
-            if audio.get("encoder")
-            else "Unknown",
+            "encoder": audio.get("encoder", ["Unknown"])[0] if audio.get("encoder") else "Unknown",
         }
     except Exception as e:
         logger.debug(f"Metadata reading error: {e}")

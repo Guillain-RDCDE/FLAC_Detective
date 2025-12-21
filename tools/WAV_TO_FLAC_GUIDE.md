@@ -131,7 +131,7 @@ python3 wav_to_flac.py /music --delete-wav
 **Le script demande confirmation :**
 ```
 ⚠️  ATTENTION: Les fichiers WAV seront SUPPRIMÉS après conversion !
-   Continuer ? (oui/non): 
+   Continuer ? (oui/non):
 ```
 
 **Recommandation :** Testez d'abord **sans** `--delete-wav`, vérifiez les FLAC, puis relancez avec cette option si tout est OK.
@@ -407,5 +407,5 @@ Avant de lancer la conversion :
 
 ---
 
-**WAV to FLAC Converter**  
+**WAV to FLAC Converter**
 *Simple, rapide, fiable - Conversion lossless garantie*

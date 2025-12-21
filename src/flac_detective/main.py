@@ -21,28 +21,30 @@ from typing import Optional
 # RICH INTEGRATION
 try:
     from rich.console import Console
+    from rich.logging import RichHandler
     from rich.progress import (
+        BarColumn,
         Progress,
         SpinnerColumn,
-        TextColumn,
-        BarColumn,
         TaskProgressColumn,
+        TextColumn,
         TimeRemainingColumn,
     )
-    from rich.logging import RichHandler
     from rich.theme import Theme
-    
+
     # Custom theme for FLAC Detective
-    custom_theme = Theme({
-        "info": "dim cyan",
-        "warning": "yellow",
-        "error": "bold red",
-        "success": "bold green",
-        "fake": "bold red",
-        "suspicious": "bold yellow",
-        "authentic": "bold green",
-    })
-    
+    custom_theme = Theme(
+        {
+            "info": "dim cyan",
+            "warning": "yellow",
+            "error": "bold red",
+            "success": "bold green",
+            "fake": "bold red",
+            "suspicious": "bold yellow",
+            "authentic": "bold green",
+        }
+    )
+
     console = Console(theme=custom_theme)
     HAS_RICH = True
 except ImportError:
@@ -51,15 +53,16 @@ except ImportError:
 
 from .analysis import FLACAnalyzer
 from .analysis.diagnostic_tracker import get_tracker, reset_tracker
+from .colors import Colors, colorize
 from .config import analysis_config
 from .reporting import TextReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files, find_non_flac_audio_files
-from .colors import Colors, colorize
 
 # Fix Windows console encoding for UTF-8 support (Standard approach)
 if sys.platform == "win32":
     os.system("chcp 65001 > nul 2>&1")
+
 
 # Configure Logging
 # If Rich is available, we use RichHandler for beautiful console logs
@@ -73,20 +76,22 @@ def setup_logging(output_dir: Path) -> Path:
     Returns:
         Path to the created log file.
     """
-    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
 
     # Root logger
     root_log = logging.getLogger()
     root_log.setLevel(logging.INFO)
-    
+
     # Remove existing handlers to avoid duplicates
     root_log.handlers = []
 
     # File Handler (Always detailed)
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
     file_handler.setLevel(logging.INFO)
-    file_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
+    file_formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
+    )
     file_handler.setFormatter(file_formatter)
     root_log.addHandler(file_handler)
 
@@ -98,7 +103,7 @@ def setup_logging(output_dir: Path) -> Path:
             show_time=True,
             omit_repeated_times=False,
             show_path=False,
-            rich_tracebacks=True
+            rich_tracebacks=True,
         )
         # Set to WARNING to reduce noise from retry/partial read messages
         # All details are still saved to the log file
@@ -116,8 +121,9 @@ def setup_logging(output_dir: Path) -> Path:
         logger.info(f"Console log will be saved to: {log_file}")
     else:
         console.print(f"[dim]Log file: {log_file}[/dim]")
-        
+
     return log_file
+
 
 logger = logging.getLogger(__name__)
 
@@ -227,10 +233,10 @@ def setup_logging(output_dir: Path) -> Path:
     Returns:
         Path to the created log file.
     """
-    log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
 
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
     file_handler.setFormatter(formatter)
@@ -312,7 +318,7 @@ def _get_score_icon(score: int) -> str:
 
 def _log_formatted_result(result: dict, processed: int, total: int):
     """Log analysis result with Rich formatting.
-    
+
     Args:
         result: Analysis result dictionary.
         processed: Number of files processed.
@@ -320,22 +326,22 @@ def _log_formatted_result(result: dict, processed: int, total: int):
     """
     score = result.get("score", 0)
     verdict = result.get("verdict", "UNKNOWN")
-    filename = result['filename']
-    
+    filename = result["filename"]
+
     # Icons and Styles
-    if score >= 80: 
+    if score >= 80:
         icon = "❌"
         style = "fake"
         verdict = "FAKE"
-    elif score >= 50: 
+    elif score >= 50:
         icon = "⚠️ "
         style = "suspicious"
         verdict = "SUSPICIOUS"
-    elif score >= 30: 
+    elif score >= 30:
         icon = "❓"
         style = "warning"
         verdict = "WARNING"
-    else: 
+    else:
         icon = "✅"
         style = "authentic"
         verdict = "AUTHENTIC"
@@ -355,7 +361,6 @@ def _log_formatted_result(result: dict, processed: int, total: int):
         score_str = f"{score}/100"
         msg = f"[{processed:03d}/{total:03d}] {icon} {verdict:<12} {score_str:>7}  {filename}"
         logger.info(msg)
-
 
 
 def _create_non_flac_result(non_flac_file: Path) -> dict:
@@ -402,9 +407,7 @@ def _create_non_flac_result(non_flac_file: Path) -> dict:
 
 
 def _process_flac_files(
-    files_to_process: list[Path],
-    tracker: ProgressTracker,
-    analyzer: FLACAnalyzer
+    files_to_process: list[Path], tracker: ProgressTracker, analyzer: FLACAnalyzer
 ):
     """Process FLAC files with multi-processing and rich progress.
 
@@ -414,7 +417,7 @@ def _process_flac_files(
         analyzer: FLAC analyzer instance.
     """
     total_files = len(files_to_process)
-    
+
     # Define Progress Bar Columns
     columns = [
         SpinnerColumn(),
@@ -423,33 +426,34 @@ def _process_flac_files(
         TaskProgressColumn(),
         TimeRemainingColumn(),
     ]
-    
+
     # Use Rich Progress if available
     if HAS_RICH:
         progress_ctx = Progress(*columns, console=console)
     else:
         # Dummy context manager for no-rich mode
         from contextlib import nullcontext
+
         progress_ctx = nullcontext()
 
     with ProcessPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
         futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
-        
+
         processed_count = 0
-        
+
         # Start Progress Block
         if HAS_RICH:
-             with progress_ctx as progress:
+            with progress_ctx as progress:
                 task_id = progress.add_task("[cyan]Analyzing audio files...", total=total_files)
-                
+
                 for future in as_completed(futures):
                     result = future.result()
                     tracker.add_result(result)
                     processed_count += 1
-                    
+
                     # Update Progress
                     progress.update(task_id, advance=1)
-                    
+
                     # Log result (will appear above progress bar thanks to RichHandler)
                     _log_formatted_result(result, processed_count, total_files)
 
@@ -462,7 +466,7 @@ def _process_flac_files(
                 result = future.result()
                 tracker.add_result(result)
                 processed_count += 1
-                
+
                 _log_formatted_result(result, processed_count, total_files)
 
                 if processed_count % analysis_config.SAVE_INTERVAL == 0:
@@ -485,9 +489,7 @@ def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTrack
 
 
 def run_analysis_loop(
-    all_flac_files: list[Path],
-    all_non_flac_files: list[Path],
-    output_dir: Path
+    all_flac_files: list[Path], all_non_flac_files: list[Path], output_dir: Path
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -556,7 +558,7 @@ def _cleanup_console_log_if_empty(log_file: Path) -> bool:
             return False
 
         # Check if file is empty or contains only INFO messages
-        with open(log_file, 'r', encoding='utf-8') as f:
+        with open(log_file, "r", encoding="utf-8") as f:
             content = f.read().strip()
 
         # If empty, delete
@@ -565,7 +567,7 @@ def _cleanup_console_log_if_empty(log_file: Path) -> bool:
             return False
 
         # Check if there are any ERROR or WARNING messages
-        has_errors = 'ERROR' in content or 'WARNING' in content
+        has_errors = "ERROR" in content or "WARNING" in content
 
         if not has_errors:
             # No errors or warnings, safe to delete
@@ -587,7 +589,7 @@ def generate_final_report(
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
     log_file: Path,
-    input_paths: list[Path]
+    input_paths: list[Path],
 ):
     """Generate the final report and print summary.
 
@@ -611,18 +613,30 @@ def generate_final_report(
     diagnostic_report_path = None
 
     if stats["files_with_issues"] > 0:
-        diagnostic_report_path = output_dir / f"flac_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        diagnostic_report_path = (
+            output_dir / f"flac_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        )
         diagnostic_report = tracker.generate_report()
 
-        with open(diagnostic_report_path, 'w', encoding='utf-8') as f:
+        with open(diagnostic_report_path, "w", encoding="utf-8") as f:
             f.write(diagnostic_report)
 
-        logger.warning(f"\n⚠️  {stats['files_with_issues']} file(s) had reading issues during analysis")
+        logger.warning(
+            f"\n⚠️  {stats['files_with_issues']} file(s) had reading issues during analysis"
+        )
         logger.warning(f"   Diagnostic report saved to: {diagnostic_report_path.name}")
 
     # Summary (NEW SCORING: score >= 50 = suspicious)
-    suspicious_flac = [r for r in results if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
-    fake_certain = [r for r in results if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]]
+    suspicious_flac = [
+        r
+        for r in results
+        if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]
+    ]
+    fake_certain = [
+        r
+        for r in results
+        if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]
+    ]
     non_flac_count = len(all_non_flac_files)
 
     # Check if console log contains errors/warnings, delete if empty or no issues
@@ -633,13 +647,17 @@ def generate_final_report(
     print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
     print(colorize("=" * 70, Colors.CYAN))
     print(f"  FLAC files analyzed: {len(all_flac_files)}")
-    print(f"  {colorize('Fake/Suspicious FLAC files', Colors.RED)}: {len(suspicious_flac)} (including {len(fake_certain)} certain fakes)")
+    print(
+        f"  {colorize('Fake/Suspicious FLAC files', Colors.RED)}: {len(suspicious_flac)} (including {len(fake_certain)} certain fakes)"
+    )
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
 
     # Show diagnostic warning if there were issues
     if stats["files_with_issues"] > 0:
-        print(f"  {colorize('⚠️  Files with reading issues', Colors.YELLOW)}: {stats['files_with_issues']} ({stats['critical_failures']} critical)")
+        print(
+            f"  {colorize('⚠️  Files with reading issues', Colors.YELLOW)}: {stats['files_with_issues']} ({stats['critical_failures']} critical)"
+        )
 
     print(f"  Text report: {output_file.name}")
     if diagnostic_report_path:

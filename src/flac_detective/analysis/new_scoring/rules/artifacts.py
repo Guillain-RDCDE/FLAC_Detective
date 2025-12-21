@@ -1,6 +1,7 @@
 """Artifacts analysis rules (Rule 9)."""
 
 from typing import List, Optional, Tuple
+
 from ..artifacts import analyze_compression_artifacts
 
 
@@ -9,7 +10,7 @@ def apply_rule_9_compression_artifacts(
     cutoff_freq: float,
     mp3_bitrate_detected: Optional[int],
     audio_data: Optional[object] = None,
-    sample_rate: Optional[int] = None
+    sample_rate: Optional[int] = None,
 ) -> Tuple[int, List[str], dict]:
     """Apply Rule 9: Psychoacoustic Compression Artifacts Detection.
 
@@ -50,11 +51,7 @@ def apply_rule_9_compression_artifacts(
     # analyze_compression_artifacts is imported at module level
 
     score, reasons, details = analyze_compression_artifacts(
-        file_path,
-        cutoff_freq,
-        mp3_bitrate_detected,
-        audio_data=audio_data,
-        sample_rate=sample_rate
+        file_path, cutoff_freq, mp3_bitrate_detected, audio_data=audio_data, sample_rate=sample_rate
     )
 
     return score, reasons, details

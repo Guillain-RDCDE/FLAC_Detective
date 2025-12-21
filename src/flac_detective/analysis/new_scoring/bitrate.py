@@ -2,15 +2,16 @@
 
 import logging
 from pathlib import Path
-import soundfile as sf
+
 import numpy as np
+import soundfile as sf
 
 from .constants import (
-    MP3_SIGNATURES,
     CUTOFF_THRESHOLDS,
-    NYQUIST_PERCENTAGE,
     DEFAULT_VARIANCE_SEGMENTS,
     MIN_VARIANCE_SEGMENTS,
+    MP3_SIGNATURES,
+    NYQUIST_PERCENTAGE,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,12 +62,16 @@ def calculate_real_bitrate(filepath: Path, duration: float) -> float:
     try:
         file_size_bytes = filepath.stat().st_size
         if duration <= 0:
-            logger.warning(f"Invalid duration {duration}s for {filepath.name}, cannot calculate bitrate")
+            logger.warning(
+                f"Invalid duration {duration}s for {filepath.name}, cannot calculate bitrate"
+            )
             return 0
 
         # Bitrate = (file_size_bytes × 8) / (duration_seconds × 1000)
         bitrate_kbps = (file_size_bytes * 8) / (duration * 1000)
-        logger.debug(f"Real bitrate: {bitrate_kbps:.1f} kbps (size: {file_size_bytes} bytes, duration: {duration:.1f}s)")
+        logger.debug(
+            f"Real bitrate: {bitrate_kbps:.1f} kbps (size: {file_size_bytes} bytes, duration: {duration:.1f}s)"
+        )
         return bitrate_kbps
 
     except Exception as e:
@@ -90,9 +95,7 @@ def calculate_apparent_bitrate(sample_rate: int, bit_depth: int, channels: int =
 
 
 def calculate_bitrate_variance(
-    filepath: Path,
-    sample_rate: int,
-    num_segments: int = DEFAULT_VARIANCE_SEGMENTS
+    filepath: Path, sample_rate: int, num_segments: int = DEFAULT_VARIANCE_SEGMENTS
 ) -> float:
     """Calculate bitrate variance across multiple segments of the file.
 

@@ -1,10 +1,11 @@
 """Pytest configuration and fixtures for benchmarks."""
 
-import pytest
-from pathlib import Path
-import numpy as np
-import soundfile as sf
 import tempfile
+from pathlib import Path
+
+import numpy as np
+import pytest
+import soundfile as sf
 
 
 @pytest.fixture(scope="session")
@@ -35,10 +36,10 @@ def benchmark_audio_file():
     audio = audio / np.max(np.abs(audio)) * 0.8
 
     # Create temporary FLAC file
-    temp_file = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
+    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
     temp_path = Path(temp_file.name)
 
-    sf.write(temp_path, audio, sample_rate, subtype='PCM_16')
+    sf.write(temp_path, audio, sample_rate, subtype="PCM_16")
 
     yield temp_path
 
@@ -56,10 +57,10 @@ def benchmark_small_audio():
     np.random.seed(123)
     audio = np.random.randn(samples, 2) * 0.3
 
-    temp_file = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
+    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
     temp_path = Path(temp_file.name)
 
-    sf.write(temp_path, audio, sample_rate, subtype='PCM_16')
+    sf.write(temp_path, audio, sample_rate, subtype="PCM_16")
 
     yield temp_path
 
@@ -83,7 +84,7 @@ def sample_audio_data():
 def benchmark_config():
     """Configuration for benchmarks."""
     return {
-        'min_rounds': 5,
-        'warmup': True,
-        'sample_duration': 30.0,
+        "min_rounds": 5,
+        "warmup": True,
+        "sample_duration": 30.0,
     }

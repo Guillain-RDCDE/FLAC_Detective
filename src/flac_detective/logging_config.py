@@ -20,15 +20,17 @@ try:
     from rich.theme import Theme
 
     # Custom theme for FLAC Detective
-    custom_theme = Theme({
-        "info": "dim cyan",
-        "warning": "yellow",
-        "error": "bold red",
-        "success": "bold green",
-        "fake": "bold red",
-        "suspicious": "bold yellow",
-        "authentic": "bold green",
-    })
+    custom_theme = Theme(
+        {
+            "info": "dim cyan",
+            "warning": "yellow",
+            "error": "bold red",
+            "success": "bold green",
+            "fake": "bold red",
+            "suspicious": "bold yellow",
+            "authentic": "bold green",
+        }
+    )
 
     console = Console(theme=custom_theme)
     HAS_RICH = True
@@ -56,10 +58,11 @@ class LogLevel:
         CRITICAL: Critical errors that may cause program termination.
                   Used for unrecoverable errors, system issues.
     """
-    DEBUG = logging.DEBUG        # 10
-    INFO = logging.INFO          # 20
-    WARNING = logging.WARNING    # 30
-    ERROR = logging.ERROR        # 40
+
+    DEBUG = logging.DEBUG  # 10
+    INFO = logging.INFO  # 20
+    WARNING = logging.WARNING  # 30
+    ERROR = logging.ERROR  # 40
     CRITICAL = logging.CRITICAL  # 50
 
 
@@ -122,10 +125,10 @@ def setup_logging(
             output_dir = Path.cwd()
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        log_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file = output_dir / f"flac_detective_{log_timestamp}.log"
 
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setLevel(log_level)
         file_formatter = logging.Formatter(log_format, datefmt=date_format)
         file_handler.setFormatter(file_formatter)

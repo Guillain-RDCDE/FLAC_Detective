@@ -1,22 +1,27 @@
 """Check metadata preservation after repair."""
 
-import sys
 import os
+import sys
 
 # Force UTF-8 output
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 from mutagen.flac import FLAC
 
-repaired = FLAC(r"D:\FLAC\Internal\Richard Pinhas\Iceland (1979)\02 - Richard Pinhas -  Iceland (part 2).flac")
-backup = FLAC(r"D:\FLAC\Internal\Richard Pinhas\Iceland (1979)\02 - Richard Pinhas -  Iceland (part 2).flac.corrupted.bak")
+repaired = FLAC(
+    r"D:\FLAC\Internal\Richard Pinhas\Iceland (1979)\02 - Richard Pinhas -  Iceland (part 2).flac"
+)
+backup = FLAC(
+    r"D:\FLAC\Internal\Richard Pinhas\Iceland (1979)\02 - Richard Pinhas -  Iceland (part 2).flac.corrupted.bak"
+)
 
-print("="*80)
+print("=" * 80)
 print("METADATA COMPARISON")
-print("="*80)
+print("=" * 80)
 
 print("\n✅ REPAIRED FILE:")
 print(f"  Tags: {len(repaired.tags)} entries")
@@ -30,7 +35,7 @@ for key, value in backup.tags:
     print(f"    {key}: {value}")
 print(f"  Pictures: {len(backup.pictures)}")
 
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 
 # Compare
 tags_match = dict(repaired.tags) == dict(backup.tags)
@@ -45,4 +50,4 @@ else:
     if not pics_match:
         print(f"  - Picture count differs ({len(repaired.pictures)} vs {len(backup.pictures)})")
 
-print("="*80)
+print("=" * 80)

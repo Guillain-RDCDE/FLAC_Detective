@@ -7,13 +7,10 @@ Tests the performance of:
 - Energy-based analysis
 """
 
-import pytest
 import numpy as np
+import pytest
 
-from flac_detective.analysis.spectrum import (
-    analyze_spectrum,
-    find_cutoff_frequency,
-)
+from flac_detective.analysis.spectrum import analyze_spectrum, find_cutoff_frequency
 
 
 class TestFFTPerformance:
@@ -24,7 +21,7 @@ class TestFFTPerformance:
         audio, sr = sample_audio_data
 
         result = benchmark(analyze_spectrum, audio, sr)
-        assert 'cutoff_freq' in result
+        assert "cutoff_freq" in result
 
     def test_cutoff_detection(self, benchmark, sample_audio_data):
         """Benchmark cutoff frequency detection."""
@@ -32,7 +29,7 @@ class TestFFTPerformance:
 
         # Pre-compute spectrum for isolated benchmark
         spectrum_result = analyze_spectrum(audio, sr)
-        freqs = np.fft.rfftfreq(len(audio), 1/sr)
+        freqs = np.fft.rfftfreq(len(audio), 1 / sr)
         spectrum = np.abs(np.fft.rfft(audio[:, 0]))
 
         result = benchmark(find_cutoff_frequency, freqs, spectrum, sr)

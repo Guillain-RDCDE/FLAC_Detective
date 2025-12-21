@@ -11,7 +11,7 @@
 
 We take the security of FLAC Detective seriously. If you have any concerns about security or have discovered a vulnerability, please do NOT file a public issue.
 
-Instead, please send an email to **guillain@poulpe.us**. 
+Instead, please send an email to **guillain@poulpe.us**.
 
 Please include:
 * A detailed description of the vulnerability

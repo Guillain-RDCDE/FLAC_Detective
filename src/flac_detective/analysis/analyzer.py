@@ -4,18 +4,17 @@ PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 """
 
 import logging
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Dict
 
-from .metadata import check_duration_consistency, read_metadata
-from .quality import analyze_audio_quality
-from .new_scoring import estimate_mp3_bitrate, new_calculate_score
-from .spectrum import analyze_spectrum
 from .audio_cache import AudioCache
 from .diagnostic_tracker import get_tracker
-
-import shutil
-import tempfile
+from .metadata import check_duration_consistency, read_metadata
+from .new_scoring import estimate_mp3_bitrate, new_calculate_score
+from .quality import analyze_audio_quality
+from .spectrum import analyze_spectrum
 
 logger = logging.getLogger(__name__)
 
@@ -46,18 +45,18 @@ class FLACAnalyzer:
         # I/O STABILITY STRATEGY: "Copy-to-Temp"
         # Copy file to local temp dir to avoid external drive I/O errors during analysis
         temp_path = None
-        
+
         try:
             # Create a named temp file (but we want to control the path/extension)
             # We create a temp file, close it, and overwrite it with copy
             with tempfile.NamedTemporaryFile(suffix=".flac", delete=False) as tmp:
                 temp_path = Path(tmp.name)
-            
+
             # Copy source to temp
             # Using copy2 to preserve metadata (timestamps) although typically not critical for analysis content
             logger.debug(f"I/O STABILITY: Copying {filepath.name} to local temp {temp_path}")
             shutil.copy2(filepath, temp_path)
-            
+
             # PHASE 1 OPTIMIZATION: Create cache using the LOCAL TEMP copy
             # All subsequent reads will hit this local file (SSD/HDD) instead of USB/Network
             # AudioCache now handles partial loading internally
@@ -77,7 +76,9 @@ class FLACAnalyzer:
             duration_check = check_duration_consistency(temp_path, metadata)
 
             # Spectral analysis (OPTIMIZED: uses cache -> points to TEMP)
-            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(temp_path, self.sample_duration, cache=cache)
+            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(
+                temp_path, self.sample_duration, cache=cache
+            )
 
             # Audio quality analysis (OPTIMIZED: uses cache -> points to TEMP)
             quality_analysis = analyze_audio_quality(temp_path, metadata, cutoff_freq, cache=cache)
@@ -87,7 +88,13 @@ class FLACAnalyzer:
             # but ensure 'context.cache' (temp) is used for heavy lifting.
             logger.debug(f"Analyzing file: {filepath.name} | Cutoff: {cutoff_freq:.0f} Hz")
             score, verdict, confidence, reason = new_calculate_score(
-                cutoff_freq, metadata, duration_check, temp_path, cutoff_std, energy_ratio, cache=cache
+                cutoff_freq,
+                metadata,
+                duration_check,
+                temp_path,
+                cutoff_std,
+                energy_ratio,
+                cache=cache,
             )
 
             # Add note if analysis was partial
@@ -121,7 +128,8 @@ class FLACAnalyzer:
                 "dc_offset_value": quality_analysis["dc_offset"]["dc_offset_value"],
                 "is_corrupted": quality_analysis["corruption"]["is_corrupted"],
                 "corruption_error": quality_analysis["corruption"].get("error"),
-                "partial_analysis": quality_analysis["corruption"].get("partial_analysis", False) or is_partial_analysis,
+                "partial_analysis": quality_analysis["corruption"].get("partial_analysis", False)
+                or is_partial_analysis,
                 "is_partial_analysis": is_partial_analysis,
                 # Phase 2
                 "has_silence_issue": quality_analysis["silence"]["has_silence_issue"],
@@ -129,7 +137,9 @@ class FLACAnalyzer:
                 "is_fake_high_res": quality_analysis["bit_depth"]["is_fake_high_res"],
                 "estimated_bit_depth": quality_analysis["bit_depth"]["estimated_depth"],
                 "is_upsampled": quality_analysis["upsampling"]["is_upsampled"],
-                "suspected_original_rate": quality_analysis["upsampling"]["suspected_original_rate"],
+                "suspected_original_rate": quality_analysis["upsampling"][
+                    "suspected_original_rate"
+                ],
                 "estimated_mp3_bitrate": estimate_mp3_bitrate(cutoff_freq),
             }
 
@@ -167,10 +177,10 @@ class FLACAnalyzer:
             }
         finally:
             # Cleanup resources
-            if 'cache' in locals():
+            if "cache" in locals():
                 cache.clear()
                 logger.debug(f"⚡ OPTIMIZATION: Cleared AudioCache for {filepath.name}")
-            
+
             # Delete temp file
             if temp_path and temp_path.exists():
                 try:

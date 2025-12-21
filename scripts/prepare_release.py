@@ -21,8 +21,8 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def get_current_version():
@@ -128,12 +128,8 @@ def main():
         description="Prepare a new release by updating version numbers"
     )
     parser.add_argument("version", help="New version number (e.g., 0.9.0)")
-    parser.add_argument(
-        "--release-name", help="Release name (e.g., 'Enhanced Spectral Analysis')"
-    )
-    parser.add_argument(
-        "--no-tag", action="store_true", help="Skip git tag creation instructions"
-    )
+    parser.add_argument("--release-name", help="Release name (e.g., 'Enhanced Spectral Analysis')")
+    parser.add_argument("--no-tag", action="store_true", help="Skip git tag creation instructions")
 
     args = parser.parse_args()
 
@@ -175,7 +171,7 @@ def main():
     print("   git diff")
 
     print("\n3. Commit the version bump:")
-    print(f'   git add -A')
+    print(f"   git add -A")
     print(f'   git commit -m "chore: Bump version to {args.version}"')
 
     if not args.no_tag:

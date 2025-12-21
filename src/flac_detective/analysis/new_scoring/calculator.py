@@ -31,10 +31,7 @@ from .audio_loader import load_audio_with_retry
 logger = logging.getLogger(__name__)
 
 
-def _calculate_bitrate_metrics(
-    filepath: Path,
-    audio_meta: AudioMetadata
-) -> BitrateMetrics:
+def _calculate_bitrate_metrics(filepath: Path, audio_meta: AudioMetadata) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
     Args:
@@ -46,9 +43,7 @@ def _calculate_bitrate_metrics(
     """
     real_bitrate = calculate_real_bitrate(filepath, audio_meta.duration)
     apparent_bitrate = calculate_apparent_bitrate(
-        audio_meta.sample_rate,
-        audio_meta.bit_depth,
-        audio_meta.channels
+        audio_meta.sample_rate, audio_meta.bit_depth, audio_meta.channels
     )
     variance = calculate_bitrate_variance(filepath, audio_meta.sample_rate)
 
@@ -59,15 +54,11 @@ def _calculate_bitrate_metrics(
     )
 
     return BitrateMetrics(
-        real_bitrate=real_bitrate,
-        apparent_bitrate=apparent_bitrate,
-        variance=variance
+        real_bitrate=real_bitrate, apparent_bitrate=apparent_bitrate, variance=variance
     )
 
 
-def _apply_scoring_rules(
-    context: ScoringContext
-) -> Tuple[int, List[str]]:
+def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
     """Apply all scoring rules using the Strategy pattern.
 
     Args:
@@ -118,7 +109,7 @@ def _apply_scoring_rules(
     # Actually, R11 is expensive (bandpass filtering).
     # If we move it here, we lose the "Fast Rules First" optimization.
     # But to satisfy the user request "First detect cassette (priority)", we must do it.
-    
+
     # Wait, the user pseudo-code shows:
     # cassette_score = rule_11_cassette_detection(...)
     # if cassette_score >= 50: annul Rule 1...
@@ -126,15 +117,15 @@ def _apply_scoring_rules(
     # So we MUST run R11 before R1.
     run_rule11_early = context.cutoff_freq < 19000
     cassette_score = 0
-    
+
     # MEMORY OPTIMIZATION: Manage audio buffer scope
     try:
         if run_rule11_early:
             logger.info("Executing Rule 11 (Cassette) EARLY as priority...")
-            
+
             # Pre-load audio for R11 (and likely R9 later)
             logger.debug("OPTIMIZATION: Pre-loading full audio for Rule 11...")
-            
+
             if context.cache is not None:
                 # Use shared cache from FLACAnalyzer
                 logger.debug("OPTIMIZATION: Using shared AudioCache for Rule 11")
@@ -142,12 +133,12 @@ def _apply_scoring_rules(
             else:
                 logger.debug("OPTIMIZATION: No shared cache, loading from file")
                 audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
-                
+
             context.audio_data = audio_data
             context.loaded_sample_rate = sample_rate
 
             rule11.apply(context)
-            
+
             # Extract the score contribution from R11
             cassette_score = context.current_score - initial_r8_score
 
@@ -157,16 +148,18 @@ def _apply_scoring_rules(
 
         # Filter rules based on cassette detection
         fast_rules: List[ScoringRule] = []
-        
+
         if cassette_score >= 30:
-             logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
-             logger.info(f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate).")
-             # Add bonus manually as requested: "score -= 40"
-             # The Context.add_score handles addition. To subtract, add negative.
-             context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])
-             
-             # Skip Rule 1
-             fast_rules = [
+            logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
+            logger.info(
+                f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate)."
+            )
+            # Add bonus manually as requested: "score -= 40"
+            # The Context.add_score handles addition. To subtract, add negative.
+            context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])
+
+            # Skip Rule 1
+            fast_rules = [
                 Rule2Cutoff(),
                 Rule3SourceVsContainer(),
                 Rule424BitSuspect(),
@@ -191,13 +184,17 @@ def _apply_scoring_rules(
 
         # SHORT-CIRCUIT 1: If already FAKE_CERTAIN (≥86), stop here
         if context.current_score >= 86:
-            logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)")
+            logger.info(
+                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)"
+            )
             context.reasons.append("⚡ Analyse rapide : FAKE_CERTAIN détecté sans règles coûteuses")
             return context.current_score, context.reasons
 
         # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
         if context.current_score < 10 and context.mp3_bitrate_detected is None:
-            logger.info(f"OPTIMIZATION: Fast path for authentic file (score={context.current_score}, no MP3)")
+            logger.info(
+                f"OPTIMIZATION: Fast path for authentic file (score={context.current_score}, no MP3)"
+            )
             context.reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
             return context.current_score, context.reasons
 
@@ -215,26 +212,30 @@ def _apply_scoring_rules(
         if run_rule9:
             expensive_rules.append(Rule9CompressionArtifacts())
         if run_rule11 and cassette_score == 0:
-             expensive_rules.append(Rule11CassetteDetection())
+            expensive_rules.append(Rule11CassetteDetection())
 
         if expensive_rules:
             # Check if we need to load audio (if NOT already loaded by R11 early)
-            need_full_audio = any(isinstance(r, (Rule9CompressionArtifacts, Rule11CassetteDetection)) for r in expensive_rules)
-            
-            
+            need_full_audio = any(
+                isinstance(r, (Rule9CompressionArtifacts, Rule11CassetteDetection))
+                for r in expensive_rules
+            )
+
             if need_full_audio and context.audio_data is None:
                 logger.debug("OPTIMIZATION: Pre-loading full audio for Rules 9/11 (Phase 2)...")
                 if context.cache is not None:
-                     logger.debug("OPTIMIZATION: Using shared AudioCache for Phase 2")
-                     audio_data, sample_rate = context.cache.get_full_audio()
+                    logger.debug("OPTIMIZATION: Using shared AudioCache for Phase 2")
+                    audio_data, sample_rate = context.cache.get_full_audio()
                 else:
-                     audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
-                     
+                    audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+
                 context.audio_data = audio_data
                 context.loaded_sample_rate = sample_rate
-            
+
             if len(expensive_rules) > 1:
-                logger.info("OPTIMIZATION PHASE 3: Running expensive rules (R7/R9/R11) sequentially")
+                logger.info(
+                    "OPTIMIZATION PHASE 3: Running expensive rules (R7/R9/R11) sequentially"
+                )
                 # Note: Since context is not thread-safe for concurrent writes,
                 # we need to be careful. However, R7 updates silence_ratio and R9 updates nothing in context except score.
                 # But "add_score" modifies shared state.
@@ -256,7 +257,9 @@ def _apply_scoring_rules(
         # Rule 8: Refine with additional context if available
         # Only recalculate if MP3 was detected (which changes R8 logic)
         if context.mp3_bitrate_detected is not None:
-            logger.debug("OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio...")
+            logger.debug(
+                "OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio..."
+            )
 
             # Backtrack: Remove the previous R8 score/reasons
             context.current_score -= initial_r8_score
@@ -277,7 +280,9 @@ def _apply_scoring_rules(
 
         # SHORT-CIRCUIT 3: Check again after R7+R8+R9+R11
         if context.current_score >= 86:
-            logger.info(f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules")
+            logger.info(
+                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules"
+            )
             return context.current_score, context.reasons
 
         # Rule 10: Only if score > 30 (already suspect)
@@ -297,6 +302,7 @@ def _apply_scoring_rules(
             context.loaded_sample_rate = None
             # Force GC to avoid bad_alloc in loop
             import gc
+
             gc.collect()
 
 
@@ -307,7 +313,7 @@ def new_calculate_score(
     filepath: Path,
     cutoff_std: float = 0.0,
     energy_ratio: float = 0.0,
-    cache = None
+    cache=None,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -337,12 +343,13 @@ def new_calculate_score(
             logger.warning(f"Duration is {audio_meta.duration}, attempting to read from file...")
             try:
                 import soundfile as sf
+
                 info = sf.info(filepath)
                 audio_meta = AudioMetadata(
                     sample_rate=audio_meta.sample_rate,
                     bit_depth=audio_meta.bit_depth,
                     channels=audio_meta.channels,
-                    duration=info.duration
+                    duration=info.duration,
                 )
                 logger.info(f"Duration corrected to {info.duration:.1f}s from soundfile")
             except Exception as e:
@@ -359,7 +366,7 @@ def new_calculate_score(
             cutoff_freq=cutoff_freq,
             cutoff_std=cutoff_std,
             energy_ratio=energy_ratio,
-            cache=cache  # Pass shared cache to context
+            cache=cache,  # Pass shared cache to context
         )
 
         # Apply scoring rules
@@ -371,9 +378,7 @@ def new_calculate_score(
         # Format reasons for output
         reasons_str = " | ".join(reasons) if reasons else "No anomaly detected"
 
-        logger.info(
-            f"Final score: {score}/150 - Verdict: {verdict} - Confidence: {confidence}"
-        )
+        logger.info(f"Final score: {score}/150 - Verdict: {verdict} - Confidence: {confidence}")
         logger.info(f"Reasons: {reasons_str}")
         logger.info(f"{'='*60}\n")
 

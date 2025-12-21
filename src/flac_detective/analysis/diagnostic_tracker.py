@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class IssueType(Enum):
     """Types of issues that can occur during analysis."""
+
     PARTIAL_READ = "partial_read"  # File was read but incomplete
     REPAIR_ATTEMPTED = "repair_attempted"  # File required repair attempt
     REPAIR_FAILED = "repair_failed"  # Repair was unsuccessful
@@ -27,6 +28,7 @@ class IssueType(Enum):
 @dataclass
 class FileIssue:
     """Details about an issue encountered with a file."""
+
     filepath: str
     issue_type: IssueType
     message: str
@@ -52,7 +54,7 @@ class DiagnosticTracker:
         message: str,
         frames_read: Optional[int] = None,
         total_frames: Optional[int] = None,
-        retry_count: int = 0
+        retry_count: int = 0,
     ):
         """Record an issue encountered during file analysis.
 
@@ -73,7 +75,7 @@ class DiagnosticTracker:
             frames_read=frames_read,
             total_frames=total_frames,
             retry_count=retry_count,
-            timestamp=datetime.now().strftime("%H:%M:%S")
+            timestamp=datetime.now().strftime("%H:%M:%S"),
         )
 
         if filepath not in self._issues:
@@ -132,14 +134,16 @@ class DiagnosticTracker:
             "files_with_issues": self._files_with_issues,
             "clean_files": self._files_analyzed - self._files_with_issues,
             "issue_types": {},
-            "critical_failures": 0
+            "critical_failures": 0,
         }
 
         # Count issues by type
         for filepath, issues in self._issues.items():
             for issue in issues:
                 issue_type_name = issue.issue_type.value
-                stats["issue_types"][issue_type_name] = stats["issue_types"].get(issue_type_name, 0) + 1
+                stats["issue_types"][issue_type_name] = (
+                    stats["issue_types"].get(issue_type_name, 0) + 1
+                )
 
             # Count critical failures
             if self.has_critical_issues(filepath):
@@ -164,7 +168,9 @@ class DiagnosticTracker:
         # Summary
         lines.append("SUMMARY:")
         lines.append(f"  Total files analyzed: {stats['total_files']}")
-        lines.append(f"  Files with issues: {stats['files_with_issues']} ({stats['files_with_issues']/max(stats['total_files'], 1)*100:.1f}%)")
+        lines.append(
+            f"  Files with issues: {stats['files_with_issues']} ({stats['files_with_issues']/max(stats['total_files'], 1)*100:.1f}%)"
+        )
         lines.append(f"  Clean files: {stats['clean_files']}")
         lines.append(f"  Critical failures: {stats['critical_failures']}")
         lines.append("")
@@ -198,8 +204,14 @@ class DiagnosticTracker:
                     lines.append(f"    Message: {issue.message}")
 
                     if issue.frames_read is not None and issue.total_frames is not None:
-                        completion = (issue.frames_read / issue.total_frames * 100) if issue.total_frames > 0 else 0
-                        lines.append(f"    Data read: {issue.frames_read}/{issue.total_frames} frames ({completion:.1f}%)")
+                        completion = (
+                            (issue.frames_read / issue.total_frames * 100)
+                            if issue.total_frames > 0
+                            else 0
+                        )
+                        lines.append(
+                            f"    Data read: {issue.frames_read}/{issue.total_frames} frames ({completion:.1f}%)"
+                        )
 
                     if issue.retry_count > 0:
                         lines.append(f"    Retries: {issue.retry_count}")

@@ -8,21 +8,20 @@ that go beyond simple frequency cutoff analysis:
 """
 
 import logging
-import numpy as np
 from typing import Optional, Tuple
+
+import numpy as np
 import soundfile as sf
 from scipy import signal
 from scipy.fft import fft, fftfreq
 
-from .audio_loader import load_audio_with_retry, load_audio_segment
+from .audio_loader import load_audio_segment, load_audio_with_retry
 
 logger = logging.getLogger(__name__)
 
 
 def detect_preecho_artifacts(
-    audio_data: np.ndarray,
-    sample_rate: int,
-    threshold_db: float = -3.0
+    audio_data: np.ndarray, sample_rate: int, threshold_db: float = -3.0
 ) -> Tuple[float, int, int]:
     """Detect pre-echo artifacts before transients (Test 9A).
 
@@ -40,7 +39,9 @@ def detect_preecho_artifacts(
     # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
     max_samples = int(30 * sample_rate)  # 30 seconds max
     if len(audio_data) > max_samples:
-        logger.debug(f"ARTIFACTS: Limiting pre-echo analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        logger.debug(
+            f"ARTIFACTS: Limiting pre-echo analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)"
+        )
         audio_data = audio_data[:max_samples]
 
     # Convert to mono if stereo
@@ -75,7 +76,7 @@ def detect_preecho_artifacts(
     peaks, properties = signal.find_peaks(
         envelope_smooth,
         height=threshold_linear,
-        distance=int(0.05 * sample_rate)  # At least 50ms apart
+        distance=int(0.05 * sample_rate),  # At least 50ms apart
     )
 
     num_transients = len(peaks)
@@ -95,11 +96,13 @@ def detect_preecho_artifacts(
         return 0.0, num_transients, 0
 
     # Bandpass filter 10-20 kHz
-    sos = signal.butter(4, [10000, min(20000, nyquist - 100)], 'bandpass', fs=sample_rate, output='sos')
+    sos = signal.butter(
+        4, [10000, min(20000, nyquist - 100)], "bandpass", fs=sample_rate, output="sos"
+    )
     audio_hf = signal.sosfilt(sos, audio_data)
 
     # Calculate baseline HF energy (from quiet sections)
-    baseline_energy = np.median(audio_hf ** 2)
+    baseline_energy = np.median(audio_hf**2)
 
     num_with_preecho = 0
 
@@ -127,10 +130,7 @@ def detect_preecho_artifacts(
     return percentage_affected, num_transients, num_with_preecho
 
 
-def detect_hf_aliasing(
-    audio_data: np.ndarray,
-    sample_rate: int
-) -> float:
+def detect_hf_aliasing(audio_data: np.ndarray, sample_rate: int) -> float:
     """Detect aliasing in high frequencies (Test 9B).
 
     MP3 filterbanks create spectral replicas with phase inversion.
@@ -146,7 +146,9 @@ def detect_hf_aliasing(
     # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
     max_samples = int(30 * sample_rate)  # 30 seconds max
     if len(audio_data) > max_samples:
-        logger.debug(f"ARTIFACTS: Limiting aliasing analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        logger.debug(
+            f"ARTIFACTS: Limiting aliasing analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)"
+        )
         audio_data = audio_data[:max_samples]
 
     # Convert to mono if stereo
@@ -161,12 +163,12 @@ def detect_hf_aliasing(
         return 0.0
 
     # Extract band A: 10-15 kHz
-    sos_a = signal.butter(4, [10000, 15000], 'bandpass', fs=sample_rate, output='sos')
+    sos_a = signal.butter(4, [10000, 15000], "bandpass", fs=sample_rate, output="sos")
     band_a = signal.sosfilt(sos_a, audio_data)
 
     # Extract band B: 15-20 kHz (or up to Nyquist)
     upper_freq = min(20000, nyquist - 100)
-    sos_b = signal.butter(4, [15000, upper_freq], 'bandpass', fs=sample_rate, output='sos')
+    sos_b = signal.butter(4, [15000, upper_freq], "bandpass", fs=sample_rate, output="sos")
     band_b = signal.sosfilt(sos_b, audio_data)
 
     # Invert band B
@@ -178,12 +180,12 @@ def detect_hf_aliasing(
 
     correlations = []
     for i in range(0, len(band_a) - segment_length, segment_length // 2):
-        seg_a = band_a[i:i + segment_length]
-        seg_b_inv = band_b_inverted[i:i + segment_length]
+        seg_a = band_a[i : i + segment_length]
+        seg_b_inv = band_b_inverted[i : i + segment_length]
 
         if np.std(seg_a) < 1e-6 or np.std(seg_b_inv) < 1e-6:
-             correlations.append(0.0)
-             continue
+            correlations.append(0.0)
+            continue
 
         # Normalize
         seg_a = seg_a / (np.std(seg_a) + 1e-10)
@@ -196,7 +198,7 @@ def detect_hf_aliasing(
                 corr = 0.0
         except Exception:
             corr = 0.0
-            
+
         correlations.append(corr)
 
     if not correlations:
@@ -210,10 +212,7 @@ def detect_hf_aliasing(
     return float(correlation)
 
 
-def detect_mp3_noise_pattern(
-    audio_data: np.ndarray,
-    sample_rate: int
-) -> bool:
+def detect_mp3_noise_pattern(audio_data: np.ndarray, sample_rate: int) -> bool:
     """Detect MP3 quantization noise patterns (Test 9C).
 
     MP3 uses 32 subbands with regular spacing. This creates periodic
@@ -229,7 +228,9 @@ def detect_mp3_noise_pattern(
     # MEMORY OPTIMIZATION: Limit analysis to first 30 seconds if file is too large
     max_samples = int(30 * sample_rate)  # 30 seconds max
     if len(audio_data) > max_samples:
-        logger.debug(f"ARTIFACTS: Limiting MP3 noise analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)")
+        logger.debug(
+            f"ARTIFACTS: Limiting MP3 noise analysis to first 30s (audio is {len(audio_data)/sample_rate:.1f}s)"
+        )
         audio_data = audio_data[:max_samples]
 
     # Convert to mono if stereo
@@ -245,7 +246,7 @@ def detect_mp3_noise_pattern(
 
     # Extract high-frequency noise band (16-20 kHz)
     upper_freq = min(20000, nyquist - 100)
-    sos = signal.butter(4, [16000, upper_freq], 'bandpass', fs=sample_rate, output='sos')
+    sos = signal.butter(4, [16000, upper_freq], "bandpass", fs=sample_rate, output="sos")
     noise_band = signal.sosfilt(sos, audio_data)
 
     # Analyze segments
@@ -257,7 +258,7 @@ def detect_mp3_noise_pattern(
 
     # Take middle segment to avoid edge effects
     start_idx = len(noise_band) // 2 - segment_length // 2
-    segment = noise_band[start_idx:start_idx + segment_length]
+    segment = noise_band[start_idx : start_idx + segment_length]
 
     # FFT on the noise
     fft_result = fft(segment)
@@ -314,7 +315,7 @@ def analyze_compression_artifacts(
     cutoff_freq: float,
     mp3_bitrate_detected: Optional[int],
     audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None
+    sample_rate: Optional[int] = None,
 ) -> Tuple[int, list, dict]:
     """Analyze file for psychoacoustic compression artifacts (Rule 9).
 
@@ -336,19 +337,17 @@ def analyze_compression_artifacts(
     score = 0
     reasons = []
     details = {
-        'preecho_percentage': 0.0,
-        'aliasing_correlation': 0.0,
-        'mp3_noise_pattern': False,
-        'tests_run': []
+        "preecho_percentage": 0.0,
+        "aliasing_correlation": 0.0,
+        "mp3_noise_pattern": False,
+        "tests_run": [],
     }
 
     # Activation condition: cutoff < 21 kHz OR MP3 signature detected
     should_activate = cutoff_freq < 21000 or mp3_bitrate_detected is not None
 
     if not should_activate:
-        logger.debug(
-            f"RULE 9: Skipped (cutoff {cutoff_freq:.0f} Hz >= 21000 and no MP3 signature)"
-        )
+        logger.debug(f"RULE 9: Skipped (cutoff {cutoff_freq:.0f} Hz >= 21000 and no MP3 signature)")
         return score, reasons, details
 
     logger.info("RULE 9: Activation - Analyzing compression artifacts...")
@@ -363,7 +362,9 @@ def analyze_compression_artifacts(
                 # For very long files, analyze a 30s segment from the middle (MEMORY OPTIMIZED)
                 if duration > 30:
                     start_sec = max(0, duration / 2 - 15)
-                    logger.info("RULE 9: Loading 30s segment from middle of large file (memory optimized)...")
+                    logger.info(
+                        "RULE 9: Loading 30s segment from middle of large file (memory optimized)..."
+                    )
                     audio_data, sample_rate = load_audio_segment(
                         file_path, start_sec=start_sec, duration_sec=30
                     )
@@ -376,7 +377,7 @@ def analyze_compression_artifacts(
                 return 0, [], details
         else:
             logger.info("RULE 9: Using pre-loaded audio data (cached)")
-        
+
         if audio_data is None or sample_rate is None:
             logger.error(
                 f"RULE 9: Failed to load audio after retries. "
@@ -389,12 +390,14 @@ def analyze_compression_artifacts(
             preecho_pct, num_transients, num_affected = detect_preecho_artifacts(
                 audio_data, sample_rate
             )
-            details['preecho_percentage'] = preecho_pct
-            details['tests_run'].append('9A')
+            details["preecho_percentage"] = preecho_pct
+            details["tests_run"].append("9A")
 
             if preecho_pct > 10:
                 score += 15
-                reasons.append(f"R9A: Pré-echo détecté ({preecho_pct:.1f}% transitoires affectées) (+15pts)")
+                reasons.append(
+                    f"R9A: Pré-echo détecté ({preecho_pct:.1f}% transitoires affectées) (+15pts)"
+                )
                 logger.info(f"RULE 9A: +15 points (pre-echo {preecho_pct:.1f}% > 10%)")
             elif preecho_pct >= 5:
                 score += 10
@@ -409,8 +412,8 @@ def analyze_compression_artifacts(
         # Test 9B: HF aliasing detection
         try:
             aliasing_corr = detect_hf_aliasing(audio_data, sample_rate)
-            details['aliasing_correlation'] = aliasing_corr
-            details['tests_run'].append('9B')
+            details["aliasing_correlation"] = aliasing_corr
+            details["tests_run"].append("9B")
 
             if aliasing_corr > 0.5:
                 score += 15
@@ -429,8 +432,8 @@ def analyze_compression_artifacts(
         # Test 9C: MP3 noise pattern detection
         try:
             mp3_pattern = detect_mp3_noise_pattern(audio_data, sample_rate)
-            details['mp3_noise_pattern'] = mp3_pattern
-            details['tests_run'].append('9C')
+            details["mp3_noise_pattern"] = mp3_pattern
+            details["tests_run"].append("9C")
 
             if mp3_pattern:
                 score += 10

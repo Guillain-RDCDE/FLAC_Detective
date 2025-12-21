@@ -21,8 +21,8 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 class ReleaseValidator:
@@ -95,8 +95,7 @@ class ReleaseValidator:
             # Check against expected version if provided
             if expected_version and current_version != expected_version:
                 self.error(
-                    f"Version mismatch: expected {expected_version}, "
-                    f"found {current_version}"
+                    f"Version mismatch: expected {expected_version}, " f"found {current_version}"
                 )
 
             return current_version

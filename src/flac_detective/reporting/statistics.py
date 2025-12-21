@@ -56,7 +56,14 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     upsampled_files = len([r for r in results if r.get("is_upsampled", False)])
 
     # Non-FLAC files (identified by verdict="NON_FLAC" or score=100 with NON-FLAC in reason)
-    non_flac_files = len([r for r in results if r.get("verdict") == "NON_FLAC" or (r.get("score", 0) == 100 and "NON-FLAC FILE" in r.get("reason", ""))])
+    non_flac_files = len(
+        [
+            r
+            for r in results
+            if r.get("verdict") == "NON_FLAC"
+            or (r.get("score", 0) == 100 and "NON-FLAC FILE" in r.get("reason", ""))
+        ]
+    )
 
     return {
         "total": total,

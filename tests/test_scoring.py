@@ -1,6 +1,8 @@
 import unittest
 from pathlib import Path
-from src.flac_detective.analysis.new_scoring import new_calculate_score, estimate_mp3_bitrate
+
+from src.flac_detective.analysis.new_scoring import estimate_mp3_bitrate, new_calculate_score
+
 
 class TestScoringV2(unittest.TestCase):
     def setUp(self):
@@ -8,7 +10,7 @@ class TestScoringV2(unittest.TestCase):
             "sample_rate": 44100,
             "bit_depth": 16,
             "encoder": "Lavf58.29.100",
-            "duration": 180.0
+            "duration": 180.0,
         }
         self.duration_check = {"mismatch": False}
         # Create a dummy filepath for testing
@@ -73,5 +75,6 @@ class TestScoringV2(unittest.TestCase):
         self.assertEqual(estimate_mp3_bitrate(16000), 160)
         self.assertEqual(estimate_mp3_bitrate(22000), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

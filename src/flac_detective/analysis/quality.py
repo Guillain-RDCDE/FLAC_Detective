@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 import numpy as np
 import soundfile as sf
+
 from .new_scoring.audio_loader import is_temporary_decoder_error, sf_blocks
 
 logger = logging.getLogger(__name__)
@@ -60,9 +61,7 @@ def _calculate_dc_offset_severity(abs_offset: float, threshold: float) -> str:
         return "severe"  # > 5%
 
 
-def _calculate_silence_issue_type(
-    leading: float, trailing: float, threshold: float = 2.0
-) -> str:
+def _calculate_silence_issue_type(leading: float, trailing: float, threshold: float = 2.0) -> str:
     """Calculate silence issue type.
 
     Args:
@@ -129,9 +128,7 @@ class ClippingDetector(QualityDetector):
 
         clipped_samples = int(np.sum(np.abs(data) >= self.threshold))
         total_samples = data.size
-        clipping_percentage = (
-            (clipped_samples / total_samples) * 100 if total_samples > 0 else 0
-        )
+        clipping_percentage = (clipped_samples / total_samples) * 100 if total_samples > 0 else 0
         severity = _calculate_clipping_severity(clipping_percentage)
 
         return {
@@ -205,9 +202,7 @@ class DCOffsetDetector(QualityDetector):
     def detect_from_data(self, data: np.ndarray) -> Dict[str, Any]:
         """Detect DC offset from an in-memory numpy array."""
         if data.ndim > 1:
-            dc_offset = float(
-                np.mean([np.mean(data[:, i]) for i in range(data.shape[1])])
-            )
+            dc_offset = float(np.mean([np.mean(data[:, i]) for i in range(data.shape[1])]))
         else:
             dc_offset = float(np.mean(data))
 
@@ -234,9 +229,7 @@ class DCOffsetDetector(QualityDetector):
 
         try:
             info = sf.info(str(filepath))
-            total_samples = (
-                info.frames * info.channels
-            )  # sum across all samples in all channels
+            total_samples = info.frames * info.channels  # sum across all samples in all channels
 
             if total_samples == 0:
                 return {
@@ -281,9 +274,7 @@ class CorruptionDetector(QualityDetector):
                 frames_read += len(chunk)
 
             # Check for NaN or Inf in the last chunk as a sample check
-            if chunk is not None and (
-                np.any(np.isnan(chunk)) or np.any(np.isinf(chunk))
-            ):
+            if chunk is not None and (np.any(np.isnan(chunk)) or np.any(np.isinf(chunk))):
                 return {
                     "is_corrupted": True,
                     "readable": True,
@@ -340,9 +331,7 @@ class CorruptionDetector(QualityDetector):
 class SilenceDetector(QualityDetector):
     """Detects abnormal silence (leading/trailing)."""
 
-    def __init__(
-        self, threshold_db: float = -60.0, silence_threshold_sec: float = 2.0
-    ):
+    def __init__(self, threshold_db: float = -60.0, silence_threshold_sec: float = 2.0):
         """Initialize silence detector.
 
         Args:
@@ -352,9 +341,7 @@ class SilenceDetector(QualityDetector):
         self.threshold_db = threshold_db
         self.silence_threshold_sec = silence_threshold_sec
 
-    def detect_from_data(
-        self, data: np.ndarray, samplerate: int
-    ) -> Dict[str, Any]:
+    def detect_from_data(self, data: np.ndarray, samplerate: int) -> Dict[str, Any]:
         """Detect silence from an in-memory numpy array."""
         if data.ndim > 1:
             data = np.mean(np.abs(data), axis=1)
@@ -476,9 +463,7 @@ class SilenceDetector(QualityDetector):
 class BitDepthDetector(QualityDetector):
     """Checks true bit depth (detects fake high-res)."""
 
-    def detect_from_data(
-        self, data: np.ndarray, reported_depth: int
-    ) -> Dict[str, Any]:
+    def detect_from_data(self, data: np.ndarray, reported_depth: int) -> Dict[str, Any]:
         """Detect true bit depth from an in-memory numpy array."""
         if reported_depth <= 16:
             return {"is_fake_high_res": False, "estimated_depth": reported_depth}
@@ -491,9 +476,7 @@ class BitDepthDetector(QualityDetector):
         return {
             "is_fake_high_res": is_16bit,
             "estimated_depth": 16 if is_16bit else 24,
-            "details": "24-bit file contains only 16-bit data"
-            if is_16bit
-            else "True 24-bit",
+            "details": "24-bit file contains only 16-bit data" if is_16bit else "True 24-bit",
         }
 
     def detect(self, filepath: Path, reported_depth: int, **kwargs) -> Dict[str, Any]:
@@ -511,9 +494,7 @@ class BitDepthDetector(QualityDetector):
 
         try:
             # Read only the first chunk for analysis
-            first_chunk = next(
-                sf_blocks(str(filepath), dtype="float32", blocksize=10000), None
-            )
+            first_chunk = next(sf_blocks(str(filepath), dtype="float32", blocksize=10000), None)
 
             if first_chunk is None:
                 # Handle empty or unreadable file
@@ -530,9 +511,7 @@ class BitDepthDetector(QualityDetector):
             return {
                 "is_fake_high_res": is_16bit,
                 "estimated_depth": 16 if is_16bit else 24,
-                "details": "24-bit file contains only 16-bit data"
-                if is_16bit
-                else "True 24-bit",
+                "details": "24-bit file contains only 16-bit data" if is_16bit else "True 24-bit",
             }
         except Exception as e:
             logger.warning(f"Bit depth detection failed for {filepath.name}: {e}")
@@ -627,7 +606,7 @@ class AudioQualityAnalyzer:
                 "readable": True,
                 "error": None,
                 "frames_read": 0,  # Unknown but we have cache
-                "partial_analysis": getattr(cache, '_is_partial', False)
+                "partial_analysis": getattr(cache, "_is_partial", False),
             }
         else:
             corruption_result = self.detectors["corruption"].detect(filepath=filepath)
@@ -682,9 +661,7 @@ class AudioQualityAnalyzer:
 
         except Exception as e:
             logger.error(f"Error analyzing quality for {filepath.name}: {e}")
-            return self._get_empty_results(
-                results, error_mode=True, error_msg=str(e)
-            )
+            return self._get_empty_results(results, error_mode=True, error_msg=str(e))
 
         return results
 

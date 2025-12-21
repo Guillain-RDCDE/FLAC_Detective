@@ -36,7 +36,7 @@ class FlacDiagnostic:
                 ["flac", "--test", "--totally-silent", str(flac_file)],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode == 0:
@@ -97,11 +97,9 @@ class FlacDiagnostic:
                 self.healthy_files.append(flac_file)
             else:
                 print(f"[{error_type}]")
-                self.corrupted_files.append({
-                    "file": flac_file,
-                    "error_type": error_type,
-                    "errors": errors
-                })
+                self.corrupted_files.append(
+                    {"file": flac_file, "error_type": error_type, "errors": errors}
+                )
 
         return self.generate_report()
 
@@ -119,7 +117,7 @@ class FlacDiagnostic:
             "corrupted_files": len(self.corrupted_files),
             "corruption_rate": len(self.corrupted_files) / total * 100 if total > 0 else 0,
             "error_types": {},
-            "files_by_error": {}
+            "files_by_error": {},
         }
 
         # Count error types
@@ -143,7 +141,9 @@ class FlacDiagnostic:
         print("DIAGNOSTIC REPORT")
         print("=" * 80)
         print(f"Total files:       {report['total_files']}")
-        print(f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)")
+        print(
+            f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)"
+        )
         print(f"Corrupted files:   {report['corrupted_files']} ({report['corruption_rate']:.1f}%)")
         print()
 
@@ -159,7 +159,7 @@ class FlacDiagnostic:
             for item in self.corrupted_files:
                 print(f"\n[X] {item['file'].relative_to(self.directory)}")
                 print(f"    Error type: {item['error_type']}")
-                for error in item['errors']:
+                for error in item["errors"]:
                     print(f"    - {error}")
 
         print("\n" + "=" * 80)
@@ -171,13 +171,17 @@ class FlacDiagnostic:
             output_file: Path to output file
             report: Report dictionary
         """
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write("=" * 80 + "\n")
             f.write("FLAC DIAGNOSTIC REPORT\n")
             f.write("=" * 80 + "\n\n")
             f.write(f"Total files:       {report['total_files']}\n")
-            f.write(f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)\n")
-            f.write(f"Corrupted files:   {report['corrupted_files']} ({report['corruption_rate']:.1f}%)\n\n")
+            f.write(
+                f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)\n"
+            )
+            f.write(
+                f"Corrupted files:   {report['corrupted_files']} ({report['corruption_rate']:.1f}%)\n\n"
+            )
 
             if report["error_types"]:
                 f.write("ERROR TYPES:\n")
@@ -193,7 +197,7 @@ class FlacDiagnostic:
                     f.write(f"\n[{error_type}] - {len(items)} file(s):\n")
                     for item in items:
                         f.write(f"  {item['file']}\n")
-                        for error in item['errors']:
+                        for error in item["errors"]:
                             f.write(f"    - {error}\n")
 
         print(f"\nReport saved to: {output_file}")
@@ -203,7 +207,7 @@ def main():
     """Main function."""
     if len(sys.argv) < 2:
         print("Usage: python diagnose_flac.py <directory>")
-        print("Example: python diagnose_flac.py \"D:\\FLAC\\Internal\\Radiohead\"")
+        print('Example: python diagnose_flac.py "D:\\FLAC\\Internal\\Radiohead"')
         sys.exit(1)
 
     directory = Path(sys.argv[1])

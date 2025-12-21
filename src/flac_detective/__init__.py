@@ -54,15 +54,15 @@ flac_detective.repair.fixer : FLAC file repair functionality
 flac_detective.reporting.text_reporter : Report generation
 """
 
+from .__version__ import __version__
 from .analysis import FLACAnalyzer
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files
-from .__version__ import __version__
 
 __all__ = [
-    'FLACAnalyzer',
-    'ProgressTracker',
-    'find_flac_files',
-    'LOGO',
-    '__version__',
+    "FLACAnalyzer",
+    "ProgressTracker",
+    "find_flac_files",
+    "LOGO",
+    "__version__",
 ]

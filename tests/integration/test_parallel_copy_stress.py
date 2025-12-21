@@ -4,49 +4,54 @@ This tests if corruption occurs when multiple files are copied simultaneously,
 which is what happens during the actual FLAC analysis.
 """
 
-import shutil
-import tempfile
-import subprocess
-import hashlib
-from pathlib import Path
-import sys
-import os
 import concurrent.futures
+import hashlib
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 from threading import Lock
 
 # Force UTF-8 output on Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 print_lock = Lock()
+
 
 def safe_print(*args, **kwargs):
     """Thread-safe print."""
     with print_lock:
         print(*args, **kwargs)
 
+
 def get_file_hash(filepath):
     """Calculate SHA256 hash of a file."""
     sha256 = hashlib.sha256()
-    with open(filepath, 'rb') as f:
+    with open(filepath, "rb") as f:
         while chunk := f.read(8192):
             sha256.update(chunk)
     return sha256.hexdigest()
+
 
 def test_flac_integrity(filepath):
     """Test FLAC file integrity using flac --test."""
     try:
         result = subprocess.run(
-            ['flac', '--test', '--totally-silent', str(filepath)],
+            ["flac", "--test", "--totally-silent", str(filepath)],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
         return result.returncode == 0
     except Exception as e:
         return False
+
 
 def copy_and_verify(source_path, copy_num):
     """Copy a file and verify integrity (simulates one analysis task)."""
@@ -68,42 +73,38 @@ def copy_and_verify(source_path, copy_num):
         temp_size = temp_path.stat().st_size
         if temp_size != original_size:
             return {
-                'copy_num': copy_num,
-                'file': source.name,
-                'success': False,
-                'error': f'Size mismatch: {temp_size} vs {original_size}'
+                "copy_num": copy_num,
+                "file": source.name,
+                "success": False,
+                "error": f"Size mismatch: {temp_size} vs {original_size}",
             }
 
         # Verify hash
         temp_hash = get_file_hash(temp_path)
         if temp_hash != original_hash:
             return {
-                'copy_num': copy_num,
-                'file': source.name,
-                'success': False,
-                'error': f'Hash mismatch'
+                "copy_num": copy_num,
+                "file": source.name,
+                "success": False,
+                "error": f"Hash mismatch",
             }
 
         # Verify FLAC integrity
         flac_valid = test_flac_integrity(temp_path)
         if not flac_valid:
             return {
-                'copy_num': copy_num,
-                'file': source.name,
-                'success': False,
-                'error': 'FLAC validation failed'
+                "copy_num": copy_num,
+                "file": source.name,
+                "success": False,
+                "error": "FLAC validation failed",
             }
 
-        return {
-            'copy_num': copy_num,
-            'file': source.name,
-            'success': True,
-            'size': temp_size
-        }
+        return {"copy_num": copy_num, "file": source.name, "success": True, "size": temp_size}
 
     finally:
         if temp_path.exists():
             temp_path.unlink()
+
 
 def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     """Stress test: copy multiple files in parallel multiple times."""
@@ -149,10 +150,14 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
             results.append(result)
             completed += 1
 
-            if result['success']:
-                safe_print(f"[{completed}/{len(tasks)}] ✅ {result['file'][:50]} (copy {result['copy_num']})")
+            if result["success"]:
+                safe_print(
+                    f"[{completed}/{len(tasks)}] ✅ {result['file'][:50]} (copy {result['copy_num']})"
+                )
             else:
-                safe_print(f"[{completed}/{len(tasks)}] ❌ {result['file'][:50]} (copy {result['copy_num']}): {result['error']}")
+                safe_print(
+                    f"[{completed}/{len(tasks)}] ❌ {result['file'][:50]} (copy {result['copy_num']}): {result['error']}"
+                )
                 failures.append(result)
 
     # Summary
@@ -173,6 +178,7 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
 
     safe_print(f"{'='*80}\n")
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python test_parallel_copy_stress.py <directory>")
@@ -185,5 +191,5 @@ if __name__ == "__main__":
     stress_test_parallel_copies(
         directory=test_dir,
         num_workers=4,  # Simulate parallel processing
-        copies_per_file=3  # Each file copied 3 times to detect intermittent issues
+        copies_per_file=3,  # Each file copied 3 times to detect intermittent issues
     )

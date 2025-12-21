@@ -4,41 +4,45 @@ This script tests whether shutil.copy2() corrupts FLAC files when copying
 from external drives to temp directory.
 """
 
-import shutil
-import tempfile
-import subprocess
 import hashlib
-from pathlib import Path
-import sys
 import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 
 # Force UTF-8 output on Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 
 def get_file_hash(filepath):
     """Calculate SHA256 hash of a file."""
     sha256 = hashlib.sha256()
-    with open(filepath, 'rb') as f:
+    with open(filepath, "rb") as f:
         while chunk := f.read(8192):
             sha256.update(chunk)
     return sha256.hexdigest()
+
 
 def test_flac_integrity(filepath):
     """Test FLAC file integrity using flac --test."""
     try:
         result = subprocess.run(
-            ['flac', '--test', '--totally-silent', str(filepath)],
+            ["flac", "--test", "--totally-silent", str(filepath)],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
         return result.returncode == 0
     except Exception as e:
         print(f"    ❌ Error testing with flac: {e}")
         return False
+
 
 def test_copy_corruption(source_path, num_tests=3):
     """Test if copying a FLAC file introduces corruption."""
@@ -128,12 +132,17 @@ def test_copy_corruption(source_path, num_tests=3):
         print("   → The copy process MAY introduce corruption")
     print(f"{'='*80}\n")
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python test_copy_integrity.py <path_to_flac_file>")
         print("\nSuggested test files from your collection:")
-        print('  python test_copy_integrity.py "D:\\FLAC\\Internal\\Richard Pinhas\\L\'Ethique (1982)\\02 - Richard Pinhas -  Dedicated to k.c..flac"')
-        print('  python test_copy_integrity.py "D:\\FLAC\\Internal\\Richard Pinhas\\<any_other_file>.flac"')
+        print(
+            '  python test_copy_integrity.py "D:\\FLAC\\Internal\\Richard Pinhas\\L\'Ethique (1982)\\02 - Richard Pinhas -  Dedicated to k.c..flac"'
+        )
+        print(
+            '  python test_copy_integrity.py "D:\\FLAC\\Internal\\Richard Pinhas\\<any_other_file>.flac"'
+        )
         sys.exit(1)
 
     test_file = sys.argv[1]

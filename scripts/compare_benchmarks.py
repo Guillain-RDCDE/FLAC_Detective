@@ -15,8 +15,8 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def format_time(seconds):
@@ -50,14 +50,14 @@ def format_change(baseline, current):
 
 def load_benchmarks(file_path):
     """Load benchmarks from JSON file."""
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         data = json.load(f)
 
     # Create lookup by test name
     benchmarks = {}
-    for bench in data.get('benchmarks', []):
-        name = bench['name']
-        benchmarks[name] = bench['stats']
+    for bench in data.get("benchmarks", []):
+        name = bench["name"]
+        benchmarks[name] = bench["stats"]
 
     return benchmarks
 
@@ -98,8 +98,8 @@ def compare_benchmarks(baseline_file, current_file):
     stable = []
 
     for test_name in common_tests:
-        baseline_mean = baseline[test_name]['mean']
-        current_mean = current[test_name]['mean']
+        baseline_mean = baseline[test_name]["mean"]
+        current_mean = current[test_name]["mean"]
 
         change_pct = ((current_mean - baseline_mean) / baseline_mean) * 100
 
@@ -122,14 +122,18 @@ def compare_benchmarks(baseline_file, current_file):
         print("| Test | Baseline | Current | Change |")
         print("|------|----------|---------|--------|")
 
-        for test, baseline_mean, current_mean, change in sorted(regressions, key=lambda x: x[3], reverse=True):
+        for test, baseline_mean, current_mean, change in sorted(
+            regressions, key=lambda x: x[3], reverse=True
+        ):
             # Truncate long names
             display_name = test if len(test) <= 40 else test[:37] + "..."
 
-            print(f"| {display_name} | "
-                  f"{format_time(baseline_mean)} | "
-                  f"{format_time(current_mean)} | "
-                  f"{change:+.1f}% |")
+            print(
+                f"| {display_name} | "
+                f"{format_time(baseline_mean)} | "
+                f"{format_time(current_mean)} | "
+                f"{change:+.1f}% |"
+            )
 
         print()
 
@@ -150,10 +154,12 @@ def compare_benchmarks(baseline_file, current_file):
         for test, baseline_mean, current_mean, change in sorted(improvements, key=lambda x: x[3]):
             display_name = test if len(test) <= 40 else test[:37] + "..."
 
-            print(f"| {display_name} | "
-                  f"{format_time(baseline_mean)} | "
-                  f"{format_time(current_mean)} | "
-                  f"{change:+.1f}% |")
+            print(
+                f"| {display_name} | "
+                f"{format_time(baseline_mean)} | "
+                f"{format_time(current_mean)} | "
+                f"{change:+.1f}% |"
+            )
 
         print()
 
@@ -161,7 +167,7 @@ def compare_benchmarks(baseline_file, current_file):
     if only_current:
         print("### ✨ New Benchmarks\n")
         for test in sorted(only_current)[:10]:  # Show first 10
-            mean = current[test]['mean']
+            mean = current[test]["mean"]
             print(f"- {test}: {format_time(mean)}")
 
         if len(only_current) > 10:
@@ -192,19 +198,9 @@ def compare_benchmarks(baseline_file, current_file):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Compare two benchmark results"
-    )
-    parser.add_argument(
-        'baseline',
-        type=Path,
-        help='Baseline benchmark JSON file'
-    )
-    parser.add_argument(
-        'current',
-        type=Path,
-        help='Current benchmark JSON file'
-    )
+    parser = argparse.ArgumentParser(description="Compare two benchmark results")
+    parser.add_argument("baseline", type=Path, help="Baseline benchmark JSON file")
+    parser.add_argument("current", type=Path, help="Current benchmark JSON file")
 
     args = parser.parse_args()
 

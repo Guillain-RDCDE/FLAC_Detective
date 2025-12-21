@@ -8,13 +8,12 @@ from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
 logger = logging.getLogger(__name__)
 
 
-
 def apply_rule_1_mp3_bitrate(
     cutoff_freq: float,
     container_bitrate: float,
     cutoff_std: float = 0.0,
     sample_rate: int = 44100,
-    energy_ratio: float = 0.0
+    energy_ratio: float = 0.0,
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -143,7 +142,6 @@ def apply_rule_1_mp3_bitrate(
     return (score, reasons), None
 
 
-
 def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List[str]]:
     """Apply Rule 2: Cutoff Frequency vs Sample Rate.
 
@@ -185,7 +183,7 @@ def apply_rule_8_nyquist_exception(
     cutoff_freq: float,
     sample_rate: int,
     mp3_bitrate_detected: Optional[int],
-    silence_ratio: Optional[float] = None
+    silence_ratio: Optional[float] = None,
 ) -> Tuple[int, List[str]]:
     """Apply Rule 8: Nyquist Exception (ALWAYS APPLIED with Safeguards).
 
