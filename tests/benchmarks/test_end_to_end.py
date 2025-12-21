@@ -6,8 +6,9 @@ Tests the performance of:
 - Real-world scenarios
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from flac_detective.analysis.analyzer import FLACAnalyzer
 
@@ -20,8 +21,8 @@ class TestEndToEndPerformance:
         analyzer = FLACAnalyzer(sample_duration=30.0)
 
         result = benchmark(analyzer.analyze_file, benchmark_audio_file)
-        assert 'score' in result
-        assert 'verdict' in result
+        assert "score" in result
+        assert "verdict" in result
 
     def test_quick_analysis(self, benchmark, benchmark_small_audio):
         """Benchmark quick analysis (5 seconds)."""

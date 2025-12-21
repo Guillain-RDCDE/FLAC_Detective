@@ -5,8 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .statistics import calculate_statistics
 from ..__version__ import __version__
+from .statistics import calculate_statistics
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,9 @@ class TextReporter:
         else:  # AUTHENTIQUE
             return "[OK]"
 
-    def _get_display_path(self, result: dict[str, Any], scan_paths: list[Path] | None = None) -> str:
+    def _get_display_path(
+        self, result: dict[str, Any], scan_paths: list[Path] | None = None
+    ) -> str:
         """Get the full display path for a file (relative to scan root if possible).
 
         Args:
@@ -108,12 +110,14 @@ class TextReporter:
                     except ValueError:
                         continue
             except Exception:
-                pass # Keep original filename if any error
+                pass  # Keep original filename if any error
 
         # DO NOT TRUNCATE - show full path
         return display_name
 
-    def generate_report(self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None) -> None:
+    def generate_report(
+        self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None
+    ) -> None:
         """Generates a complete text report.
 
         Args:
@@ -135,31 +139,35 @@ class TextReporter:
 
         # Compact Header
         report_lines.append("=" * self.width)
-        report_lines.append(f" FLAC DETECTIVE REPORT v{__version__} - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        report_lines.append(
+            f" FLAC DETECTIVE REPORT v{__version__} - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        )
         report_lines.append("=" * self.width)
 
         # Global statistics (Compact)
-        total = stats['total']
+        total = stats["total"]
         if total > 0:
             quality = (stats["authentic"] / total) * 100
-            report_lines.append(f" Files: {total} | Quality: {quality:.1f}% | Authentic: {stats['authentic']} | Fake/Suspicious: {stats['fake'] + stats['suspect']}")
+            report_lines.append(
+                f" Files: {total} | Quality: {quality:.1f}% | Authentic: {stats['authentic']} | Fake/Suspicious: {stats['fake'] + stats['suspect']}"
+            )
 
             issues = []
-            if stats['duration_issues'] > 0:
+            if stats["duration_issues"] > 0:
                 issues.append(f"Duration: {stats['duration_issues']}")
-            if stats['clipping_issues'] > 0:
+            if stats["clipping_issues"] > 0:
                 issues.append(f"Clip: {stats['clipping_issues']}")
-            if stats['dc_offset_issues'] > 0:
+            if stats["dc_offset_issues"] > 0:
                 issues.append(f"DC: {stats['dc_offset_issues']}")
-            if stats['silence_issues'] > 0:
+            if stats["silence_issues"] > 0:
                 issues.append(f"Silence: {stats['silence_issues']}")
-            if stats['fake_high_res'] > 0:
+            if stats["fake_high_res"] > 0:
                 issues.append(f"FakeHiRes: {stats['fake_high_res']}")
-            if stats['upsampled_files'] > 0:
+            if stats["upsampled_files"] > 0:
                 issues.append(f"Upsampled: {stats['upsampled_files']}")
-            if stats['corrupted_files'] > 0:
+            if stats["corrupted_files"] > 0:
                 issues.append(f"Corrupt: {stats['corrupted_files']}")
-            if stats.get('non_flac_files', 0) > 0:
+            if stats.get("non_flac_files", 0) > 0:
                 issues.append(f"Non-FLAC: {stats['non_flac_files']}")
 
             if issues:
@@ -175,7 +183,9 @@ class TextReporter:
 
             # Table header
             # Icon (4) | Score (7) | Verdict (15) | Cutoff (8) | Bitrate (8) | File (Rest)
-            report_lines.append(f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}")
+            report_lines.append(
+                f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}"
+            )
             report_lines.append(" " + "-" * (self.width - 2))
 
             # Sort by descending score (worst first - NEW SYSTEM: higher = worse)
@@ -195,11 +205,12 @@ class TextReporter:
                 # Get full display path (not truncated)
                 display_name = self._get_display_path(result, scan_paths)
 
-                report_lines.append(f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}")
+                report_lines.append(
+                    f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}"
+                )
 
         else:
             report_lines.append(" No suspicious files found.")
-
 
         report_lines.append("-" * self.width)
 
@@ -227,10 +238,14 @@ class TextReporter:
             for result in upsampled:
                 display_name = self._get_display_path(result, scan_paths)
                 # Check both old format (nested) and new format (flat)
-                original_rate = result.get("suspected_original_rate") or result.get("upsampling", {}).get("suspected_original_rate", "Unknown")
+                original_rate = result.get("suspected_original_rate") or result.get(
+                    "upsampling", {}
+                ).get("suspected_original_rate", "Unknown")
                 if original_rate == 0:
                     original_rate = "Unknown"
-                original_rate_str = f"{original_rate} Hz" if isinstance(original_rate, int) else str(original_rate)
+                original_rate_str = (
+                    f"{original_rate} Hz" if isinstance(original_rate, int) else str(original_rate)
+                )
                 report_lines.append(f" [?]  | {original_rate_str:<15} | {display_name}")
 
         else:

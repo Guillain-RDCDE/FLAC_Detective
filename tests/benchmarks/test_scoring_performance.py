@@ -7,10 +7,12 @@ Tests the performance of:
 - Early termination logic
 """
 
-import pytest
-import numpy as np
 from pathlib import Path
 
+import numpy as np
+import pytest
+
+from flac_detective.analysis.audio_cache import AudioCache
 from flac_detective.analysis.new_scoring import new_calculate_score
 from flac_detective.analysis.new_scoring.rules import (
     rule1_mp3_bitrate_detection,
@@ -22,7 +24,6 @@ from flac_detective.analysis.new_scoring.rules import (
     rule7_dither_vinyl_detection,
     rule8_nyquist_exception,
 )
-from flac_detective.analysis.audio_cache import AudioCache
 
 
 class TestScoringRules:
@@ -33,56 +34,56 @@ class TestScoringRules:
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule1_mp3_bitrate_detection, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule2_bitrate_clusters(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 2: Bitrate cluster analysis."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule2_bitrate_clusters, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule3_cutoff_stability(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 3: Cutoff stability analysis."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule3_cutoff_stability, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule4_energy_ratio(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 4: Energy ratio analysis."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule4_energy_ratio, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule5_dynamic_range(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 5: Dynamic range compression."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule5_dynamic_range, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule6_stereo_analysis(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 6: Stereo width analysis."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule6_stereo_analysis, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule7_vinyl_detection(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 7: Dither and vinyl detection."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule7_dither_vinyl_detection, cache)
-        assert 'points' in result
+        assert "points" in result
 
     def test_rule8_nyquist_exception(self, benchmark, benchmark_audio_file):
         """Benchmark Rule 8: Nyquist exception."""
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(rule8_nyquist_exception, cache)
-        assert 'points' in result
+        assert "points" in result
 
 
 class TestCompleteScoring:
@@ -93,8 +94,8 @@ class TestCompleteScoring:
         cache = AudioCache(benchmark_audio_file, 30.0)
 
         result = benchmark(new_calculate_score, cache)
-        assert 'score' in result
-        assert 'verdict' in result
+        assert "score" in result
+        assert "verdict" in result
 
     def test_score_with_early_termination(self, benchmark, benchmark_audio_file):
         """Benchmark score calculation with early termination."""
@@ -130,6 +131,7 @@ class TestRuleScaling:
     def test_rule1_varying_duration(self, benchmark, duration):
         """Benchmark Rule 1 with varying audio durations."""
         import tempfile
+
         import soundfile as sf
 
         # Create temporary file
@@ -137,7 +139,7 @@ class TestRuleScaling:
         samples = int(sr * duration)
         audio = np.random.randn(samples, 2) * 0.5
 
-        temp_file = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
         temp_path = Path(temp_file.name)
         sf.write(temp_path, audio, sr)
 

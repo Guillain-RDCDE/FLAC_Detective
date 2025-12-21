@@ -10,7 +10,7 @@ docs/
 │   ├── 📄 getting-started.md       [Installation & first analysis]
 │   └── 📄 user-guide.md            [Complete usage guide]
 │
-├── 💻 FOR DEVELOPERS  
+├── 💻 FOR DEVELOPERS
 │   ├── 📄 api-reference.md         [Python API documentation]
 │   ├── 📄 technical-details.md     [Architecture & algorithms]
 │   └── 📄 contributing.md          [Development guide]
@@ -41,7 +41,7 @@ Summary
 Quick Start
 -----------
 1. New users    → docs/getting-started.md
-2. Usage guide  → docs/user-guide.md  
+2. Usage guide  → docs/user-guide.md
 3. Python API   → docs/api-reference.md
 4. How it works → docs/technical-details.md
 5. Contribute   → docs/contributing.md

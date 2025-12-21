@@ -15,8 +15,8 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def format_time(seconds):
@@ -39,10 +39,10 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
         threshold_pct: Percentage threshold for regression (default 30%)
         output_file: Output markdown file path
     """
-    with open(benchmark_file, 'r') as f:
+    with open(benchmark_file, "r") as f:
         data = json.load(f)
 
-    benchmarks = data.get('benchmarks', [])
+    benchmarks = data.get("benchmarks", [])
 
     if not benchmarks:
         print("⚠️ No benchmarks found")
@@ -51,17 +51,17 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
     # Define performance expectations (in seconds)
     # These are baseline expectations - tests slower than this are flagged
     expectations = {
-        'test_load_flac_file': 0.1,  # 100ms max for loading
-        'test_load_small_flac': 0.05,  # 50ms for small files
-        'test_audio_cache_creation': 0.1,
-        'test_audio_cache_reuse': 0.001,  # Should be very fast (cached)
-        'test_spectrum_analysis_full': 0.2,  # 200ms for full analysis
-        'test_full_score_calculation': 0.5,  # 500ms for complete scoring
-        'test_single_file_analysis': 1.0,  # 1s for end-to-end
+        "test_load_flac_file": 0.1,  # 100ms max for loading
+        "test_load_small_flac": 0.05,  # 50ms for small files
+        "test_audio_cache_creation": 0.1,
+        "test_audio_cache_reuse": 0.001,  # Should be very fast (cached)
+        "test_spectrum_analysis_full": 0.2,  # 200ms for full analysis
+        "test_full_score_calculation": 0.5,  # 500ms for complete scoring
+        "test_single_file_analysis": 1.0,  # 1s for end-to-end
     }
 
     # Open output file
-    with open(output_file, 'w') as out:
+    with open(output_file, "w") as out:
         out.write("# Performance Regression Report\n\n")
 
         # Check against expectations
@@ -70,8 +70,8 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
         good = []
 
         for bench in benchmarks:
-            name = bench['name']
-            mean = bench['stats']['mean']
+            name = bench["name"]
+            mean = bench["stats"]["mean"]
 
             # Find matching expectation (partial match)
             expected_time = None
@@ -97,7 +97,9 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
         out.write("## Summary\n\n")
         out.write(f"- ✅ **Passing**: {len(good)} tests within expectations\n")
         out.write(f"- ⚠️ **Warnings**: {len(warnings)} tests slightly slow (20-{threshold_pct}%)\n")
-        out.write(f"- 🔴 **Violations**: {len(violations)} tests severely slow (>{threshold_pct}%)\n\n")
+        out.write(
+            f"- 🔴 **Violations**: {len(violations)} tests severely slow (>{threshold_pct}%)\n\n"
+        )
 
         # Write violations
         if violations:
@@ -105,13 +107,19 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
             out.write("| Test | Current | Expected | Ratio |\n")
             out.write("|------|---------|----------|-------|\n")
 
-            for name, current, expected, ratio in sorted(violations, key=lambda x: x[3], reverse=True):
-                out.write(f"| {name} | "
-                          f"{format_time(current)} | "
-                          f"{format_time(expected)} | "
-                          f"**{ratio:.2f}x** |\n")
+            for name, current, expected, ratio in sorted(
+                violations, key=lambda x: x[3], reverse=True
+            ):
+                out.write(
+                    f"| {name} | "
+                    f"{format_time(current)} | "
+                    f"{format_time(expected)} | "
+                    f"**{ratio:.2f}x** |\n"
+                )
 
-            out.write("\n⚠️ **Action Required**: These tests are significantly slower than expected.\n\n")
+            out.write(
+                "\n⚠️ **Action Required**: These tests are significantly slower than expected.\n\n"
+            )
 
         # Write warnings
         if warnings:
@@ -119,11 +127,15 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
             out.write("| Test | Current | Expected | Ratio |\n")
             out.write("|------|---------|----------|-------|\n")
 
-            for name, current, expected, ratio in sorted(warnings, key=lambda x: x[3], reverse=True):
-                out.write(f"| {name} | "
-                          f"{format_time(current)} | "
-                          f"{format_time(expected)} | "
-                          f"{ratio:.2f}x |\n")
+            for name, current, expected, ratio in sorted(
+                warnings, key=lambda x: x[3], reverse=True
+            ):
+                out.write(
+                    f"| {name} | "
+                    f"{format_time(current)} | "
+                    f"{format_time(expected)} | "
+                    f"{ratio:.2f}x |\n"
+                )
 
             out.write("\n")
 
@@ -134,7 +146,7 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
 
         # Write slowest tests overall
         out.write("## 🐢 Slowest 10 Tests\n\n")
-        slowest = sorted(benchmarks, key=lambda x: x['stats']['mean'], reverse=True)[:10]
+        slowest = sorted(benchmarks, key=lambda x: x["stats"]["mean"], reverse=True)[:10]
 
         for i, bench in enumerate(slowest, 1):
             out.write(f"{i}. **{bench['name']}**: {format_time(bench['stats']['mean'])}\n")
@@ -158,16 +170,18 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
             out.write("3. Profile to identify low-hanging fruit\n\n")
 
         # Machine info
-        if 'machine_info' in data:
-            info = data['machine_info']
+        if "machine_info" in data:
+            info = data["machine_info"]
             out.write("## 💻 Test Environment\n\n")
-            out.write(f"- **Platform**: {info.get('system', 'Unknown')} {info.get('release', '')}\n")
+            out.write(
+                f"- **Platform**: {info.get('system', 'Unknown')} {info.get('release', '')}\n"
+            )
             out.write(f"- **Processor**: {info.get('processor', 'Unknown')}\n")
             out.write(f"- **Python**: {info.get('python_version', 'Unknown')}\n")
             out.write(f"- **CPU Count**: {info.get('cpu', {}).get('count', 'Unknown')}\n")
 
     # Print to stdout
-    with open(output_file, 'r') as out:
+    with open(output_file, "r") as out:
         print(out.read())
 
     # Return exit code based on violations
@@ -177,25 +191,19 @@ def check_regressions(benchmark_file, threshold_pct, output_file):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check for performance regressions"
-    )
+    parser = argparse.ArgumentParser(description="Check for performance regressions")
+    parser.add_argument("benchmark_file", type=Path, help="Benchmark JSON file to check")
     parser.add_argument(
-        'benchmark_file',
-        type=Path,
-        help='Benchmark JSON file to check'
-    )
-    parser.add_argument(
-        '--threshold',
+        "--threshold",
         type=int,
         default=30,
-        help='Percentage threshold for severe regression (default: 30)'
+        help="Percentage threshold for severe regression (default: 30)",
     )
     parser.add_argument(
-        '--output',
+        "--output",
         type=Path,
-        default=Path('regression-report.md'),
-        help='Output markdown file (default: regression-report.md)'
+        default=Path("regression-report.md"),
+        help="Output markdown file (default: regression-report.md)",
     )
 
     args = parser.parse_args()

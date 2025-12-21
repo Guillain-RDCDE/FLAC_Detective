@@ -1,8 +1,8 @@
 """Consistency analysis rules (Rule 10)."""
 
 import logging
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
 from ...spectrum import analyze_segment_consistency
 from .spectral import apply_rule_1_mp3_bitrate, apply_rule_2_cutoff
@@ -11,10 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def apply_rule_10_multi_segment_consistency(
-    filepath: str,
-    current_score: int,
-    sample_rate: int,
-    container_bitrate: float
+    filepath: str, current_score: int, sample_rate: int, container_bitrate: float
 ) -> Tuple[int, List[str]]:
     """Apply Rule 10: Multi-Segment Consistency (NEW - PRIORITY 3).
 
@@ -79,7 +76,9 @@ def apply_rule_10_multi_segment_consistency(
         if seg_score > 50:
             problematic_segments += 1
 
-    logger.info(f"RULE 10: Segment analysis: {', '.join(segment_details)} | Variance: {variance:.1f} Hz")
+    logger.info(
+        f"RULE 10: Segment analysis: {', '.join(segment_details)} | Variance: {variance:.1f} Hz"
+    )
 
     # Apply penalties/bonuses
 
@@ -102,9 +101,7 @@ def apply_rule_10_multi_segment_consistency(
     # 3. Consistent transcoding (all segments problematic or low variance)
     elif variance < 500 and problematic_segments >= 3:
         # No score change, but confirms the diagnosis
-        reasons.append(
-            f"R10: Anomalie cohérente sur tout le fichier (Variance {variance:.0f} Hz)"
-        )
+        reasons.append(f"R10: Anomalie cohérente sur tout le fichier (Variance {variance:.0f} Hz)")
         logger.info(f"RULE 10: 0 points (Consistent anomaly, variance {variance:.0f} Hz)")
 
     return score, reasons

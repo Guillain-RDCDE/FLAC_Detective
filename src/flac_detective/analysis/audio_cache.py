@@ -49,15 +49,25 @@ class AudioCache:
             with self._lock:
                 if self._full_audio is None:  # Double-check pattern
                     logger.debug(f"CACHE: Loading full audio from {self.filepath.name}")
-                    data, sr = load_audio_with_retry(str(self.filepath), always_2d=True, original_filepath=str(self.original_filepath))
+                    data, sr = load_audio_with_retry(
+                        str(self.filepath),
+                        always_2d=True,
+                        original_filepath=str(self.original_filepath),
+                    )
 
                     if data is None:
                         # Full load failed - try partial load
-                        logger.warning(f"CACHE: Full load failed for {self.filepath.name}, attempting partial load")
-                        data_partial, sr_partial, is_complete = sf_blocks_partial(str(self.filepath), original_filepath=str(self.original_filepath))
+                        logger.warning(
+                            f"CACHE: Full load failed for {self.filepath.name}, attempting partial load"
+                        )
+                        data_partial, sr_partial, is_complete = sf_blocks_partial(
+                            str(self.filepath), original_filepath=str(self.original_filepath)
+                        )
 
                         if data_partial is None:
-                            raise RuntimeError(f"Failed to load any audio data from {self.filepath}")
+                            raise RuntimeError(
+                                f"Failed to load any audio data from {self.filepath}"
+                            )
 
                         # Convert to 2D if needed (to match always_2d=True behavior)
                         if data_partial.ndim == 1:
@@ -68,7 +78,9 @@ class AudioCache:
                         sr = sr_partial
                         self._is_partial = not is_complete
 
-                        logger.info(f"CACHE: Loaded partial audio: {len(data)} frames ({'complete' if is_complete else 'partial'})")
+                        logger.info(
+                            f"CACHE: Loaded partial audio: {len(data)} frames ({'complete' if is_complete else 'partial'})"
+                        )
 
                     self._full_audio = (data, sr)
         else:
@@ -99,25 +111,31 @@ class AudioCache:
         if key not in self._segments:
             with self._lock:
                 if key not in self._segments:  # Double-check pattern
-                    logger.debug(f"CACHE: Loading segment {start_frame}-{start_frame+frames} from {self.filepath.name}")
+                    logger.debug(
+                        f"CACHE: Loading segment {start_frame}-{start_frame+frames} from {self.filepath.name}"
+                    )
                     data, sr = load_audio_with_retry(
                         str(self.filepath),
                         start=start_frame,
                         frames=frames,
                         always_2d=True,
-                        original_filepath=str(self.original_filepath)
+                        original_filepath=str(self.original_filepath),
                     )
                     if data is None:
-                         # Segment load failure is less critical, maybe return empty?
-                         # But let's be consistent and raise, caught by caller
-                         raise RuntimeError(f"Failed to load segment from {self.filepath} after retries")
+                        # Segment load failure is less critical, maybe return empty?
+                        # But let's be consistent and raise, caught by caller
+                        raise RuntimeError(
+                            f"Failed to load segment from {self.filepath} after retries"
+                        )
                     self._segments[key] = (data, sr)
         else:
             logger.debug(f"CACHE: Using cached segment {start_frame}-{start_frame+frames}")
 
         return self._segments[key]
 
-    def get_spectrum(self, segment_duration: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_spectrum(
+        self, segment_duration: float = 10.0
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Get spectrum analysis (cached).
 
         Analyzes first segment_duration seconds of the file.

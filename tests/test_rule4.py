@@ -1,6 +1,7 @@
 """Tests for Rule 4: 24-bit Suspicious Files with safeguards."""
 
 import pytest
+
 from flac_detective.analysis.new_scoring.rules import apply_rule_4_24bit_suspect
 
 
@@ -11,12 +12,9 @@ class TestRule4Safeguards:
         """Rule 4 should trigger on 24-bit file with low MP3 source and low cutoff."""
         # 24-bit file with MP3 192 kbps source and cutoff at 17 kHz (very low)
         score, reasons = apply_rule_4_24bit_suspect(
-            bit_depth=24,
-            mp3_bitrate_detected=192,
-            cutoff_freq=17000,
-            silence_ratio=None
+            bit_depth=24, mp3_bitrate_detected=192, cutoff_freq=17000, silence_ratio=None
         )
-        
+
         assert score == 30, "Should penalize 24-bit with low MP3 source and low cutoff"
         assert len(reasons) == 1
         assert "upscale suspect" in reasons[0].lower()
@@ -28,9 +26,9 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=192,
             cutoff_freq=20000,  # Above 19 kHz threshold
-            silence_ratio=None
+            silence_ratio=None,
         )
-        
+
         assert score == 0, "Should NOT penalize 24-bit with acceptable cutoff"
         assert len(reasons) == 0
 
@@ -41,9 +39,9 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=192,
             cutoff_freq=17000,  # Low cutoff
-            silence_ratio=0.10  # Vinyl noise detected (< 0.15)
+            silence_ratio=0.10,  # Vinyl noise detected (< 0.15)
         )
-        
+
         assert score == 0, "Should protect authentic vinyl rips"
         assert len(reasons) == 0
 
@@ -54,21 +52,18 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=192,
             cutoff_freq=17000,
-            silence_ratio=0.25  # Not a vinyl (>= 0.15)
+            silence_ratio=0.25,  # Not a vinyl (>= 0.15)
         )
-        
+
         assert score == 30, "Should penalize when not a vinyl rip"
         assert len(reasons) == 1
 
     def test_rule4_skips_on_16bit(self):
         """Rule 4 should NOT trigger on 16-bit files."""
         score, reasons = apply_rule_4_24bit_suspect(
-            bit_depth=16,
-            mp3_bitrate_detected=192,
-            cutoff_freq=17000,
-            silence_ratio=None
+            bit_depth=16, mp3_bitrate_detected=192, cutoff_freq=17000, silence_ratio=None
         )
-        
+
         assert score == 0, "Should skip 16-bit files"
         assert len(reasons) == 0
 
@@ -78,9 +73,9 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=None,  # No MP3 detected
             cutoff_freq=17000,
-            silence_ratio=None
+            silence_ratio=None,
         )
-        
+
         assert score == 0, "Should skip when no MP3 source detected"
         assert len(reasons) == 0
 
@@ -90,9 +85,9 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=600,  # High bitrate
             cutoff_freq=17000,
-            silence_ratio=None
+            silence_ratio=None,
         )
-        
+
         assert score == 0, "Should skip when MP3 bitrate is high"
         assert len(reasons) == 0
 
@@ -102,9 +97,9 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=192,
             cutoff_freq=19000,  # Exactly at threshold
-            silence_ratio=None
+            silence_ratio=None,
         )
-        
+
         assert score == 0, "Should NOT trigger at exactly 19 kHz"
         assert len(reasons) == 0
 
@@ -114,8 +109,8 @@ class TestRule4Safeguards:
             bit_depth=24,
             mp3_bitrate_detected=192,
             cutoff_freq=17000,
-            silence_ratio=0.15  # Exactly at threshold
+            silence_ratio=0.15,  # Exactly at threshold
         )
-        
+
         assert score == 30, "Should trigger at exactly 0.15 (not < 0.15)"
         assert len(reasons) == 1

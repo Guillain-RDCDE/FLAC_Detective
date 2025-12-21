@@ -7,11 +7,11 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from flac_detective.analysis.new_scoring.rules.spectral import apply_rule_1_mp3_bitrate
 from flac_detective.analysis.new_scoring.constants import (
-    BITRATE_RED_FLAG_THRESHOLD,
     BITRATE_CRITICAL_THRESHOLD,
+    BITRATE_RED_FLAG_THRESHOLD,
 )
+from flac_detective.analysis.new_scoring.rules.spectral import apply_rule_1_mp3_bitrate
 
 print("=" * 80)
 print("Rule 1 Enhancement Test - Container Bitrate Detection")
@@ -92,9 +92,7 @@ for test in test_cases:
     )
 
     verdict = "✅ PASS" if (score > 0) == ("+" in test["expected"]) else "❌ FAIL"
-    print(
-        f"{test['name']:<50} | {test['bitrate']:>7} k | {score:>+7} pts | {verdict:>10}"
-    )
+    print(f"{test['name']:<50} | {test['bitrate']:>7} k | {score:>+7} pts | {verdict:>10}")
     if reasons:
         for reason in reasons:
             print(f"  → {reason}")

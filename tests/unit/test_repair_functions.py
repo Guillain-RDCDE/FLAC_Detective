@@ -8,13 +8,15 @@ NOTE: These tests require Python 3.8-3.12 due to scipy/numpy compatibility.
 """
 
 import os
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import pytest
 
 # Add src to path for imports
 import sys
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from flac_detective.analysis.new_scoring.audio_loader import (
@@ -34,13 +36,13 @@ class TestExtractMetadata:
         test_file.touch()
 
         # Mock the FLAC class
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             # Setup mock
             mock_audio = MagicMock()
             mock_audio.tags = [
-                ('TITLE', ['Test Song']),
-                ('ARTIST', ['Test Artist']),
-                ('ALBUM', ['Test Album']),
+                ("TITLE", ["Test Song"]),
+                ("ARTIST", ["Test Artist"]),
+                ("ALBUM", ["Test Album"]),
             ]
             mock_audio.pictures = [MagicMock()]  # One picture
             mock_flac.return_value = mock_audio
@@ -50,20 +52,20 @@ class TestExtractMetadata:
 
             # Assertions
             assert result is not None
-            assert 'tags' in result
-            assert 'pictures' in result
-            assert len(result['tags']) == 3
-            assert result['tags']['TITLE'] == ['Test Song']
-            assert result['tags']['ARTIST'] == ['Test Artist']
-            assert result['tags']['ALBUM'] == ['Test Album']
-            assert len(result['pictures']) == 1
+            assert "tags" in result
+            assert "pictures" in result
+            assert len(result["tags"]) == 3
+            assert result["tags"]["TITLE"] == ["Test Song"]
+            assert result["tags"]["ARTIST"] == ["Test Artist"]
+            assert result["tags"]["ALBUM"] == ["Test Album"]
+            assert len(result["pictures"]) == 1
 
     def test_extract_metadata_no_tags(self, tmp_path):
         """Test extraction from FLAC file without tags."""
         test_file = tmp_path / "no_tags.flac"
         test_file.touch()
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             mock_audio.tags = None
             mock_audio.pictures = []
@@ -72,37 +74,37 @@ class TestExtractMetadata:
             result = _extract_metadata(str(test_file))
 
             assert result is not None
-            assert result['tags'] == {}
-            assert result['pictures'] == []
+            assert result["tags"] == {}
+            assert result["pictures"] == []
 
     def test_extract_metadata_multi_value_tags(self, tmp_path):
         """Test extraction of multi-value tags."""
         test_file = tmp_path / "multi.flac"
         test_file.touch()
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             # Simulate multi-value tags
             mock_audio.tags = [
-                ('ARTIST', ['Artist 1', 'Artist 2']),
-                ('GENRE', ['Rock', 'Alternative']),
+                ("ARTIST", ["Artist 1", "Artist 2"]),
+                ("GENRE", ["Rock", "Alternative"]),
             ]
             mock_audio.pictures = []
             mock_flac.return_value = mock_audio
 
             result = _extract_metadata(str(test_file))
 
-            assert 'ARTIST' in result['tags']
-            assert len(result['tags']['ARTIST']) == 2
-            assert 'Artist 1' in result['tags']['ARTIST']
-            assert 'Artist 2' in result['tags']['ARTIST']
+            assert "ARTIST" in result["tags"]
+            assert len(result["tags"]["ARTIST"]) == 2
+            assert "Artist 1" in result["tags"]["ARTIST"]
+            assert "Artist 2" in result["tags"]["ARTIST"]
 
     def test_extract_metadata_mutagen_not_available(self, tmp_path):
         """Test behavior when Mutagen is not available."""
         test_file = tmp_path / "test.flac"
         test_file.touch()
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.MUTAGEN_AVAILABLE', False):
+        with patch("flac_detective.analysis.new_scoring.audio_loader.MUTAGEN_AVAILABLE", False):
             result = _extract_metadata(str(test_file))
 
             assert result is None
@@ -112,7 +114,7 @@ class TestExtractMetadata:
         test_file = tmp_path / "corrupt.flac"
         test_file.touch()
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_flac.side_effect = Exception("Cannot read file")
 
             result = _extract_metadata(str(test_file))
@@ -124,7 +126,7 @@ class TestExtractMetadata:
         test_file = tmp_path / "multi_pics.flac"
         test_file.touch()
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             mock_audio.tags = []
             # Multiple pictures (front cover, back cover, etc.)
@@ -133,7 +135,7 @@ class TestExtractMetadata:
 
             result = _extract_metadata(str(test_file))
 
-            assert len(result['pictures']) == 3
+            assert len(result["pictures"]) == 3
 
 
 class TestRestoreMetadata:
@@ -145,15 +147,15 @@ class TestRestoreMetadata:
         test_file.touch()
 
         metadata = {
-            'tags': {
-                'TITLE': ['Restored Song'],
-                'ARTIST': ['Restored Artist'],
-                'ALBUM': ['Restored Album'],
+            "tags": {
+                "TITLE": ["Restored Song"],
+                "ARTIST": ["Restored Artist"],
+                "ALBUM": ["Restored Album"],
             },
-            'pictures': []
+            "pictures": [],
         }
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             mock_flac.return_value = mock_audio
 
@@ -171,12 +173,9 @@ class TestRestoreMetadata:
         test_file.touch()
 
         mock_picture = MagicMock()
-        metadata = {
-            'tags': {'TITLE': ['Test']},
-            'pictures': [mock_picture]
-        }
+        metadata = {"tags": {"TITLE": ["Test"]}, "pictures": [mock_picture]}
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             mock_flac.return_value = mock_audio
 
@@ -190,12 +189,9 @@ class TestRestoreMetadata:
         test_file = tmp_path / "empty.flac"
         test_file.touch()
 
-        metadata = {
-            'tags': {},
-            'pictures': []
-        }
+        metadata = {"tags": {}, "pictures": []}
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_audio = MagicMock()
             mock_flac.return_value = mock_audio
 
@@ -210,9 +206,9 @@ class TestRestoreMetadata:
         test_file = tmp_path / "test.flac"
         test_file.touch()
 
-        metadata = {'tags': {}, 'pictures': []}
+        metadata = {"tags": {}, "pictures": []}
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.MUTAGEN_AVAILABLE', False):
+        with patch("flac_detective.analysis.new_scoring.audio_loader.MUTAGEN_AVAILABLE", False):
             result = _restore_metadata(str(test_file), metadata)
 
             assert result is False
@@ -231,9 +227,9 @@ class TestRestoreMetadata:
         test_file = tmp_path / "error.flac"
         test_file.touch()
 
-        metadata = {'tags': {'TITLE': ['Test']}, 'pictures': []}
+        metadata = {"tags": {"TITLE": ["Test"]}, "pictures": []}
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.FLAC') as mock_flac:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.FLAC") as mock_flac:
             mock_flac.side_effect = Exception("Cannot write file")
 
             result = _restore_metadata(str(test_file), metadata)
@@ -247,7 +243,7 @@ class TestRepairFlacFile:
     @pytest.fixture
     def mock_subprocess_success(self):
         """Mock successful subprocess calls."""
-        with patch('flac_detective.analysis.new_scoring.audio_loader.subprocess.run') as mock_run:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run:
             mock_result = MagicMock()
             mock_result.returncode = 0
             mock_run.return_value = mock_result
@@ -256,25 +252,30 @@ class TestRepairFlacFile:
     @pytest.fixture
     def mock_metadata_functions(self):
         """Mock metadata extraction and restoration."""
-        with patch('flac_detective.analysis.new_scoring.audio_loader._extract_metadata') as mock_extract, \
-             patch('flac_detective.analysis.new_scoring.audio_loader._restore_metadata') as mock_restore:
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader._extract_metadata"
+        ) as mock_extract, patch(
+            "flac_detective.analysis.new_scoring.audio_loader._restore_metadata"
+        ) as mock_restore:
 
-            mock_extract.return_value = {
-                'tags': {'TITLE': ['Test']},
-                'pictures': []
-            }
+            mock_extract.return_value = {"tags": {"TITLE": ["Test"]}, "pictures": []}
             mock_restore.return_value = True
 
             yield mock_extract, mock_restore
 
-    def test_repair_flac_file_success(self, tmp_path, mock_subprocess_success, mock_metadata_functions):
+    def test_repair_flac_file_success(
+        self, tmp_path, mock_subprocess_success, mock_metadata_functions
+    ):
         """Test successful FLAC file repair."""
         # Create test files
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000):
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ):
 
             result = repair_flac_file(str(corrupted_file))
 
@@ -288,8 +289,11 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.subprocess.run') as mock_run, \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=False):
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
+        ) as mock_run, patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=False
+        ):
 
             result = repair_flac_file(str(corrupted_file))
 
@@ -300,9 +304,13 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.subprocess.run') as mock_run, \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000):
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
+        ) as mock_run, patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ):
 
             # First call (decode) succeeds, second call (encode) fails
             mock_result_decode = MagicMock()
@@ -320,9 +328,13 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.subprocess.run') as mock_run, \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000):
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
+        ) as mock_run, patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ):
 
             # Decode and encode succeed, verify fails
             mock_success = MagicMock()
@@ -335,22 +347,27 @@ class TestRepairFlacFile:
 
             assert result is None
 
-    def test_repair_flac_file_with_source_replacement(self, tmp_path, mock_subprocess_success, mock_metadata_functions):
+    def test_repair_flac_file_with_source_replacement(
+        self, tmp_path, mock_subprocess_success, mock_metadata_functions
+    ):
         """Test repair with source file replacement."""
         corrupted_file = tmp_path / "corrupted.flac"
         source_file = tmp_path / "source.flac"
         corrupted_file.write_bytes(b"fake flac data")
         source_file.write_bytes(b"original flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.shutil.copy2') as mock_copy, \
-             patch('flac_detective.analysis.new_scoring.audio_loader.get_tracker') as mock_tracker:
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.shutil.copy2"
+        ) as mock_copy, patch(
+            "flac_detective.analysis.new_scoring.audio_loader.get_tracker"
+        ) as mock_tracker:
 
             result = repair_flac_file(
-                str(corrupted_file),
-                source_path=str(source_file),
-                replace_source=True
+                str(corrupted_file), source_path=str(source_file), replace_source=True
             )
 
             assert result is not None
@@ -362,21 +379,27 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.subprocess.run') as mock_run:
+        with patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run:
             mock_run.side_effect = Exception("Timeout")
 
             result = repair_flac_file(str(corrupted_file))
 
             assert result is None
 
-    def test_repair_flac_file_cleanup_wav(self, tmp_path, mock_subprocess_success, mock_metadata_functions):
+    def test_repair_flac_file_cleanup_wav(
+        self, tmp_path, mock_subprocess_success, mock_metadata_functions
+    ):
         """Test that intermediate WAV file is cleaned up."""
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.remove') as mock_remove:
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.remove"
+        ) as mock_remove:
 
             result = repair_flac_file(str(corrupted_file))
 
@@ -388,9 +411,13 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch('flac_detective.analysis.new_scoring.audio_loader._extract_metadata', return_value=None), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.exists', return_value=True), \
-             patch('flac_detective.analysis.new_scoring.audio_loader.os.path.getsize', return_value=1000000):
+        with patch(
+            "flac_detective.analysis.new_scoring.audio_loader._extract_metadata", return_value=None
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+        ), patch(
+            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        ):
 
             result = repair_flac_file(str(corrupted_file))
 
@@ -411,4 +438,11 @@ class TestRepairIntegration:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--cov=flac_detective.analysis.new_scoring.audio_loader", "--cov-report=term-missing"])
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "--cov=flac_detective.analysis.new_scoring.audio_loader",
+            "--cov-report=term-missing",
+        ]
+    )

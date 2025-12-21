@@ -36,9 +36,7 @@ from pathlib import Path
 def run_command(cmd, check=True, capture_output=True):
     """Run a shell command and return the result."""
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(
-        cmd, check=check, capture_output=capture_output, text=True
-    )
+    result = subprocess.run(cmd, check=check, capture_output=capture_output, text=True)
     if capture_output and result.stdout:
         print(result.stdout)
     return result
@@ -64,10 +62,7 @@ def run_tests():
     """Run the test suite."""
     print("\n🧪 Running tests...")
     try:
-        result = run_command(
-            ["python", "-m", "pytest", "tests/", "-v"],
-            check=True
-        )
+        result = run_command(["python", "-m", "pytest", "tests/", "-v"], check=True)
         print("✅ All tests passed")
         return True
     except subprocess.CalledProcessError:
@@ -132,10 +127,7 @@ def push_changes():
 def get_current_version():
     """Get the current version from git tags."""
     try:
-        result = run_command(
-            ["git", "describe", "--tags", "--abbrev=0"],
-            check=True
-        )
+        result = run_command(["git", "describe", "--tags", "--abbrev=0"], check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError:
         return "No tags yet"
@@ -145,27 +137,21 @@ def main():
     parser = argparse.ArgumentParser(
         description="Bump version and prepare release",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__,
     )
     parser.add_argument(
         "--increment",
         choices=["MAJOR", "MINOR", "PATCH"],
-        help="Force a specific version increment level"
+        help="Force a specific version increment level",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview changes without applying them"
+        "--dry-run", action="store_true", help="Preview changes without applying them"
     )
     parser.add_argument(
-        "--push",
-        action="store_true",
-        help="Push commits and tags to remote after bumping"
+        "--push", action="store_true", help="Push commits and tags to remote after bumping"
     )
     parser.add_argument(
-        "--skip-tests",
-        action="store_true",
-        help="Skip running tests (not recommended)"
+        "--skip-tests", action="store_true", help="Skip running tests (not recommended)"
     )
 
     args = parser.parse_args()
@@ -185,7 +171,7 @@ def main():
     if not args.skip_tests and not args.dry_run:
         if not run_tests():
             response = input("\n⚠️  Tests failed. Continue anyway? (y/N): ")
-            if response.lower() != 'y':
+            if response.lower() != "y":
                 sys.exit(1)
 
     # Preview changelog
@@ -195,7 +181,7 @@ def main():
     if not args.dry_run:
         print("\n" + "=" * 60)
         response = input("Continue with version bump? (y/N): ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print("Aborted.")
             sys.exit(0)
 

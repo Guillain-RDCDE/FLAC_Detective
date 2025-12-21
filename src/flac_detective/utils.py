@@ -4,14 +4,15 @@ import logging
 from pathlib import Path
 from typing import List
 
+from .__version__ import __release_date__, __version__
 from .colors import Colors
-from .__version__ import __version__, __release_date__
 
 logger = logging.getLogger(__name__)
 
 # Parse release date for display
 try:
     from datetime import datetime
+
     _dt = datetime.strptime(__release_date__, "%Y-%m-%d")
     _date_str = _dt.strftime("%B %Y")
 except (ValueError, ImportError):

@@ -34,7 +34,7 @@ def reencode_flac(
         logger.debug(f"  Reading FLAC file: {input_path.name}")
 
         # Read complete audio file
-        data, samplerate = sf.read(input_path, dtype='float32')
+        data, samplerate = sf.read(input_path, dtype="float32")
 
         logger.debug(f"  Re-encoding to FLAC (level {compression_level})...")
 
@@ -42,15 +42,15 @@ def reencode_flac(
         # soundfile/libFLAC uses levels 0 to 8
         # We can pass the level directly via subtype options
         subtype_map = {
-            0: 'PCM_16',  # No compression (fast)
-            1: 'PCM_16',
-            2: 'PCM_16',
-            3: 'PCM_16',
-            4: 'PCM_16',
-            5: 'PCM_16',  # Default
-            6: 'PCM_24',  # Better quality
-            7: 'PCM_24',
-            8: 'PCM_24',  # Best compression
+            0: "PCM_16",  # No compression (fast)
+            1: "PCM_16",
+            2: "PCM_16",
+            3: "PCM_16",
+            4: "PCM_16",
+            5: "PCM_16",  # Default
+            6: "PCM_24",  # Better quality
+            7: "PCM_24",
+            8: "PCM_24",  # Best compression
         }
 
         # Write new FLAC file
@@ -59,8 +59,8 @@ def reencode_flac(
             output_path,
             data,
             samplerate,
-            format='FLAC',
-            subtype=subtype_map.get(compression_level, 'PCM_16')
+            format="FLAC",
+            subtype=subtype_map.get(compression_level, "PCM_16"),
         )
 
         logger.debug(f"  ✓ File re-encoded: {output_path.name}")

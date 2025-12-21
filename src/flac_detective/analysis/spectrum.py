@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -15,7 +15,9 @@ from .window_cache import get_hann_window
 logger = logging.getLogger(__name__)
 
 
-def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: AudioCache = None) -> Tuple[float, float, float]:
+def analyze_spectrum(
+    filepath: Path, sample_duration: float = 30.0, cache: AudioCache = None
+) -> Tuple[float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
@@ -45,7 +47,9 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
         # Check if we're working with partial data
         is_partial = cache.is_partial()
         if is_partial:
-            logger.warning(f"Working with partial audio data: {actual_frames} frames ({total_duration:.1f}s)")
+            logger.warning(
+                f"Working with partial audio data: {actual_frames} frames ({total_duration:.1f}s)"
+            )
 
         # Take 3 samples: start, middle, end (or just 1 if too short)
         num_samples = 3 if total_duration > 90 else 1
@@ -71,7 +75,7 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
 
             # Extract segment from cached full audio
             logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
-            data = full_audio[start_frame:start_frame + frames_to_read]
+            data = full_audio[start_frame : start_frame + frames_to_read]
 
             # Convert to mono if stereo
             if data.shape[1] > 1:
@@ -100,7 +104,7 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
 
             # Calculate high frequency energy ratio (> 16 kHz)
             energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
-            
+
             return cutoff_freq, energy_ratio
 
         # PHASE 4 OPTIMIZATION: Parallelize sample analysis
@@ -133,7 +137,9 @@ def analyze_spectrum(filepath: Path, sample_duration: float = 30.0, cache: Audio
         return 0, 0, 0
 
 
-def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100) -> float:
+def detect_cutoff(
+    frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100
+) -> float:
     """Detects cutoff frequency with a robust method adapted to sample rate.
 
     Method based on percentiles:
@@ -188,9 +194,7 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate:
     freq_max = freq_high[-1]
 
     # Calculate reference (median energy between reference_freq_low-reference_freq_high)
-    ref_mask = (freq_high >= reference_freq_low) & (
-        freq_high <= reference_freq_high
-    )
+    ref_mask = (freq_high >= reference_freq_low) & (freq_high <= reference_freq_high)
     if np.any(ref_mask):
         reference_energy = np.percentile(mag_smooth[ref_mask], 50)
     else:
@@ -235,7 +239,7 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate:
     # Energy-based detection: find where 90% of cumulative energy is reached
     # Convert dB back to linear magnitude: magnitude = 10^(magnitude_db/20)
     magnitude_linear = 10 ** (magnitude_db / 20.0)
-    energy = magnitude_linear ** 2  # Energy is square of linear magnitude
+    energy = magnitude_linear**2  # Energy is square of linear magnitude
     cumulative_energy = np.cumsum(energy)
     total_energy = cumulative_energy[-1]
 
@@ -250,7 +254,9 @@ def detect_cutoff(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate:
             # BUT: Only if it's in the realistic MP3 cutoff range (15kHz+)
             # Very low cutoffs (< 10kHz) are usually just bass concentration, not transcoding
             if 15000 < energy_cutoff < nyquist_freq * 0.95:  # Realistic MP3 range
-                logger.debug(f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)")
+                logger.debug(
+                    f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)"
+                )
                 return float(energy_cutoff)
             elif energy_cutoff < 15000:
                 logger.debug(f"Energy concentration at {energy_cutoff:.0f} Hz (bass, not cutoff)")
@@ -291,7 +297,9 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
     return float(np.mean(tranche_energies)) if tranche_energies else 0.0
 
 
-def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache: AudioCache = None) -> Tuple[List[float], float]:
+def analyze_segment_consistency(
+    filepath: Path, progressive: bool = True, cache: AudioCache = None
+) -> Tuple[List[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
 
     Phase 2 Optimization: Progressive analysis
@@ -378,29 +386,39 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
         valid_cutoffs = [c for c in cutoffs if c > 0]
 
         if len(valid_cutoffs) < 2:
-            logger.warning("OPTIMIZATION R10: Less than 2 valid segments, cannot determine consistency")
+            logger.warning(
+                "OPTIMIZATION R10: Less than 2 valid segments, cannot determine consistency"
+            )
             return cutoffs, 0.0
 
         # Calculate initial variance
         variance = float(np.std(valid_cutoffs))
 
-        logger.debug(f"OPTIMIZATION R10: Phase 1 - Start={cutoffs[0]:.0f} Hz, End={cutoffs[1]:.0f} Hz, Variance={variance:.1f} Hz")
+        logger.debug(
+            f"OPTIMIZATION R10: Phase 1 - Start={cutoffs[0]:.0f} Hz, End={cutoffs[1]:.0f} Hz, Variance={variance:.1f} Hz"
+        )
 
         # PHASE 2: Progressive decision
         if progressive:
             # If variance < 500 Hz, segments are coherent -> STOP
             if variance < 500:
-                logger.info(f"⚡ OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)")
+                logger.info(
+                    f"⚡ OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)"
+                )
                 # Return only 2 segments (optimization)
                 return cutoffs, variance
 
             # If variance > 1000 Hz, already know it's dynamic -> STOP
             if variance > 1000:
-                logger.info(f"⚡ OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)")
+                logger.info(
+                    f"⚡ OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)"
+                )
                 return cutoffs, variance
 
             # Otherwise (500 <= variance <= 1000), need more data
-            logger.info(f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f} in grey zone)")
+            logger.info(
+                f"OPTIMIZATION R10: Expanding to 5 segments (variance {variance:.1f} in grey zone)"
+            )
 
         # PHASE 3: Analyze middle segments (25%, 50%, 75%)
         # Analyze middle segments (Sequential)
@@ -420,7 +438,9 @@ def analyze_segment_consistency(filepath: Path, progressive: bool = True, cache:
         else:
             variance = 0.0
 
-        logger.debug(f"OPTIMIZATION R10: Phase 3 - All 5 segments analyzed, final variance={variance:.1f} Hz")
+        logger.debug(
+            f"OPTIMIZATION R10: Phase 3 - All 5 segments analyzed, final variance={variance:.1f} Hz"
+        )
 
         return cutoffs, variance
 

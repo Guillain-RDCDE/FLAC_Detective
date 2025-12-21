@@ -2,6 +2,7 @@
 
 from src.flac_detective.analysis.diagnostic_tracker import DiagnosticTracker, IssueType
 
+
 def test_diagnostic_tracker():
     """Test the diagnostic tracker functionality."""
     tracker = DiagnosticTracker()
@@ -13,20 +14,20 @@ def test_diagnostic_tracker():
         message="Decoder lost sync after 10000 frames",
         frames_read=10000,
         total_frames=20000,
-        retry_count=5
+        retry_count=5,
     )
 
     tracker.record_issue(
         filepath="/path/to/file1.flac",
         issue_type=IssueType.REPAIR_ATTEMPTED,
-        message="Attempting repair with flac tool"
+        message="Attempting repair with flac tool",
     )
 
     tracker.record_issue(
         filepath="/path/to/file2.flac",
         issue_type=IssueType.READ_FAILED,
         message="Complete read failure",
-        retry_count=5
+        retry_count=5,
     )
 
     tracker.increment_files_analyzed()
@@ -46,6 +47,7 @@ def test_diagnostic_tracker():
     # Generate report
     report = tracker.generate_report()
     print(report)
+
 
 if __name__ == "__main__":
     test_diagnostic_tracker()

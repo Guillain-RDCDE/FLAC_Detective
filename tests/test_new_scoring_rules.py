@@ -1,13 +1,15 @@
 import pytest
+
 from flac_detective.analysis.new_scoring.rules import (
     apply_rule_1_mp3_bitrate,
     apply_rule_2_cutoff,
     apply_rule_3_source_vs_container,
     apply_rule_4_24bit_suspect,
     apply_rule_5_high_variance,
-    apply_rule_6_variable_bitrate_protection
+    apply_rule_6_variable_bitrate_protection,
 )
 from flac_detective.analysis.new_scoring.verdict import determine_verdict
+
 
 class TestMandatoryValidation:
     """Tests based on 'TESTS DE VALIDATION OBLIGATOIRES' from user specs."""
@@ -23,17 +25,19 @@ class TestMandatoryValidation:
         # 19800 Hz is in 320kbps range and below 90% Nyquist (19845 Hz for 44100 Hz)
         # Also below 95% Nyquist (20947.5 Hz) to avoid R1 Nyquist exception
         cutoff_freq = 19800
-        
+
         # Calculations
         real_bitrate = (file_size * 8) / (duration * 1000)  # ~319.83 kbps
         # apparent_bitrate is not used directly in new rules except via container bitrate checks
-        
+
         # Rule 1
         # Returns ((score, reasons), estimated_bitrate)
         # We use a container bitrate of 850 which is typical for a 320kbps MP3 converted to FLAC
         # and falls within the (700, 1050) range.
         container_bitrate = 850
-        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate, 0.0, sample_rate)
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq, container_bitrate, 0.0, sample_rate
+        )
         assert score_r1 == 50, "Rule 1 should detect MP3 320 based on cutoff 19800 Hz"
         assert estimated_bitrate == 320
 
@@ -51,8 +55,8 @@ class TestMandatoryValidation:
         # But Rule 3 now uses container_bitrate (which is real_bitrate usually).
         # If the file is a Fake FLAC from MP3 320, the container bitrate might be high (e.g. 800+).
         # Let's assume the container bitrate is high for this test case to simulate a fake FLAC.
-        container_bitrate = 849 
-        
+        container_bitrate = 849
+
         score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate)
         assert score_r3 == 50, "Rule 3 should trigger (MP3 detected and container > 600)"
 
@@ -61,12 +65,16 @@ class TestMandatoryValidation:
         assert score_r4 == 0, "Rule 4 should be 0 (16-bit)"
 
         # Rule 5
-        score_r5, _ = apply_rule_5_high_variance(container_bitrate, 0) # variance irrelevant if bitrate < 1000
+        score_r5, _ = apply_rule_5_high_variance(
+            container_bitrate, 0
+        )  # variance irrelevant if bitrate < 1000
         assert score_r5 == 0, "Rule 5 should be 0 (bitrate < 1000)"
 
         # Rule 6
         # Needs variance. Let's say 0.
-        score_r6, _ = apply_rule_6_variable_bitrate_protection(estimated_bitrate, container_bitrate, cutoff_freq, 0)
+        score_r6, _ = apply_rule_6_variable_bitrate_protection(
+            estimated_bitrate, container_bitrate, cutoff_freq, 0
+        )
         assert score_r6 == 0, "Rule 6 should be 0 (MP3 detected)"
 
         total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
@@ -80,9 +88,9 @@ class TestMandatoryValidation:
         sample_rate = 44100
         bit_depth = 16
         cutoff_freq = 17458
-        real_bitrate = 192 # This is low, usually container is higher for fake FLAC
-        container_bitrate = 844 # Simulating FLAC container bitrate
-        
+        real_bitrate = 192  # This is low, usually container is higher for fake FLAC
+        container_bitrate = 844  # Simulating FLAC container bitrate
+
         # Rule 1
         (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate)
         # 17458 is in 192kbps range (16.5-17.5k)
@@ -101,7 +109,9 @@ class TestMandatoryValidation:
         # Existing code: 192: (500, 750).
         # Let's set container_bitrate to 700 to pass Rule 1.
         container_bitrate_r1 = 700
-        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate_r1, 0.0, sample_rate)
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq, container_bitrate_r1, 0.0, sample_rate
+        )
         assert score_r1 == 50
         assert estimated_bitrate == 192
 
@@ -115,7 +125,7 @@ class TestMandatoryValidation:
         # But in a real file, it's one bitrate.
         # If bitrate is 700, Rule 3 (threshold 600) triggers.
         score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate_r1)
-        assert score_r3 == 50 # 700 > 600
+        assert score_r3 == 50  # 700 > 600
 
         # Rule 4
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
@@ -126,7 +136,9 @@ class TestMandatoryValidation:
         assert score_r5 == 0
 
         # Rule 6
-        score_r6, _ = apply_rule_6_variable_bitrate_protection(estimated_bitrate, container_bitrate_r1, cutoff_freq, 0)
+        score_r6, _ = apply_rule_6_variable_bitrate_protection(
+            estimated_bitrate, container_bitrate_r1, cutoff_freq, 0
+        )
         assert score_r6 == 0
 
         total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
@@ -139,9 +151,9 @@ class TestMandatoryValidation:
         # Data
         sample_rate = 48000
         bit_depth = 24
-        cutoff_freq = 18321 # This looks like 224kbps (17.5-18.5k)
+        cutoff_freq = 18321  # This looks like 224kbps (17.5-18.5k)
         container_bitrate = 1623
-        
+
         # Rule 1
         # 18321 -> 224 kbps. Range (550, 800).
         # Container 1623 is way outside.
@@ -157,7 +169,7 @@ class TestMandatoryValidation:
         # It calls estimate_mp3_bitrate. If it returns something, it checks container.
         # If container fails, it returns (score=0, reasons=[]), None.
         # So estimated_bitrate will be None.
-        
+
         # If we want to test Rule 4, we need an estimated bitrate?
         # Rule 4 takes mp3_bitrate_detected.
         # If Rule 1 returns None, Rule 4 receives None.
@@ -169,7 +181,7 @@ class TestMandatoryValidation:
         # Maybe the ranges in Rule 1 are too strict for 24-bit containers?
         # For now, I will assert what the code DOES, not what it "should" do if the code is different.
         # If the code returns 0, I assert 0.
-        
+
         assert score_r1 == 0
         assert estimated_bitrate is None
 
@@ -198,24 +210,26 @@ class TestMandatoryValidation:
         # Maybe I should adjust the test expectation to match current logic, or adjust data.
         # If I change container_bitrate to be within range for 224kbps (550-800), say 700.
         # Then Rule 1 triggers.
-        
+
         # Let's modify the test data to simulate a "perfect" fake that fits the rules.
         container_bitrate_fake = 700
-        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate_fake, 0.0, sample_rate)
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq, container_bitrate_fake, 0.0, sample_rate
+        )
         assert score_r1 == 50
         assert estimated_bitrate == 224
-        
+
         score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate_fake)
-        assert score_r3 == 50 # 700 > 600
-        
+        assert score_r3 == 50  # 700 > 600
+
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
         # 24-bit, 224 < 500, cutoff 18321 < 19000.
         assert score_r4 == 30
-        
+
         total_score = score_r1 + score_r2 + score_r3 + score_r4
         # 50 + 18 + 50 + 30 = 148.
         # This matches the original test expectation.
-        
+
         # So I will use container_bitrate = 700 for this test.
 
     def test_4_authentic_high_quality(self):
@@ -228,7 +242,9 @@ class TestMandatoryValidation:
         variance = 200
 
         # Rule 1
-        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate, 0.0, sample_rate)
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq, container_bitrate, 0.0, sample_rate
+        )
         assert score_r1 == 0
         assert estimated_bitrate is None
 
@@ -251,7 +267,9 @@ class TestMandatoryValidation:
 
         # Rule 6
         # No MP3, 1580 > 700, 21878 >= 19000, 200 > 50 -> -30 points
-        score_r6, _ = apply_rule_6_variable_bitrate_protection(estimated_bitrate, container_bitrate, cutoff_freq, variance)
+        score_r6, _ = apply_rule_6_variable_bitrate_protection(
+            estimated_bitrate, container_bitrate, cutoff_freq, variance
+        )
         assert score_r6 == -30
 
         total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)
@@ -264,12 +282,14 @@ class TestMandatoryValidation:
         # Data
         sample_rate = 44100
         bit_depth = 16
-        cutoff_freq = 21600 # Above 320k range
+        cutoff_freq = 21600  # Above 320k range
         container_bitrate = 850
         variance = 150
 
         # Rule 1
-        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(cutoff_freq, container_bitrate, 0.0, sample_rate)
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq, container_bitrate, 0.0, sample_rate
+        )
         assert score_r1 == 0
 
         # Rule 2
@@ -291,7 +311,9 @@ class TestMandatoryValidation:
 
         # Rule 6
         # No MP3, 850 > 700, 21600 >= 19000, 150 > 50 -> -30 points
-        score_r6, _ = apply_rule_6_variable_bitrate_protection(estimated_bitrate, container_bitrate, cutoff_freq, variance)
+        score_r6, _ = apply_rule_6_variable_bitrate_protection(
+            estimated_bitrate, container_bitrate, cutoff_freq, variance
+        )
         assert score_r6 == -30
 
         total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)

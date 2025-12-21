@@ -4,19 +4,13 @@ import logging
 from typing import List, Optional, Tuple
 import soundfile as sf
 
-from ..silence import (
-    analyze_silence_ratio,
-    detect_vinyl_noise,
-    detect_clicks_and_pops
-)
+from ..silence import analyze_silence_ratio, detect_vinyl_noise, detect_clicks_and_pops
 
 logger = logging.getLogger(__name__)
 
 
 def apply_rule_7_silence_analysis(
-    file_path: str,
-    cutoff_freq: float,
-    sample_rate: int
+    file_path: str, cutoff_freq: float, sample_rate: int
 ) -> Tuple[int, List[str], Optional[float]]:
     """Apply Rule 7: Silence Analysis and Vinyl Noise Detection (IMPROVED - 3 PHASES).
 
@@ -93,9 +87,7 @@ def apply_rule_7_silence_analysis(
 
     elif ratio < 0.15:
         score -= 50
-        reasons.append(
-            f"R7-P1: Silence naturel propre (Ratio {ratio:.2f} < 0.15) (-50pts)"
-        )
+        reasons.append(f"R7-P1: Silence naturel propre (Ratio {ratio:.2f} < 0.15) (-50pts)")
         logger.info(f"RULE 7 Phase 1: -50 points (AUTHENTIC - Ratio {ratio:.2f} < 0.15)")
         return score, reasons, ratio  # Stop here, clear authentic
 
@@ -145,7 +137,7 @@ def apply_rule_7_silence_analysis(
                     f"({clicks_per_min:.1f} clicks/min outside 5-50 range)"
                 )
 
-        elif vinyl_details['energy_db'] < -70:
+        elif vinyl_details["energy_db"] < -70:
             # No noise above cutoff -> Digital upsample suspect
             score += 20
             reasons.append(

@@ -177,9 +177,7 @@ class FLACDurationFixer:
             "after": check_after,
         }
 
-    def fix_directory(
-        self, directory: Path, dry_run: bool = False, recursive: bool = True
-    ) -> dict:
+    def fix_directory(self, directory: Path, dry_run: bool = False, recursive: bool = True) -> dict:
         """Repairs all FLAC files in a directory.
 
         Args:

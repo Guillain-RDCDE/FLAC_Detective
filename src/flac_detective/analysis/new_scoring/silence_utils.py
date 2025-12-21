@@ -5,17 +5,16 @@ analysis module to detect vinyl noise, clicks, and other audio artifacts.
 """
 
 import logging
+from typing import Optional, Tuple
+
 import numpy as np
 from scipy import signal
-from typing import Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
 
 def filter_band(
-    audio_mono: np.ndarray,
-    sample_rate: int,
-    cutoff_freq: float
+    audio_mono: np.ndarray, sample_rate: int, cutoff_freq: float
 ) -> Optional[np.ndarray]:
     """Apply bandpass filter above cutoff frequency.
 
@@ -38,7 +37,7 @@ def filter_band(
     upper_freq = nyquist - 100
 
     try:
-        sos = signal.butter(4, [cutoff_freq, upper_freq], 'bandpass', fs=sample_rate, output='sos')
+        sos = signal.butter(4, [cutoff_freq, upper_freq], "bandpass", fs=sample_rate, output="sos")
         return signal.sosfilt(sos, audio_mono)
     except Exception as e:
         logger.warning(f"VINYL: Filtering failed: {e}")
@@ -54,15 +53,11 @@ def calculate_energy_db(audio_data: np.ndarray) -> float:
     Returns:
         Energy in dB (relative to full scale)
     """
-    rms_energy = np.sqrt(np.mean(audio_data ** 2))
+    rms_energy = np.sqrt(np.mean(audio_data**2))
     return float(20 * np.log10(rms_energy + 1e-10))
 
 
-def calculate_autocorrelation(
-    audio_data: np.ndarray,
-    sample_rate: int,
-    lag: int = 50
-) -> float:
+def calculate_autocorrelation(audio_data: np.ndarray, sample_rate: int, lag: int = 50) -> float:
     """Calculate autocorrelation at specific lag.
 
     Used to detect random noise (low autocorrelation) vs periodic signals
@@ -90,10 +85,7 @@ def calculate_autocorrelation(
     return 0.0
 
 
-def calculate_temporal_variance(
-    audio_data: np.ndarray,
-    sample_rate: int
-) -> float:
+def calculate_temporal_variance(audio_data: np.ndarray, sample_rate: int) -> float:
     """Calculate variance of energy across segments.
 
     Musical content has high temporal variance (loud/quiet sections).
@@ -124,10 +116,7 @@ def calculate_temporal_variance(
     return float(np.std(segment_energies))
 
 
-def detect_transients(
-    audio_data: np.ndarray,
-    sample_rate: int
-) -> Tuple[int, float]:
+def detect_transients(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, float]:
     """Detect clicks and pops typical of vinyl records.
 
     Vinyl records have brief transients (clicks/pops) from dust and scratches.
@@ -158,7 +147,7 @@ def detect_transients(
 
     # High-pass filter to remove low-frequency content
     try:
-        sos = signal.butter(4, 1000, 'highpass', fs=sample_rate, output='sos')
+        sos = signal.butter(4, 1000, "highpass", fs=sample_rate, output="sos")
         audio_hp = signal.sosfilt(sos, audio_mono)
     except Exception as e:
         logger.warning(f"CLICKS: Filtering failed: {e}")
@@ -185,11 +174,7 @@ def detect_transients(
     min_distance = int(0.01 * sample_rate)
 
     try:
-        peaks, _ = signal.find_peaks(
-            envelope_smooth,
-            height=threshold,
-            distance=min_distance
-        )
+        peaks, _ = signal.find_peaks(envelope_smooth, height=threshold, distance=min_distance)
     except Exception as e:
         logger.warning(f"CLICKS: Peak detection failed: {e}")
         return 0, 0.0

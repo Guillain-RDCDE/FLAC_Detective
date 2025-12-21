@@ -153,9 +153,7 @@ class CoverageReport:
         print("📁 Coverage by File (lowest to highest)")
         print("-" * 70)
 
-        sorted_files = sorted(
-            file_coverage.items(), key=lambda x: x[1]["line"]
-        )
+        sorted_files = sorted(file_coverage.items(), key=lambda x: x[1]["line"])
 
         for filename, cov in sorted_files:
             # Shorten filename for display
@@ -175,11 +173,7 @@ class CoverageReport:
         print("-" * 70)
 
         excellent = sum(1 for c in file_coverage.values() if c["line"] >= 90)
-        good = sum(
-            1
-            for c in file_coverage.values()
-            if self.min_coverage <= c["line"] < 90
-        )
+        good = sum(1 for c in file_coverage.values() if self.min_coverage <= c["line"] < 90)
         poor = sum(1 for c in file_coverage.values() if c["line"] < self.min_coverage)
 
         total_files = len(file_coverage)
@@ -196,9 +190,7 @@ class CoverageReport:
             print("Files needing attention (coverage < 80%):")
 
             low_coverage_files = [
-                (f, c["line"])
-                for f, c in file_coverage.items()
-                if c["line"] < self.min_coverage
+                (f, c["line"]) for f, c in file_coverage.items() if c["line"] < self.min_coverage
             ]
             low_coverage_files.sort(key=lambda x: x[1])
 

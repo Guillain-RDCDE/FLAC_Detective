@@ -19,7 +19,7 @@ class FileReadCache:
     Thread-safe for parallel execution.
     """
 
-    _instance: Optional['FileReadCache'] = None
+    _instance: Optional["FileReadCache"] = None
 
     def __init__(self):
         """Initialize the cache."""
@@ -28,7 +28,7 @@ class FileReadCache:
         self._enabled = True
 
     @classmethod
-    def get_instance(cls) -> 'FileReadCache':
+    def get_instance(cls) -> "FileReadCache":
         """Get singleton instance."""
         if cls._instance is None:
             cls._instance = cls()
@@ -82,11 +82,7 @@ class FileReadCache:
         return self._full_reads[key]
 
     def read_segment(
-        self,
-        filepath: Path,
-        start: int,
-        frames: int,
-        **kwargs
+        self, filepath: Path, start: int, frames: int, **kwargs
     ) -> Tuple[np.ndarray, int]:
         """Read file segment with caching.
 
@@ -108,7 +104,9 @@ class FileReadCache:
             logger.debug(f"CACHE MISS: Reading segment {filepath.name}[{start}:{start+frames}]")
             data, sr = sf.read(str(filepath), start=start, frames=frames, **kwargs)
             self._segment_reads[key] = (data, sr)
-            logger.debug(f"CACHE: Stored segment {filepath.name}[{start}:{start+frames}] ({data.shape})")
+            logger.debug(
+                f"CACHE: Stored segment {filepath.name}[{start}:{start+frames}] ({data.shape})"
+            )
         else:
             logger.debug(f"CACHE HIT: Using cached segment {filepath.name}[{start}:{start+frames}]")
 
@@ -121,9 +119,9 @@ class FileReadCache:
             Dictionary with cache stats
         """
         return {
-            'full_reads_cached': len(self._full_reads),
-            'segment_reads_cached': len(self._segment_reads),
-            'total_cached': len(self._full_reads) + len(self._segment_reads),
+            "full_reads_cached": len(self._full_reads),
+            "segment_reads_cached": len(self._segment_reads),
+            "total_cached": len(self._full_reads) + len(self._segment_reads),
         }
 
 
@@ -131,7 +129,9 @@ class FileReadCache:
 _cache = FileReadCache.get_instance()
 
 
-def cached_read(filepath: Path, start: Optional[int] = None, frames: Optional[int] = None, **kwargs):
+def cached_read(
+    filepath: Path, start: Optional[int] = None, frames: Optional[int] = None, **kwargs
+):
     """Cached version of soundfile.read.
 
     Automatically uses cache for full reads and segments.

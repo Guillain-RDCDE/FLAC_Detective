@@ -162,7 +162,7 @@ class TextReporter:
                 # Determine display name (relative path if possible)
                 display_name = result.get("filename", "Unknown")
                 file_path_str = result.get("filepath", "")
-                
+
                 if scan_paths and file_path_str:
                     try:
                         p = Path(file_path_str)
@@ -174,7 +174,7 @@ class TextReporter:
                                 rel_path = p.relative_to(root)
                                 # Prepend separator to indicate it's a relative path from root
                                 display_name = f"\\{rel_path}"
-                                break 
+                                break
                             except ValueError:
                                 continue
                     except Exception:

@@ -14,14 +14,15 @@ from pathlib import Path
 
 # Fix Windows console encoding
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 try:
     import yaml
 except ImportError:
     print("⚠️  PyYAML not installed. Installing...")
     import subprocess
+
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pyyaml"])
     import yaml
 
@@ -31,41 +32,41 @@ def validate_workflow(workflow_path):
     print(f"\n📋 Validating {workflow_path.name}...")
 
     try:
-        with open(workflow_path, 'r', encoding='utf-8') as f:
+        with open(workflow_path, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
 
         # Check required top-level keys
-        if 'name' not in content:
+        if "name" not in content:
             print(f"  ⚠️  Missing 'name' field")
         else:
             print(f"  ✅ Name: {content['name']}")
 
         # Check 'on' field (YAML preserves it as string key)
-        trigger_key = 'on' if 'on' in content else True if True in content else None
+        trigger_key = "on" if "on" in content else True if True in content else None
         if trigger_key is None:
             print(f"  ❌ ERROR: Missing 'on' (trigger) field")
             return False
         else:
-            triggers = content.get('on') or content.get(True)
+            triggers = content.get("on") or content.get(True)
             if isinstance(triggers, dict):
                 print(f"  ✅ Triggers: {list(triggers.keys())}")
             else:
                 print(f"  ✅ Triggers: {triggers}")
 
-        if 'jobs' not in content:
+        if "jobs" not in content:
             print(f"  ❌ ERROR: Missing 'jobs' field")
             return False
         else:
-            job_count = len(content['jobs'])
+            job_count = len(content["jobs"])
             print(f"  ✅ Jobs: {job_count} ({', '.join(content['jobs'].keys())})")
 
         # Validate each job
-        for job_name, job_config in content['jobs'].items():
-            if 'runs-on' not in job_config and 'uses' not in job_config:
+        for job_name, job_config in content["jobs"].items():
+            if "runs-on" not in job_config and "uses" not in job_config:
                 print(f"  ⚠️  Job '{job_name}' missing 'runs-on' or 'uses'")
 
-            if 'steps' in job_config:
-                step_count = len(job_config['steps'])
+            if "steps" in job_config:
+                step_count = len(job_config["steps"])
                 print(f"  ✅ Job '{job_name}': {step_count} steps")
 
         print(f"  ✅ {workflow_path.name} is valid")

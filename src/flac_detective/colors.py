@@ -3,6 +3,7 @@
 
 class Colors:
     """ANSI color codes."""
+
     RESET = "\033[0m"
     BOLD = "\033[1m"
     DIM = "\033[2m"

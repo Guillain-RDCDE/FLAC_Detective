@@ -40,8 +40,5 @@ def parse_metadata(metadata: Dict) -> AudioMetadata:
     duration = metadata.get("duration", 0)
 
     return AudioMetadata(
-        sample_rate=sample_rate,
-        bit_depth=bit_depth,
-        channels=channels,
-        duration=duration
+        sample_rate=sample_rate, bit_depth=bit_depth, channels=channels, duration=duration
     )

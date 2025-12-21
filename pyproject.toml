@@ -8,7 +8,7 @@ version = "0.9.1"
 description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "Guillain Méjane", email = "guillain@poulpe.us"}
 ]

@@ -25,9 +25,7 @@ def run_command(cmd: list[str], description: str) -> bool:
     """
     print(f"📋 {description}...")
     try:
-        result = subprocess.run(
-            cmd, check=True, capture_output=True, text=True, encoding="utf-8"
-        )
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True, encoding="utf-8")
         print(f"✅ {description} - SUCCESS")
         if result.stdout:
             print(f"   Output: {result.stdout.strip()}")
@@ -87,9 +85,7 @@ def install_hooks() -> bool:
     Returns:
         True if installation succeeded, False otherwise
     """
-    return run_command(
-        ["pre-commit", "install"], "Installing pre-commit Git hooks"
-    )
+    return run_command(["pre-commit", "install"], "Installing pre-commit Git hooks")
 
 
 def install_commit_msg_hook() -> bool:

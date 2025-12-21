@@ -5,20 +5,18 @@ This example shows how to use the logging_config module in your code.
 """
 
 from pathlib import Path
-from flac_detective.logging_config import setup_logging, get_logger, LogLevel, set_log_level
+
+from flac_detective.logging_config import LogLevel, get_logger, set_log_level, setup_logging
 
 
 def example_basic_usage():
     """Example 1: Basic logging setup and usage."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 1: Basic Logging Setup")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Setup logging (typically done once at application start)
-    log_file = setup_logging(
-        output_dir=Path("./logs"),
-        log_level=LogLevel.INFO
-    )
+    log_file = setup_logging(output_dir=Path("./logs"), log_level=LogLevel.INFO)
 
     # Get a logger for this module
     logger = get_logger(__name__)
@@ -34,15 +32,12 @@ def example_basic_usage():
 
 def example_debug_mode():
     """Example 2: Debug mode for troubleshooting."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 2: Debug Mode")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Enable debug logging for troubleshooting
-    log_file = setup_logging(
-        output_dir=Path("./logs"),
-        log_level=LogLevel.DEBUG
-    )
+    log_file = setup_logging(output_dir=Path("./logs"), log_level=LogLevel.DEBUG)
 
     logger = get_logger(__name__)
 
@@ -57,9 +52,9 @@ def example_debug_mode():
 
 def example_dynamic_level():
     """Example 3: Dynamic log level changes."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 3: Dynamic Log Level Changes")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Start with INFO level
     setup_logging(log_level=LogLevel.INFO)
@@ -85,16 +80,16 @@ def example_dynamic_level():
 
 def example_exception_logging():
     """Example 4: Logging exceptions with tracebacks."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 4: Exception Logging")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     setup_logging(log_level=LogLevel.INFO)
     logger = get_logger(__name__)
 
     def risky_operation(filename):
         """Simulate a function that might fail."""
-        if not filename.endswith('.flac'):
+        if not filename.endswith(".flac"):
             raise ValueError(f"Invalid file type: {filename}")
         return f"Processed {filename}"
 
@@ -115,15 +110,12 @@ def example_exception_logging():
 
 def example_console_only():
     """Example 5: Console-only logging (no file)."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 5: Console-Only Logging")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # Disable file logging for quick testing
-    setup_logging(
-        enable_file_logging=False,
-        log_level=LogLevel.INFO
-    )
+    setup_logging(enable_file_logging=False, log_level=LogLevel.INFO)
 
     logger = get_logger(__name__)
 
@@ -133,16 +125,16 @@ def example_console_only():
 
 def example_module_logger():
     """Example 6: Module-specific logger usage."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 6: Module-Specific Logger")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     setup_logging(log_level=LogLevel.INFO)
 
     # Each module gets its own logger
-    analyzer_logger = get_logger('flac_detective.analyzer')
-    metadata_logger = get_logger('flac_detective.metadata')
-    repair_logger = get_logger('flac_detective.repair')
+    analyzer_logger = get_logger("flac_detective.analyzer")
+    metadata_logger = get_logger("flac_detective.metadata")
+    repair_logger = get_logger("flac_detective.repair")
 
     # Logs will show which module they came from
     analyzer_logger.info("Starting spectral analysis")
@@ -152,9 +144,9 @@ def example_module_logger():
 
 def example_best_practices():
     """Example 7: Logging best practices."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 7: Best Practices")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     setup_logging(log_level=LogLevel.DEBUG)
     logger = get_logger(__name__)
@@ -191,9 +183,9 @@ def example_best_practices():
 
 def main():
     """Run all examples."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FLAC Detective - Logging Configuration Examples")
-    print("="*60)
+    print("=" * 60)
 
     # Run examples
     example_basic_usage()
@@ -204,9 +196,9 @@ def main():
     example_module_logger()
     example_best_practices()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("All examples completed!")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     print("Next steps:")
     print("1. Check the 'logs/' directory for generated log files")
@@ -215,5 +207,5 @@ def main():
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

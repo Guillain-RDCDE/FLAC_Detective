@@ -53,7 +53,7 @@ def apply_rule_4_24bit_suspect(
     bit_depth: int,
     mp3_bitrate_detected: Optional[int],
     cutoff_freq: float = 0.0,
-    silence_ratio: Optional[float] = None
+    silence_ratio: Optional[float] = None,
 ) -> Tuple[int, List[str]]:
     """Apply Rule 4: 24-bit Suspicious Files (MODIFIED WITH SAFEGUARDS).
 
@@ -91,7 +91,9 @@ def apply_rule_4_24bit_suspect(
     MAX_SUSPICIOUS_CUTOFF = 19000
 
     is_24bit = bit_depth == 24
-    has_low_mp3_source = mp3_bitrate_detected is not None and mp3_bitrate_detected < MIN_24BIT_BITRATE
+    has_low_mp3_source = (
+        mp3_bitrate_detected is not None and mp3_bitrate_detected < MIN_24BIT_BITRATE
+    )
     has_low_cutoff = cutoff_freq < MAX_SUSPICIOUS_CUTOFF
 
     # SAFEGUARD: Protect authentic vinyl rips
@@ -172,7 +174,7 @@ def apply_rule_6_variable_bitrate_protection(
     mp3_bitrate_detected: Optional[int],
     bitrate_conteneur: float,
     cutoff_freq: float,
-    bitrate_variance: float
+    bitrate_variance: float,
 ) -> Tuple[int, List[str]]:
     """Apply Rule 6: Avoid False Positives - High Quality Protection (REINFORCED).
 
@@ -225,10 +227,14 @@ def apply_rule_6_variable_bitrate_protection(
         if not is_variable_bitrate:
             logger.debug("RULE 6: Skipped (MP3 signature detected)")
         elif not is_high_bitrate:
-            logger.debug(f"RULE 6: Skipped (bitrate {bitrate_conteneur:.0f} <= {BITRATE_THRESHOLD})")
+            logger.debug(
+                f"RULE 6: Skipped (bitrate {bitrate_conteneur:.0f} <= {BITRATE_THRESHOLD})"
+            )
         elif not has_hf_content:
             logger.debug(f"RULE 6: Skipped (cutoff {cutoff_freq:.0f} < {CUTOFF_THRESHOLD})")
         elif not has_variance:
-            logger.debug(f"RULE 6: Skipped (variance {bitrate_variance:.0f} <= {VARIANCE_THRESHOLD})")
+            logger.debug(
+                f"RULE 6: Skipped (variance {bitrate_variance:.0f} <= {VARIANCE_THRESHOLD})"
+            )
 
     return score, reasons

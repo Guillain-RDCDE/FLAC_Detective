@@ -18,6 +18,7 @@ MUTAGEN_AVAILABLE: bool
 
 try:
     from mutagen.flac import FLAC, Picture
+
     MUTAGEN_AVAILABLE = True
 except ImportError:
     MUTAGEN_AVAILABLE = False
@@ -27,10 +28,10 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 def is_temporary_decoder_error(error_message: str) -> bool:
     """Check if an error is a temporary decoder error that should be retried.
-    
+
     Args:
         error_message: The error message string
-        
+
     Returns:
         True if the error is temporary and should be retried
     """
@@ -40,9 +41,9 @@ def is_temporary_decoder_error(error_message: str) -> bool:
         "sync error",
         "invalid frame",
         "unexpected end",
-        "unknown error"  # NEW: Can occur on valid files, worth retrying
+        "unknown error",  # NEW: Can occur on valid files, worth retrying
     ]
-    
+
     error_lower = error_message.lower()
     return any(pattern in error_lower for pattern in temporary_error_patterns)
 
@@ -53,7 +54,7 @@ def load_audio_with_retry(
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
     original_filepath: Optional[str] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Tuple[Optional[NDArray[np.float64]], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
 
@@ -76,21 +77,21 @@ def load_audio_with_retry(
 
     delay: float = initial_delay
     last_error: Optional[Exception] = None
-    
+
     for attempt in range(1, max_attempts + 1):
         try:
             logger.debug(f"Loading audio (attempt {attempt}/{max_attempts}): {file_path}")
             audio_data, sample_rate = sf.read(file_path, **kwargs)
-            
+
             if attempt > 1:
                 logger.info(f"✅ Audio loaded successfully on attempt {attempt}")
-            
+
             return audio_data, sample_rate
-            
+
         except Exception as e:
             last_error = e
             error_msg = str(e)
-            
+
             # Check if this is a temporary error
             if is_temporary_decoder_error(error_msg):
                 if attempt < max_attempts:
@@ -103,9 +104,13 @@ def load_audio_with_retry(
                     # Track this issue
                     get_tracker().record_issue(
                         filepath=tracking_path,
-                        issue_type=IssueType.DECODER_SYNC_LOST if "lost sync" in error_msg.lower() else IssueType.READ_FAILED,
+                        issue_type=(
+                            IssueType.DECODER_SYNC_LOST
+                            if "lost sync" in error_msg.lower()
+                            else IssueType.READ_FAILED
+                        ),
                         message=error_msg,
-                        retry_count=max_attempts
+                        retry_count=max_attempts,
                     )
             else:
                 # Not a temporary error, don't retry
@@ -114,7 +119,7 @@ def load_audio_with_retry(
                     filepath=tracking_path,
                     issue_type=IssueType.READ_FAILED,
                     message=f"Non-temporary error: {error_msg}",
-                    retry_count=attempt
+                    retry_count=attempt,
                 )
                 break
 
@@ -123,13 +128,13 @@ def load_audio_with_retry(
     get_tracker().record_issue(
         filepath=tracking_path,
         issue_type=IssueType.REPAIR_ATTEMPTED,
-        message="Attempting FLAC repair after read failures"
+        message="Attempting FLAC repair after read failures",
     )
     # Repair the corrupted file and replace the original source if successful
     repaired_path = repair_flac_file(
         corrupted_path=file_path,
         source_path=original_filepath,
-        replace_source=True  # Replace source file on successful repair
+        replace_source=True,  # Replace source file on successful repair
     )
 
     if repaired_path:
@@ -143,14 +148,14 @@ def load_audio_with_retry(
             get_tracker().record_issue(
                 filepath=tracking_path,
                 issue_type=IssueType.REPAIR_FAILED,
-                message=f"Repair failed: {str(e)}"
+                message=f"Repair failed: {str(e)}",
             )
             os.remove(repaired_path)
     else:
         get_tracker().record_issue(
             filepath=tracking_path,
             issue_type=IssueType.REPAIR_FAILED,
-            message="FLAC repair process returned no file"
+            message="FLAC repair process returned no file",
         )
 
     return None, None
@@ -276,10 +281,7 @@ def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
 
         logger.debug(f"  Extracted {len(tags)} tag types and {len(pictures)} picture(s)")
 
-        return {
-            'tags': tags,
-            'pictures': pictures
-        }
+        return {"tags": tags, "pictures": pictures}
 
     except Exception as e:
         logger.warning(f"Failed to extract metadata: {e}")
@@ -357,12 +359,12 @@ def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> boo
 
         # Restore tags
         audio.clear()
-        tags: Dict[str, List[str]] = metadata.get('tags', {})
+        tags: Dict[str, List[str]] = metadata.get("tags", {})
         for key, values in tags.items():
             audio[key] = values
 
         # Restore pictures
-        pictures: List[Picture] = metadata.get('pictures', [])
+        pictures: List[Picture] = metadata.get("pictures", [])
         for picture in pictures:
             audio.add_picture(picture)
 
@@ -377,9 +379,7 @@ def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> boo
 
 
 def repair_flac_file(
-    corrupted_path: str,
-    source_path: Optional[str] = None,
-    replace_source: bool = False
+    corrupted_path: str, source_path: Optional[str] = None, replace_source: bool = False
 ) -> Optional[str]:
     """Repair a corrupted FLAC file using decode-through-errors + re-encode.
 
@@ -409,15 +409,17 @@ def repair_flac_file(
         wav_path = os.path.join(temp_dir, f"repair_{base_name}.wav")
         repaired_path = os.path.join(temp_dir, f"repaired_{os.path.basename(corrupted_path)}")
 
-        display_name: str = os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
+        display_name: str = (
+            os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
+        )
         logger.info(f"Attempting to repair {display_name}")
 
         # Step 0: Extract metadata from original file
         logger.debug(f"  Step 0: Extracting metadata")
         metadata = _extract_metadata(corrupted_path)
         if metadata:
-            tag_count = len(metadata.get('tags', {}))
-            pic_count = len(metadata.get('pictures', []))
+            tag_count = len(metadata.get("tags", {}))
+            pic_count = len(metadata.get("pictures", []))
             logger.debug(f"  ✅ Extracted {tag_count} tags, {pic_count} picture(s)")
         else:
             logger.warning(f"  ⚠️  Could not extract metadata (will be lost)")
@@ -430,15 +432,12 @@ def repair_flac_file(
             "--decode-through-errors",  # Continue decoding despite errors
             "--silent",  # Reduce noise in logs
             corrupted_path,
-            "-o", wav_path
+            "-o",
+            wav_path,
         ]
 
         decode_result = subprocess.run(
-            decode_command,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=120
+            decode_command, capture_output=True, text=True, check=False, timeout=120
         )
 
         # Check if WAV was created (even if there were errors during decoding)
@@ -457,15 +456,12 @@ def repair_flac_file(
             "--silent",
             "-f",  # Force overwrite
             wav_path,
-            "-o", repaired_path
+            "-o",
+            repaired_path,
         ]
 
         encode_result = subprocess.run(
-            encode_command,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=120
+            encode_command, capture_output=True, text=True, check=False, timeout=120
         )
 
         if encode_result.returncode != 0:
@@ -485,19 +481,10 @@ def repair_flac_file(
 
         # Step 4: Verify repaired FLAC integrity
         logger.debug(f"  Step 4: Verifying repaired FLAC")
-        verify_command = [
-            "flac",
-            "--test",
-            "--silent",
-            repaired_path
-        ]
+        verify_command = ["flac", "--test", "--silent", repaired_path]
 
         verify_result = subprocess.run(
-            verify_command,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=60
+            verify_command, capture_output=True, text=True, check=False, timeout=60
         )
 
         if verify_result.returncode != 0:
@@ -524,7 +511,7 @@ def repair_flac_file(
                 get_tracker().record_issue(
                     filepath=source_path,
                     issue_type=IssueType.REPAIR_ATTEMPTED,
-                    message=f"File successfully repaired and replaced (backup: {os.path.basename(backup_path)})"
+                    message=f"File successfully repaired and replaced (backup: {os.path.basename(backup_path)})",
                 )
             except Exception as replace_error:
                 logger.error(f"  ❌ Failed to replace source file: {replace_error}")
@@ -714,14 +701,16 @@ def sf_blocks_partial(
                             f"Failed to read from frame {current_frame} after {max_attempts} attempts"
                         )
                         if chunks:
-                            logger.debug(f"Returning partial data: {current_frame}/{total_frames} frames ({len(chunks)} chunks)")
+                            logger.debug(
+                                f"Returning partial data: {current_frame}/{total_frames} frames ({len(chunks)} chunks)"
+                            )
                             get_tracker().record_issue(
                                 filepath=tracking_path,
                                 issue_type=IssueType.PARTIAL_READ,
                                 message=f"Partial read after decoder errors: {error_msg}",
                                 frames_read=current_frame,
                                 total_frames=total_frames,
-                                retry_count=max_attempts
+                                retry_count=max_attempts,
                             )
                             combined = np.concatenate(chunks)
                             return combined, sample_rate, False  # Not complete
@@ -733,7 +722,7 @@ def sf_blocks_partial(
                                 message="No data could be read before error",
                                 frames_read=0,
                                 total_frames=total_frames,
-                                retry_count=max_attempts
+                                retry_count=max_attempts,
                             )
                             return None, None, False
                 else:
@@ -742,15 +731,21 @@ def sf_blocks_partial(
                         f"Non-temporary error reading from frame {current_frame}: {error_msg}"
                     )
                     if chunks:
-                        logger.debug(f"Returning partial data: {current_frame}/{total_frames} frames")
-                        issue_type = IssueType.SEEK_FAILED if "seek" in error_msg.lower() else IssueType.PARTIAL_READ
+                        logger.debug(
+                            f"Returning partial data: {current_frame}/{total_frames} frames"
+                        )
+                        issue_type = (
+                            IssueType.SEEK_FAILED
+                            if "seek" in error_msg.lower()
+                            else IssueType.PARTIAL_READ
+                        )
                         get_tracker().record_issue(
                             filepath=tracking_path,
                             issue_type=issue_type,
                             message=f"Non-temporary error: {error_msg}",
                             frames_read=current_frame,
                             total_frames=total_frames,
-                            retry_count=attempt
+                            retry_count=attempt,
                         )
                         combined = np.concatenate(chunks)
                         return combined, sample_rate, False  # Not complete
@@ -761,7 +756,7 @@ def sf_blocks_partial(
                             message=f"Non-temporary error, no data read: {error_msg}",
                             frames_read=0,
                             total_frames=total_frames,
-                            retry_count=attempt
+                            retry_count=attempt,
                         )
                         return None, None, False
 
@@ -772,8 +767,10 @@ def sf_blocks_partial(
     # Successfully read entire file
     if chunks:
         final_combined: NDArray[np.float32] = np.concatenate(chunks)
-        is_complete: bool = (current_frame >= total_frames)
-        logger.debug(f"Read {current_frame}/{total_frames} frames ({'complete' if is_complete else 'partial'})")
+        is_complete: bool = current_frame >= total_frames
+        logger.debug(
+            f"Read {current_frame}/{total_frames} frames ({'complete' if is_complete else 'partial'})"
+        )
         return final_combined, sample_rate, is_complete
     else:
         logger.error("No data could be read")
