@@ -79,7 +79,7 @@ repos:
           'flake8-docstrings',
           'flake8-bugbear',
           'flake8-comprehensions',
-          'flake8-simplify'
+          # 'flake8-simplify'  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
         ]
 
   # Python type checking with mypy

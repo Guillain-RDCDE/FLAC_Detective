@@ -365,6 +365,10 @@ If false positive, add comment:
 result = subprocess.run(cmd, shell=True)  # nosec - Safe command
 ```
 
+**Note on safety**: The `safety` tool is included in dev dependencies but only works with Poetry-based projects. Since FLAC Detective uses setuptools, `safety` cannot scan dependencies directly. For dependency vulnerability scanning, consider using:
+- GitHub Dependabot (enabled by default)
+- `pip-audit` as an alternative: `pip install pip-audit && pip-audit`
+
 ## Submitting Changes
 
 ### 1. Commit Your Changes
@@ -540,8 +544,8 @@ python -m cProfile -o profile.stats your_script.py
 
 **Development questions?**
 
-- Review [Technical Details](technical-details.md)
-- Check [API Reference](api-reference.md)
+- Review [Technical Details](../docs/technical-details.md)
+- Check [API Reference](../docs/api-reference.md)
 - Look at existing code for examples
 
 ## Recognition

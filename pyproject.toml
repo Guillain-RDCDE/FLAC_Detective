@@ -45,7 +45,7 @@ dev = [
     "flake8-docstrings>=1.7.0",
     "flake8-bugbear>=23.0.0",
     "flake8-comprehensions>=3.14.0",
-    "flake8-simplify>=0.21.0",
+    # "flake8-simplify>=0.21.0",  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
     "mypy>=1.0.0",
     "pylint>=2.17.0",
     "pre-commit>=3.5.0",
@@ -108,6 +108,9 @@ warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
 ignore_missing_imports = true
+exclude = [
+    "src/flac_detective/repair\\.py$",  # Compatibility wrapper - intentional module shadow
+]
 
 [[tool.mypy.overrides]]
 module = [
