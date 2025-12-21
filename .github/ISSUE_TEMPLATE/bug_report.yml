@@ -20,7 +20,7 @@ body:
           required: true
         - label: I am using the latest version of FLAC Detective
           required: true
-        - label: I have read the [troubleshooting guide](https://github.com/GuillainM/FLAC_Detective/blob/main/DIAGNOSTIC_TROUBLESHOOTING.md)
+        - label: I have read the [troubleshooting guide](https://github.com/GuillainM/FLAC_Detective/blob/main/docs/getting-started.md#troubleshooting)
           required: false
 
   - type: textarea

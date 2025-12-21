@@ -9,12 +9,12 @@ contact_links:
     about: Ask questions and discuss ideas with the community
 
   - name: 🚀 Getting Started Guide
-    url: https://github.com/GuillainM/FLAC_Detective/blob/main/GETTING_STARTED_NEW_USERS.md
+    url: https://github.com/GuillainM/FLAC_Detective/blob/main/docs/getting-started.md
     about: New to FLAC Detective? Start here!
 
-  - name: 🔧 Troubleshooting Guide
-    url: https://github.com/GuillainM/FLAC_Detective/blob/main/DIAGNOSTIC_TROUBLESHOOTING.md
-    about: Common issues and solutions
+  - name: 🔧 User Guide
+    url: https://github.com/GuillainM/FLAC_Detective/blob/main/docs/user-guide.md
+    about: Complete usage guide and troubleshooting
 
   - name: 🔒 Security Vulnerability
     url: https://github.com/GuillainM/FLAC_Detective/security/advisories/new

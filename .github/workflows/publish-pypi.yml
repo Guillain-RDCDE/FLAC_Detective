@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_dispatch:  # Permet de déclencher manuellement
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   build-and-publish:

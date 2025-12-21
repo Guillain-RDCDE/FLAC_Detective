@@ -279,7 +279,7 @@ Now that you've completed your first analysis:
 1. **Learn more about usage** → Read the [User Guide](user-guide.md)
 2. **Understand how it works** → Read [Technical Details](technical-details.md)
 3. **Use the Python API** → Read [API Reference](api-reference.md)
-4. **Contribute or customize** → Read [Contributing](contributing.md)
+4. **Contribute or customize** → Read [Contributing](../.github/CONTRIBUTING.md)
 
 ## Getting Help
 
