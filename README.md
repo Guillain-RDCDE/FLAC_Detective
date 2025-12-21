@@ -65,7 +65,7 @@ Detailed documentation is available in the `docs/` directory:
 - [**User Guide**](docs/user-guide.md) - Complete usage guide with examples
 - [**Technical Details**](docs/technical-details.md) - Deep dive into detection rules and algorithms
 - [**API Reference**](docs/api-reference.md) - Python API documentation
-- [**Contributing**](CONTRIBUTING.md) - Development guide
+- [**Contributing**](.github/CONTRIBUTING.md) - Development guide
 
 ---
 
@@ -80,13 +80,13 @@ Detailed documentation is available in the `docs/` directory:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
+Contributions are welcome! Please read our [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed guidelines and [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md) for community standards.
 
 ---
 
 ## 🔒 Security
 
-For security policy and vulnerability reporting, please see [SECURITY.md](SECURITY.md).
+For security policy and vulnerability reporting, please see [SECURITY.md](.github/SECURITY.md).
 
 ---
 
