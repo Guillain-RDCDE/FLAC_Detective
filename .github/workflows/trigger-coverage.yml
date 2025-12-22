@@ -1,0 +1,62 @@
+name: Generate Coverage Report
+
+# This workflow can be manually triggered to generate and upload coverage
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/trigger-coverage.yml'
+
+jobs:
+  coverage:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsndfile1
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ --cov=flac_detective --cov-report=xml --cov-report=term-missing --cov-report=html --cov-fail-under=80
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        flags: unittests
+        name: coverage-report
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-html-report
+        path: htmlcov/
+        retention-days: 30
+
+    - name: Display coverage summary
+      run: |
+        echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Coverage report has been generated and uploaded to Codecov." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "View the HTML report in the artifacts section above." >> $GITHUB_STEP_SUMMARY
