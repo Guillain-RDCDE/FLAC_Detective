@@ -142,7 +142,7 @@ RECOMMENDATION: Verify with external tools. Could be legitimate.
 **Action**:
 1. Listen to the file carefully
 2. Check source credibility
-3. Use complementary tool (Fakin' the Funk, Spek)
+3. Use complementary tool (e.g., Spek for visual spectral analysis)
 4. Consider re-downloading if suspicious
 
 ---
@@ -443,9 +443,9 @@ grep "WARNING" report.txt > warnings.txt
 ### 4. Use Multiple Tools for Confirmation
 
 FLAC Detective is excellent but not perfect:
-- Use Fakin' the Funk for second opinion
-- Visual inspection with Spek
-- Listen with quality headphones
+- Visual inspection with Spek for spectral analysis
+- Listen with quality headphones for audible artifacts
+- Cross-reference with multiple sources when uncertain
 
 ### 5. Understand Your Sources
 
