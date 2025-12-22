@@ -96,11 +96,13 @@ This creates test files and shows FLAC Detective in action in 30 seconds!
 
 ## 🎬 Demo
 
-![FLAC Detective Analysis](assets/flac_detective_banner.png)
+### Live Demo
 
-> **Note**: Screenshot and demo GIF coming soon. For now, try the tool to see the beautiful colored output with progress bars and detailed reports!
+![FLAC Detective in Action](assets/demo.gif)
 
-**Example Output**:
+Watch FLAC Detective analyze files with real-time progress bars and colored output!
+
+### Example Output
 ```
 ======================================================================
   FLAC AUTHENTICITY ANALYZER
