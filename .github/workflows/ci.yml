@@ -136,8 +136,3 @@ jobs:
       run: |
         bandit -r src -ll
       continue-on-error: true
-
-    - name: Check for known security vulnerabilities
-      run: |
-        safety check --json
-      continue-on-error: true
