@@ -16,6 +16,22 @@ python basic_usage.py
 
 ## Available Examples
 
+### 0. [quick_test.py](quick_test.py) ⭐ NEW
+**Try FLAC Detective in 30 seconds!** No FLAC files needed.
+
+- Creates synthetic test files automatically
+- Demonstrates authentic vs fake detection
+- Perfect for a quick demo
+- No music files required
+
+**Use when**: You want to see FLAC Detective in action immediately.
+
+```bash
+python quick_test.py
+```
+
+---
+
 ### 1. [basic_usage.py](basic_usage.py)
 **Start here!** Simple examples for beginners.
 
@@ -143,6 +159,9 @@ python -c "import flac_detective; print(flac_detective.__version__)"
 ```
 
 ## Common Use Cases
+
+### Scenario 0: "I want to see what FLAC Detective does"
+→ Use **[quick_test.py](quick_test.py)** - Instant demo!
 
 ### Scenario 1: "I just want to check if my files are authentic"
 → Use **[basic_usage.py](basic_usage.py)**

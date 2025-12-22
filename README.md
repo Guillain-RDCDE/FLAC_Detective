@@ -58,10 +58,39 @@ flac-detective /path/to/music
 
 ### Try it Now (No Installation Required)
 
+**Option 1: Docker with Sample File**
 ```bash
-# Quick test with Docker
-docker run --rm ghcr.io/guillainm/flac-detective:latest --version
+# Download a sample FLAC file (public domain)
+curl -O https://archive.org/download/test_flac/sample.flac
+
+# Run analysis with Docker (mount current directory)
+docker run --rm -v "$(pwd)":/data ghcr.io/guillainm/flac-detective:latest /data/sample.flac
 ```
+
+**Option 2: Quick Python Test**
+```bash
+# Using Python (if you have pip installed)
+pip install flac-detective
+flac-detective --version
+flac-detective --help
+```
+
+**Option 3: Interactive Demo Script** ⭐ (Best for Quick Test)
+```bash
+# Clone and run demo with synthetic test files
+git clone https://github.com/GuillainM/FLAC_Detective.git
+cd FLAC_Detective
+pip install -e .
+python examples/quick_test.py
+```
+This creates test files and shows FLAC Detective in action in 30 seconds!
+
+**Option 4: GitHub Codespaces** (Fully Interactive Online)
+1. Click the "Code" button → "Codespaces" → "Create codespace"
+2. Wait for environment setup (~30 seconds)
+3. Run: `pip install -e . && python examples/quick_test.py`
+
+> **No sample files?** The tool works with **any FLAC file** from your music collection!
 
 ---
 
