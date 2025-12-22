@@ -101,6 +101,9 @@ flac_detective-*/
 _templates/
 api/
 nul
+dist/
+*.tar.gz
+*.whl
 
 # Sphinx documentation
 docs/_build/
