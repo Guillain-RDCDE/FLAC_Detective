@@ -2,21 +2,23 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
 
 import numpy as np
 import soundfile as sf
 from scipy.fft import rfft, rfftfreq, set_workers
 
 from ..config import spectral_config
-from .audio_cache import AudioCache
 from .window_cache import get_hann_window
+
+if TYPE_CHECKING:
+    from .audio_cache import AudioCache
 
 logger = logging.getLogger(__name__)
 
 
 def analyze_spectrum(
-    filepath: Path, sample_duration: float = 30.0, cache: AudioCache = None
+    filepath: Path, sample_duration: float = 30.0, cache: "AudioCache" = None
 ) -> Tuple[float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
@@ -37,6 +39,7 @@ def analyze_spectrum(
     try:
         # Create cache if not provided
         if cache is None:
+            from .audio_cache import AudioCache
             cache = AudioCache(filepath)
 
         # Get actual audio data to know real duration (handles partial files)
@@ -298,7 +301,7 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
 
 
 def analyze_segment_consistency(
-    filepath: Path, progressive: bool = True, cache: AudioCache = None
+    filepath: Path, progressive: bool = True, cache: "AudioCache" = None
 ) -> Tuple[List[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
 
@@ -322,6 +325,7 @@ def analyze_segment_consistency(
     try:
         # Create cache if not provided
         if cache is None:
+            from .audio_cache import AudioCache
             cache = AudioCache(filepath)
 
         info = sf.info(filepath)
