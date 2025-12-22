@@ -79,11 +79,13 @@ jobs:
       continue-on-error: true
       uses: codecov/codecov-action@v4
       with:
-        file: ./coverage.xml
+        files: ./coverage.xml
         flags: unittests
         name: codecov-ubuntu-py311
         fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        # Note: For public repos, you may need to set up Codecov GitHub App
+        # or add CODECOV_TOKEN secret. See: https://docs.codecov.com/docs/quick-start
 
     - name: Generate coverage badge
       if: runner.os == 'Linux' && matrix.python-version == '3.11'
