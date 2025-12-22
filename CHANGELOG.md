@@ -1,5 +1,17 @@
 ## Unreleased
 
+## v0.9.6 (2025-12-22)
+
+### Chore
+
+- **release**: Prepare project for public release
+  - Simplified issue templates (bug report and feature request to 6-7 essential fields)
+  - Cleaned up scripts directory (removed redundant analysis and demo scripts)
+  - Organized development resources into dev-tools/ directory
+  - Added MANIFEST.in to exclude dev-tools from PyPI distribution
+  - Updated .gitignore with additional test artifacts
+  - Added missing badges to README (PyPI downloads and Codecov)
+
 ## v0.9.1 (2024-12-20)
 
 ### Docs
