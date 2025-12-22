@@ -14,35 +14,21 @@ body:
     id: prerequisites
     attributes:
       label: Prerequisites
-      description: Please confirm the following before submitting a feature request
+      description: Please confirm before submitting
       options:
-        - label: I have searched existing issues and discussions to ensure this feature hasn't been requested
+        - label: I have searched existing issues to ensure this feature hasn't been requested
           required: true
-        - label: I have read the [documentation](https://flac-detective.readthedocs.io) to confirm this feature doesn't already exist
-          required: true
-        - label: This feature request is specific to FLAC Detective (not a general audio analysis request)
+        - label: I have checked the documentation to confirm this feature doesn't already exist
           required: true
 
   - type: textarea
-    id: problem
+    id: description
     attributes:
-      label: Problem Statement
-      description: What problem does this feature solve? What is the current limitation?
-      placeholder: |
-        I'm frustrated when...
-        Currently, FLAC Detective cannot...
-        It would be helpful if...
-    validations:
-      required: true
-
-  - type: textarea
-    id: solution
-    attributes:
-      label: Proposed Solution
-      description: Describe your proposed solution in detail
+      label: Feature Description
+      description: What feature would you like to see? What problem does it solve?
       placeholder: |
         I would like to see...
-        The feature should work like...
+        This would help with...
         Example: Add a --export-json flag to export analysis results in JSON format
     validations:
       required: true
@@ -51,131 +37,40 @@ body:
     id: category
     attributes:
       label: Feature Category
-      description: Which category does this feature belong to?
+      description: Which area does this feature relate to?
       options:
-        - Analysis / Detection (Core algorithm improvements)
-        - Performance / Optimization
+        - Analysis / Detection
         - CLI / User Interface
-        - API / Library Usage
         - Reporting / Output
-        - File Repair / Recovery
-        - Configuration / Settings
-        - Documentation
-        - Testing / Quality Assurance
+        - Performance
         - Other
     validations:
       required: true
 
   - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives Considered
-      description: Have you considered any alternative solutions or workarounds?
-      placeholder: |
-        Alternative 1: ...
-        Alternative 2: ...
-        Current workaround: ...
-
-  - type: textarea
     id: use-cases
     attributes:
       label: Use Cases
-      description: Describe specific scenarios where this feature would be useful
+      description: When would you use this feature?
       placeholder: |
-        Use case 1: When analyzing large music libraries...
-        Use case 2: When integrating with other tools...
+        This would be useful when...
+        Example scenario: ...
     validations:
       required: true
 
   - type: textarea
     id: examples
     attributes:
-      label: Examples / Mock-ups
-      description: |
-        Provide examples, code snippets, or mock-ups of how the feature would work.
-        You can attach images by dragging and dropping them here.
+      label: Examples (Optional)
+      description: Show how the feature would work (code snippets, commands, mockups)
       placeholder: |
         ```bash
-        # Example command
-        flac-detective --export-json results.json /path/to/music
+        flac-detective --new-feature /path/to/files
         ```
-
-        ```json
-        # Expected output
-        {
-          "files_analyzed": 100,
-          "suspicious_files": 5,
-          ...
-        }
-        ```
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      description: How important is this feature to you?
-      options:
-        - Nice to have (Would be a small improvement)
-        - Important (Would significantly improve my workflow)
-        - Critical (Blocking my use of FLAC Detective)
-    validations:
-      required: true
-
-  - type: dropdown
-    id: impact
-    attributes:
-      label: Expected Impact
-      description: Who would benefit from this feature?
-      options:
-        - Just me (Very specific use case)
-        - Small group (Specific workflow or integration)
-        - Many users (Common use case)
-        - All users (Core functionality improvement)
-    validations:
-      required: true
-
-  - type: textarea
-    id: technical
-    attributes:
-      label: Technical Considerations (Optional)
-      description: |
-        If you have technical knowledge, mention any implementation details, dependencies,
-        or potential challenges
-      placeholder: |
-        - This might require adding numpy dependency for...
-        - Could impact performance by...
-        - Similar to feature X in tool Y...
-
-  - type: checkboxes
-    id: breaking
-    attributes:
-      label: Breaking Changes
-      description: Would this feature introduce breaking changes?
-      options:
-        - label: This feature would require breaking changes to the API or CLI
-          required: false
-        - label: This feature is backward compatible
-          required: false
 
   - type: textarea
     id: additional
     attributes:
       label: Additional Context
-      description: Any other context, references, or information about the feature request
-      placeholder: |
-        - Link to similar features in other tools
-        - Research papers or articles
-        - Related GitHub issues
-
-  - type: checkboxes
-    id: contribute
-    attributes:
-      label: Contribution
-      description: Are you willing to help implement this feature?
-      options:
-        - label: I am willing to submit a pull request to implement this feature
-          required: false
-        - label: I can help with testing this feature
-          required: false
-        - label: I can help with documentation for this feature
-          required: false
+      description: Any other relevant information (alternatives considered, similar features in other tools, etc.)
+      placeholder: Add any other context about the feature request

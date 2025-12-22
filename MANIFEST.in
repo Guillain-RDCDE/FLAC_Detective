@@ -1,0 +1,26 @@
+# Include essential documentation and license
+include README.md
+include LICENSE
+include CHANGELOG.md
+
+# Include configuration files
+include pyproject.toml
+
+# Exclude development tools and examples
+prune dev-tools
+prune scripts
+
+# Exclude version control and CI/CD files
+prune .github
+exclude .gitignore
+exclude .gitattributes
+exclude .pre-commit-config.yaml
+
+# Exclude development artifacts
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *$py.class
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .coverage
+global-exclude htmlcov
