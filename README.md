@@ -178,7 +178,7 @@ Yes, but use common sense:
 - ⚠️ **SUSPICIOUS** (61-85): High confidence transcode, consider replacing
 - ❌ **FAKE_CERTAIN** (≥86): Multiple indicators, definitely a transcode
 
-For critical decisions, use complementary tools (Spek, Fakin' the Funk) to confirm.
+For critical decisions, use complementary tools (e.g., Spek for visual spectral analysis) to confirm.
 
 ### What file formats are supported?
 
