@@ -48,7 +48,6 @@ updates:
           - "mypy"
           - "pylint"
           - "bandit"
-          - "safety"
           - "pre-commit"
       # Documentation
       documentation:
