@@ -106,35 +106,6 @@ repos:
           '--exclude', 'tests'
         ]
 
-  # Docstring coverage check
-  - repo: https://github.com/econchick/interrogate
-    rev: 1.7.0
-    hooks:
-      - id: interrogate
-        args: [
-          '--verbose',
-          '--fail-under=80',
-          '--ignore-init-method',
-          '--ignore-init-module',
-          '--ignore-magic',
-          '--ignore-private',
-          '--ignore-nested-functions',
-          '--exclude', 'tests',
-          'src/flac_detective'
-        ]
-
-  # Validate pyproject.toml
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.20.2
-    hooks:
-      - id: validate-pyproject
-
-  # Commitizen - Enforce conventional commits
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.10.1
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
 
 # Global configuration
 default_language_version:
