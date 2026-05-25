@@ -4,9 +4,18 @@
 name: "CodeQL Security Analysis"
 
 on:
-  # Disabled scheduled runs to reduce noise - run manually if needed
-  # schedule:
-  #   - cron: '0 6 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - '.github/workflows/codeql.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.py'
+  schedule:
+    # Weekly Monday 06:00 UTC — catches new CVE-relevant rules without spamming
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 jobs:
