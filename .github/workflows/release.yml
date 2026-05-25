@@ -186,8 +186,10 @@ jobs:
           flac-detective --version
 
       - name: Test Python import
+        # Plain ASCII print — Windows runners default to cp1252 for the
+        # process and an emoji here makes the test fail with UnicodeEncodeError.
         run: |
-          python -c "import flac_detective; print(f'✅ Import successful: {flac_detective.__version__}')"
+          python -c "import flac_detective; print('Import OK, version', flac_detective.__version__)"
 
   publish-pypi:
     name: Publish to PyPI
