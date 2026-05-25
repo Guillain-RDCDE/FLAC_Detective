@@ -40,6 +40,7 @@ def analyze_spectrum(
         # Create cache if not provided
         if cache is None:
             from .audio_cache import AudioCache
+
             cache = AudioCache(filepath)
 
         # Get actual audio data to know real duration (handles partial files)
@@ -326,6 +327,7 @@ def analyze_segment_consistency(
         # Create cache if not provided
         if cache is None:
             from .audio_cache import AudioCache
+
             cache = AudioCache(filepath)
 
         info = sf.info(filepath)
