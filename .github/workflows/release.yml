@@ -18,12 +18,12 @@ jobs:
       changelog: ${{ steps.extract_changelog.outputs.changelog }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -38,8 +38,10 @@ jobs:
         run: |
           TAG_VERSION=${{ steps.get_version.outputs.version }}
 
-          # Check pyproject.toml version
-          PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d '"' -f 2)
+          # Check pyproject.toml [project] version
+          # NOTE: `grep '^version = '` would match both [project].version and
+          # [tool.commitizen].version. Restrict to the first match.
+          PYPROJECT_VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d '"' -f 2)
           echo "pyproject.toml version: $PYPROJECT_VERSION"
 
           # Check __version__.py version
@@ -116,10 +118,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -157,11 +159,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.11"]
+        python-version: ["3.9", "3.12"]
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -215,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
