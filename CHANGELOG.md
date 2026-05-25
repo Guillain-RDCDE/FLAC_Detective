@@ -1,5 +1,50 @@
 ## Unreleased
 
+## v0.9.7 (2026-05-25)
+
+### Fixes
+
+- **packaging**: Fix circular import that broke `pip install flac-detective`
+  and `docker pull` on v0.9.6 (issue #7). `spectrum.py` now defers the
+  `AudioCache` import behind `typing.TYPE_CHECKING` plus a function-local
+  import. Functionally identical, fully type-checker-friendly, and breaks
+  the import cycle that surfaced only when the package was loaded from
+  site-packages. Diagnosis and fix pattern by @Aakiles.
+- **docker**: Correct documented image name from `flac-detective` to
+  `flac_detective` (issue #6). GHCR derives the image name from the repo
+  `FLAC_Detective` and lowercases it, so the documented commands all
+  pointed to a non-existent image. Also updated the namespace from
+  `guillainm` to `guillain-rdcde` after a GitHub handle change.
+
+### CI / Packaging
+
+- **ci**: New `wheel-smoke-test` job in `ci.yml` that builds the wheel and
+  sdist, installs each in a fresh venv outside the source tree, and runs
+  `import flac_detective`, `from flac_detective.main import main`, and
+  `flac-detective --version`. Runs on Ubuntu, macOS, and Windows. This is
+  the test that would have caught issue #7 before v0.9.6 shipped.
+- **docker**: New `.github/workflows/docker-publish.yml` that publishes a
+  multi-arch image (`linux/amd64` + `linux/arm64`) on every `v*` tag.
+  Uses `${{ github.repository }}` normalized to lowercase, so future
+  renames cannot break the image path.
+
+### Chore
+
+- **urls**: Updated remaining `GuillainM/...` references across docs,
+  badges, dependabot config, issue templates, OCI labels, and the
+  release script to `Guillain-RDCDE/...`.
+
+### Impact
+
+No code-behavior changes. Same scoring, same rules, same output. This
+release exists to make the published artifacts installable again and to
+prevent the same class of regression from shipping silently in the future.
+
+### Acknowledgements
+
+Thanks to @GearKite, @AKHwyJunkie, @Aakiles, @AnotherMuggle,
+@tomelephant-git, and @pblue3 for reporting and confirming.
+
 ## v0.9.6 (2025-12-22)
 
 ### Features
