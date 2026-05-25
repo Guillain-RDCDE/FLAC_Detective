@@ -366,19 +366,19 @@ find ~/Music -name "*.flac" | parallel -j 4 "flac-detective {} --format json >> 
 
 ```bash
 # Pull latest image
-docker pull ghcr.io/guillainm/flac-detective:latest
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 
 # Analyze directory
 docker run --rm \
   -v /path/to/music:/data \
-  ghcr.io/guillainm/flac-detective:latest \
+  ghcr.io/guillain-rdcde/flac_detective:latest \
   /data
 
 # Save report outside container
 docker run --rm \
   -v /path/to/music:/data \
   -v /path/to/reports:/reports \
-  ghcr.io/guillainm/flac-detective:latest \
+  ghcr.io/guillain-rdcde/flac_detective:latest \
   /data --output /reports/report.txt
 ```
 
@@ -390,7 +390,7 @@ Create `docker-compose.yml`:
 version: '3.8'
 services:
   flac-detective:
-    image: ghcr.io/guillainm/flac-detective:latest
+    image: ghcr.io/guillain-rdcde/flac_detective:latest
     volumes:
       - ./music:/data
       - ./reports:/reports
@@ -409,7 +409,7 @@ docker-compose up
 # Windows PowerShell
 docker run --rm `
   -v "C:\Users\YourName\Music":/data `
-  ghcr.io/guillainm/flac-detective:latest `
+  ghcr.io/guillain-rdcde/flac_detective:latest `
   /data
 ```
 
@@ -531,7 +531,7 @@ flac --verify --decode-through-errors file.flac
 docker run --rm \
   --user $(id -u):$(id -g) \
   -v /path/to/music:/data \
-  ghcr.io/guillainm/flac-detective:latest \
+  ghcr.io/guillain-rdcde/flac_detective:latest \
   /data
 ```
 
@@ -569,4 +569,4 @@ flac-detective ~/Music --format json | jq -r '.files[] | select(.score <= 30) | 
 
 ---
 
-**Happy analyzing!** For questions, visit [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions).
+**Happy analyzing!** For questions, visit [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions).

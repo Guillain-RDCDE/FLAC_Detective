@@ -35,7 +35,7 @@ FLAC Detective is a command-line tool that detects fake lossless audio files (MP
 pip install flac-detective
 
 # Via Docker
-docker pull ghcr.io/guillainm/flac-detective:latest
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
 ### Basic Usage
@@ -87,16 +87,16 @@ This documentation is organized into 6 focused documents:
 
 ## External Resources
 
-- **GitHub Repository**: https://github.com/GuillainM/FLAC_Detective
+- **GitHub Repository**: https://github.com/Guillain-RDCDE/FLAC_Detective
 - **PyPI Package**: https://pypi.org/project/flac-detective/
-- **Issue Tracker**: https://github.com/GuillainM/FLAC_Detective/issues
-- **Discussions**: https://github.com/GuillainM/FLAC_Detective/discussions
+- **Issue Tracker**: https://github.com/Guillain-RDCDE/FLAC_Detective/issues
+- **Discussions**: https://github.com/Guillain-RDCDE/FLAC_Detective/discussions
 - **ReadTheDocs**: https://flac-detective.readthedocs.io/
 
 ## Support
 
-- **Report bugs**: [GitHub Issues](https://github.com/GuillainM/FLAC_Detective/issues)
-- **Ask questions**: [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
+- **Report bugs**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
+- **Ask questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
 - **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](../SECURITY.md))
 
 ## License
