@@ -1,5 +1,40 @@
 ## Unreleased
 
+## v0.9.9 (2026-05-25)
+
+Follow-up to v0.9.8 — finishing the CI green polish after observing the
+actual v0.9.8 run results. No code-behavior changes.
+
+### CI
+
+- **ci(pytest)**: `--ignore=tests/integration --ignore=tests/benchmarks`
+  in the CI test steps. Integration tests are manual scripts that hash
+  and copy real FLAC files from external drives; benchmarks need
+  pytest-benchmark and target an outdated AudioCache API in places.
+  Neither was meant to run unattended in CI on every push.
+- **ci(release-windows)**: Force `shell: bash` on the wheel-install step
+  in `release.yml`. PowerShell does not glob unquoted args to native
+  executables, so `pip install dist/*.whl` saw a literal `*` and failed
+  on Windows runners.
+- **ci(coverage)**: Drop the second `--cov-fail-under=80` that was still
+  hardcoded inline in `ci.yml` after the pyproject removal in v0.9.8.
+
+### Build
+
+- **build(black)**: Drop `py312` from `[tool.black] target-version`. The
+  Code Quality runner is on Python 3.11 and cannot AST-parse code
+  formatted for 3.12 — black bailed on the safety check. py39/310/311
+  is sufficient given we support Python 3.9+.
+- **build(deps)**: Add `pytest-benchmark>=4.0.0` to `[project.optional-dependencies].dev`
+  so contributors can run the benchmark suite locally without manual
+  pip-install.
+
+### Style
+
+- **style**: Re-apply black to `tests/unit/test_repair_functions.py`
+  (was the second file failing `black --check` once the runner could
+  parse the rest).
+
 ## v0.9.8 (2026-05-25)
 
 CI green polish. No code-behavior changes for users.

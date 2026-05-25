@@ -252,11 +252,14 @@ class TestRepairFlacFile:
     @pytest.fixture
     def mock_metadata_functions(self):
         """Mock metadata extraction and restoration."""
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader._extract_metadata"
-        ) as mock_extract, patch(
-            "flac_detective.analysis.new_scoring.audio_loader._restore_metadata"
-        ) as mock_restore:
+        with (
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader._extract_metadata"
+            ) as mock_extract,
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader._restore_metadata"
+            ) as mock_restore,
+        ):
 
             mock_extract.return_value = {"tags": {"TITLE": ["Test"]}, "pictures": []}
             mock_restore.return_value = True
@@ -271,10 +274,14 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        with (
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
         ):
 
             result = repair_flac_file(str(corrupted_file))
@@ -289,10 +296,12 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
-        ) as mock_run, patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=False
+        with (
+            patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run,
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists",
+                return_value=False,
+            ),
         ):
 
             result = repair_flac_file(str(corrupted_file))
@@ -304,12 +313,15 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
-        ) as mock_run, patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        with (
+            patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run,
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
         ):
 
             # First call (decode) succeeds, second call (encode) fails
@@ -328,12 +340,15 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.subprocess.run"
-        ) as mock_run, patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        with (
+            patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run,
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
         ):
 
             # Decode and encode succeed, verify fails
@@ -356,15 +371,17 @@ class TestRepairFlacFile:
         corrupted_file.write_bytes(b"fake flac data")
         source_file.write_bytes(b"original flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.shutil.copy2"
-        ) as mock_copy, patch(
-            "flac_detective.analysis.new_scoring.audio_loader.get_tracker"
-        ) as mock_tracker:
+        with (
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
+            patch("flac_detective.analysis.new_scoring.audio_loader.shutil.copy2") as mock_copy,
+            patch("flac_detective.analysis.new_scoring.audio_loader.get_tracker") as mock_tracker,
+        ):
 
             result = repair_flac_file(
                 str(corrupted_file), source_path=str(source_file), replace_source=True
@@ -393,13 +410,16 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.remove"
-        ) as mock_remove:
+        with (
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
+            patch("flac_detective.analysis.new_scoring.audio_loader.os.remove") as mock_remove,
+        ):
 
             result = repair_flac_file(str(corrupted_file))
 
@@ -411,12 +431,18 @@ class TestRepairFlacFile:
         corrupted_file = tmp_path / "corrupted.flac"
         corrupted_file.write_bytes(b"fake flac data")
 
-        with patch(
-            "flac_detective.analysis.new_scoring.audio_loader._extract_metadata", return_value=None
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
-        ), patch(
-            "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize", return_value=1000000
+        with (
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader._extract_metadata",
+                return_value=None,
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.exists", return_value=True
+            ),
+            patch(
+                "flac_detective.analysis.new_scoring.audio_loader.os.path.getsize",
+                return_value=1000000,
+            ),
         ):
 
             result = repair_flac_file(str(corrupted_file))

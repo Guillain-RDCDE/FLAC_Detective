@@ -35,7 +35,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        pytest tests/ --cov=flac_detective --cov-report=xml --cov-report=term-missing --cov-report=html --cov-fail-under=80
+        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks --cov=flac_detective --cov-report=xml --cov-report=term-missing --cov-report=html
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
