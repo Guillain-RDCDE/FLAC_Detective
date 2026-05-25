@@ -1,5 +1,70 @@
 ## Unreleased
 
+## v0.10.0 (2026-05-25) — Now with ML
+
+First release that ships a learned classifier alongside the heuristic rules.
+Opt-in: existing users see no change unless they install the `[ml]` extra.
+
+### Features
+
+- **feat(scoring)**: New **Rule 12 — CNN-based transcode detection**. A compact
+  PyTorch model (~700 K parameters, 1.6 MB TorchScript) classifies a
+  mel-spectrogram of the file as authentic vs transcoded, and contributes up
+  to **+30 points** to the score when its confidence is high. Adds an
+  independent signal that complements the 11 heuristic rules on borderline
+  cases (cutoff 19–21 kHz, high-bitrate MP3 ≥256 kbps, AAC sources, etc.).
+- **deps(optional)**: New `[ml]` extra. Install with
+  `pip install "flac-detective[ml]"` to enable Rule 12. PyTorch and librosa
+  are pulled in only with this extra — the default install stays lightweight.
+- **graceful no-op**: if `torch` is missing or the bundled model file is not
+  found, Rule 12 silently returns 0 points and the classic 11-rule pipeline
+  runs unchanged. No behavioural regression for users who don't opt in.
+
+### Training pipeline
+
+- New `ml/` directory contains the full reproducible pipeline:
+  - `build_dataset.py` — selects certified-authentic FLACs from a local
+    library based on EAC / XLD / CUERipper / Audiochecker logs.
+  - `trim_for_upload.py` — extracts a 30 s segment per file before upload,
+    reducing dataset size by ~90 %.
+  - `generate_transcodes.py` — produces MP3 (128/192/256/320), AAC (192/256)
+    and Opus (128) versions of each authentic file, then re-encodes each to
+    FLAC ("fake FLAC").
+  - `extract_features.py` — computes 128-mel-bin spectrograms for a 10 s
+    middle segment of each file.
+  - `train.py` — trains a 5-block CNN with batch normalisation, weighted
+    sampling, and learning-rate scheduling.
+  - `export_torchscript.py` — exports the best checkpoint as TorchScript.
+  - `run_pipeline.sh` — chains all four stages with idempotent skip logic.
+
+### v1 model — known characteristics
+
+The first model (`cnn_v1.ts.pt`) was trained on 887 authentic FLAC tracks
+plus 6,179 transcodes (one per codec/bitrate per file). On the held-out
+test set:
+
+| Metric                  | Value      |
+|-------------------------|------------|
+| Accuracy                | 84.2 %     |
+| Precision (transcoded)  | 87.5 %     |
+| Recall (transcoded)     | 95.6 %     |
+| F1 (transcoded)         | 91.4 %     |
+
+The 1:7 authentic-to-transcoded ratio in the training set biases the model
+toward predicting "transcoded". To compensate, **Rule 12 uses a conservative
+threshold of `p ≥ 0.85`** rather than the natural 0.5 — Rule 12 only fires
+when the model is highly confident. This trades some recall for much better
+specificity, which matches FLAC Detective's "protect authentic files first"
+philosophy.
+
+A balanced re-train with augmentation is planned for v0.10.1 / v0.11.
+
+### Packaging
+
+- **MANIFEST.in**: include `src/flac_detective/models/*.pt` so the bundled
+  TorchScript file ships with the wheel.
+- **pyproject.toml**: declare the `[ml]` extra (torch ≥ 2.0, librosa ≥ 0.10).
+
 ## v0.9.11 (2026-05-25)
 
 The CLI now actually does what the docs always claimed it did. No

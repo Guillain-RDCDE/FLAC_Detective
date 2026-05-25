@@ -9,6 +9,10 @@ include pyproject.toml
 # Exclude development tools and examples
 prune dev-tools
 prune scripts
+prune ml
+
+# Include bundled ML model weights (TorchScript .pt files)
+recursive-include src/flac_detective/models *.pt
 
 # Exclude version control and CI/CD files
 prune .github

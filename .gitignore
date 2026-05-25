@@ -112,3 +112,12 @@ docs/.buildinfo
 
 # Claude Code scheduled tasks (per-session)
 .claude/scheduled_tasks.lock
+
+# ML pipeline scratch — never commit datasets or per-user manifests
+ml/trimmed/
+ml/dataset/
+ml/features/
+ml/authentic_files.json
+ml/authentic_sampled.json
+ml/upload_list.txt
+ml/pipeline.log

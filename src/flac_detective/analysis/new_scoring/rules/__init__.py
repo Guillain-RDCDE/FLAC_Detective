@@ -9,6 +9,7 @@ from .bitrate import (
 )
 from .cassette import apply_rule_11_cassette_detection
 from .consistency import apply_rule_10_multi_segment_consistency
+from .ml_classifier import apply_rule_12_ml_classifier
 from .silence import apply_rule_7_silence_analysis
 from .spectral import (
     apply_rule_1_mp3_bitrate,
@@ -28,4 +29,5 @@ __all__ = [
     "apply_rule_9_compression_artifacts",
     "apply_rule_10_multi_segment_consistency",
     "apply_rule_11_cassette_detection",
+    "apply_rule_12_ml_classifier",
 ]

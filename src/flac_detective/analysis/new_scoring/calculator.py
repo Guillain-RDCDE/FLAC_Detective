@@ -23,6 +23,7 @@ from .strategies import (
     Rule9CompressionArtifacts,
     Rule10Consistency,
     Rule11CassetteDetection,
+    Rule12MLClassifier,
     Rule424BitSuspect,
     ScoringRule,
 )
@@ -232,6 +233,12 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
             Rule10Consistency().apply(context)
         else:
             logger.info(f"OPTIMIZATION: Skipping Rule 10 (score {context.current_score} ≤ 30)")
+
+        # Rule 12: ML-based transcode detection. No-op if torch / model unavailable.
+        # Runs after Rule 10 so the heuristic score is established first; the CNN
+        # adds an independent signal that boosts confidence on borderline cases
+        # (cutoff 19-21 kHz, high-bitrate MP3, AAC source).
+        Rule12MLClassifier().apply(context)
 
         return context.current_score, context.reasons
 

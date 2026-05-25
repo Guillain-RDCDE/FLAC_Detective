@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "0.9.11"
+__version__ = "0.10.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
 __release_date__ = "2026-05-25"
-__release_name__ = "CLI Catch-up + Doc Refresh"
+__release_name__ = "Now with ML"
 
 # Metadata
 __author__ = "Guillain Méjane"
