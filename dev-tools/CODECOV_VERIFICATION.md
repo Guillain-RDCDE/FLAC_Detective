@@ -29,7 +29,7 @@ The `.github/codecov.yml` file should:
 
 ### Step 1: Check CI Run Status
 
-1. Go to: https://github.com/GuillainM/FLAC_Detective/actions
+1. Go to: https://github.com/Guillain-RDCDE/FLAC_Detective/actions
 2. Find the latest "FLAC Detective CI" workflow run
 3. Look for the "Test Python 3.11 on ubuntu-latest" job
 4. Check these steps:
@@ -38,7 +38,7 @@ The `.github/codecov.yml` file should:
 
 ### Step 2: Check Codecov Dashboard
 
-1. Go to: https://app.codecov.io/gh/GuillainM/FLAC_Detective
+1. Go to: https://app.codecov.io/gh/Guillain-RDCDE/FLAC_Detective
 2. Verify:
    - Repository is listed
    - Latest commit shows up
@@ -49,7 +49,7 @@ The `.github/codecov.yml` file should:
 
 1. Check the badge in README.md:
    ```markdown
-   [![codecov](https://codecov.io/gh/GuillainM/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/GuillainM/FLAC_Detective)
+   [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
    ```
 
 2. The badge should show:
@@ -92,7 +92,7 @@ git push origin main
 
 1. Go to: https://github.com/apps/codecov
 2. Click "Configure"
-3. Verify "GuillainM/FLAC_Detective" is in the repository list
+3. Verify "Guillain-RDCDE/FLAC_Detective" is in the repository list
 
 ### Coverage Not Updated
 
@@ -115,8 +115,8 @@ Based on current configuration:
 
 ## 🔗 Useful Links
 
-- **Codecov Dashboard:** https://app.codecov.io/gh/GuillainM/FLAC_Detective
-- **GitHub Actions:** https://github.com/GuillainM/FLAC_Detective/actions
+- **Codecov Dashboard:** https://app.codecov.io/gh/Guillain-RDCDE/FLAC_Detective
+- **GitHub Actions:** https://github.com/Guillain-RDCDE/FLAC_Detective/actions
 - **Codecov Docs:** https://docs.codecov.com/docs
 - **GitHub App:** https://github.com/apps/codecov
 

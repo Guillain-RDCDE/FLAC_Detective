@@ -48,7 +48,7 @@ cd FLAC_Detective
 
 ```bash
 # Add the original repository as upstream
-git remote add upstream https://github.com/GuillainM/FLAC_Detective.git
+git remote add upstream https://github.com/Guillain-RDCDE/FLAC_Detective.git
 
 # Verify remotes
 git remote -v
@@ -469,7 +469,7 @@ git push origin --delete feature/your-feature-name
 
 ### 🐛 Bug Fixes
 
-Check [open issues](https://github.com/GuillainM/FLAC_Detective/issues) labeled `bug`.
+Check [open issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues) labeled `bug`.
 
 **Process**:
 1. Reproduce the bug
@@ -537,7 +537,7 @@ python -m cProfile -o profile.stats your_script.py
 
 - Read this guide thoroughly
 - Check existing issues and PRs
-- Ask in [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
+- Ask in [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
 - Contact maintainers
 
 **Development questions?**

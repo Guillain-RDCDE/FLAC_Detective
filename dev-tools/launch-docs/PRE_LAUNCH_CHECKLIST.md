@@ -176,7 +176,7 @@ FLAC_Detective/
 > - Free: MIT License, open source
 >
 > Try it now: `pip install flac-detective`
-> GitHub: https://github.com/GuillainM/FLAC_Detective
+> GitHub: https://github.com/Guillain-RDCDE/FLAC_Detective
 
 ---
 

@@ -15,9 +15,9 @@ updates:
     # Automatically merge minor and patch updates
     open-pull-requests-limit: 10
     reviewers:
-      - "GuillainM"
+      - "Guillain-RDCDE"
     assignees:
-      - "GuillainM"
+      - "Guillain-RDCDE"
     labels:
       - "dependencies"
       - "python"
@@ -74,9 +74,9 @@ updates:
       timezone: "Europe/Paris"
     open-pull-requests-limit: 5
     reviewers:
-      - "GuillainM"
+      - "Guillain-RDCDE"
     assignees:
-      - "GuillainM"
+      - "Guillain-RDCDE"
     labels:
       - "dependencies"
       - "github-actions"

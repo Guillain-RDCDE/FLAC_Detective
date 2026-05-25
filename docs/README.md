@@ -27,9 +27,9 @@ We've simplified the documentation structure to just **6 essential files**:
 ## External Resources
 
 - **Main README**: [../README.md](../README.md)
-- **GitHub**: https://github.com/GuillainM/FLAC_Detective
+- **GitHub**: https://github.com/Guillain-RDCDE/FLAC_Detective
 - **PyPI**: https://pypi.org/project/flac-detective/
-- **Issues**: https://github.com/GuillainM/FLAC_Detective/issues
+- **Issues**: https://github.com/Guillain-RDCDE/FLAC_Detective/issues
 
 ---
 

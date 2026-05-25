@@ -181,7 +181,7 @@ def main():
         print(f"   git push origin v{args.version}")
 
         print("\n5. Monitor GitHub Actions:")
-        print("   https://github.com/GuillainM/FLAC_Detective/actions")
+        print("   https://github.com/Guillain-RDCDE/FLAC_Detective/actions")
 
     # Show changelog preview if available
     changelog_section = extract_changelog_section(args.version)
