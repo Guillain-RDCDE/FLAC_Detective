@@ -2,9 +2,10 @@
 
 import logging
 from typing import List, Optional, Tuple
+
 import soundfile as sf
 
-from ..silence import analyze_silence_ratio, detect_vinyl_noise, detect_clicks_and_pops
+from ..silence import analyze_silence_ratio, detect_clicks_and_pops, detect_vinyl_noise
 
 logger = logging.getLogger(__name__)
 

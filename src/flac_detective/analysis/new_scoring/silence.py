@@ -8,20 +8,21 @@ PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 """
 
 import logging
+from pathlib import Path
+from typing import List, Optional, Tuple
+
 import numpy as np
 import soundfile as sf
-from pathlib import Path
-from typing import List, Tuple, Optional
+from scipy.fft import rfft, rfftfreq, set_workers
 
+from ...analysis.window_cache import get_hanning_window
 from .silence_utils import (
-    filter_band,
-    calculate_energy_db,
     calculate_autocorrelation,
+    calculate_energy_db,
     calculate_temporal_variance,
     detect_transients,
+    filter_band,
 )
-from scipy.fft import rfft, rfftfreq, set_workers
-from ...analysis.window_cache import get_hanning_window
 
 logger = logging.getLogger(__name__)
 

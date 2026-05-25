@@ -4,19 +4,18 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from .models import AudioMetadata, BitrateMetrics, ScoringContext
-from .metadata import parse_metadata
+from .audio_loader import load_audio_with_retry
 from .bitrate import (
-    calculate_real_bitrate,
     calculate_apparent_bitrate,
     calculate_bitrate_variance,
+    calculate_real_bitrate,
 )
+from .metadata import parse_metadata
+from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .strategies import (
-    ScoringRule,
     Rule1MP3Bitrate,
     Rule2Cutoff,
     Rule3SourceVsContainer,
-    Rule424BitSuspect,
     Rule5HighVariance,
     Rule6HighQualityProtection,
     Rule7SilenceAnalysis,
@@ -24,9 +23,10 @@ from .strategies import (
     Rule9CompressionArtifacts,
     Rule10Consistency,
     Rule11CassetteDetection,
+    Rule424BitSuspect,
+    ScoringRule,
 )
 from .verdict import determine_verdict
-from .audio_loader import load_audio_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -81,40 +81,9 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
     logger.info(f"RULE 8 (pre-calculated): {initial_r8_score} points")
 
     # ========== PRIORITY RULE 11: CASSETTE DETECTION ==========
-    # Check early to disable Rule 1 if authentic cassette
-    logger.debug("OPTIMIZATION: Checking for Cassette Detection (Rule 11) early...")
+    # R11 must run before R1 to disable MP3-bitrate scoring on authentic cassette rips.
+    # Trade-off: R11 is expensive (bandpass filtering) but only triggered when cutoff < 19 kHz.
     rule11 = Rule11CassetteDetection()
-    # Execute only if cutoff < 19kHz (cheap check)
-    is_likely_cassette = False
-    if context.cutoff_freq < 19000:
-        # Note: Rule 11 needs MP3 pattern detection (Rule 9C) for full accuracy
-        # But Rule 9 is expensive. We can run a partial Rule 9C or just run R11 without it first?
-        # The user requested flow suggests R11 is priority.
-        # But R11 relies on "mp3_pattern_detected" which comes from R9.
-        # To avoid circular dependency or running R9 twice, we should probably run R9C specifically
-        # OR run R11 after R9 but BEFORE R1.
-        # BUT R1 is a "Fast Rule". R9 and R11 are "Expensive Rules".
-        # Running expensive rules before fast rules contradicts the optimization strategy.
-
-        # COMPROMISE: We stick to the current architecture but implement the "cancellation" logic.
-        # However, the user explicitly asked for "Order of application modified: First detect cassette".
-        # This implies running an expensive rule (R11) first.
-        # Let's do it, but be aware of the performance cost.
-
-        # We need MP3 pattern for R11. Let's run Rule 9C specific check ?
-        # For now, let's run R11. If it returns high score, we flag it.
-        # R11 implementation handles "mp3_pattern_detected" being False default if not yet run.
-        pass
-
-    # Actually, R11 is expensive (bandpass filtering).
-    # If we move it here, we lose the "Fast Rules First" optimization.
-    # But to satisfy the user request "First detect cassette (priority)", we must do it.
-
-    # Wait, the user pseudo-code shows:
-    # cassette_score = rule_11_cassette_detection(...)
-    # if cassette_score >= 50: annul Rule 1...
-
-    # So we MUST run R11 before R1.
     run_rule11_early = context.cutoff_freq < 19000
     cassette_score = 0
 
@@ -232,49 +201,21 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
                 context.audio_data = audio_data
                 context.loaded_sample_rate = sample_rate
 
-            if len(expensive_rules) > 1:
-                logger.info(
-                    "OPTIMIZATION PHASE 3: Running expensive rules (R7/R9/R11) sequentially"
-                )
-                # Note: Since context is not thread-safe for concurrent writes,
-                # we need to be careful. However, R7 updates silence_ratio and R9 updates nothing in context except score.
-                # But "add_score" modifies shared state.
-                # So true parallel execution with a shared mutable context is risky without locks.
-                # Let's revert to sequential execution for safety with the Strategy pattern,
-                # OR use temporary contexts/results.
-
-                # For simplicity and safety with the new pattern, we'll run them sequentially.
-                # The performance hit is acceptable for readability unless profiling shows otherwise.
-                logger.info("Running expensive rules sequentially for safety...")
-                for rule in expensive_rules:
-                    rule.apply(context)
-            else:
-                for rule in expensive_rules:
-                    rule.apply(context)
+            # Sequential execution: ScoringContext.add_score mutates shared state,
+            # so concurrent rules would race without locking. Cost is acceptable.
+            for rule in expensive_rules:
+                rule.apply(context)
         else:
             logger.info("OPTIMIZATION: Skipping expensive rules (R7/R9/R11)")
 
-        # Rule 8: Refine with additional context if available
-        # Only recalculate if MP3 was detected (which changes R8 logic)
+        # Rule 8: refine with MP3 detection context if it became available after Phase 2.
+        # We rollback the initial R8 contribution by exact-match reason filtering — fragile but
+        # acceptable as long as R8's reasons stay deterministic for a given context.
         if context.mp3_bitrate_detected is not None:
-            logger.debug(
-                "OPTIMIZATION: Refining Rule 8 with mp3_bitrate_detected and silence_ratio..."
-            )
-
-            # Backtrack: Remove the previous R8 score/reasons
             context.current_score -= initial_r8_score
-            # We need to be careful removing reasons.
-            # Ideally, we'd tag them, but for now we just filter them out if they match exactly.
-            # This is a bit brittle. A better way is to not apply R8 first, but R8 logic says "ALWAYS FIRST".
-            # Actually, R8 depends on MP3 detection.
-            # The original code applied R8 first with None/None, then refined.
-
-            # Remove old reasons
             for reason in initial_r8_reasons:
                 if reason in context.reasons:
                     context.reasons.remove(reason)
-
-            # Re-apply R8
             rule8.apply(context)
             logger.info("RULE 8 (refined): Score updated")
 

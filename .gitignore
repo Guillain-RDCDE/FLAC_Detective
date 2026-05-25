@@ -109,3 +109,6 @@ dist/
 docs/_build/
 docs/_autosummary/
 docs/.buildinfo
+
+# agent scheduled tasks (per-session)
+agent scheduled-tasks lockfile

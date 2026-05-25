@@ -227,28 +227,6 @@ def get_user_input_path() -> list[Path]:
             sys.exit(0)
 
 
-def setup_logging(output_dir: Path) -> Path:
-    """Setup file logging to capture console output.
-
-    Args:
-        output_dir: Directory where the log file will be saved.
-
-    Returns:
-        Path to the created log file.
-    """
-    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
-
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
-    file_handler.setFormatter(formatter)
-    logging.getLogger().addHandler(file_handler)
-
-    logger.info(f"Console log will be saved to: {log_file}")
-    return log_file
-
-
 def parse_arguments() -> list[Path]:
     """Determine paths to analyze from command line or interactive input.
 
