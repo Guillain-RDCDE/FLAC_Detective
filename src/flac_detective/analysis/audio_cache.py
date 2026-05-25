@@ -4,15 +4,16 @@ Phase 3 Optimization: Avoid multiple file reads and spectrum calculations.
 """
 
 import logging
-from threading import Lock
 from pathlib import Path
+from threading import Lock
 from typing import Optional, Tuple
+
 import numpy as np
 import soundfile as sf
 from scipy.fft import rfft, rfftfreq, set_workers
 
-from .window_cache import get_hann_window
 from .new_scoring.audio_loader import load_audio_with_retry, sf_blocks_partial
+from .window_cache import get_hann_window
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,53 @@
 ## Unreleased
 
+## v0.9.10 (2026-05-25)
+
+Final polish to land the WIP cleanup and clear the remaining CI red.
+No behavior change for end users.
+
+### Refactor
+
+- **refactor(scoring)**: Remove ~60 lines of obsolete brainstorming
+  comments from `calculator.py` (decision-history monologue from when
+  Rule 11 ordering was first being figured out). Logic untouched.
+- **refactor(main)**: Remove duplicate `setup_logging` function. The
+  module had two definitions of the same name; Python silently kept
+  only the second (simple) one and discarded the first (Rich-aware).
+  Deleting the simple duplicate restores the Rich-aware logger as the
+  active implementation — Rich console output for warnings, full
+  detail still written to the file log.
+
+### Build
+
+- **build**: Drop Python 3.9 support (EOL 2025-10-31). `requires-python`
+  is now `>=3.10`. Reason: `test_audio_loader_retry.py` uses
+  `X | None` PEP 604 type-hint syntax which 3.9 cannot evaluate at
+  import time without `from __future__ import annotations`. Rather
+  than backport, drop 3.9 — it's been unsupported by upstream for
+  7 months. Black target-version, CI matrix, and release matrix
+  updated to match.
+
+### Style
+
+- **style(imports)**: `isort src tests` across 10 files. Pure import
+  reordering, no functional change. CI now passes the
+  `Check import sorting with isort` step.
+
+### Impact
+
+This is the release that lands the vitrine work end-to-end:
+
+- `pip install flac-detective` works (since v0.9.7)
+- `docker pull ghcr.io/guillain-rdcde/flac_detective:latest` works (since v0.9.7)
+- `flac-detective --version` / `--help` work (since v0.9.7)
+- Issues #6 and #7 closed with confirmation
+- `black --check`, `isort --check-only`, and `pytest` all green locally
+- All workflow YAML on Node-24-compatible action versions
+
+Skipped tests in `test_rule9.py` and `test_rule11.py` still carry
+their `TODO(v0.9.x): Rewrite mocks` markers — that work remains for
+a future release.
+
 ## v0.9.9 (2026-05-25)
 
 Follow-up to v0.9.8 — finishing the CI green polish after observing the

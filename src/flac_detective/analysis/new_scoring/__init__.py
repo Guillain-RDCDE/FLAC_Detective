@@ -10,27 +10,27 @@ This package implements a 0-100 point scoring system where:
 Range: 0-150 points
 """
 
-from .models import AudioMetadata, BitrateMetrics
+from .bitrate import (
+    calculate_apparent_bitrate,
+    calculate_bitrate_variance,
+    calculate_real_bitrate,
+    estimate_mp3_bitrate,
+    get_cutoff_threshold,
+)
+from .calculator import new_calculate_score
 from .constants import (
-    MP3_STANDARD_BITRATES,
+    COHERENT_BITRATE_THRESHOLD,
+    HIGH_BITRATE_THRESHOLD,
     MP3_SIGNATURES,
+    MP3_STANDARD_BITRATES,
     SCORE_FAKE_CERTAIN,
     SCORE_SUSPICIOUS,
     SCORE_WARNING,
     VARIANCE_THRESHOLD,
-    HIGH_BITRATE_THRESHOLD,
-    COHERENT_BITRATE_THRESHOLD,
 )
-from .bitrate import (
-    calculate_real_bitrate,
-    calculate_apparent_bitrate,
-    calculate_bitrate_variance,
-    estimate_mp3_bitrate,
-    get_cutoff_threshold,
-)
-from .verdict import determine_verdict
 from .metadata import parse_metadata
-from .calculator import new_calculate_score
+from .models import AudioMetadata, BitrateMetrics
+from .verdict import determine_verdict
 
 __all__ = [
     # Models

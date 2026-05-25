@@ -5,8 +5,8 @@ from typing import List, Optional, Tuple
 
 from ..constants import (
     HIGH_BITRATE_THRESHOLD,
-    VARIANCE_THRESHOLD,
     SEUIL_BITRATE_APPARENT_ELEVE,
+    VARIANCE_THRESHOLD,
 )
 
 logger = logging.getLogger(__name__)

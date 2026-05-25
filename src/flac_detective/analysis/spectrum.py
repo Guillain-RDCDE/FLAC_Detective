@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Tuple
 
 import numpy as np
 import soundfile as sf

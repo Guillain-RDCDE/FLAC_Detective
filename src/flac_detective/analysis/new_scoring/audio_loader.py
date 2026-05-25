@@ -1,17 +1,18 @@
 """Audio loading utilities with retry mechanism for handling temporary FLAC decoder errors."""
 
 import logging
-import time
-from typing import Tuple, Optional, Dict, List, Any, Generator
-import numpy as np
-from numpy.typing import NDArray
-import soundfile as sf
-import tempfile
+import os
 import shutil
 import subprocess
-import os
+import tempfile
+import time
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
-from ..diagnostic_tracker import get_tracker, IssueType
+import numpy as np
+import soundfile as sf
+from numpy.typing import NDArray
+
+from ..diagnostic_tracker import IssueType, get_tracker
 
 # Type variable for mutagen availability
 MUTAGEN_AVAILABLE: bool
