@@ -13,7 +13,7 @@ This guide will help you install and run your first FLAC analysis in minutes.
 ## System Requirements
 
 ### Required
-- **Python**: 3.8 or higher
+- **Python**: 3.10 or higher
 - **Operating System**: Windows, macOS, or Linux
 
 ### Optional (Recommended)
@@ -218,12 +218,11 @@ flac-detective /path/to/music --output my-report.txt
 # Verbose mode (show detailed analysis)
 flac-detective /path/to/music --verbose
 
-# Enable auto-repair of corrupted files
-flac-detective /path/to/music --repair
-
 # Analyze only first 15 seconds (faster, less accurate)
 flac-detective /path/to/music --sample-duration 15
 ```
+
+> Auto-repair of corrupted files is enabled by default — no flag is needed.
 
 ## Troubleshooting
 

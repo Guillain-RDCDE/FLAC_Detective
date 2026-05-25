@@ -1,5 +1,59 @@
 ## Unreleased
 
+## v0.9.11 (2026-05-25)
+
+The CLI now actually does what the docs always claimed it did. No
+behavior change for the default invocation (`flac-detective /music`).
+
+### Features
+
+- **feat(cli)**: Implement the long-documented options that previously
+  did not exist in the parser:
+  - `-v` / `--verbose` — set log level to DEBUG and surface per-rule
+    scoring details.
+  - `--sample-duration SECS` — override the per-file audio sample
+    duration (default 30s, valid range 5–120s). Lower = faster, less
+    accurate; higher = slower, more robust.
+  - `--output PATH` — write the report to an explicit file path instead
+    of the auto-named `flac_report_<timestamp>.{txt,json}` in the scan
+    directory.
+  - `--format {text,json}` — emit the report as text (default,
+    human-readable) or JSON (machine-readable, includes `scan_info`
+    metadata and the full per-file `results` list).
+
+  Up to v0.9.10 these flags appeared in `docs/user-guide.md` and
+  `docs/getting-started.md` but the CLI would reject them with
+  `Invalid paths : --format`. That gap is now closed.
+
+### Docs
+
+- **docs**: README badge updated from `python-3.8+` to `python-3.10+`.
+- **docs(getting-started)**: System requirements bumped from "Python 3.8 or
+  higher" to "Python 3.10 or higher" (aligns with the v0.9.10 drop of 3.9).
+- **docs(index)**: Footer version stamp refreshed from "0.9.6 | December
+  2024" to "0.9.11 | May 2026".
+- **docs(user-guide)**: Sample analysis report bumped from
+  `Analyzer Version: 0.9.0` to `0.9.11`. Removed the obsolete top-level
+  `version: '3.8'` key from the docker-compose example (Compose v2
+  ignores it).
+- **docs**: Replaced four `--repair` examples with notes explaining
+  that auto-repair is enabled by default and cannot currently be
+  disabled (the v0.9.x scoring pipeline routes unreadable files
+  through `repair_flac_file` automatically).
+
+### CI
+
+- **ci(release)**: Replace the emoji `✅` in the post-install
+  `Test Python import` step with plain ASCII. Windows runners default
+  to cp1252 for the process and the emoji caused a `UnicodeEncodeError`
+  that failed the matrix job for `windows-latest × Python 3.12`. With
+  plain text, the wheel install test passes on all three OSes.
+
+### Style
+
+- **style(main)**: Re-apply black to `src/flac_detective/main.py` after
+  the argparse rewrite. No semantic change.
+
 ## v0.9.10 (2026-05-25)
 
 Final polish to land the WIP cleanup and clear the remaining CI red.

@@ -2,7 +2,7 @@
 
 ![FLAC Detective Banner](https://raw.githubusercontent.com/Guillain-RDCDE/FLAC_Detective/main/assets/flac_detective_banner.png)
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
