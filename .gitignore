@@ -109,3 +109,6 @@ dist/
 docs/_build/
 docs/_autosummary/
 docs/.buildinfo
+
+# Claude Code scheduled tasks (per-session)
+.claude/scheduled_tasks.lock

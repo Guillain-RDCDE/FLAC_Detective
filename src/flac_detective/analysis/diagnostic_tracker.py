@@ -6,9 +6,9 @@ a detailed diagnostic report at the end.
 
 import logging
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
-from enum import Enum
 
 logger = logging.getLogger(__name__)
 

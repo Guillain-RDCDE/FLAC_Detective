@@ -1,10 +1,11 @@
 """Cassette audio source detection (Rule 11)."""
 
 import logging
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
 import numpy as np
-from scipy import signal
 import soundfile as sf
+from scipy import signal
 
 from ..audio_loader import load_audio_segment
 

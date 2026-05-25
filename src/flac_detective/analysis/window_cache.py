@@ -6,6 +6,7 @@ redundant calculations.
 
 import logging
 from typing import Dict
+
 import numpy as np
 from scipy import signal
 

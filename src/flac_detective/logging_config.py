@@ -9,9 +9,9 @@ This module provides a unified logging setup for the entire application with:
 
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
 
 # Try to import Rich for beautiful console output
 try:
