@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from src.flac_detective.analysis.new_scoring import estimate_mp3_bitrate, new_calculate_score
+from flac_detective.analysis.new_scoring import estimate_mp3_bitrate, new_calculate_score
 
 
 class TestScoringV2(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestScoringV2(unittest.TestCase):
         )
         # High cutoff above 21kHz should be protected by safety checks
         self.assertLess(score, 30, "Score should be very low for cutoff above 21 kHz")
-        self.assertEqual(verdict, "AUTHENTIQUE")
+        self.assertEqual(verdict, "AUTHENTIC")
 
     def test_mp3_256_detection(self):
         # Case 3: MP3 256k (User Example 2: 19075 Hz)
@@ -55,7 +55,7 @@ class TestScoringV2(unittest.TestCase):
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.01
         )
         self.assertLess(score, 30, "Score should be low for authentic FLAC")
-        self.assertEqual(verdict, "AUTHENTIQUE")
+        self.assertEqual(verdict, "AUTHENTIC")
 
     def test_mp3_128_detection(self):
         # Case 5: MP3 160k (16 kHz)
