@@ -10,6 +10,7 @@ Multi-criteria detection:
 - Duration integrity checking
 """
 
+import argparse
 import logging
 import os
 import sys
@@ -17,6 +18,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+from .__version__ import __version__
 
 # RICH INTEGRATION
 try:
@@ -252,18 +255,34 @@ def parse_arguments() -> list[Path]:
     Returns:
         List of paths to analyze.
     """
-    if len(sys.argv) > 1:
-        # Command line mode: all arguments are paths
-        paths = [Path(arg) for arg in sys.argv[1:]]
-        invalid_paths = [p for p in paths if not p.exists()]
-        if invalid_paths:
-            logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
-            sys.exit(1)
-        print(LOGO)
-        return paths
-    else:
-        # Interactive mode
+    parser = argparse.ArgumentParser(
+        prog="flac-detective",
+        description="Advanced FLAC authenticity analyzer — detects MP3-to-FLAC transcodes.",
+        epilog="If no paths are given, an interactive prompt is shown.",
+    )
+    parser.add_argument(
+        "paths",
+        nargs="*",
+        type=Path,
+        help="One or more FLAC files or directories to analyze.",
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"flac-detective {__version__}",
+    )
+    args = parser.parse_args()
+
+    if not args.paths:
         return get_user_input_path()
+
+    invalid_paths = [p for p in args.paths if not p.exists()]
+    if invalid_paths:
+        logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
+        sys.exit(1)
+    print(LOGO)
+    return args.paths
 
 
 def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
