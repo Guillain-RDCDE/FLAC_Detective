@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "FLAC Detective"
-copyright = "2025, Guillain Méjane"
+copyright = "2025–2026, Guillain Méjane"
 author = "Guillain Méjane"
 release = "0.9.11"
 
@@ -76,3 +76,9 @@ myst_enable_extensions = [
     "colon_fence",
     "deflist",
 ]
+
+# Auto-generate header anchors for h1–h3 so that `[Link](#section-name)`
+# style intra-page links inside Markdown files resolve under MyST. Without
+# this, every TOC built in `[Section](#section)` style emits an
+# "xref_missing" warning on the Sphinx/ReadTheDocs build.
+myst_heading_anchors = 3
