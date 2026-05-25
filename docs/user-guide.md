@@ -230,7 +230,7 @@ FLAC Detective saves a detailed text report:
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
 Generated: 2026-05-25 14:30:22
-Analyzer Version: 0.9.11
+Analyzer Version: 0.10.1
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================

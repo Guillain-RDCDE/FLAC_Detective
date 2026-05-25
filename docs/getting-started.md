@@ -38,6 +38,19 @@ Verify installation:
 flac-detective --version
 ```
 
+#### Optional: ML classifier (Rule 12)
+
+The 12th scoring rule uses a bundled CNN to flag high-bitrate transcodes
+that the heuristic rules miss. It is opt-in because PyTorch is a heavy
+dependency:
+
+```bash
+pip install "flac-detective[ml]"
+```
+
+Without this extra, Rule 12 is a graceful no-op and the existing 11
+heuristic rules run unchanged.
+
 ### Option 2: Install via Docker
 
 Pull the pre-built Docker image:
