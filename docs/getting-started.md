@@ -208,18 +208,36 @@ flac-detective "/staging/my-album"
 
 ## Command-Line Options
 
+| Flag                       | Purpose                                                                  |
+|----------------------------|--------------------------------------------------------------------------|
+| `-h`, `--help`             | Show the auto-generated help summary and exit                            |
+| `-V`, `--version`          | Print `flac-detective <version>` and exit                                |
+| `-v`, `--verbose`          | Set log level to DEBUG; surface per-rule scoring details                 |
+| `--sample-duration SECS`   | Audio sample duration (default 30, range 5–120; lower = faster)          |
+| `--output PATH`            | Write the report to this path (default: auto-named in scan directory)    |
+| `--format {text,json}`     | Report format (default `text`; `json` includes scan metadata + results)  |
+
+Examples:
+
 ```bash
+# Show version / help
+flac-detective --version
+flac-detective --help
+
 # Generate JSON output instead of text
 flac-detective /path/to/music --format json
 
-# Save output to specific file
+# Save output to a specific file
 flac-detective /path/to/music --output my-report.txt
 
-# Verbose mode (show detailed analysis)
+# Verbose mode (DEBUG log + per-rule details)
 flac-detective /path/to/music --verbose
 
 # Analyze only first 15 seconds (faster, less accurate)
 flac-detective /path/to/music --sample-duration 15
+
+# Combine: verbose + JSON to a custom path with a 60-second sample
+flac-detective -v --sample-duration 60 --format json --output report.json /music
 ```
 
 > Auto-repair of corrupted files is enabled by default — no flag is needed.

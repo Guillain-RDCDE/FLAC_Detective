@@ -360,30 +360,30 @@ print(f"Report saved to {report_file}")
 
 ### FLAC Repair
 
+Repair is **enabled by default** inside the analysis pipeline. When `FLACAnalyzer`
+encounters a file it cannot read, it routes through `repair_flac_file` automatically,
+preserves metadata, and re-analyses the repaired copy transparently. You do not need
+to call the repair API in normal use.
+
+For advanced cases where you want to run the duration-fix repair pass directly
+(e.g. on a known-bad file outside the analyser), use the `FLACDurationFixer` class:
+
 ```python
-from flac_detective.repair import repair_flac
+from flac_detective.repair import FLACDurationFixer
 from pathlib import Path
 
-# Repair a corrupted file
-input_file = Path('corrupted.flac')
-output_file = Path('repaired.flac')
+fixer = FLACDurationFixer()
+fixed = fixer.fix_duration(Path('corrupted.flac'), output_path=Path('repaired.flac'))
+print('Repair attempted, output at:', fixed)
+```
 
-success, message = repair_flac(input_file, output_file)
+Or, to access the lower-level repair function used by the analyser:
 
-if success:
-    print(f"✅ Repair successful: {message}")
-else:
-    print(f"❌ Repair failed: {message}")
+```python
+from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 
-# Batch repair
-corrupted_files = [r for r in results if r['is_corrupted']]
-
-for result in corrupted_files:
-    filepath = Path(result['filepath'])
-    output = filepath.parent / f"{filepath.stem}_repaired.flac"
-
-    success, msg = repair_flac(filepath, output)
-    print(f"{filepath.name}: {msg}")
+repaired_path = repair_flac_file(corrupted_path=Path('corrupted.flac'))
+# repaired_path is None on failure
 ```
 
 ## Integration Examples
@@ -589,17 +589,14 @@ result = analyzer.analyze_file(Path('song.flac'))
 if result['is_corrupted']:
     print(f"File is corrupted: {result['corruption_error']}")
 
-    # Attempt repair
-    from flac_detective.repair import repair_flac
+    # FLACAnalyzer already attempted auto-repair internally before reporting the
+    # corruption — if you see is_corrupted=True, repair failed too. For a manual
+    # second pass you can call the lower-level repair directly:
+    from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 
-    success, message = repair_flac(
-        Path(result['filepath']),
-        Path('repaired.flac')
-    )
-
-    if success:
-        # Re-analyze repaired file
-        new_result = analyzer.analyze_file(Path('repaired.flac'))
+    repaired = repair_flac_file(corrupted_path=Path(result['filepath']))
+    if repaired:
+        new_result = analyzer.analyze_file(repaired)
         print(f"Repaired file score: {new_result['score']}")
 ```
 

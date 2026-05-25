@@ -9,21 +9,24 @@ FLAC Detective Documentation
    :target: https://pypi.org/project/flac-detective/
    :alt: Python versions
 
-.. image:: https://img.shields.io/github/license/guillain-rdcde/flac-detective.svg
-   :target: https://github.com/guillain-rdcde/flac-detective/blob/main/LICENSE
+.. image:: https://img.shields.io/github/license/Guillain-RDCDE/FLAC_Detective.svg
+   :target: https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/LICENSE
    :alt: License
 
-FLAC Detective is an advanced FLAC authenticity analyzer that detects MP3-to-FLAC transcodes with high precision.
+FLAC Detective is an advanced FLAC authenticity analyzer that detects MP3-to-FLAC
+transcodes with high precision. Eleven scoring rules, four verdict levels, multi-arch
+Docker image, and a CLI that does what the docs say it does.
 
 Features
 --------
 
-* Advanced spectral analysis for transcode detection
-* Comprehensive metadata extraction and validation
-* Automatic FLAC file repair with metadata preservation
-* Detailed quality scoring and reporting
-* Support for batch analysis
+* Advanced spectral analysis (FFT-based) with cutoff detection and segment consistency
+* Eleven scoring rules with protection layers for vinyl, cassette, and high-bitrate MP3
+* Automatic FLAC file repair (enabled by default — no flag needed)
+* Text and JSON report output
 * Rich terminal output with progress tracking
+* Batch analysis across directories with progress save/resume
+* Multi-arch Docker image (linux/amd64 + linux/arm64)
 
 Quick Start
 -----------
@@ -34,6 +37,12 @@ Installation
 .. code-block:: bash
 
    pip install flac-detective
+
+Or via Docker:
+
+.. code-block:: bash
+
+   docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 
 Basic Usage
 ~~~~~~~~~~~
@@ -50,56 +59,55 @@ Analyze all FLAC files in a directory:
 
    flac-detective path/to/directory
 
-Repair corrupted FLAC files:
+Interactive mode (prompts you for paths, accepts drag-and-drop):
 
 .. code-block:: bash
 
-   flac-detective --repair path/to/file.flac
+   flac-detective
 
-Table of Contents
------------------
+CLI Options
+~~~~~~~~~~~
 
-.. toctree::
-   :maxdepth: 2
-   :caption: User Guide
+.. code-block:: text
 
-   GETTING_STARTED
-   EXAMPLES
-   PYTHON_API_GUIDE
-   TROUBLESHOOTING
+   -h, --help                Show help message
+   -V, --version             Show version
+   -v, --verbose             Verbose output (DEBUG log level)
+   --sample-duration SECS    Audio sample duration in seconds (default: 30, range 5–120)
+   --output PATH             Path to write the report file
+   --format {text,json}      Report format (default: text)
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Technical Documentation
+Example: write a JSON report from a 60-second sample with verbose logging:
 
-   ARCHITECTURE
-   TECHNICAL_DOCUMENTATION
-   REPORT_FORMAT
-   RULES
-   RULE_SPECIFICATIONS
+.. code-block:: bash
 
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference
+   flac-detective --verbose --sample-duration 60 --format json --output report.json /music
 
-   api/modules
-   api/analysis
-   api/repair
-   api/reporting
+Auto-repair of corrupted FLAC files is enabled by default — no flag is needed.
+
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Development
 
-   development/CONTRIBUTING
-   development/TESTING
-   development/DEVELOPMENT_SETUP
-   CODE_QUALITY_SETUP
-   TYPE_HINTS
+   index
+   getting-started
+   user-guide
+   api-reference
+   technical-details
+
+External Resources
+------------------
+
+* `GitHub repository <https://github.com/Guillain-RDCDE/FLAC_Detective>`_
+* `PyPI package <https://pypi.org/project/flac-detective/>`_
+* `Container registry <https://github.com/Guillain-RDCDE/FLAC_Detective/pkgs/container/flac_detective>`_
+* `Issue tracker <https://github.com/Guillain-RDCDE/FLAC_Detective/issues>`_
+* `Contributing guide <https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md>`_
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

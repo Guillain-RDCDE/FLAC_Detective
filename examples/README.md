@@ -155,7 +155,7 @@ directory = Path("C:/Users/yourname/Music/FLAC")  # Windows
 # Check that FLAC Detective is installed
 python -c "import flac_detective; print(flac_detective.__version__)"
 
-# Should output version number (e.g., 0.9.6)
+# Should output version number (e.g., 0.9.11)
 ```
 
 ## Common Use Cases
