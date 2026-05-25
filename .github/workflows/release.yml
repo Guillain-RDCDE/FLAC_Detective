@@ -174,6 +174,10 @@ jobs:
           path: dist/
 
       - name: Install package from wheel
+        # `shell: bash` so the `dist/*.whl` glob expands on Windows runners
+        # too — PowerShell's default does not glob unquoted arguments to
+        # native executables, so `pip` would receive a literal "*".
+        shell: bash
         run: |
           pip install dist/*.whl
 
