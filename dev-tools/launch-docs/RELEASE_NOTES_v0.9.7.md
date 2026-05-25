@@ -1,8 +1,29 @@
 # FLAC Detective v0.9.7 — Patch release
 
-A small but important patch that makes `pip install flac-detective` and `docker pull` Just Work again, and adds CI guardrails so the same class of regression cannot ship silently in the future.
+A small but important patch that makes `pip install flac-detective` and `docker pull` Just Work again, adds a proper `--version`/`--help` CLI surface, and lands CI guardrails so the same class of regression cannot ship silently in the future.
 
-This release contains **no code-behavior changes** — same scoring, same rules, same output. It restores correct packaging and installability.
+The scoring logic, rules, and analysis output are **unchanged** in this release.
+
+---
+
+## Features
+
+### `--version` and `--help` on the CLI
+
+The CLI previously treated every argument as a path, so `flac-detective --version` blew up with `Invalid paths : --version` — surprising for a tool installed via `pip`. `parse_arguments` is now built on `argparse`, which gives you:
+
+```
+$ flac-detective --version
+flac-detective 0.9.7
+
+$ flac-detective --help
+usage: flac-detective [-h] [-V] [paths ...]
+
+Advanced FLAC authenticity analyzer — detects MP3-to-FLAC transcodes.
+...
+```
+
+The no-argument interactive flow is preserved — invoking `flac-detective` with no paths still drops you into the interactive prompt.
 
 ---
 

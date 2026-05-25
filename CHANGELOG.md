@@ -2,6 +2,13 @@
 
 ## v0.9.7 (2026-05-25)
 
+### Features
+
+- **cli**: Add `-V`/`--version` and `-h`/`--help` flags via `argparse`.
+  Previously every argv element was treated as a path, so
+  `flac-detective --version` failed with "Invalid paths : --version".
+  The no-argument interactive flow is preserved.
+
 ### Fixes
 
 - **packaging**: Fix circular import that broke `pip install flac-detective`
