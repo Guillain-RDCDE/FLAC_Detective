@@ -1,13 +1,13 @@
 # 🎵 FLAC Detective
 
-![FLAC Detective Banner](https://raw.githubusercontent.com/GuillainM/FLAC_Detective/main/assets/flac_detective_banner.png)
+![FLAC Detective Banner](https://raw.githubusercontent.com/Guillain-RDCDE/FLAC_Detective/main/assets/flac_detective_banner.png)
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/GuillainM/FLAC_Detective)
-[![codecov](https://codecov.io/gh/GuillainM/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/GuillainM/FLAC_Detective)
+[![Status](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective)
+[![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
@@ -39,7 +39,7 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 pip install flac-detective
 
 # OR run with Docker
-docker pull ghcr.io/guillainm/flac-detective:latest
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
 **📦 See [Getting Started](docs/getting-started.md) for complete installation instructions.**
@@ -64,7 +64,7 @@ flac-detective /path/to/music
 curl -O https://archive.org/download/test_flac/sample.flac
 
 # Run analysis with Docker (mount current directory)
-docker run --rm -v "$(pwd)":/data ghcr.io/guillainm/flac-detective:latest /data/sample.flac
+docker run --rm -v "$(pwd)":/data ghcr.io/guillain-rdcde/flac_detective:latest /data/sample.flac
 ```
 
 **Option 2: Quick Python Test**
@@ -78,7 +78,7 @@ flac-detective --help
 **Option 3: Interactive Demo Script** ⭐ (Best for Quick Test)
 ```bash
 # Clone and run demo with synthetic test files
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective
 pip install -e .
 python examples/quick_test.py
@@ -276,8 +276,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/GuillainM/FLAC_Detective/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
 
 ---
 

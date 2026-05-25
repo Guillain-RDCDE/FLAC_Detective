@@ -45,7 +45,7 @@ Each script includes comprehensive documentation and use case examples.
 ### Instant Demo Capability ⭐
 
 ```bash
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective && pip install -e .
 python examples/quick_test.py
 ```
@@ -83,7 +83,7 @@ python examples/quick_test.py
 pip install flac-detective
 
 # Via Docker
-docker pull ghcr.io/guillainm/flac-detective:latest
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
 ---
@@ -92,7 +92,7 @@ docker pull ghcr.io/guillainm/flac-detective:latest
 
 **Option 1: Interactive Demo (30 seconds)**
 ```bash
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective
 pip install -e .
 python examples/quick_test.py
@@ -117,7 +117,7 @@ This release prepares FLAC Detective for:
 
 ## 📊 Full Changelog
 
-See [CHANGELOG.md](https://github.com/GuillainM/FLAC_Detective/blob/main/CHANGELOG.md) for complete details.
+See [CHANGELOG.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/CHANGELOG.md) for complete details.
 
 ---
 

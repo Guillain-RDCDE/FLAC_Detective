@@ -80,7 +80,7 @@ This document summarizes all improvements made to prepare FLAC Detective for pub
 
 #### 4.2 Added "Try it Now" Section
 ```bash
-docker run --rm ghcr.io/guillainm/flac-detective:latest --version
+docker run --rm ghcr.io/guillain-rdcde/flac_detective:latest --version
 ```
 
 **Impact**: Users can test without installation

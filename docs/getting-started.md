@@ -43,13 +43,13 @@ flac-detective --version
 Pull the pre-built Docker image:
 
 ```bash
-docker pull ghcr.io/guillainm/flac-detective:latest
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
 Test it:
 
 ```bash
-docker run --rm ghcr.io/guillainm/flac-detective:latest --version
+docker run --rm ghcr.io/guillain-rdcde/flac_detective:latest --version
 ```
 
 ### Option 3: Install from Source
@@ -58,7 +58,7 @@ For development or the latest features:
 
 ```bash
 # Clone the repository
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective
 
 # Create virtual environment
@@ -99,10 +99,10 @@ flac-detective /path/to/song.flac
 
 ```bash
 # Mount your music directory and analyze
-docker run --rm -v /path/to/music:/data ghcr.io/guillainm/flac-detective:latest /data
+docker run --rm -v /path/to/music:/data ghcr.io/guillain-rdcde/flac_detective:latest /data
 
 # Windows example
-docker run --rm -v "C:\Users\YourName\Music":/data ghcr.io/guillainm/flac-detective:latest /data
+docker run --rm -v "C:\Users\YourName\Music":/data ghcr.io/guillain-rdcde/flac_detective:latest /data
 ```
 
 ### What Happens During Analysis
@@ -266,10 +266,10 @@ sudo flac-detective /path/to/music
 **Solution**: Ensure volume mount is correct
 ```bash
 # Windows - use forward slashes or escape backslashes
-docker run --rm -v "C:/Users/Name/Music":/data ghcr.io/guillainm/flac-detective:latest /data
+docker run --rm -v "C:/Users/Name/Music":/data ghcr.io/guillain-rdcde/flac_detective:latest /data
 
 # Linux/macOS - use absolute paths
-docker run --rm -v "/home/user/music":/data ghcr.io/guillainm/flac-detective:latest /data
+docker run --rm -v "/home/user/music":/data ghcr.io/guillain-rdcde/flac_detective:latest /data
 ```
 
 ## Next Steps
@@ -279,12 +279,12 @@ Now that you've completed your first analysis:
 1. **Learn more about usage** → Read the [User Guide](user-guide.md)
 2. **Understand how it works** → Read [Technical Details](technical-details.md)
 3. **Use the Python API** → Read [API Reference](api-reference.md)
-4. **Contribute or customize** → Read [Contributing](https://github.com/GuillainM/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
+4. **Contribute or customize** → Read [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 
 ## Getting Help
 
-- **Questions**: [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions)
-- **Bug reports**: [GitHub Issues](https://github.com/GuillainM/FLAC_Detective/issues)
+- **Questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
+- **Bug reports**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - **Documentation**: [Documentation Index](index.md)
 
 ---
