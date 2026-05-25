@@ -5,19 +5,19 @@ contact_links:
     about: Read the full documentation on Read the Docs
 
   - name: 💬 GitHub Discussions
-    url: https://github.com/GuillainM/FLAC_Detective/discussions
+    url: https://github.com/Guillain-RDCDE/FLAC_Detective/discussions
     about: Ask questions and discuss ideas with the community
 
   - name: 🚀 Getting Started Guide
-    url: https://github.com/GuillainM/FLAC_Detective/blob/main/docs/getting-started.md
+    url: https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/docs/getting-started.md
     about: New to FLAC Detective? Start here!
 
   - name: 🔧 User Guide
-    url: https://github.com/GuillainM/FLAC_Detective/blob/main/docs/user-guide.md
+    url: https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/docs/user-guide.md
     about: Complete usage guide and troubleshooting
 
   - name: 🔒 Security Vulnerability
-    url: https://github.com/GuillainM/FLAC_Detective/security/advisories/new
+    url: https://github.com/Guillain-RDCDE/FLAC_Detective/security/advisories/new
     about: Report security vulnerabilities privately (DO NOT create a public issue)
 
   - name: 💼 Commercial Support

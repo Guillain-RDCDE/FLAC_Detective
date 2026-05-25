@@ -660,4 +660,4 @@ function analyze_flac(filepath):
 
 ---
 
-For technical questions, visit [GitHub Discussions](https://github.com/GuillainM/FLAC_Detective/discussions).
+For technical questions, visit [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions).

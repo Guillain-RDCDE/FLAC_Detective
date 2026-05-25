@@ -9,8 +9,8 @@ FLAC Detective Documentation
    :target: https://pypi.org/project/flac-detective/
    :alt: Python versions
 
-.. image:: https://img.shields.io/github/license/guillainm/flac-detective.svg
-   :target: https://github.com/guillainm/flac-detective/blob/main/LICENSE
+.. image:: https://img.shields.io/github/license/guillain-rdcde/flac-detective.svg
+   :target: https://github.com/guillain-rdcde/flac-detective/blob/main/LICENSE
    :alt: License
 
 FLAC Detective is an advanced FLAC authenticity analyzer that detects MP3-to-FLAC transcodes with high precision.

@@ -80,7 +80,7 @@ New sections:
 ### Instant Demo Script
 ```bash
 # Clone, install, and see it work in 30 seconds!
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective
 pip install -e .
 python examples/quick_test.py
@@ -238,13 +238,13 @@ Commit 2 (8114080):
 **Call to Action:**
 ```bash
 # Try it now (instant demo):
-git clone https://github.com/GuillainM/FLAC_Detective.git
+git clone https://github.com/Guillain-RDCDE/FLAC_Detective.git
 cd FLAC_Detective && pip install -e .
 python examples/quick_test.py
 ```
 
 **Links:**
-- GitHub: https://github.com/GuillainM/FLAC_Detective
+- GitHub: https://github.com/Guillain-RDCDE/FLAC_Detective
 - PyPI: https://pypi.org/project/flac-detective/
 - Docs: [link to docs]
 

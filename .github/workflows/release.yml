@@ -249,8 +249,8 @@ jobs:
           ## Links
 
           - 📦 [PyPI Package](https://pypi.org/project/flac-detective/${{ needs.validate.outputs.version }}/)
-          - 📖 [Documentation](https://github.com/GuillainM/FLAC_Detective#readme)
-          - 🐛 [Report Issues](https://github.com/GuillainM/FLAC_Detective/issues)
+          - 📖 [Documentation](https://github.com/Guillain-RDCDE/FLAC_Detective#readme)
+          - 🐛 [Report Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 
           ## Checksums
 
