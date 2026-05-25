@@ -55,6 +55,7 @@ def _load_model():
 
     try:
         import torch
+
         _MODEL = torch.jit.load(str(_MODEL_PATH), map_location="cpu")
         _MODEL.eval()
         logger.info(f"Rule 12: loaded CNN model from {_MODEL_PATH}")
@@ -74,15 +75,21 @@ def _compute_mel(filepath: Path):
     try:
         duration = librosa.get_duration(path=str(filepath))
         offset = max(0.0, (duration - _SEGMENT_SEC) / 2)
-        y, sr = librosa.load(str(filepath), sr=_SAMPLE_RATE,
-                             offset=offset, duration=_SEGMENT_SEC, mono=True)
+        y, sr = librosa.load(
+            str(filepath), sr=_SAMPLE_RATE, offset=offset, duration=_SEGMENT_SEC, mono=True
+        )
         target_len = int(_SAMPLE_RATE * _SEGMENT_SEC)
         if len(y) < target_len:
             y = np.pad(y, (0, target_len - len(y)))
         else:
             y = y[:target_len]
         mel = librosa.feature.melspectrogram(
-            y=y, sr=sr, n_fft=_N_FFT, hop_length=_HOP, n_mels=_N_MELS, fmax=sr // 2,
+            y=y,
+            sr=sr,
+            n_fft=_N_FFT,
+            hop_length=_HOP,
+            n_mels=_N_MELS,
+            fmax=sr // 2,
         )
         mel_db = librosa.power_to_db(mel, ref=np.max).astype(np.float32)
         mn, mx = mel_db.min(), mel_db.max()
@@ -118,6 +125,7 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
 
     try:
         import torch
+
         x = torch.from_numpy(mel)
         with torch.no_grad():
             logits = model(x)
@@ -148,7 +156,9 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
         score = int(round((p_transcoded - THRESHOLD) / (SATURATION - THRESHOLD) * 25))
         confidence_str = "high"
 
-    reason = (f"R12: CNN classifier flags transcode "
-              f"(p={p_transcoded:.2f}, confidence={confidence_str}, +{score}pts)")
+    reason = (
+        f"R12: CNN classifier flags transcode "
+        f"(p={p_transcoded:.2f}, confidence={confidence_str}, +{score}pts)"
+    )
     logger.info(f"RULE 12: ML classifier score {score} (p={p_transcoded:.3f})")
     return score, [reason]
