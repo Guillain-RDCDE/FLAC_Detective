@@ -17,25 +17,32 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
-## 🆕 What's new in v0.9.11 (May 2026)
+## 🆕 What's new in v0.10.0 — Now with ML (May 2026)
 
-A burst of fixes and CLI features after the first community bug reports landed:
+FLAC Detective ships its first **learned classifier** alongside the heuristic
+rules. A compact CNN (~1.6 MB TorchScript, bundled with the wheel) analyses a
+mel-spectrogram of the file and contributes an independent score to the
+verdict — particularly useful on the borderline cases the 11 hand-written
+rules miss: high-bitrate MP3 (256/320 kbps), AAC sources, Opus transcodes.
 
-- **CLI catches up to the docs** — five new flags actually work now: `-V/--version`,
-  `-h/--help`, `-v/--verbose`, `--sample-duration SECS` (5–120), `--output PATH`,
-  `--format {text,json}`. Up to v0.9.6 the CLI rejected them; the docs lied. Fixed.
-- **Circular-import fix** ([#7](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/7))
-  — `pip install flac-detective==0.9.6` blew up on `import` due to a real circular
-  import between `spectrum` and `audio_cache`. `TYPE_CHECKING`-guarded the cycle.
-- **Docker image fix** ([#6](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/6))
-  — image is `ghcr.io/guillain-rdcde/flac_detective` (underscore, not dash). Multi-arch
-  (`linux/amd64` + `linux/arm64`) built on every release tag.
-- **CI green across Ubuntu, macOS, Windows** for the first time on this project,
-  with a new wheel-install smoke test that would have caught issue #7 before shipping.
-- **Auto-repair documented** — was already enabled by default since v0.7, now stated
-  explicitly: no `--repair` flag exists or is needed.
+- **Opt-in** via `pip install "flac-detective[ml]"`. PyTorch and librosa are
+  optional dependencies — without them, Rule 12 is a graceful no-op and the
+  existing 11-rule pipeline runs unchanged.
+- **Trained on Hetzner GPU** (RTX 4000 Ada) over 887 certified-authentic
+  FLACs (CD rips verified by EAC / XLD / Audiochecker logs) plus 6,179
+  transcodes generated on the fly across 7 codec/bitrate combinations.
+- **Test F1 = 91.4 %**, recall 95.6 %, precision 87.5 %. Used with a
+  conservative `p ≥ 0.85` threshold so it only contributes points when it's
+  highly confident — matches FLAC Detective's "protect authentic files
+  first" philosophy.
+- **Reproducible**: the full training pipeline lives in `ml/` (dataset
+  selection from your own collection's ripping logs, transcode generation,
+  mel-spec extraction, CNN training, TorchScript export). Eight scripts,
+  one `run_pipeline.sh` to chain them.
 
-See the [CHANGELOG](CHANGELOG.md) for the full v0.9.7 → v0.9.11 trail.
+For the v0.9.7 → v0.9.11 fix trail (circular import, Docker image,
+documentation refresh, CLI catch-up, branch protection, …) see the
+[CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -49,6 +56,7 @@ See the [CHANGELOG](CHANGELOG.md) for the full v0.9.7 → v0.9.11 trail.
 - **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
 - **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
 - **🔨 Automatic Repair**: Corrupted FLAC files are automatically repaired with full metadata preservation
+- **🤖 CNN classifier (optional)**: A small ML model bundled with the package adds a 12th scoring rule on borderline cases. `pip install "flac-detective[ml]"` to enable.
 
 ---
 
@@ -60,7 +68,10 @@ See the [CHANGELOG](CHANGELOG.md) for the full v0.9.7 → v0.9.11 trail.
 # Install via pip (Recommended)
 pip install flac-detective
 
-# OR run with Docker
+# OR with the optional CNN classifier (Rule 12)
+pip install "flac-detective[ml]"
+
+# OR run with Docker (multi-arch: linux/amd64 + linux/arm64)
 docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
