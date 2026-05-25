@@ -1,0 +1,7 @@
+# Configures the "Sponsor" button on the repository.
+# Uncomment and fill any of the lines below to enable a funding option.
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# github: [Guillain-RDCDE]
+# ko_fi: guillain
+# custom: ['https://www.paypal.me/guillain']

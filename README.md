@@ -317,6 +317,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
+- **Security**: see [SECURITY.md](.github/SECURITY.md)
+
+---
+
+## 🙏 Acknowledgements
+
+Thanks to the community members who took the time to report bugs and confirm fixes — first issues are special.
+
+- **[@GearKite](https://github.com/GearKite)** — Filed [#7](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/7) with a clean traceback that pinpointed the circular import in v0.9.6, and [#6](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/6) spotting the underscore-vs-dash Docker image name.
+- **[@Aakiles](https://github.com/Aakiles)** — Diagnosed the circular import end-to-end and shipped a working patch via comment. The v0.9.7 fix is a refinement of his approach.
+- **[@AnotherMuggle](https://github.com/AnotherMuggle)** and **[@tomelephant-git](https://github.com/tomelephant-git)** — Confirmed the fix across operating systems, including Windows 11 LTSC.
+- **[@AKHwyJunkie](https://github.com/AKHwyJunkie)** — Confirmed the v0.9.6 import crash, validating @GearKite's report.
+- **[@pblue3](https://github.com/pblue3)** — First reported the Docker image inaccessibility ([#6](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/6)).
+
+---
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Guillain-RDCDE/FLAC_Detective&type=Date)](https://star-history.com/#Guillain-RDCDE/FLAC_Detective&Date)
 
 ---
 
