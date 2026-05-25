@@ -1,5 +1,12 @@
 ## Unreleased
 
+## v0.10.1 (2026-05-25)
+
+Hotfix for the CI signal. `src/flac_detective/analysis/new_scoring/rules/ml_classifier.py`
+was committed without being re-run through black after the v0.10.0 squash —
+two function calls were wrapped on multi-lines in a style black wanted to
+flatten. No functional change.
+
 ## v0.10.0 (2026-05-25) — Now with ML
 
 First release that ships a learned classifier alongside the heuristic rules.
