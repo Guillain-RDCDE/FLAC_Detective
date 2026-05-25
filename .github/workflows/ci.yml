@@ -138,3 +138,81 @@ jobs:
       run: |
         bandit -r src -ll
       continue-on-error: true
+
+  wheel-smoke-test:
+    name: Wheel install smoke test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install system dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsndfile1
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: brew install libsndfile
+
+    - name: Build wheel and sdist
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build --wheel --sdist
+
+    # Smoke test: install the built artifacts in clean venvs and exercise the
+    # public surface from outside the source tree. Catches packaging-time bugs
+    # that pytest (which runs against the editable source layout) cannot,
+    # notably circular imports that surface only when the package is loaded
+    # from site-packages. See issue #7.
+    - name: Smoke-test wheel install (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set -euxo pipefail
+        python -m venv /tmp/smoke-wheel
+        /tmp/smoke-wheel/bin/pip install --upgrade pip
+        /tmp/smoke-wheel/bin/pip install dist/*.whl
+        # Move out of the source tree so the install — not the local `src/` —
+        # is what gets exercised.
+        cd /tmp
+        /tmp/smoke-wheel/bin/python -c "import flac_detective; print('import OK, version', flac_detective.__version__)"
+        /tmp/smoke-wheel/bin/python -c "from flac_detective.main import main; print('main import OK')"
+        /tmp/smoke-wheel/bin/flac-detective --version
+
+    - name: Smoke-test sdist install (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set -euxo pipefail
+        python -m venv /tmp/smoke-sdist
+        /tmp/smoke-sdist/bin/pip install --upgrade pip
+        /tmp/smoke-sdist/bin/pip install dist/*.tar.gz
+        cd /tmp
+        /tmp/smoke-sdist/bin/python -c "import flac_detective; print('import OK, version', flac_detective.__version__)"
+        /tmp/smoke-sdist/bin/flac-detective --version
+
+    - name: Smoke-test wheel install (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        python -m venv $env:RUNNER_TEMP\smoke-wheel
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\pip.exe" install --upgrade pip
+        $wheel = Get-ChildItem dist\*.whl | Select-Object -First 1
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\pip.exe" install $wheel.FullName
+        Push-Location $env:RUNNER_TEMP
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\python.exe" -c "import flac_detective; print('import OK, version', flac_detective.__version__)"
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\python.exe" -c "from flac_detective.main import main; print('main import OK')"
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\flac-detective.exe" --version
+        Pop-Location
