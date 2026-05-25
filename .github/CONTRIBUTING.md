@@ -68,7 +68,7 @@ git checkout -b fix/bug-description
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - Git
 - (Optional) FLAC command-line tool
 

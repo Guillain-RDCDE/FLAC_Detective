@@ -17,6 +17,28 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
+## 🆕 What's new in v0.9.11 (May 2026)
+
+A burst of fixes and CLI features after the first community bug reports landed:
+
+- **CLI catches up to the docs** — five new flags actually work now: `-V/--version`,
+  `-h/--help`, `-v/--verbose`, `--sample-duration SECS` (5–120), `--output PATH`,
+  `--format {text,json}`. Up to v0.9.6 the CLI rejected them; the docs lied. Fixed.
+- **Circular-import fix** ([#7](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/7))
+  — `pip install flac-detective==0.9.6` blew up on `import` due to a real circular
+  import between `spectrum` and `audio_cache`. `TYPE_CHECKING`-guarded the cycle.
+- **Docker image fix** ([#6](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/6))
+  — image is `ghcr.io/guillain-rdcde/flac_detective` (underscore, not dash). Multi-arch
+  (`linux/amd64` + `linux/arm64`) built on every release tag.
+- **CI green across Ubuntu, macOS, Windows** for the first time on this project,
+  with a new wheel-install smoke test that would have caught issue #7 before shipping.
+- **Auto-repair documented** — was already enabled by default since v0.7, now stated
+  explicitly: no `--repair` flag exists or is needed.
+
+See the [CHANGELOG](CHANGELOG.md) for the full v0.9.7 → v0.9.11 trail.
+
+---
+
 ## ✨ Key Features
 
 - **🎯 High Precision Detection**: 11-rule scoring system with intelligent protection mechanisms
@@ -52,6 +74,23 @@ flac-detective .
 
 # Analyze specific directory
 flac-detective /path/to/music
+
+# Interactive mode (prompts for paths, accepts drag-and-drop in Windows cmd)
+flac-detective
+```
+
+### Common Options
+
+```bash
+# Show version and help
+flac-detective --version
+flac-detective --help
+
+# Verbose log + JSON output to a custom path
+flac-detective -v --format json --output report.json /music
+
+# Quick scan (15 s sample instead of default 30 s)
+flac-detective --sample-duration 15 /music
 ```
 
 **📖 See [User Guide](docs/user-guide.md) for detailed usage examples and command line options.**
