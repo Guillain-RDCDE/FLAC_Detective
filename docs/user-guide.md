@@ -83,15 +83,17 @@ flac-detective /music --sample-duration 15
 # Longer analysis (60 seconds, more accurate)
 flac-detective /music --sample-duration 60
 
-# Auto-repair corrupted files
-flac-detective /music --repair
 ```
+
+> **Note**: Auto-repair of corrupted FLAC files is enabled by default — no flag is
+> needed. The tool detects unreadable files, runs `flac --decode-through-errors`
+> with metadata preservation, and re-analyses the repaired file transparently.
 
 ### Combining Options
 
 ```bash
-# Verbose + JSON + repair
-flac-detective /music --verbose --format json --repair
+# Verbose + JSON
+flac-detective /music --verbose --format json
 
 # Fast scan with custom output
 flac-detective /music --sample-duration 15 --output quick-scan.txt
@@ -227,8 +229,9 @@ FLAC Detective saves a detailed text report:
 
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
-Generated: 2025-12-20 14:30:22
-Analyzer Version: 0.9.0
+Generated: 2026-05-25 14:30:22
+Analyzer Version: 0.9.11
+Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================
 
@@ -384,10 +387,9 @@ docker run --rm \
 
 ### Docker Compose
 
-Create `docker-compose.yml`:
+Create `docker-compose.yml` (Compose v2+ no longer requires a top-level `version:` key):
 
 ```yaml
-version: '3.8'
 services:
   flac-detective:
     image: ghcr.io/guillain-rdcde/flac_detective:latest
@@ -510,12 +512,10 @@ pip install -e ".[dev]"
 
 **Symptoms**: "FLAC decoder error" messages
 
-**Solution**:
+**Solution**: Auto-repair is enabled by default — just re-run the command and
+the tool will attempt to repair unreadable files transparently. For manual
+repair outside FLAC Detective:
 ```bash
-# Enable auto-repair
-flac-detective /music --repair
-
-# Manual repair with flac tool
 flac --verify --decode-through-errors file.flac
 ```
 

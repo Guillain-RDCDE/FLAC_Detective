@@ -227,11 +227,13 @@ def get_user_input_path() -> list[Path]:
             sys.exit(0)
 
 
-def parse_arguments() -> list[Path]:
-    """Determine paths to analyze from command line or interactive input.
+def parse_arguments() -> argparse.Namespace:
+    """Parse CLI arguments and (if none provided) prompt the user interactively.
 
     Returns:
-        List of paths to analyze.
+        argparse.Namespace with `.paths` (list[Path]) and the rest of the
+        options. `.paths` is always non-empty on return — either provided on
+        the command line or collected interactively.
     """
     parser = argparse.ArgumentParser(
         prog="flac-detective",
@@ -250,17 +252,53 @@ def parse_arguments() -> list[Path]:
         action="version",
         version=f"flac-detective {__version__}",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Verbose output: log level DEBUG, show per-rule scoring details.",
+    )
+    parser.add_argument(
+        "--sample-duration",
+        type=float,
+        default=None,
+        metavar="SECS",
+        help=(
+            "Audio sample duration in seconds (default: 30). Range 5–120. "
+            "Lower = faster but less accurate; higher = slower but more robust."
+        ),
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="Path of the report file to write (default: auto-named in scan directory).",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="Report format: 'text' (human-readable, default) or 'json' (machine-readable).",
+    )
     args = parser.parse_args()
 
+    # Bounds check sample-duration (argparse `choices` only does discrete values)
+    if args.sample_duration is not None and not (5.0 <= args.sample_duration <= 120.0):
+        parser.error(
+            f"--sample-duration must be between 5 and 120 seconds (got {args.sample_duration})"
+        )
+
     if not args.paths:
-        return get_user_input_path()
+        args.paths = get_user_input_path()
+        return args
 
     invalid_paths = [p for p in args.paths if not p.exists()]
     if invalid_paths:
         logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
         sys.exit(1)
     print(LOGO)
-    return args.paths
+    return args
 
 
 def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
@@ -486,7 +524,10 @@ def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTrack
 
 
 def run_analysis_loop(
-    all_flac_files: list[Path], all_non_flac_files: list[Path], output_dir: Path
+    all_flac_files: list[Path],
+    all_non_flac_files: list[Path],
+    output_dir: Path,
+    sample_duration: Optional[float] = None,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -494,12 +535,16 @@ def run_analysis_loop(
         all_flac_files: List of FLAC files to analyze.
         all_non_flac_files: List of non-FLAC files to report.
         output_dir: Directory for saving progress and reports.
+        sample_duration: Override the default audio sample duration (seconds).
+            None falls back to `analysis_config.SAMPLE_DURATION`.
 
     Returns:
         List of result dictionaries.
     """
-    # Initialization
-    analyzer = FLACAnalyzer(sample_duration=analysis_config.SAMPLE_DURATION)
+    effective_duration = (
+        sample_duration if sample_duration is not None else analysis_config.SAMPLE_DURATION
+    )
+    analyzer = FLACAnalyzer(sample_duration=effective_duration)
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
 
     # Filter already processed files
@@ -587,6 +632,8 @@ def generate_final_report(
     all_non_flac_files: list[Path],
     log_file: Path,
     input_paths: list[Path],
+    output_path: Optional[Path] = None,
+    report_format: str = "text",
 ):
     """Generate the final report and print summary.
 
@@ -597,12 +644,36 @@ def generate_final_report(
         all_non_flac_files: List of non-FLAC files found.
         log_file: Path to the console log file.
         input_paths: List of user input paths (scan roots).
+        output_path: Explicit output path; if None, auto-named in `output_dir`.
+        report_format: "text" or "json".
     """
     logger.info("\nGenerating report...")
 
-    output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-    reporter = TextReporter()
-    reporter.generate_report(results, output_file, scan_paths=input_paths)
+    if output_path is not None:
+        output_file = output_path
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        ext = "json" if report_format == "json" else "txt"
+        output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+
+    if report_format == "json":
+        import json
+
+        payload = {
+            "scan_info": {
+                "timestamp": datetime.now().isoformat(),
+                "analyzer_version": __version__,
+                "scan_paths": [str(p) for p in input_paths],
+                "total_flac_files": len(all_flac_files),
+                "total_non_flac_files": len(all_non_flac_files),
+            },
+            "results": results,
+        }
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
+    else:
+        reporter = TextReporter()
+        reporter.generate_report(results, output_file, scan_paths=input_paths)
 
     # Generate diagnostic report if there were issues
     tracker = get_tracker()
@@ -669,7 +740,11 @@ def main():
     # Reset diagnostic tracker at the start of analysis
     reset_tracker()
 
-    paths = parse_arguments()
+    args = parse_arguments()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Verbose mode enabled (log level: DEBUG).")
 
     print()
     print(colorize("=" * 70, Colors.CYAN))
@@ -679,7 +754,7 @@ def main():
     print(colorize("=" * 70, Colors.CYAN))
     print()
 
-    all_flac_files, all_non_flac_files = scan_files(paths)
+    all_flac_files, all_non_flac_files = scan_files(args.paths)
 
     if not all_flac_files and not all_non_flac_files:
         logger.error("No audio files found!")
@@ -687,13 +762,27 @@ def main():
 
     # Determine output directory (for progress.json and report)
     # Use the directory of the first path, or current directory if it's a file
-    output_dir = paths[0] if paths[0].is_dir() else paths[0].parent
+    output_dir = args.paths[0] if args.paths[0].is_dir() else args.paths[0].parent
 
     log_file = setup_logging(output_dir)
 
-    results = run_analysis_loop(all_flac_files, all_non_flac_files, output_dir)
+    results = run_analysis_loop(
+        all_flac_files,
+        all_non_flac_files,
+        output_dir,
+        sample_duration=args.sample_duration,
+    )
 
-    generate_final_report(results, output_dir, all_flac_files, all_non_flac_files, log_file, paths)
+    generate_final_report(
+        results,
+        output_dir,
+        all_flac_files,
+        all_non_flac_files,
+        log_file,
+        args.paths,
+        output_path=args.output,
+        report_format=args.format,
+    )
 
 
 if __name__ == "__main__":
