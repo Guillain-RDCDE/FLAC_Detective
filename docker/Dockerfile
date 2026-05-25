@@ -25,8 +25,8 @@ FROM python:3.11-slim
 
 LABEL org.opencontainers.image.title="flac-detective"
 LABEL org.opencontainers.image.description="Advanced FLAC audio file analysis and repair tool"
-LABEL org.opencontainers.image.url="https://github.com/guillainm/flac-detective"
-LABEL org.opencontainers.image.source="https://github.com/guillainm/flac-detective"
+LABEL org.opencontainers.image.url="https://github.com/Guillain-RDCDE/FLAC_Detective"
+LABEL org.opencontainers.image.source="https://github.com/Guillain-RDCDE/FLAC_Detective"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Create non-root user for security
