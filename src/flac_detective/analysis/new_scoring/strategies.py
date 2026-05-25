@@ -16,6 +16,7 @@ from .rules import (
     apply_rule_9_compression_artifacts,
     apply_rule_10_multi_segment_consistency,
     apply_rule_11_cassette_detection,
+    apply_rule_12_ml_classifier,
 )
 
 logger = logging.getLogger(__name__)
@@ -165,4 +166,13 @@ class Rule11CassetteDetection(ScoringRule):
             context.audio_meta.sample_rate,
             audio_data=context.audio_data,
         )
+        context.add_score(score, reasons)
+
+
+class Rule12MLClassifier(ScoringRule):
+    """CNN-based transcode detection (optional, no-op if the model or torch
+    is not available). See rules.ml_classifier for the scoring logic."""
+
+    def apply(self, context: ScoringContext) -> None:
+        score, reasons = apply_rule_12_ml_classifier(context.filepath)
         context.add_score(score, reasons)
