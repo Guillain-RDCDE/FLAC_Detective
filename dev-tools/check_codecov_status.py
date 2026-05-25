@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 
-def check_badge_url(repo_owner="GuillainM", repo_name="FLAC_Detective", branch="main"):
+def check_badge_url(repo_owner="Guillain-RDCDE", repo_name="FLAC_Detective", branch="main"):
     """Check if Codecov badge URL is accessible and returns valid data."""
     badge_url = f"https://codecov.io/gh/{repo_owner}/{repo_name}/branch/{branch}/graph/badge.svg"
 
@@ -59,7 +59,7 @@ def check_badge_url(repo_owner="GuillainM", repo_name="FLAC_Detective", branch="
         return False
 
 
-def check_codecov_api(repo_owner="GuillainM", repo_name="FLAC_Detective"):
+def check_codecov_api(repo_owner="Guillain-RDCDE", repo_name="FLAC_Detective"):
     """Check Codecov API for repository coverage data."""
     api_url = f"https://codecov.io/api/gh/{repo_owner}/{repo_name}"
 
@@ -164,7 +164,7 @@ def main():
         print("Next steps:")
         print("1. Ensure Codecov GitHub App is installed and configured")
         print("2. Wait for CI to run and upload coverage")
-        print("3. Check: https://github.com/GuillainM/FLAC_Detective/actions")
+        print("3. Check: https://github.com/Guillain-RDCDE/FLAC_Detective/actions")
         return 1
     elif badge_ok is False and api_ok:
         print("⚠️  Codecov has data but badge shows 'unknown'")

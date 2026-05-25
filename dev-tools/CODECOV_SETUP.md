@@ -13,10 +13,10 @@ The Codecov badge in README.md currently shows "unknown" because coverage data h
 ## Option 2: Using CODECOV_TOKEN Secret
 
 1. Go to https://codecov.io and sign in with GitHub
-2. Add your repository: https://github.com/GuillainM/FLAC_Detective
+2. Add your repository: https://github.com/Guillain-RDCDE/FLAC_Detective
 3. Copy the repository upload token from Codecov dashboard
 4. Add it as a GitHub secret:
-   - Go to: https://github.com/GuillainM/FLAC_Detective/settings/secrets/actions
+   - Go to: https://github.com/Guillain-RDCDE/FLAC_Detective/settings/secrets/actions
    - Click "New repository secret"
    - Name: `CODECOV_TOKEN`
    - Value: (paste your token from Codecov)

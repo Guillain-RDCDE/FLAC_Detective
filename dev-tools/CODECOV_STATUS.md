@@ -45,11 +45,11 @@ python check_codecov_status.py
 
 ### Option 2: Quick badge check
 ```bash
-python -c "import urllib.request; r=urllib.request.urlopen('https://codecov.io/gh/GuillainM/FLAC_Detective/branch/main/graph/badge.svg'); print('Coverage uploaded!' if '%' in r.read().decode() else 'Still showing unknown - wait for CI')"
+python -c "import urllib.request; r=urllib.request.urlopen('https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg'); print('Coverage uploaded!' if '%' in r.read().decode() else 'Still showing unknown - wait for CI')"
 ```
 
 ### Option 3: Check GitHub Actions
-Visit: https://github.com/GuillainM/FLAC_Detective/actions
+Visit: https://github.com/Guillain-RDCDE/FLAC_Detective/actions
 
 Look for:
 - Workflow: "FLAC Detective CI"
@@ -57,7 +57,7 @@ Look for:
 - Step: "Upload coverage to Codecov"
 
 ### Option 4: Check Codecov Dashboard
-Visit: https://app.codecov.io/gh/GuillainM/FLAC_Detective
+Visit: https://app.codecov.io/gh/Guillain-RDCDE/FLAC_Detective
 
 ## ⏱️ Expected Timeline
 
@@ -76,7 +76,7 @@ Based on the project configuration:
 
 ## 📝 Next Steps
 
-Once the CI completes (check https://github.com/GuillainM/FLAC_Detective/actions):
+Once the CI completes (check https://github.com/Guillain-RDCDE/FLAC_Detective/actions):
 
 1. **Verify badge updated:**
    - README.md badge should show percentage
@@ -92,8 +92,8 @@ Once the CI completes (check https://github.com/GuillainM/FLAC_Detective/actions
 
 ## 🔗 Quick Links
 
-- **GitHub Actions:** https://github.com/GuillainM/FLAC_Detective/actions
-- **Codecov Dashboard:** https://app.codecov.io/gh/GuillainM/FLAC_Detective
+- **GitHub Actions:** https://github.com/Guillain-RDCDE/FLAC_Detective/actions
+- **Codecov Dashboard:** https://app.codecov.io/gh/Guillain-RDCDE/FLAC_Detective
 - **Setup Guide:** [.github/CODECOV_SETUP.md](.github/CODECOV_SETUP.md)
 - **Verification Guide:** [.github/CODECOV_VERIFICATION.md](.github/CODECOV_VERIFICATION.md)
 
