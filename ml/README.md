@@ -2,15 +2,15 @@
 
 Reproducible workflow that trains a binary classifier ("authentic FLAC" vs
 "MP3-transcoded FLAC") and bundles it into the package as Rule 12. The
-current production model (`cnn_v2.ts.pt`, shipped in v0.11.0) is a fine-tuned
-ResNet-18 that reaches **balanced accuracy 0.81** and **specificity 80 %** on
-a held-out test set.
+**current production model** (`cnn_v3.ts.pt`, shipped in **v0.12.0**) is a
+fine-tuned **EfficientNet-B0** that reaches **balanced accuracy 0.834**,
+**specificity 80 %** and **recall on transcoded 86.9 %** on a held-out
+9 786-sample test set.
 
-This document records both the pipeline as it stands today **and** the four
-training failures that led to the working configuration. Audio classification
-on small imbalanced datasets is full of footguns — keeping the lessons
-visible saves the next person (you, in three months) from re-stepping on the
-same mines.
+This document records both the pipeline as it stands today **and** the six
+training attempts that led to it. Audio classification on imbalanced
+datasets is full of footguns — keeping the lessons visible saves the next
+person (you, in three months) from re-stepping on the same mines.
 
 ---
 
@@ -82,38 +82,62 @@ Rule12MLClassifier (12th scoring rule)
 
 ---
 
-## The current production model (v2, shipped in v0.11.0)
+## The current production model (v3, shipped in v0.12.0)
 
-- **Architecture**: ResNet-18 pretrained on ImageNet. First conv layer
-  adapted from 3-channel RGB input to 1-channel mel input by averaging RGB
-  weights. Final FC replaced with a binary head.
+- **Architecture**: **EfficientNet-B0** pretrained on ImageNet. ~4 M
+  parameters (vs 11 M for ResNet-18). First conv layer adapted from
+  3-channel RGB to 1-channel mel by averaging the RGB filter weights.
+  Final FC replaced with a binary head.
 - **Input**: (1, 1, 128, 862) — a 10-second mel-spectrogram at 44.1 kHz,
   128 mel bins, 2048 FFT, hop 512.
-- **Training data**: 2237 authentic FLACs × 10 codec/bitrate transcodes
-  + 2237 authentics = 24 451 samples. Stratified 70/15/15 train/val/test.
-- **Optimisation**: AdamW (lr 3e-4, weight decay 1e-4), `WeightedRandomSampler`
-  to balance batches, plain CrossEntropyLoss, SpecAugment (freq mask 15,
+- **Training data**: **5 964 authentic FLACs × 10 codec/bitrate transcodes
+  + 5 964 authentics = 65 244 samples**. Stratified 70/15/15
+  train/val/test split.
+- **Optimisation**: AdamW (lr 3e-4, weight decay 1e-4), cosine annealing
+  with 5-epoch linear warmup, `WeightedRandomSampler` to balance batches,
+  plain CrossEntropyLoss, **Mixup** (α=0.2), SpecAugment (freq mask 15,
   time mask 20, 2 masks).
 - **Selection criterion**: **`balanced_acc`** = mean of per-class recalls.
   Robust to imbalance, cannot be gamed by predicting only the majority class.
-- **Test metrics** (held-out 3667 samples):
+- **Feature loading**: **mmap-backed** `.npy` files (`features/mmap/X.npy`).
+  The 27 GB tensor stays on disk; the DataLoader pages samples in as needed.
+  Without this, training was OOM-killed on the Hetzner host shared with
+  Whisper + other services.
+- **Test metrics** (held-out 9 786 samples):
 
   | Metric                        | Value |
   |-------------------------------|-------|
-  | accuracy                      | 82.4% |
-  | balanced_acc                  | 0.811 |
-  | precision (transcoded)        | 97.6% |
-  | recall (transcoded)           | 82.7% |
+  | accuracy                      | 86.3% |
+  | balanced_acc                  | **0.834** |
+  | precision (transcoded)        | 97.7% |
+  | recall (transcoded)           | **86.9%** |
   | recall (authentic) = specificity | **80.0%** |
-  | tp / fp / fn / tn             | 2756 / 68 / 578 / 265 |
+  | tp / fp / fn / tn             | 7730 / 178 / 1166 / 712 |
 
-- **Runtime size**: 43 MB TorchScript, bundled in the wheel.
+- **Runtime size**: 16 MB TorchScript, bundled in the wheel.
+
+### Why v3 beats v2 on every axis except size
+
+| Aspect              | v2 (v0.11)  | v3 (v0.12)        |
+|---------------------|-------------|-------------------|
+| Authentic FLACs     | 2 237       | **5 964**         |
+| Codecs              | 7           | **10** (+ VBR, Vorbis) |
+| Training samples    | 24 451      | **65 244**        |
+| Architecture        | ResNet-18   | **EfficientNet-B0** |
+| Parameters          | 11 M        | 4 M               |
+| Data augmentation   | SpecAugment | **+ Mixup**       |
+| LR schedule         | ReduceLROnPlateau | **Cosine + warmup** |
+| Feature loading     | Full in-RAM | **mmap on disk**  |
+| balanced_acc        | 0.811       | **0.834** (+0.023) |
+| Recall transcoded   | 82.7 %      | **86.9 %** (+4.2 pp) |
+| Bundled size        | 43 MB       | **16 MB** (-63 %) |
 
 ---
 
-## Lessons from four failed attempts
+## Lessons from six training attempts
 
-The path to v2 was not direct. Each failure taught a specific lesson.
+Six attempts. Four collapses, one painful OOM, one working model.
+Each one taught something specific.
 
 ### Attempt #1 — model collapses to "always predict authentic"
 
@@ -183,6 +207,55 @@ reached balanced_acc 0.82 in three epochs.
 > ⚠️ **If you ever touch the feature extraction, do not downsample below
 > 44.1 kHz.** The whole pipeline depends on the high-frequency content
 > being preserved.
+
+### Attempt #5 — the v2 working model (shipped in v0.11.0)
+
+**What was tried**: Same configuration as attempt #4 but with the
+44 100 Hz fix. Custom 5-block CNN (later replaced — see #5b below) on
+24 451 samples (2 237 authentic × 7 codecs + 2 237 authentics).
+
+**What happened**: Trained cleanly. balanced_acc reached 0.811 by epoch
+3, then plateaued; early-stop at epoch 11. Specificity finally meaningful
+(80 % vs 4.5 % in the broken v1 we shipped in v0.10).
+
+**Lesson**: When the four previous lessons are applied together, a small
+mel-spec CNN can learn a non-trivial signal on this task. Shipped.
+
+### Attempt #6 — the v3 working model, scaled up (shipped in v0.12.0)
+
+**What was tried**: Three changes from v2.
+  - **More data**: 5 964 authentic FLACs × 10 codecs = 65 244 samples
+    (2.6× v2). Added MP3 VBR V0/V2 and OGG Vorbis q5 to the codec mix.
+  - **Better architecture**: EfficientNet-B0 pretrained replaces the
+    custom CNN (which was tried again briefly and underperformed).
+  - **Better optimisation**: Mixup augmentation, cosine annealing with
+    linear warmup, AdamW.
+
+**What happened first**: **OOM kill on the Hetzner host.** The 27 GB
+compressed `.npz` feature file, when loaded by `np.load`, expanded into
+anonymous RSS that pushed the training process above the 62 GB host RAM
+threshold. The kernel killed it at 61 GB anon-rss in three minutes.
+
+**Fix**: Convert the `.npz` to a plain `.npy` once (see
+`ml/convert_npz_to_npy.py`), load it with `np.load(..., mmap_mode='r')`,
+and move per-sample normalisation from a one-shot upfront pass into
+`MelDataset.__getitem__`. Peak RAM dropped from 61 GB to ~5 GB. Training
+re-started cleanly.
+
+**Lesson 1**: **On a shared host, don't load datasets larger than ~50 %
+of host RAM.** Always check the math before launching — and remember
+that `np.load` of a compressed `.npz` materialises every array in
+memory, no matter how small you think your `np.savez_compressed` output
+looks on disk.
+
+**Lesson 2**: **When you scale up the data, the bottleneck moves.** v3
+gains modestly on accuracy (+0.023 balanced_acc) but introduces a
+real-world infra problem (RAM) that didn't exist at v2 scale. Always
+benchmark on the smallest configuration that demonstrates the problem,
+not on the most ambitious one.
+
+**What v3 ended with**: balanced_acc 0.834, recall on transcoded 86.9 %,
+specificity 80 %, 16 MB bundled. Shipped in v0.12.0.
 
 ---
 
