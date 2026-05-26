@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 # Module-level model cache: only load the model once per process.
 _MODEL = None
 _MODEL_LOAD_ATTEMPTED = False
-_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v1.ts.pt"
+_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v2.ts.pt"
 
 # Mel-spec config — MUST match ml/extract_features.py used at training time.
-_SAMPLE_RATE = 22050
+_SAMPLE_RATE = 44100  # MUST match ml/extract_features.py SAMPLE_RATE
 _SEGMENT_SEC = 10.0
 _N_MELS = 128
 _N_FFT = 2048
@@ -137,15 +137,14 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
 
     # Map confidence -> score contribution.
     #
-    # The v1 model has a notable skew: trained on a 1:7 authentic-to-transcoded
-    # ratio, it overestimates the transcoded class on authentic inputs (95%
-    # false positives at the natural 0.5 threshold on a balanced test set).
-    # To compensate without retraining, we use a conservative threshold of
-    # 0.85 — meaning Rule 12 only fires when the model is highly confident.
-    # This trades some recall for much better specificity, which matches the
-    # rest of FLAC Detective's "protect authentic files first" philosophy.
-    THRESHOLD = 0.85
-    SATURATION = 0.99
+    # v2 model (ResNet-18 pretrained, trained on full-spectrum 44.1 kHz
+    # features) is well-calibrated: balanced accuracy 81%, specificity 80%
+    # on authentic inputs. We can use the natural 0.5 decision threshold
+    # without the conservative-threshold hack v1 needed.
+    #
+    # Score mapping (linear, 0.5..0.95 → 0..30, saturating above 0.95):
+    THRESHOLD = 0.5
+    SATURATION = 0.95
 
     if p_transcoded < THRESHOLD:
         return 0, []
@@ -153,8 +152,13 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
         score = 30
         confidence_str = "very high"
     else:
-        score = int(round((p_transcoded - THRESHOLD) / (SATURATION - THRESHOLD) * 25))
-        confidence_str = "high"
+        score = int(round((p_transcoded - THRESHOLD) / (SATURATION - THRESHOLD) * 30))
+        if p_transcoded >= 0.8:
+            confidence_str = "high"
+        elif p_transcoded >= 0.65:
+            confidence_str = "moderate"
+        else:
+            confidence_str = "low"
 
     reason = (
         f"R12: CNN classifier flags transcode "

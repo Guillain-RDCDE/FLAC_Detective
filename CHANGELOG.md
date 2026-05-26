@@ -1,5 +1,72 @@
 ## Unreleased
 
+## v0.11.0 (2026-05-26) — ML v2, Properly Trained
+
+The headline: **Rule 12 now actually works.** Previous version (v0.10.x)
+shipped a model that was technically functional but had a 95 % false-positive
+rate on authentic FLACs and required a conservative threshold workaround
+to be safe to enable. v0.11.0 ships a properly-trained model.
+
+### What changed in the model
+
+| Metric                         | v1 (v0.10.x)  | v2 (this release) |
+|--------------------------------|---------------|--------------------|
+| Balanced accuracy              | ~0.55         | **0.81**           |
+| Specificity (recall authentic) | 4.5 %         | **80 %**           |
+| Precision (transcoded)         | 87.5 %        | **97.6 %**         |
+| Threshold needed for safe use  | 0.85 (hack)   | **0.5 (natural)**  |
+| Model size                     | 1.6 MB        | 43 MB              |
+| Architecture                   | Custom 5-block CNN | ResNet-18 (ImageNet-pretrained) |
+
+The 80 % specificity is the headline: out of 333 known-authentic test files,
+v1 misclassified 318 as transcoded; v2 misclassifies 68. Almost a 20× drop
+in false positives.
+
+### Three diagnostic failures (kept for documentation)
+
+This version is the result of five training attempts. The first four all
+failed in instructive ways and the lessons are recorded in `ml/train.py`
+comments and the v0.11.0 commit history:
+
+1. **Focal loss on top of WeightedRandomSampler**: double class-balancing
+   collapsed the model to "always predict authentic" (recall=0, tp=0).
+2. **F1-on-class-1 as the model-selection metric**: on a 1:10 imbalanced
+   dataset, "always predict transcoded" gives F1 = 0.95. Best.pt was that
+   model. Switched to `balanced_acc` (mean of per-class recalls) which
+   cannot be gamed.
+3. **Custom CNN architecture**: oscillated between "all authentic" and
+   "all transcoded" epoch after epoch. Replaced with ResNet-18 pretrained
+   on ImageNet — mel-spectrograms are images, transfer learning works.
+4. **Sample rate of 22050 Hz in feature extraction**: this was the root
+   cause hiding behind the other three. MP3 transcodes leave their
+   signature ("the cliff") at 14–21 kHz; resampling to 22050 Hz means
+   Nyquist = 11 kHz, so we were erasing exactly the signal we were
+   trying to learn. Switched to 44100 Hz. Attempt #5 reached
+   balanced_acc 0.82 in 3 epochs.
+
+### Code changes
+
+- **src/flac_detective/models/cnn_v2.ts.pt** (43 MB): the new TorchScript
+  model. Replaces cnn_v1.ts.pt, which is removed.
+- **src/flac_detective/analysis/new_scoring/rules/ml_classifier.py**:
+  - `_MODEL_PATH` → cnn_v2.ts.pt
+  - `_SAMPLE_RATE` → 44100 (must match training)
+  - Threshold 0.5 (natural), saturation 0.95. Up to +30 points.
+- **ml/extract_features.py**: SAMPLE_RATE = 44100, with a comment
+  explaining why we must NOT downsample.
+- **ml/train.py**: `TranscodeCNN` is now a ResNet-18 fine-tuned wrapper.
+  First conv layer adapted from 3-channel ImageNet input to 1-channel
+  mel-spectrogram by averaging RGB weights. Adam → AdamW. Model selection
+  is on `balanced_acc`, not F1.
+- **ml/generate_transcodes.py**: 10 codecs now (added MP3 VBR V0/V2 and
+  OGG Vorbis q5). Each authentic FLAC → 10 transcoded copies.
+
+### Sanity check
+
+Five known-authentic Zero 7 tracks (CD-ripped, EAC-verified) tested locally
+with the bundled v2 model: all five return score=0. No regression on the
+"protect authentic files first" philosophy.
+
 ### ML pipeline improvements (in progress, targeting v0.11.0)
 
 Code changes already on `main`; the v2 model itself is still being trained

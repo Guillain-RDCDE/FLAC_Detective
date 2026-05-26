@@ -32,7 +32,10 @@ import numpy as np
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-SAMPLE_RATE = 22050   # downsample to halve compute; we only need spectrum up to ~11kHz
+SAMPLE_RATE = 44100   # CRITICAL: keep full spectrum up to ~22kHz.
+                      # MP3 transcodes leave their signature ("cliff") at 14-21 kHz
+                      # depending on bitrate. Resampling to 22050 (Nyquist 11kHz)
+                      # erases exactly the signal we are trying to learn.
 SEGMENT_SEC = 10.0
 N_MELS = 128
 N_FFT = 2048

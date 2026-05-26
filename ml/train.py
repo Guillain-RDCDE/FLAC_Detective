@@ -124,38 +124,52 @@ class FocalLoss(nn.Module):
 
 
 class TranscodeCNN(nn.Module):
-    """Compact 2D CNN classifier for mel-spectrograms.
+    """ResNet-18 pretrained on ImageNet, fine-tuned for binary mel-spec classification.
 
     Input  : (B, 1, 128, T)  with T ≈ 431 for 10 s @ sr=22050, hop=512
     Output : (B, 2)          logits for {authentic, transcoded}
+
+    Why pretrained ResNet rather than a from-scratch custom CNN:
+      * Mel-spectrograms are images. ResNet has learnt to recognise edges,
+        textures and shapes on ImageNet — those primitives are exactly what
+        distinguishes the spectral signature of a transcode from a real
+        recording.
+      * 11M parameters vs ~700K for the custom CNN — far more expressive,
+        avoids the convergence collapses we saw in v2 attempts #1-#3.
+      * Standard baseline for audio classification in 2026.
+
+    We adapt the 3-channel ImageNet input to our single-channel mel input by
+    averaging the first conv layer's weights across the RGB axis. This keeps
+    the pretrained features alive while accepting a 1-channel tensor.
     """
+
     def __init__(self):
         super().__init__()
-        def block(in_c, out_c, pool=True):
-            layers = [
-                nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
-                nn.BatchNorm2d(out_c),
-                nn.ReLU(inplace=True),
-            ]
-            if pool:
-                layers.append(nn.MaxPool2d(2))
-            return nn.Sequential(*layers)
-        self.feat = nn.Sequential(
-            block(1,   32),
-            block(32,  64),
-            block(64,  128),
-            block(128, 128),
-            block(128, 128, pool=False),
-        )
-        self.gap = nn.AdaptiveAvgPool2d(1)
-        self.drop = nn.Dropout(0.3)
-        self.fc = nn.Linear(128, 2)
+        try:
+            from torchvision.models import resnet18, ResNet18_Weights
+            backbone = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        except (ImportError, Exception):
+            # Fallback: untrained ResNet (no internet at runtime is fine)
+            from torchvision.models import resnet18
+            backbone = resnet18(weights=None)
+            logger = logging.getLogger(__name__)
+            logger.warning("ResNet-18 pretrained weights unavailable; training from scratch")
+
+        # Adapt first conv to accept 1-channel input by averaging RGB weights.
+        # Shape was (64, 3, 7, 7) → becomes (64, 1, 7, 7).
+        old_conv = backbone.conv1
+        new_conv = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        with torch.no_grad():
+            new_conv.weight.copy_(old_conv.weight.mean(dim=1, keepdim=True))
+        backbone.conv1 = new_conv
+
+        # Replace 1000-class ImageNet head with binary classifier.
+        backbone.fc = nn.Linear(backbone.fc.in_features, 2)
+
+        self.backbone = backbone
 
     def forward(self, x):
-        x = self.feat(x)
-        x = self.gap(x).flatten(1)
-        x = self.drop(x)
-        return self.fc(x)
+        return self.backbone(x)
 
 
 def stratified_split(y: np.ndarray, val_frac: float = 0.15, test_frac: float = 0.15,
