@@ -68,8 +68,8 @@ def _load_model():
 def _compute_mel(filepath: Path):
     """Compute a (1, 1, n_mels, T) normalised mel-spectrogram, or None on failure."""
     try:
-        import numpy as np
         import librosa
+        import numpy as np
     except ImportError:
         return None
     try:
