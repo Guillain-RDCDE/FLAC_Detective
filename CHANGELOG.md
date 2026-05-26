@@ -1,5 +1,79 @@
 ## Unreleased
 
+## v0.12.0 (2026-05-26) — ML v3, More Data + EfficientNet + Mixup
+
+Successor to v0.11. Same conservative "protect authentic files first"
+philosophy, slightly stronger detection. v3 catches more transcodes while
+keeping the false-positive rate on authentic FLACs exactly the same.
+
+### Test metrics on a 9 786-sample held-out set
+
+| Metric                              | v0.11 (v2)   | **v0.12 (v3)**    | Δ           |
+|-------------------------------------|--------------|--------------------|-------------|
+| Balanced accuracy                   | 0.811        | **0.834**          | **+0.023**  |
+| Precision (transcoded)              | 97.6 %       | 97.7 %             | ≈           |
+| Recall (transcoded)                 | 82.7 %       | **86.9 %**         | **+4.2 pp** |
+| Recall (authentic) = specificity    | 80.0 %       | 80.0 %             | ≈           |
+| Model size                          | 43 MB        | **16 MB**          | **−63 %**   |
+| Architecture                        | ResNet-18    | EfficientNet-B0    |             |
+
+Net effect: **4 more transcoded files out of every 100 are caught** with
+no change in the false-positive rate. The wheel is also 27 MB smaller.
+
+### What changed under the hood
+
+- **More data**: dataset grew from 2 237 authentic FLACs × 7 codecs (v2)
+  to **5 964 authentic FLACs × 10 codecs** (v3) — 65 244 samples vs 24 451.
+  Diversity cap raised from 30 to 100 files per top-label.
+- **More codecs**: added MP3 VBR V0/V2 and OGG Vorbis q5 in
+  `generate_transcodes.py`. The wild zoo of fake FLACs in the wild is no
+  longer limited to CBR-MP3.
+- **EfficientNet-B0** pretrained replaces ResNet-18: 4 M parameters vs
+  11 M, comparable or better accuracy at lower FLOPS. First conv layer
+  adapted from 3-channel RGB to 1-channel mel by averaging weights.
+- **Mixup** augmentation (Zhang et al., 2017): α=0.2 Beta-distributed
+  mixing of training pairs. Effective on small imbalanced datasets.
+- **Cosine annealing** LR schedule with 5-epoch linear warmup, replacing
+  ReduceLROnPlateau. Smoother convergence, no metric-step dependency.
+- **mmap-backed features** (`features/mmap/X.npy`): the 27 GB feature
+  tensor stays on disk and is paged in by the DataLoader, instead of
+  being fully resident in RAM. Without this change v3 was OOM-killed on
+  the 62 GB Hetzner host (see the v3 lesson below).
+- **Test set ~9 800 samples** vs ~3 700 for v2, so test metrics are now
+  much less sensitive to small-sample noise.
+
+### Lesson learned from v3 development
+
+Loading the v3 features as a compressed `.npz` made train.py OOM the
+moment it co-existed with Whisper / Orientation / LanguageTool on the
+same Hetzner host: anon-rss peaked above 61 GB out of 62 GB. Fix:
+convert once to plain `.npy` and use `np.load(..., mmap_mode='r')`. Peak
+RAM dropped from 61 GB to ~5 GB. Documented in `ml/convert_npz_to_npy.py`
+and in the inline comments of `ml/train.py`.
+
+The general principle: **on a shared host, don't load datasets larger than
+~50 % of host RAM**. Always check the math before launching.
+
+### Code changes
+
+- `src/flac_detective/models/cnn_v3.ts.pt` (16 MB): replaces cnn_v2.ts.pt.
+- `ml_classifier.py`: `_MODEL_PATH` -> cnn_v3.ts.pt. Threshold and score
+  mapping unchanged (0.5 → 30 pts).
+- `ml/train.py`:
+  - `TranscodeCNN` is now an `EfficientNet-B0` wrapper.
+  - `mixup_data()` helper + Mixup application in the train loop.
+  - Cosine annealing + linear warmup via `SequentialLR`.
+  - mmap-aware loading (`features_path.is_dir()` branch).
+  - Per-sample normalisation in `MelDataset.__getitem__` (so mmap stays
+    on disk; the v2 pre-load + bulk normalisation broke this).
+- `ml/convert_npz_to_npy.py` (new): one-shot tool to convert the
+  compressed `.npz` features into mmap-able `.npy` files.
+
+### Sanity check
+
+Five known-authentic Zero 7 CD-ripped tracks tested with the v3 bundled
+model: all five return score=0. No regression.
+
 ## v0.11.0 (2026-05-26) — ML v2, Properly Trained
 
 The headline: **Rule 12 now actually works.** Previous version (v0.10.x)

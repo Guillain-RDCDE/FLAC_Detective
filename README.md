@@ -17,7 +17,28 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
-## 🆕 What's new in v0.11.0 — ML v2, Properly Trained (May 2026)
+## 🆕 What's new in v0.12.0 — ML v3 (May 2026)
+
+Smaller, faster, more accurate. Same conservative philosophy.
+
+| Metric                              | v0.11 (v2)   | **v0.12 (v3)**    | Δ           |
+|-------------------------------------|--------------|--------------------|-------------|
+| Balanced accuracy                   | 0.811        | **0.834**          | +0.023      |
+| Recall on transcoded                | 82.7 %       | **86.9 %**         | **+4.2 pp** |
+| Recall on authentic (specificity)   | 80.0 %       | 80.0 %             | ≈           |
+| Model size (bundled)                | 43 MB        | **16 MB**          | **−63 %**   |
+| Architecture                        | ResNet-18    | EfficientNet-B0    |             |
+
+**4 more transcoded files out of every 100 are now caught**, at the same
+false-positive rate. The wheel is also 27 MB lighter.
+
+Under the hood: more training data (5 964 × 10 codecs = 65 244 samples vs
+24 451), EfficientNet-B0 pretrained replacing ResNet-18, Mixup
+augmentation, cosine annealing LR, and mmap-backed feature loading (the
+27 GB feature tensor stays on disk so the training process plays nice on
+shared hosts). Full story in the [CHANGELOG](CHANGELOG.md).
+
+## 🕰️ What's new in v0.11.0 — ML v2, Properly Trained (May 2026)
 
 The 12th scoring rule, introduced in v0.10.0, was technically functional
 but had a **95 % false-positive rate** on authentic FLAC files. v0.11.0
