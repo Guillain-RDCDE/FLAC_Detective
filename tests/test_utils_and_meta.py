@@ -15,7 +15,9 @@ from flac_detective.__version__ import (
     __release_date__,
     __release_name__,
     __url__,
-    __version__ as v,
+)
+from flac_detective.__version__ import __version__ as v
+from flac_detective.__version__ import (
     __version_info__,
 )
 from flac_detective.colors import Colors, colorize
