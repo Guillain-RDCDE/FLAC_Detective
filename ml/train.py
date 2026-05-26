@@ -36,25 +36,25 @@ log = logging.getLogger(__name__)
 
 
 class MelDataset(Dataset):
-    """Mel-spectrogram dataset with optional SpecAugment data augmentation.
+    """Mel-spectrogram dataset with per-sample normalisation and optional
+    SpecAugment data augmentation.
+
+    Normalisation is now applied **per-item** at `__getitem__` time rather
+    than upfront on the whole array. The upfront approach in earlier
+    versions materialised a fully-loaded float32 copy of X in RAM, which
+    broke mmap-backed loading on hosts where the dataset doesn't fit in
+    memory.
 
     SpecAugment (Park et al., 2019) randomly masks frequency bands and time
-    steps during training. It has been shown to substantially improve
-    generalisation on audio classification tasks with limited training data.
-    Applied only when `augment=True`.
+    steps during training. Applied only when `augment=True`.
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray, augment: bool = False,
+    def __init__(self, X, y: np.ndarray, augment: bool = False,
                  freq_mask: int = 15, time_mask: int = 20, n_masks: int = 2):
-        # X comes as (N, 128, T) float32. Add channel dim for Conv2d -> (N, 1, 128, T)
-        self.X = X[:, None, :, :].astype(np.float32)
+        # X may be either an in-memory ndarray of shape (N, n_mels, T) OR a
+        # mmap-backed ndarray. We keep it as-is and slice per item.
+        self.X = X
         self.y = y.astype(np.int64)
-        # Per-spectrogram normalisation (mel values are in dB, roughly -80..0)
-        # Normalise to [-1, 1] per-sample to make training stable across content.
-        mn = self.X.min(axis=(2, 3), keepdims=True)
-        mx = self.X.max(axis=(2, 3), keepdims=True)
-        rng = np.where((mx - mn) > 1e-6, mx - mn, 1.0)
-        self.X = 2 * (self.X - mn) / rng - 1.0
         self.augment = augment
         self.freq_mask = freq_mask
         self.time_mask = time_mask
@@ -64,6 +64,12 @@ class MelDataset(Dataset):
 
     def __len__(self):
         return len(self.y)
+
+    def _normalise(self, x: np.ndarray) -> np.ndarray:
+        """Per-sample min-max normalisation to [-1, 1]."""
+        mn, mx = x.min(), x.max()
+        rng = max(mx - mn, 1e-6)
+        return (2 * (x - mn) / rng - 1.0).astype(np.float32)
 
     def _spec_augment(self, x: np.ndarray) -> np.ndarray:
         """Apply SpecAugment in-place on a copy of `x` (shape (1, n_mels, T))."""
@@ -76,7 +82,7 @@ class MelDataset(Dataset):
                 f = self._rng.integers(0, self.freq_mask + 1)
                 if f > 0:
                     f0 = self._rng.integers(0, max(n_mels - f, 1))
-                    x[:, f0:f0 + f, :] = -1.0  # masked = our normalisation's minimum
+                    x[:, f0:f0 + f, :] = -1.0  # masked = normalisation's minimum
             # Time mask
             if self.time_mask > 0:
                 t = self._rng.integers(0, self.time_mask + 1)
@@ -86,7 +92,11 @@ class MelDataset(Dataset):
         return x
 
     def __getitem__(self, idx):
-        x = self.X[idx]
+        # X[idx] returns shape (n_mels, T). Convert to (1, n_mels, T).
+        # np.asarray copies the mmap slice into a real in-RAM ndarray for the
+        # downstream work. Cheap — single sample is ~440 KB.
+        x = np.asarray(self.X[idx])[None, :, :]
+        x = self._normalise(x)
         if self.augment:
             x = self._spec_augment(x)
         return x, self.y[idx]
@@ -124,52 +134,84 @@ class FocalLoss(nn.Module):
 
 
 class TranscodeCNN(nn.Module):
-    """ResNet-18 pretrained on ImageNet, fine-tuned for binary mel-spec classification.
+    """EfficientNet-B0 pretrained on ImageNet, fine-tuned for mel-spec binary classification.
 
-    Input  : (B, 1, 128, T)  with T ≈ 431 for 10 s @ sr=22050, hop=512
-    Output : (B, 2)          logits for {authentic, transcoded}
+    Input  : (B, 1, n_mels, T)  with T ≈ 862 for 10 s @ sr=44100, hop=512
+    Output : (B, 2)             logits for {authentic, transcoded}
 
-    Why pretrained ResNet rather than a from-scratch custom CNN:
-      * Mel-spectrograms are images. ResNet has learnt to recognise edges,
-        textures and shapes on ImageNet — those primitives are exactly what
-        distinguishes the spectral signature of a transcode from a real
-        recording.
-      * 11M parameters vs ~700K for the custom CNN — far more expressive,
-        avoids the convergence collapses we saw in v2 attempts #1-#3.
-      * Standard baseline for audio classification in 2026.
+    Why EfficientNet-B0 rather than ResNet-18:
+      * EfficientNet uses depthwise-separable convolutions and a more careful
+        width/depth/resolution scaling. It reaches similar or better accuracy
+        with ~5.3 M parameters vs ResNet-18's 11.7 M, and consumes less FLOPS
+        per forward pass.
+      * On small-to-medium audio classification datasets (the regime we are
+        in — 24k–50k mel-spectrograms), EfficientNet-B0 is the typical
+        baseline that outperforms ResNet-18 by 2–4 points of balanced
+        accuracy.
 
-    We adapt the 3-channel ImageNet input to our single-channel mel input by
-    averaging the first conv layer's weights across the RGB axis. This keeps
-    the pretrained features alive while accepting a 1-channel tensor.
+    First-block adaptation: EfficientNet's stem is `features[0]`, a
+    `Conv2dNormActivation` whose conv is at index 0. We replace that
+    3-channel conv with a 1-channel version, averaging the RGB filter
+    weights to preserve the pretrained features.
     """
 
     def __init__(self):
         super().__init__()
         try:
-            from torchvision.models import ResNet18_Weights, resnet18
-            backbone = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+            from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
+            backbone = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
         except (ImportError, Exception):
-            # Fallback: untrained ResNet (no internet at runtime is fine)
-            from torchvision.models import resnet18
-            backbone = resnet18(weights=None)
+            from torchvision.models import efficientnet_b0
+            backbone = efficientnet_b0(weights=None)
             logger = logging.getLogger(__name__)
-            logger.warning("ResNet-18 pretrained weights unavailable; training from scratch")
+            logger.warning("EfficientNet-B0 pretrained weights unavailable; training from scratch")
 
         # Adapt first conv to accept 1-channel input by averaging RGB weights.
-        # Shape was (64, 3, 7, 7) → becomes (64, 1, 7, 7).
-        old_conv = backbone.conv1
-        new_conv = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        # EfficientNet stem: features[0] = Conv2dNormActivation; its conv is [0].
+        # Shape was (32, 3, 3, 3) → becomes (32, 1, 3, 3).
+        old_conv = backbone.features[0][0]
+        new_conv = nn.Conv2d(
+            in_channels=1,
+            out_channels=old_conv.out_channels,
+            kernel_size=old_conv.kernel_size,
+            stride=old_conv.stride,
+            padding=old_conv.padding,
+            bias=False,
+        )
         with torch.no_grad():
             new_conv.weight.copy_(old_conv.weight.mean(dim=1, keepdim=True))
-        backbone.conv1 = new_conv
+        backbone.features[0][0] = new_conv
 
-        # Replace 1000-class ImageNet head with binary classifier.
-        backbone.fc = nn.Linear(backbone.fc.in_features, 2)
+        # Replace 1000-class ImageNet head. EfficientNet's classifier is
+        # `Sequential(Dropout, Linear)`. We keep the dropout, swap the linear.
+        in_features = backbone.classifier[1].in_features
+        backbone.classifier[1] = nn.Linear(in_features, 2)
 
         self.backbone = backbone
 
     def forward(self, x):
         return self.backbone(x)
+
+
+def mixup_data(x: torch.Tensor, y: torch.Tensor, alpha: float = 0.2):
+    """Mixup augmentation (Zhang et al., 2017).
+
+    Combines pairs of training samples linearly with a Beta(alpha, alpha) mix
+    ratio. The corresponding loss term becomes a convex combination of the
+    two original labels' losses. Effective regularisation for binary
+    classification on small datasets.
+
+    Returns: (mixed_x, y_a, y_b, lam) where the loss is
+        lam * criterion(out, y_a) + (1 - lam) * criterion(out, y_b)
+    """
+    if alpha <= 0:
+        return x, y, y, 1.0
+    lam = float(np.random.beta(alpha, alpha))
+    batch_size = x.size(0)
+    perm = torch.randperm(batch_size, device=x.device)
+    mixed_x = lam * x + (1 - lam) * x[perm]
+    y_a, y_b = y, y[perm]
+    return mixed_x, y_a, y_b, lam
 
 
 def stratified_split(y: np.ndarray, val_frac: float = 0.15, test_frac: float = 0.15,
@@ -230,8 +272,18 @@ def evaluate(model, loader, device) -> dict:
 def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
          lr: float, mem_fraction: float, early_stop_patience: int = 8) -> int:
     log.info(f"Loading features from {features_path}")
-    data = np.load(features_path, allow_pickle=True)
-    X, y = data["X"], data["y"]
+    # If features_path is a directory containing X.npy/y.npy, load X with
+    # mmap_mode='r' so it stays on disk and we page samples into RAM as the
+    # DataLoader requests them. This is how we keep peak RAM under control
+    # on a host shared with other services (see the v3 OOM lesson in the
+    # CHANGELOG: a 27 GB compressed .npz expanded over 60 GB on load).
+    if features_path.is_dir():
+        X = np.load(features_path / "X.npy", mmap_mode="r")
+        y = np.load(features_path / "y.npy")
+        log.info(f"Loaded mmap-backed X ({X.nbytes/1024**3:.2f} GB on disk, paged on demand)")
+    else:
+        data = np.load(features_path, allow_pickle=True)
+        X, y = data["X"], data["y"]
     log.info(f"X shape: {X.shape}, y shape: {y.shape}, "
              f"class balance: {np.bincount(y).tolist()}")
 
@@ -247,9 +299,21 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
 
     # Augmentation only at train time. Validation and test must see the
     # un-augmented signal so metrics reflect real-world inference behaviour.
-    train_ds = MelDataset(X[train_idx], y[train_idx], augment=True)
-    val_ds   = MelDataset(X[val_idx],   y[val_idx],   augment=False)
-    test_ds  = MelDataset(X[test_idx],  y[test_idx],  augment=False)
+    # Note: with mmap-backed X, the dataset stores integer index lists rather
+    # than materialised sub-arrays — Python's fancy indexing on a mmap returns
+    # a copy, so we keep the indices and slice in __getitem__.
+    class _IndexedDataset(MelDataset):
+        def __init__(self, X, y, idx, **kw):
+            super().__init__(X, y, **kw)
+            self._idx = idx
+        def __len__(self):
+            return len(self._idx)
+        def __getitem__(self, i):
+            return super().__getitem__(self._idx[i])
+
+    train_ds = _IndexedDataset(X, y, train_idx, augment=True)
+    val_ds   = _IndexedDataset(X, y, val_idx,   augment=False)
+    test_ds  = _IndexedDataset(X, y, test_idx,  augment=False)
 
     # Re-balance train batches: rarer class (authentic, label 0) gets up-weighted.
     train_y = y[train_idx]
@@ -277,14 +341,29 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
     # combination here.
     log.info(f"Class counts (train): {class_counts.tolist()} (handled by WeightedRandomSampler)")
 
-    # Lower LR than v1 — the previous v2 run oscillated wildly between
-    # "predict all authentic" and "predict all transcoded" with lr=1e-3.
-    # 3e-4 gives smoother convergence on this imbalanced setup.
+    # v3 optimisation: AdamW + Cosine LR schedule with linear warmup.
+    # Cosine annealing is the dominant schedule for fine-tuning vision
+    # backbones in 2026 — smoother than ReduceLROnPlateau and does not
+    # require a metric to step on (avoids the metric-choice trap).
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="max", factor=0.5, patience=4
+    warmup_epochs = max(1, epochs // 10)
+    warmup = torch.optim.lr_scheduler.LinearLR(
+        optimizer, start_factor=0.01, end_factor=1.0, total_iters=warmup_epochs
     )
+    cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=epochs - warmup_epochs, eta_min=lr * 0.01
+    )
+    scheduler = torch.optim.lr_scheduler.SequentialLR(
+        optimizer, schedulers=[warmup, cosine], milestones=[warmup_epochs]
+    )
+    log.info(f"LR schedule: linear warmup {warmup_epochs} epochs -> cosine annealing")
     criterion = nn.CrossEntropyLoss()
+
+    # Mixup augmentation parameters. alpha=0.2 is the Beta(0.2, 0.2) used in
+    # the original mixup paper for image classification — produces mix ratios
+    # near 0 or 1 most of the time, with occasional "real mix" samples.
+    mixup_alpha = 0.2
+    log.info(f"Mixup augmentation: alpha={mixup_alpha}")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     # Track balanced_acc (mean of per-class recalls) for model selection.
@@ -301,9 +380,12 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
         for xb, yb in train_loader:
             xb = xb.to(device, non_blocking=True)
             yb = yb.to(device, non_blocking=True)
+            # Apply Mixup augmentation. Loss is the convex combination of the
+            # losses against the two mixed labels.
+            mixed_x, y_a, y_b, lam = mixup_data(xb, yb, alpha=mixup_alpha)
             optimizer.zero_grad()
-            logits = model(xb)
-            loss = criterion(logits, yb)
+            logits = model(mixed_x)
+            loss = lam * criterion(logits, y_a) + (1 - lam) * criterion(logits, y_b)
             loss.backward()
             optimizer.step()
             running += loss.item() * yb.numel()
@@ -311,8 +393,8 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
         train_loss = running / n
 
         val_metrics = evaluate(model, val_loader, device)
-        # Step on balanced_acc, not F1 (which is biased on imbalanced sets).
-        scheduler.step(val_metrics["balanced_acc"])
+        # Cosine schedule steps once per epoch regardless of metric.
+        scheduler.step()
         dt = time.time() - t0
 
         log.info(
