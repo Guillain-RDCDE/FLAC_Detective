@@ -146,7 +146,7 @@ class TranscodeCNN(nn.Module):
     def __init__(self):
         super().__init__()
         try:
-            from torchvision.models import resnet18, ResNet18_Weights
+            from torchvision.models import ResNet18_Weights, resnet18
             backbone = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
         except (ImportError, Exception):
             # Fallback: untrained ResNet (no internet at runtime is fine)
