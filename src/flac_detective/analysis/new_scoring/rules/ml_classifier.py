@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # Module-level model cache: only load the model once per process.
 _MODEL = None
 _MODEL_LOAD_ATTEMPTED = False
-_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v2.ts.pt"
+_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v3.ts.pt"
 
 # Mel-spec config — MUST match ml/extract_features.py used at training time.
 _SAMPLE_RATE = 44100  # MUST match ml/extract_features.py SAMPLE_RATE

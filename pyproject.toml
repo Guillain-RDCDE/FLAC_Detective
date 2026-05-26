@@ -178,7 +178,7 @@ disable = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.11.0"
+version = "0.12.0"
 tag_format = "v$version"
 update_changelog_on_bump = true
 version_files = [
