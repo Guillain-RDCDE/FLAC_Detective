@@ -134,128 +134,183 @@ Rule12MLClassifier (12th scoring rule)
 
 ---
 
-## Lessons from six training attempts
+## Six attempts to train one model
 
-Six attempts. Four collapses, one painful OOM, one working model.
-Each one taught something specific.
+Spoiler : il a fallu six itérations pour obtenir un modèle utile, dont
+quatre qui se sont crashées de quatre façons différentes. Si vous lisez
+ceci en cherchant à entraîner un classifieur audio binaire, lisez la
+section ci-dessous **avant** d'écrire votre boucle d'entraînement — ça
+vous économisera probablement trois soirées.
 
-### Attempt #1 — model collapses to "always predict authentic"
+### Attempt #1 — "j'ai trop bien équilibré, le modèle dit toujours non"
 
-**What was tried**: Focal loss with per-class `alpha = [n/(2·c_authentic),
-n/(2·c_transcoded)]` *on top of* a `WeightedRandomSampler` that already
-rebalances training batches.
+Idée brillante du moment : combiner une **focal loss** avec poids par
+classe (`alpha = [n/(2·c_auth), n/(2·c_trans)]`) **et** un
+`WeightedRandomSampler` qui ré-équilibre déjà les batches. Logique du
+type "deux fois plus c'est deux fois mieux".
 
-**What happened**: The double class-balancing massively up-weighted the
-rare class. The cheapest way to minimise the loss became "always predict
-authentic". Test recall on transcoded files collapsed to **0**.
+Sauf que non. La rare classe (authentic) se retrouve sur-pondérée d'un
+ordre de grandeur. Le modèle apprend en trois epochs la stratégie la
+plus rentable : **dire "authentic" pour tout**. Recall sur la classe
+transcoded : `0`. Joli.
 
-**Lesson**: Pick **one** mechanism to handle class imbalance, not two.
-Either the sampler **or** the loss weighting, not both.
+> 💡 **Lesson** — Pour gérer l'imbalance, **une seule** technique à la
+> fois. Soit on rééquilibre les batches via le sampler, soit on
+> pondère la loss, mais pas les deux. Sinon on sur-corrige et le
+> modèle apprend la fainéantise.
 
-### Attempt #2 — model collapses to "always predict transcoded"
+### Attempt #2 — "génial, val_f1 = 95 % !... ah non en fait"
 
-**What was tried**: Dropped the focal loss. Kept `WeightedRandomSampler` +
-plain CrossEntropyLoss. Selected the best checkpoint on validation F1
-(computed on the transcoded class).
+OK, focal loss virée. On garde sampler + plain CrossEntropy. La courbe
+de `val_f1` grimpe joliment à **0.95** dès l'epoch 4 et y reste.
+Champagne... jusqu'à ce qu'on regarde le détail. Le modèle est
+maintenant *l'opposé* de l'attempt #1 : il dit "transcoded" pour tout.
+Le test confirme : `tn = 0`. Zéro authentique correctement classé sur
+333.
 
-**What happened**: With a 1:10 authentic:transcoded test ratio, F1-on-class-1
-naturally peaks at "always predict transcoded" (recall=1, precision ≈ 0.91,
-F1 ≈ 0.95). The training loop happily saved that degenerate model as
-"best".
+Pourquoi `val_f1` est super alors ? Parce que F1 est calculé **sur la
+classe transcoded uniquement**, et qu'avec un dataset 1:10, "tout
+transcoded" donne mécaniquement recall=1 et précision ≈ 0.91. Le
+training loop, fier de lui, a sauvegardé ce modèle dégénéré comme
+"meilleur".
 
-**Lesson**: **F1 on a single class is not a robust selection metric on
-imbalanced data.** Use balanced accuracy = mean of per-class recalls.
+> 💡 **Lesson** — Sur un dataset déséquilibré, F1-on-class-1 est une
+> métrique qui peut être *triée* en prédisant la classe majoritaire.
+> Utilisez **balanced_accuracy** = moyenne des recalls par classe.
+> Elle ne peut pas être truquée comme ça.
 
-### Attempt #3 — oscillation, no convergence
+### Attempt #3 — "ça oscille, on dirait du yoyo"
 
-**What was tried**: Switched the selection metric to `balanced_acc`, lowered
-LR from 1e-3 to 3e-4, used the original custom CNN architecture (5 conv
-blocks + GAP + FC, ~700 K parameters).
+Maintenant on sélectionne sur `balanced_acc`, on baisse le LR de
+`1e-3` à `3e-4`, et on garde notre petit CNN custom (5 blocs conv,
+~700 K paramètres). Lancement.
 
-**What happened**: The val metric oscillated wildly between
-"all-authentic" (recall_auth=1.0, recall_trans=0.0) and "all-transcoded"
-(opposite) every other epoch. balanced_acc stayed at 0.50.
+Epoch 1 : 0.55. Epoch 2 : 0.50. Epoch 3 : auth=100 % / trans=0 %. Epoch
+4 : auth=0 % / trans=100 %. **Le modèle balance violemment entre les
+deux extrêmes**, sans jamais converger. balanced_acc à 0.50 +/- du
+bruit. Au bout de 15 epochs il est aussi perdu qu'au début.
 
-**Lesson**: A 700 K-parameter from-scratch CNN does not have enough
-capacity, or enough prior, to find the discriminative signal in a small
-imbalanced audio dataset. Use **transfer learning** — start from
-ImageNet-pretrained weights and fine-tune.
+> 💡 **Lesson** — Un CNN from-scratch de 700 K paramètres n'a ni la
+> capacité ni le prior nécessaires pour trouver un signal subtil dans
+> un dataset audio déséquilibré. **Transfer learning** : démarrer
+> depuis des poids pré-entraînés (ImageNet → fine-tune). C'est la
+> baseline standard pour une raison.
 
-### Attempt #4 — pretrained ResNet, still 0.50
+### Attempt #4 — "même problème, j'abandonne... wait, c'est pas l'archi"
 
-**What was tried**: Replaced the custom CNN with a ResNet-18 pretrained
-on ImageNet. Adapted the first conv layer to accept 1-channel input by
-averaging the RGB filters. balanced_acc selection, lr 3e-4.
+On remplace le custom CNN par un **ResNet-18 pré-entraîné**. On adapte
+la première conv (3-channel RGB → 1-channel mel) en moyennant les
+poids RGB. balanced_acc en sortie : toujours autour de **0.50**, même
+oscillation. Le modèle pré-entraîné le plus standard de la planète,
+qui marche pour tout le monde, refuse d'apprendre sur nos features.
 
-**What happened**: The model still oscillated near balanced_acc 0.50 in
-the first few epochs.
+C'est là que j'ai retourné `extract_features.py` pour vraiment
+comprendre ce qu'on entraînait. Et boum.
 
-**Lesson, finally — the root cause**: `extract_features.py` was
-**resampling audio to 22 050 Hz before computing the mel-spectrogram**.
-That means Nyquist = 11 025 Hz, so anything above 11 kHz was erased.
+```python
+SAMPLE_RATE = 22050   # downsample to halve compute
+```
 
-But the MP3 transcoding signature is **a sharp roll-off ("the cliff") at
-14–21 kHz** depending on bitrate. By downsampling first, we were
-deleting the exact signal the model was supposed to learn. The
-classifier wasn't oscillating because of LR or architecture — it was
-oscillating because **the features did not contain the discriminative
-information**.
+22 050 Hz. Nyquist = 11 025 Hz. **On supprime tout le contenu au-dessus
+de 11 kHz avant même de calculer le mel-spectrogramme.**
 
-Changed `SAMPLE_RATE` to **44 100 Hz** and re-extracted. Attempt #5
-reached balanced_acc 0.82 in three epochs.
+Mais la signature MP3 — *la falaise spectrale* qu'on essaie de
+détecter — vit à **14-21 kHz** selon le bitrate. On était littéralement
+en train d'apprendre à un modèle à distinguer des transcodes... avec un
+filtre passe-bas qui effaçait exactement la signature des transcodes.
+Le réseau n'oscillait pas par incompétence : il oscillait parce que
+**le signal n'était pas dans les données**.
 
-> ⚠️ **If you ever touch the feature extraction, do not downsample below
-> 44.1 kHz.** The whole pipeline depends on the high-frequency content
-> being preserved.
+`SAMPLE_RATE = 44100`. Re-extract features. Attempt #5 atteint
+balanced_acc 0.82 en **trois epochs**.
 
-### Attempt #5 — the v2 working model (shipped in v0.11.0)
+> 💡 **Lesson** — Quand un modèle solide refuse d'apprendre, le
+> problème n'est probablement pas le modèle. Vérifiez que vos
+> features contiennent réellement le signal que vous voulez apprendre.
+> Faites un dump visuel d'un sample avant de blamer l'architecture.
+>
+> ⚠️ **Et si vous touchez à `extract_features.py` un jour : ne
+> downsamplez jamais sous 44 100 Hz.** Tout le pipeline en dépend.
 
-**What was tried**: Same configuration as attempt #4 but with the
-44 100 Hz fix. Custom 5-block CNN (later replaced — see #5b below) on
-24 451 samples (2 237 authentic × 7 codecs + 2 237 authentics).
+### Attempt #5 — ça marche enfin (v2, shipped in v0.11.0)
 
-**What happened**: Trained cleanly. balanced_acc reached 0.811 by epoch
-3, then plateaued; early-stop at epoch 11. Specificity finally meaningful
-(80 % vs 4.5 % in the broken v1 we shipped in v0.10).
+Même config que #4 mais avec le fix sample rate. 24 451 samples (2 237
+authentiques × 7 codecs + originaux). Custom CNN ré-essayé, encore en
+dessous, ResNet-18 pré-entraîné repris.
 
-**Lesson**: When the four previous lessons are applied together, a small
-mel-spec CNN can learn a non-trivial signal on this task. Shipped.
+Convergence propre. balanced_acc atteint **0.811** à l'epoch 3, plateau
+ensuite, early-stop à l'epoch 11. Specificité à 80 % (vs un déprimant
+4.5 % pour le v1 broken qu'on avait shipped en v0.10). Le modèle voit
+enfin la falaise MP3 et apprend à la nommer.
 
-### Attempt #6 — the v3 working model, scaled up (shipped in v0.12.0)
+Shipped en **v0.11.0**.
 
-**What was tried**: Three changes from v2.
-  - **More data**: 5 964 authentic FLACs × 10 codecs = 65 244 samples
-    (2.6× v2). Added MP3 VBR V0/V2 and OGG Vorbis q5 to the codec mix.
-  - **Better architecture**: EfficientNet-B0 pretrained replaces the
-    custom CNN (which was tried again briefly and underperformed).
-  - **Better optimisation**: Mixup augmentation, cosine annealing with
-    linear warmup, AdamW.
+> 💡 **Lesson** — Quand les quatre leçons précédentes sont appliquées
+> ensemble (un seul mécanisme d'imbalance, métrique non-trichable,
+> transfer learning, vraies features), un classifieur mel-spec CNN
+> apprend la tâche. Pas miraculeux. Juste correct.
 
-**What happened first**: **OOM kill on the Hetzner host.** The 27 GB
-compressed `.npz` feature file, when loaded by `np.load`, expanded into
-anonymous RSS that pushed the training process above the 62 GB host RAM
-threshold. The kernel killed it at 61 GB anon-rss in three minutes.
+### Attempt #6 — "scalons" (v3, shipped in v0.12.0)
 
-**Fix**: Convert the `.npz` to a plain `.npy` once (see
-`ml/convert_npz_to_npy.py`), load it with `np.load(..., mmap_mode='r')`,
-and move per-sample normalisation from a one-shot upfront pass into
-`MelDataset.__getitem__`. Peak RAM dropped from 61 GB to ~5 GB. Training
-re-started cleanly.
+Trois changements par rapport à v2 :
+1. **Plus de données** — 5 964 authentiques × 10 codecs = **65 244
+   samples** (2.6× v2). On ajoute MP3 VBR V0/V2 et OGG Vorbis q5 au
+   zoo des transcodes.
+2. **Meilleure archi** — EfficientNet-B0 pré-entraîné (4 M params, vs
+   11 M pour ResNet-18). Plus efficace par paramètre.
+3. **Meilleure optim** — Mixup α=0.2, cosine annealing avec warmup
+   linéaire, AdamW.
 
-**Lesson 1**: **On a shared host, don't load datasets larger than ~50 %
-of host RAM.** Always check the math before launching — and remember
-that `np.load` of a compressed `.npz` materialises every array in
-memory, no matter how small you think your `np.savez_compressed` output
-looks on disk.
+On lance.
 
-**Lesson 2**: **When you scale up the data, the bottleneck moves.** v3
-gains modestly on accuracy (+0.023 balanced_acc) but introduces a
-real-world infra problem (RAM) that didn't exist at v2 scale. Always
-benchmark on the smallest configuration that demonstrates the problem,
-not on the most ambitious one.
+**OOM kill au bout de trois minutes.** Le `.npz` compressé fait 27 GB
+sur disque ; `np.load` le décompresse intégralement en RAM. Plus
+PyTorch, plus les DataLoader workers, on dépasse 61 GB d'anonymous RSS
+sur un host à 62 GB qui héberge aussi Whisper, LanguageTool, etc. Le
+kernel nous descend.
 
-**What v3 ended with**: balanced_acc 0.834, recall on transcoded 86.9 %,
-specificity 80 %, 16 MB bundled. Shipped in v0.12.0.
+Fix : convertir une fois en `.npy` plain (uncompressed, 32 GB sur
+disque mais qui restent sur disque), charger avec
+`np.load(..., mmap_mode='r')`, et déplacer la normalisation
+per-sample dans `MelDataset.__getitem__` au lieu d'un pass upfront sur
+tout le tensor. Peak RAM training tombe de 61 GB à ~5 GB. On relance.
+
+Trains cleanly. balanced_acc atteint **0.834** à l'epoch 3, plateau,
+early-stop à l'epoch 13. Modèle 16 MB en TorchScript. Shipped en
+**v0.12.0**.
+
+> 💡 **Lesson #1** — Sur un host partagé, **ne chargez pas un dataset
+> qui dépasse ~50 % de la RAM**. Et souvenez-vous que `np.load` d'un
+> `.npz` compressé matérialise *intégralement* chaque array — peu
+> importe la taille apparente du fichier sur disque.
+>
+> 💡 **Lesson #2** — **Quand vous scalez la donnée, le bottleneck
+> change.** v3 gagne 0.023 sur balanced_acc mais introduit un vrai
+> problème infra (RAM) qui n'existait pas en v2. Benchmarkez d'abord
+> sur la plus petite config qui démontre le problème, pas sur la plus
+> ambitieuse.
+
+### Take-aways si vous voulez entraîner un classifieur audio
+
+Si après les six histoires ci-dessus vous voulez quand même essayer,
+voilà la check-list condensée :
+
+1. **Une seule technique d'imbalance** à la fois.
+2. **Métrique non-triquable** pour la sélection (balanced_acc, pas
+   F1-on-class-1).
+3. **Transfer learning** (ResNet-18 ou EfficientNet-B0 pré-entraîné),
+   pas de CNN custom from-scratch sauf si vous savez exactement
+   pourquoi.
+4. **Vérifiez que vos features contiennent le signal.** Faites un
+   `librosa.display.specshow` d'un échantillon authentique et d'un
+   échantillon transcodé. Si vous ne voyez pas la différence à l'œil,
+   le réseau ne la verra pas non plus.
+5. **Sur host partagé : mmap.** Pas de `.npz` qui se décompresse en RAM.
+6. **Scale up incrémentalement.** Validez sur N=1000 avant de lancer
+   sur N=65000.
+
+Les six attempts ci-dessus correspondent chacun à une violation d'un
+des six points. Voilà, vous êtes prévenus.
 
 ---
 
