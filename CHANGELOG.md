@@ -1,5 +1,39 @@
 ## Unreleased
 
+### ML pipeline improvements (in progress, targeting v0.11.0)
+
+Code changes already on `main`; the v2 model itself is still being trained
+on Hetzner at time of commit. The v0.11.0 tag will be cut once the trained
+weights are validated and bundled.
+
+- **ml/generate_transcodes.py**: codec coverage extended from 7 to 10.
+  Added MP3 VBR V0 (~245 kbps avg) and V2 (~190 kbps avg) — VBR is what
+  most discerning encoders actually use in the wild and leaves a
+  different spectral footprint than CBR. Added OGG Vorbis q5 (~160 kbps)
+  to cover Bandcamp's lossy download format. Each authentic FLAC now
+  gets transcoded through 10 codec/bitrate combinations.
+- **ml/train.py**: three-pass evolution
+  - Initial v2 attempt: focal loss with per-class alpha on top of the
+    existing `WeightedRandomSampler`. The double class-balancing caused
+    the model to collapse to "always predict authentic" (test recall=0).
+  - Second attempt: removed the focal loss, kept WeightedRandomSampler
+    + plain CrossEntropyLoss. The model then oscillated between
+    "all-authentic" and "all-transcoded" predictions epoch to epoch.
+    Best epoch was selected on `val_f1` calculated on the transcoded
+    class, which is itself biased on a 1:10 imbalanced dataset.
+  - Third attempt (current): **balanced accuracy** (mean of per-class
+    recalls) is now both the model-selection criterion and the LR
+    scheduler target. This is the textbook fix for an imbalanced binary
+    classification: it cannot be gamed by predicting the majority class.
+    Also lowered LR from 1e-3 to 3e-4 for stability.
+  - SpecAugment intensity reduced from (freq=20, time=30) to
+    (freq=15, time=20) to be less destructive on small datasets.
+  - The `evaluate()` function now also returns `balanced_acc`,
+    `recall_pos`, `recall_neg`, so per-class behaviour is visible in
+    every epoch log line.
+- **ml/run_pipeline.sh**: updated to point at the v2 model directory
+  (`models/cnn_v2`) and pass `--epochs 50 --early-stop-patience 8`.
+
 ## v0.10.1 (2026-05-25)
 
 Hotfix for the CI signal. `src/flac_detective/analysis/new_scoring/rules/ml_classifier.py`

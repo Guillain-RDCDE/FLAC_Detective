@@ -60,13 +60,28 @@ class Codec:
 
 
 CODECS = (
-    Codec("mp3_128",  "libmp3lame", "mp3",  "128k"),
-    Codec("mp3_192",  "libmp3lame", "mp3",  "192k"),
-    Codec("mp3_256",  "libmp3lame", "mp3",  "256k"),
-    Codec("mp3_320",  "libmp3lame", "mp3",  "320k"),
-    Codec("aac_192",  "aac",        "m4a",  "192k"),
-    Codec("aac_256",  "aac",        "m4a",  "256k"),
-    Codec("opus_128", "libopus",    "opus", "128k"),
+    # MP3 CBR — the historical standard, all common bitrates
+    Codec("mp3_128",     "libmp3lame", "mp3",  "128k"),
+    Codec("mp3_192",     "libmp3lame", "mp3",  "192k"),
+    Codec("mp3_256",     "libmp3lame", "mp3",  "256k"),
+    Codec("mp3_320",     "libmp3lame", "mp3",  "320k"),
+
+    # MP3 VBR (LAME presets V0 ~245 kbps avg, V2 ~190 kbps avg). VBR is what
+    # most discerning encoders actually use — leaves a different "footprint"
+    # than CBR because the bitrate adapts to content complexity. Adding VBR
+    # is a major gain for real-world generalisation.
+    Codec("mp3_v0",      "libmp3lame", "mp3",  "0",  extra=("-q:a", "0")),
+    Codec("mp3_v2",      "libmp3lame", "mp3",  "0",  extra=("-q:a", "2")),
+
+    # AAC CBR — Apple's default, Spotify's lossy tier
+    Codec("aac_192",     "aac",        "m4a",  "192k"),
+    Codec("aac_256",     "aac",        "m4a",  "256k"),
+
+    # Opus — modern codec used by YouTube, WhatsApp voice notes, Discord
+    Codec("opus_128",    "libopus",    "opus", "128k"),
+
+    # OGG Vorbis q5 (~160 kbps avg) — Bandcamp's lossy download format
+    Codec("vorbis_q5",   "libvorbis",  "ogg",  "0",  extra=("-q:a", "5")),
 )
 
 
@@ -91,11 +106,16 @@ def transcode_one(args: tuple[Path, Path, Path, Codec]) -> tuple[str, bool, str]
     tmp_lossy = dst.with_suffix(f".tmp.{codec.ext}")
 
     # Step 1: FLAC -> lossy
+    # For VBR / quality-based codecs (Vorbis, MP3 VBR), -b:a is incompatible
+    # with -q:a — we encode bitrate="0" as a sentinel meaning "use -q:a only".
+    bitrate_flag: tuple[str, ...] = ()
+    if codec.bitrate and codec.bitrate != "0":
+        bitrate_flag = ("-b:a", codec.bitrate)
     enc = [
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(src),
         "-c:a", codec.ffmpeg_codec,
-        "-b:a", codec.bitrate,
+        *bitrate_flag,
         *codec.extra,
         str(tmp_lossy),
     ]

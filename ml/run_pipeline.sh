@@ -48,34 +48,35 @@ fi
 # ---------------------------------------------------------------------------
 log "Stage 3/4 — Train CNN classifier"
 # ---------------------------------------------------------------------------
-if [ ! -f models/cnn_v1/best.pt ]; then
+if [ ! -f models/cnn_v2/best.pt ]; then
     "$PY" train.py \
         --features features/dataset.npz \
-        --output models/cnn_v1 \
-        --epochs 25 \
+        --output models/cnn_v2 \
+        --epochs 50 \
         --batch-size 32 \
-        --mem-fraction 0.5
+        --mem-fraction 0.5 \
+        --early-stop-patience 8
 else
-    log "Skipping: models/cnn_v1/best.pt exists"
+    log "Skipping: models/cnn_v2/best.pt exists"
 fi
 
 # ---------------------------------------------------------------------------
 log "Stage 4/4 — Export TorchScript"
 # ---------------------------------------------------------------------------
-if [ ! -f models/cnn_v1.ts.pt ]; then
+if [ ! -f models/cnn_v2.ts.pt ]; then
     "$PY" export_torchscript.py \
-        --checkpoint models/cnn_v1/best.pt \
-        --output     models/cnn_v1.ts.pt
+        --checkpoint models/cnn_v2/best.pt \
+        --output     models/cnn_v2.ts.pt
 else
-    log "Skipping: models/cnn_v1.ts.pt exists"
+    log "Skipping: models/cnn_v2.ts.pt exists"
 fi
 
 log "Pipeline complete."
 log "Final artefacts:"
-log "  $(ls -la models/cnn_v1/best.pt)"
-log "  $(ls -la models/cnn_v1.ts.pt)"
+log "  $(ls -la models/cnn_v2/best.pt)"
+log "  $(ls -la models/cnn_v2.ts.pt)"
 log ""
 log "Next step (from your local machine):"
 log "  scp -i ~/.ssh/secours_madactylo_2026-05-11 \\"
-log "      root@144.76.203.6:/root/flac-detective-ml/models/cnn_v1.ts.pt \\"
-log "      src/flac_detective/models/cnn_v1.ts.pt"
+log "      root@144.76.203.6:/root/flac-detective-ml/models/cnn_v2.ts.pt \\"
+log "      src/flac_detective/models/cnn_v2.ts.pt"
