@@ -17,30 +17,44 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
-## 🆕 What's new in v0.10.0 — Now with ML (May 2026)
+## 🆕 What's new in v0.11.0 — ML v2, Properly Trained (May 2026)
 
-FLAC Detective ships its first **learned classifier** alongside the heuristic
-rules. A compact CNN (~1.6 MB TorchScript, bundled with the wheel) analyses a
-mel-spectrogram of the file and contributes an independent score to the
-verdict — particularly useful on the borderline cases the 11 hand-written
-rules miss: high-bitrate MP3 (256/320 kbps), AAC sources, Opus transcodes.
+The 12th scoring rule, introduced in v0.10.0, was technically functional
+but had a **95 % false-positive rate** on authentic FLAC files. v0.11.0
+ships a properly-trained model that fixes this.
+
+| Metric                              | v0.10 (v1)    | **v0.11 (v2)**     |
+|-------------------------------------|---------------|---------------------|
+| Balanced accuracy                   | ~0.55         | **0.81**            |
+| Specificity (recall on authentic)   | 4.5 %         | **80 %**            |
+| Precision (transcoded)              | 87.5 %        | **97.6 %**          |
+| Threshold needed for safe use       | 0.85 (hack)   | **0.5 (natural)**   |
+| Architecture                        | Custom 5-block CNN | ResNet-18 (ImageNet-pretrained) |
+| Model size                          | 1.6 MB        | 43 MB               |
+
+**The 80 % specificity is the headline**: out of 333 known-authentic test
+files, v1 misclassified 318 as transcoded; v2 misclassifies 68. Almost a
+20× drop in false positives.
+
+The path to a working model was **five training attempts** that taught
+specific lessons (focal loss double-balancing, biased F1 selection,
+insufficient model capacity, and the root cause: feature extraction was
+downsampling audio to 22 kHz, erasing the very MP3 cutoff signal we were
+trying to learn). The full story is in the [CHANGELOG](CHANGELOG.md) and
+[ml/README.md](ml/README.md).
 
 - **Opt-in** via `pip install "flac-detective[ml]"`. PyTorch and librosa are
-  optional dependencies — without them, Rule 12 is a graceful no-op and the
-  existing 11-rule pipeline runs unchanged.
-- **Trained on Hetzner GPU** (RTX 4000 Ada) over 887 certified-authentic
-  FLACs (CD rips verified by EAC / XLD / Audiochecker logs) plus 6,179
-  transcodes generated on the fly across 7 codec/bitrate combinations.
-- **Test F1 = 91.4 %**, recall 95.6 %, precision 87.5 %. Used with a
-  conservative `p ≥ 0.85` threshold so it only contributes points when it's
-  highly confident — matches FLAC Detective's "protect authentic files
-  first" philosophy.
-- **Reproducible**: the full training pipeline lives in `ml/` (dataset
-  selection from your own collection's ripping logs, transcode generation,
-  mel-spec extraction, CNN training, TorchScript export). Eight scripts,
-  one `run_pipeline.sh` to chain them.
+  optional — without them, Rule 12 is a graceful no-op and the existing
+  11-rule pipeline runs unchanged.
+- **Trained on Hetzner GPU** (RTX 4000 Ada) over 2 237 certified-authentic
+  FLACs (CD rips verified by EAC / XLD / Audiochecker logs) plus 22 258
+  transcodes generated across **10** codec/bitrate combinations
+  (MP3 CBR 128/192/256/320, MP3 VBR V0/V2, AAC 192/256, Opus 128, Vorbis q5).
+- **Reproducible**: the full training pipeline lives in `ml/`. Eight
+  scripts, one `run_pipeline.sh` to chain them, ~2 h end-to-end on a
+  modest GPU.
 
-For the v0.9.7 → v0.9.11 fix trail (circular import, Docker image,
+For the v0.9.7 → v0.10.1 fix trail (circular import, Docker image,
 documentation refresh, CLI catch-up, branch protection, …) see the
 [CHANGELOG](CHANGELOG.md).
 
