@@ -1,16 +1,17 @@
 # FLAC Detective — ML pipeline
 
-Reproducible workflow that trains a binary classifier ("authentic FLAC" vs
-"MP3-transcoded FLAC") and bundles it into the package as Rule 12. The
-**current production model** (`cnn_v3.ts.pt`, shipped in **v0.12.0**) is a
-fine-tuned **EfficientNet-B0** that reaches **balanced accuracy 0.834**,
-**specificity 80 %** and **recall on transcoded 86.9 %** on a held-out
-9 786-sample test set.
+This directory holds the ML side of **Rule 12** — the one that asks "is
+this FLAC actually a FLAC, or did someone transcode an MP3 and rename the
+extension?" The model currently shipping (`cnn_v3.ts.pt`, in **v0.12.0**)
+is a fine-tuned **EfficientNet-B0** sitting at **balanced accuracy 0.834**
+— 80 % specificity, 86.9 % recall on transcoded, on a 9 786-sample
+held-out test set.
 
-This document records both the pipeline as it stands today **and** the six
-training attempts that led to it. Audio classification on imbalanced
-datasets is full of footguns — keeping the lessons visible saves the next
-person (you, in three months) from re-stepping on the same mines.
+Getting there took six attempts. Four of them crashed in four genuinely
+different ways. This README is half pipeline reference, half postmortem —
+because audio classification on imbalanced datasets is full of footguns,
+and writing the lessons down saves the next person (you, in three
+months) from stepping on the same mines.
 
 ---
 
@@ -76,13 +77,17 @@ Rule12MLClassifier (12th scoring rule)
 | `setup_hetzner.sh` | One-time provisioning on the GPU server (Python venv, PyTorch CUDA, librosa, torchvision). |
 | `generate_transcodes.py` | For each authentic FLAC, produce 10 transcoded copies via ffmpeg: MP3 CBR 128/192/256/320, MP3 VBR V0/V2, AAC 192/256, Opus 128, Vorbis q5. Re-encode each back to FLAC ("fake FLAC"). |
 | `extract_features.py` | Compute 128-mel-bin log-power spectrograms for a 10 s middle clip of every file. **Sample rate is 44 100 Hz** — see lessons below. |
-| `train.py` | Train a ResNet-18 wrapper, save best checkpoint by `balanced_acc`. |
+| `train.py` | Train the EfficientNet-B0 classifier with Mixup + WeightedRandomSampler, save best checkpoint by `balanced_acc`. |
 | `export_torchscript.py` | Trace the best checkpoint to TorchScript for runtime use. |
 | `run_pipeline.sh` | Chain the four GPU-side stages (transcode → features → train → export). |
 
 ---
 
-## The current production model (v3, shipped in v0.12.0)
+## The current production model — v3, shipped in v0.12.0
+
+If you just want to know what the package ships with, this section is
+enough. If you want to know *how* we got here and what went wrong on the
+way, skip down to "Six attempts" — that's the fun part.
 
 - **Architecture**: **EfficientNet-B0** pretrained on ImageNet. ~4 M
   parameters (vs 11 M for ResNet-18). First conv layer adapted from
@@ -116,7 +121,12 @@ Rule12MLClassifier (12th scoring rule)
 
 - **Runtime size**: 16 MB TorchScript, bundled in the wheel.
 
-### Why v3 beats v2 on every axis except size
+### Why v3 beats v2 — including on size
+
+v3 has **less than half the parameters** of v2 and ships in **a third of
+the wheel size**, while improving every metric. That's the rare
+free-lunch territory: newer ImageNet backbone + more data + slightly
+better optim, and the model both gets smarter *and* shrinks.
 
 | Aspect              | v2 (v0.11)  | v3 (v0.12)        |
 |---------------------|-------------|-------------------|
@@ -314,38 +324,48 @@ des six points. Voilà, vous êtes prévenus.
 
 ---
 
-## Reproducing v2 from scratch
+## Reproducing the pipeline from scratch
+
+You'll need three things: a directory of FLACs with verifiable provenance
+(EAC, XLD or CUERipper logs, or Audiochecker `CDDA (100%)` verdicts), an
+SSH key into a GPU box, and a couple of hours of patience.
 
 ```bash
 # Local — Windows machine with a FLAC library at D:/FLAC
 python ml/build_dataset.py --root D:/FLAC --output ml/authentic.json --max-per-label 30
 python ml/trim_for_upload.py --manifest ml/authentic.json --workers 16
 
-# Stream to the GPU server
+# Stream to the GPU server — tar over SSH, no intermediate staging
 tar -C ml/trimmed -cf - . | ssh GPU_HOST "cd /root/flac-detective-ml/dataset/authentic && tar -xf -"
 
 # On the GPU server
 ssh GPU_HOST
 cd /root/flac-detective-ml
-bash setup_hetzner.sh      # one-time
-bash run_pipeline.sh       # ~2 hours end to end
+bash setup_hetzner.sh      # one-time provisioning (PyTorch, librosa, etc.)
+bash run_pipeline.sh       # ~2 h end-to-end for ~2 200 files
 
 # Pull the trained TorchScript back
-scp GPU_HOST:/root/flac-detective-ml/models/cnn_v2.ts.pt src/flac_detective/models/
+scp GPU_HOST:/root/flac-detective-ml/models/cnn_v3.ts.pt src/flac_detective/models/
 ```
 
-All scripts seed with 42 and write configs alongside outputs. The full
-pipeline is meant to be re-runnable end-to-end from a fresh checkout.
+Everything seeds with 42 and writes its config next to its outputs. The
+pipeline is meant to be re-runnable end-to-end from a fresh checkout — if
+a stage fails halfway through, you can re-launch from that stage without
+redoing the previous ones.
 
 ---
 
 ## Hardware target
 
-Hetzner GPU server: RTX 4000 SFF Ada Gen (20 GB VRAM). Training capped at
-50 % of VRAM via `torch.cuda.set_per_process_memory_fraction(0.5)` so it
-coexists with a concurrent Whisper inference service on the same host.
-End-to-end pipeline (transcode + features + train + export) is ~2 h wall
-time for ~2 200 authentic files.
+The whole pipeline lives on a shared Hetzner box — RTX 4000 SFF Ada Gen
+(20 GB VRAM), 62 GB RAM, with a Whisper transcription service and a few
+other things already running in production on it. Training caps GPU
+usage at **50 % of VRAM** via
+`torch.cuda.set_per_process_memory_fraction(0.5)` so it doesn't elbow
+Whisper off the GPU mid-inference. End-to-end pipeline (transcode +
+features + train + export) is about 2 h of wall time for ~2 200
+authentic files.
 
-The model itself is CPU-friendly at inference: a single mel-spec forward
-pass on a recent laptop is under 200 ms.
+At inference, the model is happily CPU-friendly: a single mel-spec
+forward pass on a recent laptop is under 200 ms. No GPU needed once it
+ships into the wheel.
