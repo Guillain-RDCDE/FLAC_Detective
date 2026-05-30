@@ -34,9 +34,16 @@ FLAC Detective is a command-line tool that detects fake lossless audio files (MP
 # Via pip (recommended)
 pip install flac-detective
 
+# Already installed? Use --upgrade to get the latest version
+pip install --upgrade flac-detective
+
 # Via Docker
 docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
+
+> Plain `pip install` does not upgrade an existing install — it prints
+> "Requirement already satisfied" and exits. Use `--upgrade` (or `-U`).
+> See [Getting Started → Upgrading](getting-started.md#upgrading-to-the-latest-version) for details.
 
 ### Basic Usage
 
@@ -91,7 +98,6 @@ This documentation is organized into 6 focused documents:
 - **PyPI Package**: https://pypi.org/project/flac-detective/
 - **Issue Tracker**: https://github.com/Guillain-RDCDE/FLAC_Detective/issues
 - **Discussions**: https://github.com/Guillain-RDCDE/FLAC_Detective/discussions
-- **ReadTheDocs**: https://flac-detective.readthedocs.io/
 
 ## Support
 
