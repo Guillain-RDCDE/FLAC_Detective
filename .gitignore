@@ -121,3 +121,11 @@ ml/authentic_files.json
 ml/authentic_sampled.json
 ml/upload_list.txt
 ml/pipeline.log
+# Manifests and audits contain absolute paths to the user's private library —
+# never publish them. The analysis scripts regenerate everything from scratch.
+ml/authentic_sampled_v*.json
+ml/upload_list_v*.txt
+ml/fp_analysis_v3.csv
+ml/*_run.err
+ml/*_run.log
+ml/gate_tmp/

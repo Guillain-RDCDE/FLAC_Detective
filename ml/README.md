@@ -324,6 +324,192 @@ des six points. Voilà, vous êtes prévenus.
 
 ---
 
+## The reliability gate, and the four dead ends before it (v0.13)
+
+v3 shipped with a balanced accuracy of 0.834 and **specificity stuck at 80 %** —
+one authentic FLAC in five was being flagged as a transcode. This section is the
+story of chasing that 20 %: a full empirical audit, four different fixes that
+*didn't* work (each instructive), and the small one that did. It's the most
+R&D-heavy thing in this repo, and the most honest, because most of it is failure.
+
+Every number below is reproducible from the scripts listed at the end.
+
+### Step 0 — Where exactly does it fail?
+
+Instead of guessing, we ran v3 over **all 11 234 certified-authentic FLACs** in
+the reference library and bucketed the false-positive rate by the file's 95 %
+spectral rolloff (`ml/analyze_false_positives.py`). The result was not subtle:
+
+| 95% spectral rolloff | false-positive rate | n      |
+|----------------------|---------------------|--------|
+| **< 4 kHz**          | **57.2 %**          | 944    |
+| 4–7 kHz              | 30.2 %              | 2 895  |
+| 7–10 kHz             | 14.3 %              | 3 649  |
+| 10–14 kHz            | 8.2 %               | 3 297  |
+| ≥ 14 kHz             | 4.9 %               | 449    |
+
+The errors are almost entirely **band-limited material** — and it clusters by
+exactly the genres you'd predict: baroque (Couperin, Schütz), solo piano, 1920s
+blues, kora, and the Dust-to-Digital archival label (774 files, 40 % FP). The
+sanity check that the audit was even valid: overall FP rate came out 19.8 %,
+i.e. specificity 80.2 %, matching the held-out test set's 80.0 % to a fifth of a
+point. Same pipeline, same model.
+
+### Why band-limited material is the hard case (the physics)
+
+A transcode detector keys on the **brickwall** an MP3 encoder leaves behind: a
+sharp spectral cliff at 16–20.5 kHz where the lossy codec discarded everything
+above its bitrate-dependent cutoff. But if a recording *already* rolls off below
+~7 kHz — because that's all the musicians, the room, and the 1928 microphone put
+there — then an MP3 transcode removes **almost nothing**. There is no cliff to
+find, because there was nothing above the cliff to begin with. The authentic and
+the fake are nearly identical to any detector that works on the spectrum.
+
+That reframes the question from "why is the model bad here?" to "is the
+information even present?" The next four sections are four attempts to find it.
+
+### Dead end #1 — Just raise the decision threshold
+
+The cheapest idea: Rule 12 flags at p ≥ 0.5; raise the bar. We measured the cost
+on a 988-file paired set of authentics + their transcodes (`ml/build_gate_testset.py`,
+`ml/analyze_gate.py`):
+
+| threshold | transcode recall | balanced acc |
+|-----------|------------------|--------------|
+| 0.50      | 90.6 %           | 70.6 %       |
+| 0.60      | 80.0 %           | 71.0 %       |
+| 0.70      | 71.3 %           | 72.7 %       |
+| 0.80      | 60.3 %           | 71.5 %       |
+
+Balanced accuracy is **flat** (~71 %) across the whole range. Raising the
+threshold doesn't find a free lunch — it trades transcode recall for specificity
+roughly 1:1. Defensible as a *policy* if false alarms annoy you more than misses,
+but it's not an improvement. Next.
+
+### Dead end #2 — An abstention gate on cheap signals (and a debunked "eureka")
+
+If the model can't be trusted on band-limited files, maybe a cheap heuristic can
+tell us *when* to ignore it. We tested whether any signal — spectral cutoff,
+compression ratio, container bitrate — separates the flagged authentics (false
+positives) from genuine transcodes. Best Youden's J across all of them: **0.11**
+(0 is random). They don't separate, because — see the physics above — there's
+nothing to separate.
+
+This step also produced the most useful mistake of the whole project. One
+feature (`mp3_pattern`, Rule 9's noise-pattern test) showed a **population AUC of
+0.99**. Champagne. Until the GroupKFold classifier that included it scored 0.6,
+not 0.99. Looking at the raw values: the feature was `0` for 118 of 120 files in
+*every* group — a near-constant, and the 0.99 was an artefact of computing AUC on
+a degenerate binary. **Cross-validation discipline caught a false discovery that
+a single pooled metric would have shipped.** Keep that one in your pocket.
+
+### Dead end #3 — Texture *inside* the occupied band, and the stereo channel
+
+Here's a structural discovery worth its own line: **all three of Rule 9's tests
+(pre-echo, HF aliasing, MP3 noise pattern) operate in the 10–20 kHz band.** So
+does the CNN's effective attention, and so does every cutoff rule. The entire
+arsenal looks *above* 10 kHz — exactly where band-limited material is empty. Nobody
+was looking *inside* the occupied band, or at the **stereo** image.
+
+So we did (`ml/texture_probe.py`). MP3 joint-stereo quantises the side channel
+(L−R) aggressively, and zeroes MDCT coefficients below the masking threshold even
+within the occupied band. We measured side/mid energy, L/R correlation, in-band
+spectral flatness, spectral "holes", terracing — on 120 band-limited sources and
+their transcodes, analysed **paired** (each transcode vs its own original, which
+controls for the source).
+
+The signals are **real but weak**. Paired sign-consistency is striking
+(`flatness_inband` shifts the same direction in 96 % of pairs; `lr_corr` in 94 %),
+which proves the fingerprint exists — but the magnitudes are tiny against the
+variance between different pieces of music, so no feature separates a *single*
+file. A RandomForest over all of them, cross-validated by source:
+
+| codec   | detectability (AUC) |
+|---------|---------------------|
+| mp3_128 | **0.68**            |
+| mp3_v0  | 0.65                |
+| mp3_320 | **0.53** (≈ random) |
+
+Recoverable-ish for low-bitrate fakes; **fundamentally undetectable at 320 kbps**.
+And the averaged spectra throw away time — maybe the signal is in the dynamics.
+
+### Dead end #4 — Temporal modulation at the MP3 frame rate
+
+The most elegant idea, saved for last. An MP3 encoder re-quantises every
+**1152-sample frame (38.28 Hz)** and **576-sample granule (76.56 Hz)**, which
+should stamp a periodic modulation onto the energy envelope — a fingerprint that
+time-averaging destroys and a fine-resolution probe could recover
+(`ml/texture_temporal_probe.py`, hop=128 so both rates are resolved).
+
+It isn't there. Population AUC for the modulation features: **0.50, everywhere.**
+The granule/frame periodicity is either not energy-modulated by LAME for this
+material, or it drowns in the music's own envelope dynamics over a 20 s window.
+The full temporal classifier (AUC 0.635 at 128 kbps) did *worse* than the averaged
+texture features. The theoretically strongest signal turned out to be the weakest.
+
+### The conclusion that the four dead ends earn
+
+Cutoff, compression ratio, stereo, in-band texture, temporal modulation, all of
+Rule 9 — **every cheap signal fails on band-limited material, because the
+information genuinely is not in the file.** That's not a defeat; it's a *result*.
+It means the right engineering move isn't to keep guessing — it's to **stop
+guessing in the regime where guessing can't win**, and the gate below is the
+optimal policy given a limit we've now proven by exhaustion.
+
+### The fix that shipped — a reliability gate
+
+We measured the CNN's precision per rolloff bucket (in a balanced 50/50 setting):
+
+| 95% rolloff | Rule 12 precision |
+|-------------|-------------------|
+| < 4 kHz     | **58.9 %** (coin flip) |
+| 4–7 kHz     | 74.6 %            |
+| 7–10 kHz    | 87.2 %            |
+| 10–14 kHz   | 91.9 %            |
+| ≥ 14 kHz    | 95.0 %            |
+
+Rule 12 is only trustworthy above ~7 kHz. So as of v0.13, **it abstains
+(contributes 0 and defers to the heuristic rules) when the file's 95 % rolloff is
+below 7 kHz.** The rolloff is computed from the same audio decode already used for
+the mel-spectrogram, so there's no extra I/O (`ml_classifier._compute_mel` now
+returns `(mel, rolloff)`). Effect on the real authentic library:
+
+| gate (abstain below) | specificity | what's given up |
+|----------------------|-------------|------------------|
+| (none, v3 baseline)  | 80.2 %      | —                |
+| < 4 kHz              | 85.0 %      | detection at 59 % precision |
+| **< 7 kHz (shipped)**| **92.8 %**  | + the 4–7 kHz band (75 % precision) |
+| < 10 kHz             | 97.4 %      | + a band where real signal lives |
+
+**Specificity 80 % → 93 %, for a dozen lines and no GPU.** The only detection
+surrendered is in a regime where Rule 12 was a coin flip — and where a transcode
+is also the *least* harmful (a 320 kbps MP3 of a source that ends at 5 kHz is
+sonically transparent; you've lost nothing audible). Heuristic Rules 1–11 are
+untouched and still run on every file. Pinned by `tests/test_rule12_gate.py`.
+
+> 💡 **Lesson** — When a model fails, audit *where* before you change *what*. The
+> failure here was concentrated and physical, not diffuse. And once four
+> independent attacks all bounce off the same wall, the wall is real: the
+> engineering win was to recognise the limit and route around it, not to keep
+> throwing model capacity at information that isn't in the signal.
+
+### Reproducing this investigation
+
+| Script | Produces |
+|---|---|
+| `analyze_false_positives.py` | `fp_analysis_v3.csv` — per-file p, rolloff, HF ratio over the whole authentic library; the FP-by-rolloff audit. |
+| `build_gate_testset.py` | `gate_testset.csv` — 988 paired authentic+transcode files with model probability and heuristic signals. |
+| `analyze_gate.py` | The threshold-cost table and the (failed) cheap-signal abstention gate. |
+| `texture_probe.py` / `analyze_texture.py` | In-band + stereo texture features; the paired / AUC / GroupKFold analysis (dead end #3). |
+| `texture_temporal_probe.py` / `analyze_temporal.py` | Frame-rate modulation + temporal-variance features (dead end #4). |
+| `build_dataset_v4.py` | `authentic_sampled_v4.json` — a rolloff-stratified v4 training manifest (8 627 files) for the data-side follow-up. |
+
+All seed with 42 and run on CPU. The heavy steps (transcoding + feature
+extraction) are parallelised; on a 4-core box the full audit is ~35 min, each
+texture probe ~30–45 min.
+
+---
+
 ## Reproducing the pipeline from scratch
 
 You'll need three things: a directory of FLACs with verifiable provenance
