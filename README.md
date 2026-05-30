@@ -6,7 +6,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective)
+[![Status](https://img.shields.io/badge/status-active--development-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective)
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -107,6 +107,27 @@ pip install flac-detective
 pip install "flac-detective[ml]"
 
 # OR run with Docker (multi-arch: linux/amd64 + linux/arm64)
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
+```
+
+### Upgrading to the latest version
+
+`pip install flac-detective` does **not** upgrade an existing install — if
+you already have an older version, pip prints `Requirement already
+satisfied` and exits without doing anything. To get the latest release,
+add the `--upgrade` flag (short form `-U`):
+
+```bash
+# Upgrade to the latest version on PyPI
+pip install --upgrade flac-detective
+
+# Same thing with the optional ML extra
+pip install --upgrade "flac-detective[ml]"
+
+# Verify the new version
+flac-detective --version
+
+# Docker: pull again to refresh the image
 docker pull ghcr.io/guillain-rdcde/flac_detective:latest
 ```
 
