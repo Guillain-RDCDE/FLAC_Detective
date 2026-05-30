@@ -35,6 +35,20 @@ _N_MELS = 128
 _N_FFT = 2048
 _HOP = 512
 
+# Reliability gate (added v0.13). An empirical false-positive audit of v3 on
+# 11 234 certified-authentic FLACs (see ml/analyze_false_positives.py and
+# ml/README.md "The reliability gate") showed the model's specificity is a flat
+# function of how band-limited the input is: its precision collapses to ~59% on
+# material whose 95% spectral rolloff is below 4 kHz and is only ~75% in 4-7 kHz,
+# versus ~87-95% above. The reason is physical — for a source that rolls off that
+# early (baroque, historical, acoustic), an MP3 transcode removes almost nothing,
+# so authentic and fake are near-identical to ANY spectrogram-only model. Below
+# this rolloff the CNN is essentially guessing, so Rule 12 abstains (contributes
+# 0) and defers to the heuristic rules, lifting real-world specificity from
+# 80.2% to ~92.8% at the cost of detection only in a regime where it was a coin
+# flip anyway. Measured on the file itself, so it works at inference.
+_ROLLOFF_GATE_HZ = 7000.0
+
 
 def _load_model():
     """Load the TorchScript model once, cache it. Returns None if unavailable."""
@@ -66,12 +80,18 @@ def _load_model():
 
 
 def _compute_mel(filepath: Path):
-    """Compute a (1, 1, n_mels, T) normalised mel-spectrogram, or None on failure."""
+    """Compute the model input and the 95% spectral rolloff from one decode.
+
+    Returns ``(mel, rolloff_hz)`` where ``mel`` is a (1, 1, n_mels, T) mel-spec
+    normalised to [-1, 1], or ``(None, None)`` on failure. The rolloff drives the
+    reliability gate (see ``_ROLLOFF_GATE_HZ``); computing it here reuses the
+    single audio decode rather than reading the file twice.
+    """
     try:
         import librosa
         import numpy as np
     except ImportError:
-        return None
+        return None, None
     try:
         duration = librosa.get_duration(path=str(filepath))
         offset = max(0.0, (duration - _SEGMENT_SEC) / 2)
@@ -83,11 +103,22 @@ def _compute_mel(filepath: Path):
             y = np.pad(y, (0, target_len - len(y)))
         else:
             y = y[:target_len]
+
+        mag = np.abs(librosa.stft(y, n_fft=_N_FFT, hop_length=_HOP))
+        # 95% spectral rolloff from the time-averaged magnitude spectrum (matches
+        # ml/analyze_false_positives.py, which calibrated the gate threshold).
+        mag_mean = mag.mean(axis=1)
+        freqs = librosa.fft_frequencies(sr=sr, n_fft=_N_FFT)
+        cumulative = np.cumsum(mag_mean)
+        rolloff = (
+            float(freqs[np.searchsorted(cumulative, 0.95 * cumulative[-1])])
+            if cumulative[-1] > 0
+            else 0.0
+        )
+
         mel = librosa.feature.melspectrogram(
-            y=y,
+            S=mag**2,
             sr=sr,
-            n_fft=_N_FFT,
-            hop_length=_HOP,
             n_mels=_N_MELS,
             fmax=sr // 2,
         )
@@ -96,10 +127,10 @@ def _compute_mel(filepath: Path):
         rng = max(mx - mn, 1e-6)
         mel_db = 2 * (mel_db - mn) / rng - 1.0
         # Shape (1, 1, n_mels, T)
-        return mel_db[None, None, :, :]
+        return mel_db[None, None, :, :], rolloff
     except Exception as e:
         logger.debug(f"Rule 12: mel extraction failed for {filepath}: {e}")
-        return None
+        return None, None
 
 
 def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
@@ -119,8 +150,17 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
     if model is None:
         return 0, []
 
-    mel = _compute_mel(filepath)
+    mel, rolloff = _compute_mel(filepath)
     if mel is None:
+        return 0, []
+
+    # Reliability gate: below this rolloff the CNN is a coin flip on authentic vs
+    # transcode (see _ROLLOFF_GATE_HZ). Abstain and let the heuristic rules decide.
+    if rolloff < _ROLLOFF_GATE_HZ:
+        logger.info(
+            f"RULE 12: abstaining (rolloff {rolloff:.0f} Hz < {_ROLLOFF_GATE_HZ:.0f} Hz, "
+            f"band-limited — CNN unreliable in this regime)"
+        )
         return 0, []
 
     try:
