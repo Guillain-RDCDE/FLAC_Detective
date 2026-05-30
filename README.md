@@ -18,6 +18,30 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
+## 🆕 What's new in v0.13.0 — Reliability Gate (May 2026)
+
+No new model — a small, empirically-grounded gate that fixes v3's one weak spot:
+false alarms on **band-limited music** (baroque, historical, acoustic). An audit
+of all 11 234 certified-authentic FLACs showed the model's false-positive rate
+ran from 5 % on full-range material to **57 % below 4 kHz of rolloff** — because
+when a recording already rolls off that early, an MP3 transcode removes nothing
+detectable, so authentic and fake are physically near-identical.
+
+We exhausted the alternatives (threshold tuning, compression ratio, stereo and
+in-band texture, MP3 frame-rate modulation — none separate them) and concluded
+it's a near-fundamental limit. So **Rule 12 now abstains where its precision is a
+coin flip** (rolloff < 7 kHz) and defers to the heuristic rules:
+
+| Metric                            | v0.12 (v3) | **v0.13** |
+|-----------------------------------|------------|-----------|
+| Specificity (recall on authentic) | 80.2 %     | **92.8 %** |
+
+The only detection given up is in a regime where Rule 12 was guessing anyway —
+and where a transcode is the least harmful (a 320 kbps MP3 of a 5 kHz-bandwidth
+source is sonically transparent). The full R&D write-up — the audit, the four
+dead ends, the debunked false discovery — is in
+[ml/README.md](ml/README.md#the-reliability-gate-and-the-four-dead-ends-before-it-v013).
+
 ## 🆕 What's new in v0.12.0 — ML v3 (May 2026)
 
 Smaller, faster, more accurate. Same conservative philosophy.

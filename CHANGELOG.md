@@ -1,5 +1,53 @@
 ## Unreleased
 
+## v0.13.0 (2026-05-30) — Reliability Gate: Rule 12 abstains where it's a coin flip
+
+No retraining. No new model. Just a small, empirically-grounded gate in front
+of the existing v3 CNN that fixes the one thing v3 was bad at: false alarms on
+band-limited music.
+
+### The problem, measured
+
+We ran v3 over **all 11 234 certified-authentic FLACs** in the reference library
+(`ml/analyze_false_positives.py`). The model's 80 % specificity wasn't spread
+evenly — it collapsed on band-limited material:
+
+| 95% spectral rolloff | false-positive rate |
+|----------------------|---------------------|
+| < 4 kHz              | **57 %**            |
+| 4–7 kHz              | 30 %                |
+| 7–10 kHz             | 14 %                |
+| 10–14 kHz            | 8 %                 |
+| ≥ 14 kHz             | 5 %                 |
+
+The cause is physical, not a training bug: when a recording (baroque, historical,
+acoustic) already rolls off below ~7 kHz, an MP3 transcode removes almost
+*nothing* — authentic and fake are near-identical to any spectrogram-only model.
+We confirmed this is not fixable cheaply: across a 988-file paired test set, **no
+signal** — spectral cliff, compression ratio, stereo, in-band texture — separates
+band-limited authentic from its transcode (best cross-validated AUC 0.68 at
+128 kbps, 0.53 at 320 kbps). The information isn't in the signal.
+
+### The fix
+
+Rather than guess in a regime where it can't win, **Rule 12 now abstains
+(contributes 0) when the file's 95% rolloff is below 7 kHz** and defers to the
+heuristic rules. The model's precision there is ~59–75 % (a coin flip to barely
+better); above it, 87–95 %. The rolloff is measured on the file itself from the
+same audio decode used for the mel-spectrogram, so there's no extra I/O.
+
+### Effect
+
+- **Real-world specificity 80.2 % → ~92.8 %** on the authentic library.
+- The only detection given up is in the <7 kHz regime, where Rule 12 was a coin
+  flip anyway — and where a transcode is the *least* harmful (a 320 kbps MP3 of a
+  source that ends at 5 kHz is sonically transparent).
+- Heuristic Rules 1–11 are unchanged and still run on every file.
+
+See `ml/README.md` → "The reliability gate, and the six dead ends before it" for
+the full R&D write-up, including the threshold-tuning trade-off and the texture /
+temporal probes that ruled out a cheaper fix.
+
 ## v0.12.0 (2026-05-26) — ML v3, More Data + EfficientNet + Mixup
 
 Successor to v0.11. Same conservative "protect authentic files first"
