@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use FLAC Detective in your research or tooling, please cite it as below."
+title: "FLAC Detective"
+abstract: >-
+  A command-line tool and Python library that detects MP3-to-FLAC transcodes
+  in lossless audio collections, combining an 11-rule spectral-analysis scoring
+  system with an optional CNN classifier (EfficientNet-B0) as a 12th rule.
+type: software
+authors:
+  - family-names: "Méjane"
+    given-names: "Guillain"
+    alias: "Guillain-RDCDE"
+repository-code: "https://github.com/Guillain-RDCDE/FLAC_Detective"
+url: "https://github.com/Guillain-RDCDE/FLAC_Detective"
+license: MIT
+version: "0.12.0"
+date-released: "2026-05-26"
+keywords:
+  - "FLAC"
+  - "lossless audio"
+  - "transcode detection"
+  - "spectral analysis"
+  - "audio forensics"
+  - "machine learning"
+  - "convolutional neural network"
+  - "Python"
