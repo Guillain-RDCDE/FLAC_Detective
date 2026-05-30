@@ -7,8 +7,9 @@ abstract: >-
   system with an optional CNN classifier (EfficientNet-B0) as a 12th rule.
 type: software
 authors:
-  - family-names: "Méjane"
-    given-names: "Guillain"
+  - given-names: "Guillain"
+    name-particle: "d'"
+    family-names: "Erceville"
     alias: "Guillain-RDCDE"
 repository-code: "https://github.com/Guillain-RDCDE/FLAC_Detective"
 url: "https://github.com/Guillain-RDCDE/FLAC_Detective"
