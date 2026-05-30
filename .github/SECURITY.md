@@ -2,10 +2,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.9.x   | :white_check_mark: |
-| < 0.9.0 | :x:                |
+| Version  | Supported          |
+| -------- | ------------------ |
+| 0.12.x   | :white_check_mark: |
+| < 0.12.0 | :x:                |
 
 ## Reporting a Vulnerability
 
