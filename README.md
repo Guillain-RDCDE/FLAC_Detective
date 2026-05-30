@@ -6,6 +6,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![CI](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml/badge.svg)](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml)
 [![Status](https://img.shields.io/badge/status-active--development-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective)
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
