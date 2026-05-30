@@ -1,7 +1,5 @@
 # Configures the "Sponsor" button on the repository.
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
-# ⚠️ Vérifie ces deux identifiants avant de pousser — un lien Sponsor cassé
-#    fait pire effet que pas de bouton du tout.
-ko_fi: guillain
-custom: ["https://paypal.me/guillain"]
+ko_fi: guillainrdcde
+custom: ["https://paypal.me/GuillainM"]
