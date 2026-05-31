@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
-    {name = "Guillain Méjane", email = "guillain@poulpe.us"}
+    {name = "Guillain d'Erceville", email = "guillain@poulpe.us"}
 ]
 keywords = ["flac", "audio", "analysis", "transcode", "detection", "mp3", "quality", "authenticity"]
 classifiers = [

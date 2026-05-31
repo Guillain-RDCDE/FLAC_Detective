@@ -12,7 +12,7 @@ __release_date__ = "2026-05-31"
 __release_name__ = "Stereo CNN — the band-limited blind spot was a mono limit"
 
 # Metadata
-__author__ = "Guillain Méjane"
+__author__ = "Guillain d'Erceville"
 __email__ = "guillain@poulpe.us"
 __license__ = "MIT"
 __url__ = "https://github.com/Guillain-RDCDE/FLAC_Detective"
