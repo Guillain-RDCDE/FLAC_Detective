@@ -14,118 +14,60 @@
 
 **Advanced FLAC Authenticity Analyzer for Detecting MP3-to-FLAC Transcodes**
 
-FLAC Detective is a professional-grade command-line tool that analyzes FLAC audio files to detect MP3-to-FLAC transcodes with high precision. Using advanced spectral analysis and an 11-rule scoring system, it helps you maintain an authentic lossless music collection.
+FLAC Detective is a professional-grade command-line tool that analyzes FLAC audio files to detect MP3-to-FLAC transcodes with high precision. Using spectral analysis, an 11-rule scoring system and an optional CNN classifier, it helps you keep your lossless music collection genuinely lossless.
 
 ---
 
-## 🆕 What's new in v0.14.0 — Stereo CNN (May 2026)
+## 🔍 How it works
 
-v0.13 *gated around* Rule 12's blind spot on band-limited music; v0.14 *fixes*
-it. The insight: the model was listening in **mono**, but MP3 joint-stereo coding
-leaves its clearest fingerprint in the **side channel** (L−R) — exactly where a
-band-limited transcode is otherwise invisible. A controlled probe nailed it: on
-band-limited material a mid-only CNN is a coin flip (AUC 0.51), while the same CNN
-on mid+side hits **0.72, even at 320 kbps**. So we retrained EfficientNet-B0 with
-a 2-channel (mid+side) input.
+Transcode an MP3 back to FLAC and the file is lossless *as a container* — but the
+audio already went through a lossy codec, and that leaves fingerprints. The clearest
+is a **spectral cliff**: MP3 discards everything above a bitrate-dependent frequency
+(~16 kHz at 128 kbps, ~20 kHz at 320), so the spectrum falls off a wall where a real
+recording keeps going.
 
-| Held-out test                     | v3 (mono) | **v4 (stereo)** |
-|-----------------------------------|-----------|-----------------|
-| Balanced accuracy                 | 0.834     | **0.905**       |
-| Recall (transcoded)               | 86.9 %    | **94.1 %**      |
-| Specificity (recall on authentic) | 80.0 %    | **86.9 %**      |
+FLAC Detective scores each file with **11 heuristic rules** built around that idea —
+cutoff frequency vs. sample rate, MP3-bitrate signatures, compression artefacts
+(pre-echo, aliasing), bitrate sanity — plus *protection* rules so genuine vinyl rips,
+cassette transfers and naturally quiet recordings aren't flagged. An **optional 12th
+rule** is a small CNN (`pip install "flac-detective[ml]"`) for cases the cutoff alone
+misses. The rules sum to a 0–150 score and a 4-level verdict:
 
-On the real library of 11 234 authentic FLACs, false positives drop in every
-rolloff regime; shipped as **v4 + the v0.13 reliability gate**, real-world
-specificity reaches **95.1 %** (from v3's 80.2 %). The reversal of the v0.13
-"fundamental limit" conclusion — and the bit-depth confound and audit-offset bug
-caught along the way — is written up in
-[ml/README.md](ml/README.md#the-fifth-attempt-that-worked--stereo-v014).
+| Verdict | Score | What to do |
+|---|---|---|
+| ✅ **AUTHENTIC** | ≤ 30 | keep it |
+| ⚡ **WARNING** | 31–60 | borderline — check manually |
+| ⚠️ **SUSPICIOUS** | 61–85 | likely a transcode |
+| ❌ **FAKE_CERTAIN** | ≥ 86 | multiple indicators — definitely transcoded |
 
-## 🆕 What's new in v0.13.0 — Reliability Gate (May 2026)
+The guiding principle throughout is **"protect authentic files first"**: a false alarm
+on real music is worse than missing a borderline fake.
 
-No new model — a small, empirically-grounded gate that fixes v3's one weak spot:
-false alarms on **band-limited music** (baroque, historical, acoustic). An audit
-of all 11 234 certified-authentic FLACs showed the model's false-positive rate
-ran from 5 % on full-range material to **57 % below 4 kHz of rolloff** — because
-when a recording already rolls off that early, an MP3 transcode removes nothing
-detectable, so authentic and fake are physically near-identical.
+→ Every rule explained: [Technical Details](docs/technical-details.md).
 
-We exhausted the alternatives (threshold tuning, compression ratio, stereo and
-in-band texture, MP3 frame-rate modulation — none separate them) and concluded
-it's a near-fundamental limit. So **Rule 12 now abstains where its precision is a
-coin flip** (rolloff < 7 kHz) and defers to the heuristic rules:
+## 🤖 The ML side is a case study worth reading
 
-| Metric                            | v0.12 (v3) | **v0.13** |
-|-----------------------------------|------------|-----------|
-| Specificity (recall on authentic) | 80.2 %     | **92.8 %** |
+Rule 12's model went through a real R&D saga, written up as a **learning resource**:
+a false-positive audit over 11 234 real FLACs, four dead-ends that *didn't* work (each
+instructive), a debunked "AUC 0.99" false discovery caught by cross-validation, and a
+twist where a "fundamental limit" turned out to be an artifact of listening in **mono** —
+fixed by going **stereo**.
 
-The only detection given up is in a regime where Rule 12 was guessing anyway —
-and where a transcode is the least harmful (a 320 kbps MP3 of a 5 kHz-bandwidth
-source is sonically transparent). The full R&D write-up — the audit, the four
-dead ends, the debunked false discovery — is in
-[ml/README.md](ml/README.md#the-reliability-gate-and-the-four-dead-ends-before-it-v013).
+📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
+enable the ML extra.
 
-## 🆕 What's new in v0.12.0 — ML v3 (May 2026)
+## 🆕 Latest release — v0.14 (Stereo CNN)
 
-Smaller, faster, more accurate. Same conservative philosophy.
+The classifier now reads the stereo **mid + side** channels instead of mono, fixing its
+weak spot on band-limited music (baroque, jazz, old recordings). Real-world specificity
+on a library of 11 234 authentic FLACs climbed from **80 % to 95 %**:
 
-| Metric                              | v0.11 (v2)   | **v0.12 (v3)**    | Δ           |
-|-------------------------------------|--------------|--------------------|-------------|
-| Balanced accuracy                   | 0.811        | **0.834**          | +0.023      |
-| Recall on transcoded                | 82.7 %       | **86.9 %**         | **+4.2 pp** |
-| Recall on authentic (specificity)   | 80.0 %       | 80.0 %             | ≈           |
-| Model size (bundled)                | 43 MB        | **16 MB**          | **−63 %**   |
-| Architecture                        | ResNet-18    | EfficientNet-B0    |             |
+| | v0.12 (mono) | **v0.14 (stereo + gate)** |
+|---|---|---|
+| Specificity (authentic kept) | 80 % | **95 %** |
+| Transcode recall | 87 % | **94 %** |
 
-**4 more transcoded files out of every 100 are now caught**, at the same
-false-positive rate. The wheel is also 27 MB lighter.
-
-Under the hood: more training data (5 964 × 10 codecs = 65 244 samples vs
-24 451), EfficientNet-B0 pretrained replacing ResNet-18, Mixup
-augmentation, cosine annealing LR, and mmap-backed feature loading (the
-27 GB feature tensor stays on disk so the training process plays nice on
-shared hosts). Full story in the [CHANGELOG](CHANGELOG.md).
-
-## 🕰️ What's new in v0.11.0 — ML v2, Properly Trained (May 2026)
-
-The 12th scoring rule, introduced in v0.10.0, was technically functional
-but had a **95 % false-positive rate** on authentic FLAC files. v0.11.0
-ships a properly-trained model that fixes this.
-
-| Metric                              | v0.10 (v1)    | **v0.11 (v2)**     |
-|-------------------------------------|---------------|---------------------|
-| Balanced accuracy                   | ~0.55         | **0.81**            |
-| Specificity (recall on authentic)   | 4.5 %         | **80 %**            |
-| Precision (transcoded)              | 87.5 %        | **97.6 %**          |
-| Threshold needed for safe use       | 0.85 (hack)   | **0.5 (natural)**   |
-| Architecture                        | Custom 5-block CNN | ResNet-18 (ImageNet-pretrained) |
-| Model size                          | 1.6 MB        | 43 MB               |
-
-**The 80 % specificity is the headline**: out of 333 known-authentic test
-files, v1 misclassified 318 as transcoded; v2 misclassifies 68. Almost a
-20× drop in false positives.
-
-The path to a working model was **five training attempts** that taught
-specific lessons (focal loss double-balancing, biased F1 selection,
-insufficient model capacity, and the root cause: feature extraction was
-downsampling audio to 22 kHz, erasing the very MP3 cutoff signal we were
-trying to learn). The full story is in the [CHANGELOG](CHANGELOG.md) and
-[ml/README.md](ml/README.md).
-
-- **Opt-in** via `pip install "flac-detective[ml]"`. PyTorch and librosa are
-  optional — without them, Rule 12 is a graceful no-op and the existing
-  11-rule pipeline runs unchanged.
-- **Trained on Hetzner GPU** (RTX 4000 Ada) over 2 237 certified-authentic
-  FLACs (CD rips verified by EAC / XLD / Audiochecker logs) plus 22 258
-  transcodes generated across **10** codec/bitrate combinations
-  (MP3 CBR 128/192/256/320, MP3 VBR V0/V2, AAC 192/256, Opus 128, Vorbis q5).
-- **Reproducible**: the full training pipeline lives in `ml/`. Eight
-  scripts, one `run_pipeline.sh` to chain them, ~2 h end-to-end on a
-  modest GPU.
-
-For the v0.9.7 → v0.10.1 fix trail (circular import, Docker image,
-documentation refresh, CLI catch-up, branch protection, …) see the
-[CHANGELOG](CHANGELOG.md).
+Full version-by-version history → **[CHANGELOG](CHANGELOG.md)**.
 
 ---
 
