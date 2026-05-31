@@ -103,7 +103,7 @@ This documentation is organized into 6 focused documents:
 
 - **Report bugs**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - **Ask questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
-- **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](../SECURITY.md))
+- **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](../.github/SECURITY.md))
 
 ## License
 
@@ -111,4 +111,4 @@ FLAC Detective is released under the MIT License. See [LICENSE](../LICENSE) for 
 
 ---
 
-**Version**: 0.12.0 | **Last Updated**: May 2026
+**Version**: 0.14.0 | **Last Updated**: May 2026

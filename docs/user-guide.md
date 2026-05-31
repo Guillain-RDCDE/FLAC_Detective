@@ -230,7 +230,7 @@ FLAC Detective saves a detailed text report:
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
 Generated: 2026-05-25 14:30:22
-Analyzer Version: 0.12.0
+Analyzer Version: 0.14.0
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================
@@ -564,7 +564,7 @@ flac-detective ~/Music --format json | jq -r '.files[] | select(.score <= 30) | 
 
 - **Detailed technical info**: [Technical Details](technical-details.md)
 - **Python API usage**: [API Reference](api-reference.md)
-- **Development & bugs**: [Contributing](contributing.md)
+- **Development & bugs**: [Contributing](../.github/CONTRIBUTING.md)
 - **Installation issues**: [Getting Started](getting-started.md)
 
 ---

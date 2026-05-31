@@ -64,6 +64,13 @@ docs = [
     "myst-parser>=2.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Guillain-RDCDE/FLAC_Detective"
+Repository = "https://github.com/Guillain-RDCDE/FLAC_Detective"
+Documentation = "https://github.com/Guillain-RDCDE/FLAC_Detective/tree/main/docs"
+Changelog = "https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Guillain-RDCDE/FLAC_Detective/issues"
+
 [project.scripts]
 flac-detective = "flac_detective.main:main"
 
