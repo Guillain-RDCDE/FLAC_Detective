@@ -18,6 +18,29 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
+## 🆕 What's new in v0.14.0 — Stereo CNN (May 2026)
+
+v0.13 *gated around* Rule 12's blind spot on band-limited music; v0.14 *fixes*
+it. The insight: the model was listening in **mono**, but MP3 joint-stereo coding
+leaves its clearest fingerprint in the **side channel** (L−R) — exactly where a
+band-limited transcode is otherwise invisible. A controlled probe nailed it: on
+band-limited material a mid-only CNN is a coin flip (AUC 0.51), while the same CNN
+on mid+side hits **0.72, even at 320 kbps**. So we retrained EfficientNet-B0 with
+a 2-channel (mid+side) input.
+
+| Held-out test                     | v3 (mono) | **v4 (stereo)** |
+|-----------------------------------|-----------|-----------------|
+| Balanced accuracy                 | 0.834     | **0.905**       |
+| Recall (transcoded)               | 86.9 %    | **94.1 %**      |
+| Specificity (recall on authentic) | 80.0 %    | **86.9 %**      |
+
+On the real library of 11 234 authentic FLACs, false positives drop in every
+rolloff regime; shipped as **v4 + the v0.13 reliability gate**, real-world
+specificity reaches **95.1 %** (from v3's 80.2 %). The reversal of the v0.13
+"fundamental limit" conclusion — and the bit-depth confound and audit-offset bug
+caught along the way — is written up in
+[ml/README.md](ml/README.md#the-fifth-attempt-that-worked--stereo-v014).
+
 ## 🆕 What's new in v0.13.0 — Reliability Gate (May 2026)
 
 No new model — a small, empirically-grounded gate that fixes v3's one weak spot:

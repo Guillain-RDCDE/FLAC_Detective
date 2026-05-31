@@ -29,13 +29,18 @@ def main(checkpoint_path: Path, output_path: Path) -> int:
         print(f"Checkpoint not found: {checkpoint_path}", file=sys.stderr)
         return 1
     ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
-    model = TranscodeCNN()
+    # Infer the input channel count from the trained stem conv so we export
+    # mono (v3) and stereo mid+side (v4) checkpoints with the right shape.
+    stem_w = ckpt["model_state"]["backbone.features.0.0.weight"]
+    in_channels = stem_w.shape[1]
+    model = TranscodeCNN(in_channels=in_channels)
     model.load_state_dict(ckpt["model_state"])
     model.eval()
 
-    # Trace with a representative input shape: (1, 1, 128, 431) for a 10s clip
-    # at sr=22050 / hop=512 -> 22050 * 10 / 512 = 431 frames.
-    example = torch.randn(1, 1, 128, 431)
+    # Representative input: (1, C, 128, 862) for a 10 s clip at sr=44100,
+    # hop=512 -> 44100 * 10 / 512 + 1 = 862 frames.
+    example = torch.randn(1, in_channels, 128, 862)
+    print(f"Tracing with {in_channels}-channel input {tuple(example.shape)}")
     traced = torch.jit.trace(model, example)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     traced.save(str(output_path))
@@ -50,6 +55,6 @@ def main(checkpoint_path: Path, output_path: Path) -> int:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     p.add_argument("--checkpoint", default="models/cnn_v1/best.pt")
-    p.add_argument("--output",     default="models/cnn_v1.ts.pt")
+    p.add_argument("--output", default="models/cnn_v1.ts.pt")
     args = p.parse_args()
     sys.exit(main(Path(args.checkpoint), Path(args.output)))

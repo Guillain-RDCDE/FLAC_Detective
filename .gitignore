@@ -129,3 +129,6 @@ ml/fp_analysis_v3.csv
 ml/*_run.err
 ml/*_run.log
 ml/gate_tmp/
+ml/*.npz
+ml/stereo_feat.log
+ml/stereo_feat.err
