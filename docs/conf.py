@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 project = "FLAC Detective"
 copyright = "2025–2026, Guillain d'Erceville"
 author = "Guillain d'Erceville"
-release = "0.12.0"
+release = "0.14.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
