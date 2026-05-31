@@ -686,7 +686,7 @@ if __name__ == '__main__':
 
 - **User guide**: [User Guide](user-guide.md)
 - **Technical details**: [Technical Details](technical-details.md)
-- **Contributing**: [Contributing](contributing.md)
+- **Contributing**: [Contributing](../.github/CONTRIBUTING.md)
 
 ---
 

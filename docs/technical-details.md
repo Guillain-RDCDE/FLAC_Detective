@@ -655,7 +655,7 @@ function analyze_flac(filepath):
 
 - **User documentation**: [User Guide](user-guide.md)
 - **Python API**: [API Reference](api-reference.md)
-- **Development**: [Contributing](contributing.md)
+- **Development**: [Contributing](../.github/CONTRIBUTING.md)
 - **Quick start**: [Getting Started](getting-started.md)
 
 ---
