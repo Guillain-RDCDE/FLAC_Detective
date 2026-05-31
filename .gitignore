@@ -132,3 +132,6 @@ ml/gate_tmp/
 ml/*.npz
 ml/stereo_feat.log
 ml/stereo_feat.err
+
+# Sphinx build artifacts (generated)
+docs/_build/
