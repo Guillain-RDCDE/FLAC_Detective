@@ -510,6 +510,94 @@ texture probe ~30–45 min.
 
 ---
 
+## The fifth attempt that worked — stereo (v0.14)
+
+The section above ended on a confident note: the band-limited regime is a
+near-fundamental limit, proven by exhaustion. That conclusion was wrong — or
+rather, it was right about one thing and blind to another. It was right that
+*no spectral signal* separates band-limited authentic from transcode. It was
+blind because **everything we tried, including the model, listens in mono.**
+
+### The crack in the wall
+
+MP3 doesn't only low-pass. At typical bitrates it codes stereo jointly, and the
+**side channel** (L−R) is quantised far more aggressively than the mid. That
+leaves a fingerprint that has nothing to do with the spectral cliff — it's there
+even when the cliff isn't, i.e. exactly in band-limited material. And the v3 CNN
+never saw it: it runs on a **mono** mel-spectrogram. So did Rule 9. So did every
+probe above. We'd spent four sections proving a mono representation can't do
+something, and quietly assumed that meant it couldn't be done.
+
+### The controlled probe
+
+One experiment settles it cleanly (`ml/stereo_probe_features.py` +
+`ml/stereo_probe_train.py`): take 250 band-limited authentics + their
+transcodes, train the *same* compact CNN twice under GroupKFold by source — once
+on the **mid** channel alone, once on **mid+side** — and read off the difference.
+
+| codec   | mono (mid) AUC | stereo (mid+side) AUC | Δ from the side channel |
+|---------|----------------|------------------------|--------------------------|
+| mp3_128 | 0.55           | **0.73**               | **+0.18**                |
+| mp3_320 | 0.51           | **0.71**               | **+0.20**                |
+
+The mono model is a coin flip — it *reproduces v3's failure*. Adding the side
+channel lifts it to ~0.72, **including at 320 kbps**, the case the hand-crafted
+features had pronounced fundamentally undetectable. The bit-depth confound was
+ruled out (all sources 16-bit, transcodes quantised to 16-bit), so this is the
+genuine joint-stereo fingerprint, not a pipeline tell. The wall was never the
+audio. It was the microphone we listened through.
+
+### v4 — a two-channel model
+
+We retrained EfficientNet-B0 with a 2-channel (mid, side) stem on the full
+65 244-sample dataset (`ml/extract_features_stereo.py` writes the features
+straight to a float16 memmap — a 2-channel float32 tensor is ~57 GB and would
+OOM the `np.stack` the mono extractor does; both channels are 16-bit-quantised
+first so the model can't cheat on bit depth). Held-out test balanced accuracy
+**0.834 → 0.905**; specificity **0.80 → 0.869**; transcode recall
+**0.869 → 0.941**.
+
+The real audit (all 11 234 authentics, `ml/analyze_fp_v4.py`) tells the honest
+story — false-positive rate by rolloff, v3 → v4:
+
+| rolloff   | v3 FP % | v4 FP % |    Δ    |
+|-----------|---------|---------|---------|
+| < 4 kHz   | 57.2 %  | 25.6 %  | −31.6 pp |
+| 4–7 kHz   | 30.2 %  | 11.4 %  | −18.8 pp |
+| 7–10 kHz  | 14.3 %  | 8.0 %   | −6.3 pp  |
+| 10–14 kHz | 8.2 %   | 6.7 %   | −1.5 pp  |
+| ≥ 14 kHz  | 4.9 %   | 7.3 %   | +2.4 pp  |
+
+Better in every regime except full-range (a small price), fixing 1 383 of v3's
+false positives against 276 new ones. **The reliability gate is kept** — v4 is
+much less blind below 7 kHz than v3, but abstaining there still gives the best
+specificity and stays faithful to "protect authentic files first":
+
+| Real-library specificity        |        |
+|---------------------------------|--------|
+| v3 baseline                     | 80.2 % |
+| v3 + gate (v0.13)               | 92.8 % |
+| v4, no gate                     | 90.0 % |
+| **v4 + gate (v0.14, shipped)**  | **95.1 %** |
+
+> 💡 **Lesson** — "proven by exhaustion" is only as good as the assumptions every
+> attempt silently shares. Four independent probes failed the same way because
+> they all made the same choice — mono — that nobody had written down as a choice.
+> When everything fails identically, suspect the thing they have in common.
+
+> 💡 **And one on method** — the first audit of v4 reported 87.6 % specificity.
+> Wrong: the audit script read the *start* of each file while training and
+> inference read the *middle*. A cross-check of the shipped inference against the
+> audit code caught it; the corrected number is 90.0 %. Verify the inference path
+> before you trust the metric — the same lesson that opened this whole story
+> (the per-sample normalisation in Step 0), arriving one last time.
+
+Reproduce it: `stereo_probe_features.py` / `stereo_probe_train.py` (the probe),
+`extract_features_stereo.py` (2-channel features), `train.py --features <dir>`
+(now channel-count aware), `analyze_fp_v4.py` (the v3-vs-v4 audit).
+
+---
+
 ## Reproducing the pipeline from scratch
 
 You'll need three things: a directory of FLACs with verifiable provenance

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # Module-level model cache: only load the model once per process.
 _MODEL = None
 _MODEL_LOAD_ATTEMPTED = False
-_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v3.ts.pt"
+_MODEL_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v4_stereo.ts.pt"
 
 # Mel-spec config — MUST match ml/extract_features.py used at training time.
 _SAMPLE_RATE = 44100  # MUST match ml/extract_features.py SAMPLE_RATE
@@ -35,18 +35,20 @@ _N_MELS = 128
 _N_FFT = 2048
 _HOP = 512
 
-# Reliability gate (added v0.13). An empirical false-positive audit of v3 on
-# 11 234 certified-authentic FLACs (see ml/analyze_false_positives.py and
-# ml/README.md "The reliability gate") showed the model's specificity is a flat
-# function of how band-limited the input is: its precision collapses to ~59% on
-# material whose 95% spectral rolloff is below 4 kHz and is only ~75% in 4-7 kHz,
-# versus ~87-95% above. The reason is physical — for a source that rolls off that
-# early (baroque, historical, acoustic), an MP3 transcode removes almost nothing,
-# so authentic and fake are near-identical to ANY spectrogram-only model. Below
-# this rolloff the CNN is essentially guessing, so Rule 12 abstains (contributes
-# 0) and defers to the heuristic rules, lifting real-world specificity from
-# 80.2% to ~92.8% at the cost of detection only in a regime where it was a coin
-# flip anyway. Measured on the file itself, so it works at inference.
+# Reliability gate (v0.13). A false-positive audit on 11 234 certified-authentic
+# FLACs (ml/analyze_false_positives.py, ml/README.md) showed the model is most
+# error-prone on band-limited material: for a source that rolls off below ~7 kHz
+# (baroque, historical, acoustic), an MP3 transcode removes almost nothing, so
+# authentic and fake look alike. Below this rolloff Rule 12 abstains (contributes
+# 0) and defers to the heuristic rules.
+#
+# v0.14 stereo update: the v4 model reads the mid AND side channels, so it is far
+# less blind here than the mono v3 was (real-world FP at rolloff<4k dropped from
+# 57% to 25%). The gate is kept because it still helps — on the same audit, v4
+# specificity is 87.6% un-gated vs 93.5% with this <7 kHz gate — and it remains
+# faithful to the "protect authentic files first" philosophy: the band-limited
+# detection given up is the least-harmful case (a 320 kbps MP3 of a 5 kHz-bandwidth
+# source is sonically transparent). Measured on the file, so it works at inference.
 _ROLLOFF_GATE_HZ = 7000.0
 
 
@@ -80,12 +82,17 @@ def _load_model():
 
 
 def _compute_mel(filepath: Path):
-    """Compute the model input and the 95% spectral rolloff from one decode.
+    """Compute the 2-channel model input and 95% spectral rolloff from one decode.
 
-    Returns ``(mel, rolloff_hz)`` where ``mel`` is a (1, 1, n_mels, T) mel-spec
-    normalised to [-1, 1], or ``(None, None)`` on failure. The rolloff drives the
-    reliability gate (see ``_ROLLOFF_GATE_HZ``); computing it here reuses the
-    single audio decode rather than reading the file twice.
+    Returns ``(mel, rolloff_hz)`` where ``mel`` is a (1, 2, n_mels, T) mid+side
+    mel-spec — each channel normalised to [-1, 1] — or ``(None, None)`` on failure.
+
+    The v4 model is stereo: channel 0 is the mid (L+R)/2, channel 1 the side
+    (L-R)/2 where MP3 joint-stereo coding leaves a fingerprint the mono v3 was
+    blind to. Audio is quantised to 16-bit first so the model keys on that
+    fingerprint rather than the authentic-vs-transcode bit-depth difference (the
+    confound this avoids — see ml/extract_features_stereo.py). The rolloff (from
+    the mid channel) drives the reliability gate and reuses the same decode.
     """
     try:
         import librosa
@@ -96,38 +103,35 @@ def _compute_mel(filepath: Path):
         duration = librosa.get_duration(path=str(filepath))
         offset = max(0.0, (duration - _SEGMENT_SEC) / 2)
         y, sr = librosa.load(
-            str(filepath), sr=_SAMPLE_RATE, offset=offset, duration=_SEGMENT_SEC, mono=True
+            str(filepath), sr=_SAMPLE_RATE, offset=offset, duration=_SEGMENT_SEC, mono=False
         )
-        target_len = int(_SAMPLE_RATE * _SEGMENT_SEC)
-        if len(y) < target_len:
-            y = np.pad(y, (0, target_len - len(y)))
+        if y.ndim == 1:
+            mid, side = y, np.zeros_like(y)
         else:
-            y = y[:target_len]
+            mid, side = 0.5 * (y[0] + y[1]), 0.5 * (y[0] - y[1])
 
-        mag = np.abs(librosa.stft(y, n_fft=_N_FFT, hop_length=_HOP))
-        # 95% spectral rolloff from the time-averaged magnitude spectrum (matches
-        # ml/analyze_false_positives.py, which calibrated the gate threshold).
-        mag_mean = mag.mean(axis=1)
+        target_len = int(_SAMPLE_RATE * _SEGMENT_SEC)
         freqs = librosa.fft_frequencies(sr=sr, n_fft=_N_FFT)
-        cumulative = np.cumsum(mag_mean)
-        rolloff = (
-            float(freqs[np.searchsorted(cumulative, 0.95 * cumulative[-1])])
-            if cumulative[-1] > 0
-            else 0.0
-        )
-
-        mel = librosa.feature.melspectrogram(
-            S=mag**2,
-            sr=sr,
-            n_mels=_N_MELS,
-            fmax=sr // 2,
-        )
-        mel_db = librosa.power_to_db(mel, ref=np.max).astype(np.float32)
-        mn, mx = mel_db.min(), mel_db.max()
-        rng = max(mx - mn, 1e-6)
-        mel_db = 2 * (mel_db - mn) / rng - 1.0
-        # Shape (1, 1, n_mels, T)
-        return mel_db[None, None, :, :], rolloff
+        rolloff = 0.0
+        chans = []
+        for ci, sig in enumerate((mid, side)):
+            if len(sig) < target_len:
+                sig = np.pad(sig, (0, target_len - len(sig)))
+            else:
+                sig = sig[:target_len]
+            sig = np.round(sig * 32768.0) / 32768.0  # 16-bit quant (matches training)
+            mag = np.abs(librosa.stft(sig, n_fft=_N_FFT, hop_length=_HOP))
+            if ci == 0:
+                # 95% spectral rolloff from the mid channel's averaged spectrum.
+                cumulative = np.cumsum(mag.mean(axis=1))
+                if cumulative[-1] > 0:
+                    rolloff = float(freqs[np.searchsorted(cumulative, 0.95 * cumulative[-1])])
+            mel = librosa.feature.melspectrogram(S=mag**2, sr=sr, n_mels=_N_MELS, fmax=sr // 2)
+            mel_db = librosa.power_to_db(mel, ref=np.max).astype(np.float32)
+            mn, mx = mel_db.min(), mel_db.max()
+            chans.append(2 * (mel_db - mn) / max(mx - mn, 1e-6) - 1.0)
+        # Shape (1, 2, n_mels, T)
+        return np.stack(chans, axis=0)[None, :, :, :], rolloff
     except Exception as e:
         logger.debug(f"Rule 12: mel extraction failed for {filepath}: {e}")
         return None, None

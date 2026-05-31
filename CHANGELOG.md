@@ -1,5 +1,79 @@
 ## Unreleased
 
+## v0.14.0 (2026-05-31) — Stereo CNN: the band-limited blind spot was a mono limit
+
+v0.13 *gated around* Rule 12's weak spot (band-limited music). v0.14 actually
+*fixes* it — and the reason is a small, almost embarrassing insight: the model
+was listening in mono.
+
+### The realisation
+
+The v0.13 write-up concluded the band-limited regime was a near-fundamental
+limit: when a recording rolls off below ~7 kHz, an MP3 transcode removes nothing
+a spectrogram can see. That's true — *for a mono spectrogram*. But MP3
+joint-stereo coding quantises the **side channel** (L−R) aggressively, leaving a
+fingerprint that has nothing to do with the spectral cliff. The v3 model never
+saw it: it runs on a mono mel-spectrogram.
+
+A controlled probe settled it (`ml/stereo_probe_*.py`). On band-limited material,
+a CNN given only the **mid** channel is a coin flip (AUC ~0.51); the **same CNN
+given mid+side** jumps to **0.72 — at both 128 and 320 kbps**. The bit-depth
+confound was ruled out (both sides quantised to 16-bit), so it's the genuine
+joint-stereo signature. The "fundamental limit" wasn't fundamental; it was the
+representation.
+
+### v4 — a stereo model
+
+We retrained EfficientNet-B0 with a **2-channel (mid + side)** input on the full
+65 244-sample dataset. Both channels are 16-bit-quantised before the mel so the
+model learns the stereo fingerprint, not a pipeline bit-depth tell.
+
+| Held-out test (9 786 samples)    | v3 (mono) | **v4 (stereo)** | Δ          |
+|----------------------------------|-----------|-----------------|------------|
+| Balanced accuracy                | 0.834     | **0.905**       | **+0.071** |
+| Recall (transcoded)              | 86.9 %    | **94.1 %**      | **+7.2 pp**|
+| Recall (authentic) = specificity | 80.0 %    | **86.9 %**      | **+6.9 pp**|
+
+And on the real audit — all 11 234 certified-authentic FLACs, false-positive
+rate by spectral rolloff, v3 → v4:
+
+| rolloff   | v3 FP % | v4 FP % |
+|-----------|---------|---------|
+| < 4 kHz   | 57.2 %  | **25.6 %** |
+| 4–7 kHz   | 30.2 %  | **11.4 %** |
+| 7–10 kHz  | 14.3 %  | **8.0 %**  |
+| 10–14 kHz | 8.2 %   | **6.7 %**  |
+| ≥ 14 kHz  | 4.9 %   | 7.3 %   |
+
+v4 improves every regime except full-range (≥14 kHz, +2.4 pp — still low), and
+fixes **1 383** of v3's false positives while introducing only **276**.
+
+### What ships
+
+- **`cnn_v4_stereo.ts.pt`** (16 MB TorchScript) replaces `cnn_v3.ts.pt` in the
+  wheel. Rule 12 inference now computes a 2-channel mid+side mel-spectrogram.
+- **The reliability gate is kept** (Rule 12 still abstains below 7 kHz rolloff).
+  v4 is far less blind there than v3, but the gate still helps and stays true to
+  "protect authentic files first":
+
+  | Configuration (real library specificity) |        |
+  |-------------------------------------------|--------|
+  | v3 baseline                               | 80.2 % |
+  | v3 + gate (v0.13)                         | 92.8 % |
+  | v4, no gate                               | 90.0 % |
+  | **v4 + gate (v0.14, shipped)**            | **95.1 %** |
+
+### A note on method
+
+The first real-world audit number was wrong: the audit script analysed the
+*start* of each file while training and inference use the *middle*. A cross-check
+of the production inference against the audit code caught it before release. The
+table above is the corrected, production-faithful measurement. (Lesson, again:
+verify the inference path before trusting the metric.)
+
+Full story — the v3 audit, the four dead ends, and the stereo turn — is in
+`ml/README.md`.
+
 ## v0.13.0 (2026-05-30) — Reliability Gate: Rule 12 abstains where it's a coin flip
 
 No retraining. No new model. Just a small, empirically-grounded gate in front

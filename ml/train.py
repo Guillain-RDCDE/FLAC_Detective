@@ -49,8 +49,15 @@ class MelDataset(Dataset):
     steps during training. Applied only when `augment=True`.
     """
 
-    def __init__(self, X, y: np.ndarray, augment: bool = False,
-                 freq_mask: int = 15, time_mask: int = 20, n_masks: int = 2):
+    def __init__(
+        self,
+        X,
+        y: np.ndarray,
+        augment: bool = False,
+        freq_mask: int = 15,
+        time_mask: int = 20,
+        n_masks: int = 2,
+    ):
         # X may be either an in-memory ndarray of shape (N, n_mels, T) OR a
         # mmap-backed ndarray. We keep it as-is and slice per item.
         self.X = X
@@ -66,10 +73,18 @@ class MelDataset(Dataset):
         return len(self.y)
 
     def _normalise(self, x: np.ndarray) -> np.ndarray:
-        """Per-sample min-max normalisation to [-1, 1]."""
-        mn, mx = x.min(), x.max()
-        rng = max(mx - mn, 1e-6)
-        return (2 * (x - mn) / rng - 1.0).astype(np.float32)
+        """Per-sample, per-channel min-max normalisation to [-1, 1].
+
+        x is (C, n_mels, T). Each channel is normalised independently so a
+        quiet stereo side channel isn't swamped by the mid channel's range.
+        """
+        out = np.empty(x.shape, dtype=np.float32)
+        for c in range(x.shape[0]):
+            xc = x[c].astype(np.float32)
+            mn, mx = xc.min(), xc.max()
+            rng = max(mx - mn, 1e-6)
+            out[c] = 2 * (xc - mn) / rng - 1.0
+        return out
 
     def _spec_augment(self, x: np.ndarray) -> np.ndarray:
         """Apply SpecAugment in-place on a copy of `x` (shape (1, n_mels, T))."""
@@ -82,20 +97,22 @@ class MelDataset(Dataset):
                 f = self._rng.integers(0, self.freq_mask + 1)
                 if f > 0:
                     f0 = self._rng.integers(0, max(n_mels - f, 1))
-                    x[:, f0:f0 + f, :] = -1.0  # masked = normalisation's minimum
+                    x[:, f0 : f0 + f, :] = -1.0  # masked = normalisation's minimum
             # Time mask
             if self.time_mask > 0:
                 t = self._rng.integers(0, self.time_mask + 1)
                 if t > 0:
                     t0 = self._rng.integers(0, max(n_time - t, 1))
-                    x[:, :, t0:t0 + t] = -1.0
+                    x[:, :, t0 : t0 + t] = -1.0
         return x
 
     def __getitem__(self, idx):
-        # X[idx] returns shape (n_mels, T). Convert to (1, n_mels, T).
-        # np.asarray copies the mmap slice into a real in-RAM ndarray for the
-        # downstream work. Cheap — single sample is ~440 KB.
-        x = np.asarray(self.X[idx])[None, :, :]
+        # X[idx] is (n_mels, T) for mono features or (C, n_mels, T) for stereo.
+        # np.asarray copies the mmap slice into a real in-RAM ndarray (cheap —
+        # one sample). Mono gets a channel axis so both paths yield (C, n_mels, T).
+        x = np.asarray(self.X[idx])
+        if x.ndim == 2:
+            x = x[None, :, :]
         x = self._normalise(x)
         if self.augment:
             x = self._spec_augment(x)
@@ -126,8 +143,8 @@ class FocalLoss(nn.Module):
         probs = log_probs.exp()
         # Gather the per-sample p_t and log p_t
         gathered_log = log_probs.gather(1, target.unsqueeze(1)).squeeze(1)
-        gathered_p   = probs.gather(1, target.unsqueeze(1)).squeeze(1)
-        alpha_t      = self.alpha.gather(0, target)
+        gathered_p = probs.gather(1, target.unsqueeze(1)).squeeze(1)
+        alpha_t = self.alpha.gather(0, target)
         focal_factor = (1 - gathered_p).pow(self.gamma)
         loss = -alpha_t * focal_factor * gathered_log
         return loss.mean()
@@ -155,23 +172,27 @@ class TranscodeCNN(nn.Module):
     weights to preserve the pretrained features.
     """
 
-    def __init__(self):
+    def __init__(self, in_channels: int = 1):
         super().__init__()
+        self.in_channels = in_channels
         try:
             from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
+
             backbone = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
         except (ImportError, Exception):
             from torchvision.models import efficientnet_b0
+
             backbone = efficientnet_b0(weights=None)
             logger = logging.getLogger(__name__)
             logger.warning("EfficientNet-B0 pretrained weights unavailable; training from scratch")
 
-        # Adapt first conv to accept 1-channel input by averaging RGB weights.
-        # EfficientNet stem: features[0] = Conv2dNormActivation; its conv is [0].
-        # Shape was (32, 3, 3, 3) → becomes (32, 1, 3, 3).
+        # Adapt first conv to accept `in_channels` (1 = mono mel, 2 = mid+side
+        # stereo). EfficientNet stem: features[0] = Conv2dNormActivation, conv at
+        # [0], shape (32, 3, 3, 3). We average the RGB filter weights and tile
+        # them across the input channels to preserve the pretrained features.
         old_conv = backbone.features[0][0]
         new_conv = nn.Conv2d(
-            in_channels=1,
+            in_channels=in_channels,
             out_channels=old_conv.out_channels,
             kernel_size=old_conv.kernel_size,
             stride=old_conv.stride,
@@ -179,7 +200,8 @@ class TranscodeCNN(nn.Module):
             bias=False,
         )
         with torch.no_grad():
-            new_conv.weight.copy_(old_conv.weight.mean(dim=1, keepdim=True))
+            avg = old_conv.weight.mean(dim=1, keepdim=True)  # (32, 1, 3, 3)
+            new_conv.weight.copy_(avg.repeat(1, in_channels, 1, 1))
         backbone.features[0][0] = new_conv
 
         # Replace 1000-class ImageNet head. EfficientNet's classifier is
@@ -214,8 +236,9 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor, alpha: float = 0.2):
     return mixed_x, y_a, y_b, lam
 
 
-def stratified_split(y: np.ndarray, val_frac: float = 0.15, test_frac: float = 0.15,
-                     seed: int = 42) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def stratified_split(
+    y: np.ndarray, val_frac: float = 0.15, test_frac: float = 0.15, seed: int = 42
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Per-class shuffle then split into train / val / test indices."""
     rng = np.random.default_rng(seed)
     train_idx, val_idx, test_idx = [], [], []
@@ -223,13 +246,15 @@ def stratified_split(y: np.ndarray, val_frac: float = 0.15, test_frac: float = 0
         idx = np.where(y == c)[0]
         rng.shuffle(idx)
         n_test = int(round(len(idx) * test_frac))
-        n_val  = int(round(len(idx) * val_frac))
+        n_val = int(round(len(idx) * val_frac))
         test_idx.extend(idx[:n_test])
-        val_idx.extend(idx[n_test:n_test + n_val])
-        train_idx.extend(idx[n_test + n_val:])
-    return (np.array(train_idx, dtype=np.int64),
-            np.array(val_idx, dtype=np.int64),
-            np.array(test_idx, dtype=np.int64))
+        val_idx.extend(idx[n_test : n_test + n_val])
+        train_idx.extend(idx[n_test + n_val :])
+    return (
+        np.array(train_idx, dtype=np.int64),
+        np.array(val_idx, dtype=np.int64),
+        np.array(test_idx, dtype=np.int64),
+    )
 
 
 def evaluate(model, loader, device) -> dict:
@@ -254,23 +279,40 @@ def evaluate(model, loader, device) -> dict:
             tn += ((pred == 0) & (yb == 0)).sum().item()
     acc = correct / max(total, 1)
     prec = tp / max(tp + fp, 1)
-    rec  = tp / max(tp + fn, 1)
-    f1   = 2 * prec * rec / max(prec + rec, 1e-9)
+    rec = tp / max(tp + fn, 1)
+    f1 = 2 * prec * rec / max(prec + rec, 1e-9)
     # Balanced accuracy = mean of per-class recall. Crucial for imbalanced
     # datasets: if the model just predicts the majority class, raw `acc` and
     # F1-on-class-1 stay high, but balanced_acc collapses to 0.5 (random).
     # We use this as the model-selection criterion.
-    recall_pos = tp / max(tp + fn, 1)             # = recall on transcoded
-    recall_neg = tn / max(tn + fp, 1)             # = specificity = recall on authentic
+    recall_pos = tp / max(tp + fn, 1)  # = recall on transcoded
+    recall_neg = tn / max(tn + fp, 1)  # = specificity = recall on authentic
     balanced_acc = (recall_pos + recall_neg) / 2
-    return dict(loss=loss_sum / max(total, 1), acc=acc, precision=prec,
-                recall=rec, f1=f1, balanced_acc=balanced_acc,
-                recall_pos=recall_pos, recall_neg=recall_neg,
-                tp=tp, fp=fp, fn=fn, tn=tn)
+    return dict(
+        loss=loss_sum / max(total, 1),
+        acc=acc,
+        precision=prec,
+        recall=rec,
+        f1=f1,
+        balanced_acc=balanced_acc,
+        recall_pos=recall_pos,
+        recall_neg=recall_neg,
+        tp=tp,
+        fp=fp,
+        fn=fn,
+        tn=tn,
+    )
 
 
-def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
-         lr: float, mem_fraction: float, early_stop_patience: int = 8) -> int:
+def main(
+    features_path: Path,
+    output_dir: Path,
+    epochs: int,
+    batch_size: int,
+    lr: float,
+    mem_fraction: float,
+    early_stop_patience: int = 8,
+) -> int:
     log.info(f"Loading features from {features_path}")
     # If features_path is a directory containing X.npy/y.npy, load X with
     # mmap_mode='r' so it stays on disk and we page samples into RAM as the
@@ -284,15 +326,25 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
     else:
         data = np.load(features_path, allow_pickle=True)
         X, y = data["X"], data["y"]
-    log.info(f"X shape: {X.shape}, y shape: {y.shape}, "
-             f"class balance: {np.bincount(y).tolist()}")
+    # Mono features are (N, n_mels, T); stereo are (N, C, n_mels, T). The number
+    # of channels drives the model stem (1 for v3 mono, 2 for v4 mid+side).
+    in_channels = X.shape[1] if X.ndim == 4 else 1
+    # X may be over-allocated (stereo extractor pads to job count); y defines the
+    # valid sample count, and all indices below come from y.
+    n_valid = len(y)
+    log.info(
+        f"X shape: {X.shape} ({in_channels}-channel), y shape: {y.shape}, "
+        f"valid={n_valid}, class balance: {np.bincount(y).tolist()}"
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Device: {device}")
     if device.type == "cuda":
         torch.cuda.set_per_process_memory_fraction(mem_fraction)
-        log.info(f"VRAM cap: {mem_fraction*100:.0f}% "
-                 f"({mem_fraction * torch.cuda.get_device_properties(0).total_memory/1024**3:.1f} GB)")
+        log.info(
+            f"VRAM cap: {mem_fraction*100:.0f}% "
+            f"({mem_fraction * torch.cuda.get_device_properties(0).total_memory/1024**3:.1f} GB)"
+        )
 
     train_idx, val_idx, test_idx = stratified_split(y, val_frac=0.15, test_frac=0.15)
     log.info(f"Split sizes: train={len(train_idx)}, val={len(val_idx)}, test={len(test_idx)}")
@@ -306,14 +358,16 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
         def __init__(self, X, y, idx, **kw):
             super().__init__(X, y, **kw)
             self._idx = idx
+
         def __len__(self):
             return len(self._idx)
+
         def __getitem__(self, i):
             return super().__getitem__(self._idx[i])
 
     train_ds = _IndexedDataset(X, y, train_idx, augment=True)
-    val_ds   = _IndexedDataset(X, y, val_idx,   augment=False)
-    test_ds  = _IndexedDataset(X, y, test_idx,  augment=False)
+    val_ds = _IndexedDataset(X, y, val_idx, augment=False)
+    test_ds = _IndexedDataset(X, y, test_idx, augment=False)
 
     # Re-balance train batches: rarer class (authentic, label 0) gets up-weighted.
     train_y = y[train_idx]
@@ -321,16 +375,19 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
     sampler_weights = (1.0 / class_counts)[train_y]
     sampler = WeightedRandomSampler(sampler_weights, num_samples=len(train_y), replacement=True)
 
-    train_loader = DataLoader(train_ds, batch_size=batch_size, sampler=sampler,
-                              num_workers=4, pin_memory=True)
-    val_loader   = DataLoader(val_ds, batch_size=batch_size, shuffle=False,
-                              num_workers=2, pin_memory=True)
-    test_loader  = DataLoader(test_ds, batch_size=batch_size, shuffle=False,
-                              num_workers=2, pin_memory=True)
+    train_loader = DataLoader(
+        train_ds, batch_size=batch_size, sampler=sampler, num_workers=4, pin_memory=True
+    )
+    val_loader = DataLoader(
+        val_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True
+    )
+    test_loader = DataLoader(
+        test_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True
+    )
 
-    model = TranscodeCNN().to(device)
+    model = TranscodeCNN(in_channels=in_channels).to(device)
     n_params = sum(p.numel() for p in model.parameters())
-    log.info(f"Model: TranscodeCNN, {n_params:,} parameters")
+    log.info(f"Model: TranscodeCNN ({in_channels}-channel), {n_params:,} parameters")
     log.info(f"Augmentation: SpecAugment(freq=15, time=20, n_masks=2) on train split")
 
     # Class balancing strategy: WeightedRandomSampler (above) already ensures
@@ -411,15 +468,18 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
         if val_metrics["balanced_acc"] > best_metric:
             best_metric = val_metrics["balanced_acc"]
             best_epoch = epoch
-            torch.save({"model_state": model.state_dict(),
-                        "epoch": epoch, "val_metrics": val_metrics},
-                       output_dir / "best.pt")
+            torch.save(
+                {"model_state": model.state_dict(), "epoch": epoch, "val_metrics": val_metrics},
+                output_dir / "best.pt",
+            )
             log.info(f"  New best (balanced_acc={best_metric:.4f}) saved.")
 
         # Early stopping: bail out if no improvement for `early_stop_patience` epochs.
         if epoch - best_epoch >= early_stop_patience:
-            log.info(f"Early stopping at epoch {epoch}: no improvement for "
-                     f"{early_stop_patience} epochs (best was epoch {best_epoch}).")
+            log.info(
+                f"Early stopping at epoch {epoch}: no improvement for "
+                f"{early_stop_patience} epochs (best was epoch {best_epoch})."
+            )
             break
 
     # Final test
@@ -429,8 +489,16 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
     log.info(f"Best checkpoint test metrics: {test_metrics}")
 
     with open(output_dir / "history.json", "w") as f:
-        json.dump({"history": history, "test_metrics": test_metrics,
-                   "best_balanced_acc": best_metric, "best_epoch": ckpt["epoch"]}, f, indent=2)
+        json.dump(
+            {
+                "history": history,
+                "test_metrics": test_metrics,
+                "best_balanced_acc": best_metric,
+                "best_epoch": ckpt["epoch"],
+            },
+            f,
+            indent=2,
+        )
     log.info(f"All artefacts in {output_dir}")
     return 0
 
@@ -438,15 +506,31 @@ def main(features_path: Path, output_dir: Path, epochs: int, batch_size: int,
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     p.add_argument("--features", default="features/dataset.npz")
-    p.add_argument("--output",   default="models/cnn_v2")
-    p.add_argument("--epochs",   type=int, default=50)
+    p.add_argument("--output", default="models/cnn_v2")
+    p.add_argument("--epochs", type=int, default=50)
     p.add_argument("--batch-size", type=int, default=32)
-    p.add_argument("--lr",       type=float, default=3e-4)
-    p.add_argument("--early-stop-patience", type=int, default=8,
-                   help="Stop if val_f1 hasn't improved in N epochs")
-    p.add_argument("--mem-fraction", type=float, default=0.5,
-                   help="Cap GPU VRAM at this fraction (0..1) to coexist with other services")
+    p.add_argument("--lr", type=float, default=3e-4)
+    p.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=8,
+        help="Stop if val_f1 hasn't improved in N epochs",
+    )
+    p.add_argument(
+        "--mem-fraction",
+        type=float,
+        default=0.5,
+        help="Cap GPU VRAM at this fraction (0..1) to coexist with other services",
+    )
     args = p.parse_args()
-    sys.exit(main(Path(args.features), Path(args.output),
-                  args.epochs, args.batch_size, args.lr, args.mem_fraction,
-                  args.early_stop_patience))
+    sys.exit(
+        main(
+            Path(args.features),
+            Path(args.output),
+            args.epochs,
+            args.batch_size,
+            args.lr,
+            args.mem_fraction,
+            args.early_stop_patience,
+        )
+    )
