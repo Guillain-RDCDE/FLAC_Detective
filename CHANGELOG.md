@@ -1,5 +1,20 @@
 ## Unreleased
 
+## v0.14.1 (2026-05-31) — Metadata coherence
+
+Metadata-only patch — no code or model change; the classifier behaves exactly as
+in v0.14.0. A post-release repo audit surfaced two inconsistencies that only show
+up on the PyPI page (which freezes metadata at publish time), so this release
+republishes with them fixed:
+
+- **`[project.urls]`** added — the PyPI page now links to the repository,
+  documentation, changelog, and issue tracker (previously it had no project links).
+- **Author name** aligned to **Guillain d'Erceville** across `pyproject.toml`,
+  `__version__.py`, `LICENSE` and `docs/conf.py` (CITATION.cff already used it).
+
+Also fixed in the repo (docs, not shipped in the wheel): four broken
+`CONTRIBUTING`/`SECURITY` links under `docs/` and stale 0.12.0 version references.
+
 ## v0.14.0 (2026-05-31) — Stereo CNN: the band-limited blind spot was a mono limit
 
 v0.13 *gated around* Rule 12's weak spot (band-limited music). v0.14 actually
