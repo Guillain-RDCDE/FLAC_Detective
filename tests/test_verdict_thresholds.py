@@ -58,8 +58,6 @@ def test_console_label_follows_verdict_not_score(caplog):
     from flac_detective.main import _log_formatted_result
 
     with caplog.at_level(_logging.INFO):
-        _log_formatted_result(
-            {"score": 82, "verdict": "SUSPICIOUS", "filename": "x.flac"}, 1, 1
-        )
+        _log_formatted_result({"score": 82, "verdict": "SUSPICIOUS", "filename": "x.flac"}, 1, 1)
     text = " ".join(r.getMessage() for r in caplog.records)
     assert "SUSPICIOUS" in text and "FAKE" not in text
