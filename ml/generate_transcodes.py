@@ -52,36 +52,32 @@ log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Codec:
-    name: str            # e.g. "mp3_192" — used as output subdir
-    ffmpeg_codec: str    # e.g. "libmp3lame"
-    ext: str             # intermediate file extension, e.g. "mp3"
-    bitrate: str         # e.g. "192k"
-    extra: tuple = ()    # extra ffmpeg flags
+    name: str  # e.g. "mp3_192" — used as output subdir
+    ffmpeg_codec: str  # e.g. "libmp3lame"
+    ext: str  # intermediate file extension, e.g. "mp3"
+    bitrate: str  # e.g. "192k"
+    extra: tuple = ()  # extra ffmpeg flags
 
 
 CODECS = (
     # MP3 CBR — the historical standard, all common bitrates
-    Codec("mp3_128",     "libmp3lame", "mp3",  "128k"),
-    Codec("mp3_192",     "libmp3lame", "mp3",  "192k"),
-    Codec("mp3_256",     "libmp3lame", "mp3",  "256k"),
-    Codec("mp3_320",     "libmp3lame", "mp3",  "320k"),
-
+    Codec("mp3_128", "libmp3lame", "mp3", "128k"),
+    Codec("mp3_192", "libmp3lame", "mp3", "192k"),
+    Codec("mp3_256", "libmp3lame", "mp3", "256k"),
+    Codec("mp3_320", "libmp3lame", "mp3", "320k"),
     # MP3 VBR (LAME presets V0 ~245 kbps avg, V2 ~190 kbps avg). VBR is what
     # most discerning encoders actually use — leaves a different "footprint"
     # than CBR because the bitrate adapts to content complexity. Adding VBR
     # is a major gain for real-world generalisation.
-    Codec("mp3_v0",      "libmp3lame", "mp3",  "0",  extra=("-q:a", "0")),
-    Codec("mp3_v2",      "libmp3lame", "mp3",  "0",  extra=("-q:a", "2")),
-
+    Codec("mp3_v0", "libmp3lame", "mp3", "0", extra=("-q:a", "0")),
+    Codec("mp3_v2", "libmp3lame", "mp3", "0", extra=("-q:a", "2")),
     # AAC CBR — Apple's default, Spotify's lossy tier
-    Codec("aac_192",     "aac",        "m4a",  "192k"),
-    Codec("aac_256",     "aac",        "m4a",  "256k"),
-
+    Codec("aac_192", "aac", "m4a", "192k"),
+    Codec("aac_256", "aac", "m4a", "256k"),
     # Opus — modern codec used by YouTube, WhatsApp voice notes, Discord
-    Codec("opus_128",    "libopus",    "opus", "128k"),
-
+    Codec("opus_128", "libopus", "opus", "128k"),
     # OGG Vorbis q5 (~160 kbps avg) — Bandcamp's lossy download format
-    Codec("vorbis_q5",   "libvorbis",  "ogg",  "0",  extra=("-q:a", "5")),
+    Codec("vorbis_q5", "libvorbis", "ogg", "0", extra=("-q:a", "5")),
 )
 
 
@@ -112,9 +108,16 @@ def transcode_one(args: tuple[Path, Path, Path, Codec]) -> tuple[str, bool, str]
     if codec.bitrate and codec.bitrate != "0":
         bitrate_flag = ("-b:a", codec.bitrate)
     enc = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-i", str(src),
-        "-c:a", codec.ffmpeg_codec,
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-i",
+        str(src),
+        "-vn",  # drop embedded cover art: the mp4/m4a muxer otherwise tries to
+        # re-encode it as video and fails, silently losing AAC/Opus/Vorbis
+        "-c:a",
+        codec.ffmpeg_codec,
         *bitrate_flag,
         *codec.extra,
         str(tmp_lossy),
@@ -126,9 +129,14 @@ def transcode_one(args: tuple[Path, Path, Path, Codec]) -> tuple[str, bool, str]
 
     # Step 2: lossy -> FLAC ("fake FLAC")
     dec = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-i", str(tmp_lossy),
-        "-c:a", "flac",
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-i",
+        str(tmp_lossy),
+        "-c:a",
+        "flac",
         str(dst),
     ]
     r2 = subprocess.run(dec, capture_output=True, text=True)
@@ -168,6 +176,7 @@ def main(input_root: Path, output_root: Path, workers: int) -> int:
     skipped = 0
     try:
         from tqdm import tqdm
+
         progress = tqdm(total=len(jobs), unit="file")
     except ImportError:
         progress = None
@@ -194,11 +203,19 @@ def main(input_root: Path, output_root: Path, workers: int) -> int:
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("--input",  default="dataset/authentic",
-                   help="Root directory containing authentic FLACs")
-    p.add_argument("--output", default="dataset/transcoded",
-                   help="Root directory for transcoded outputs (subdirs per codec)")
-    p.add_argument("--workers", type=int, default=min(16, mp.cpu_count()),
-                   help="Number of parallel ffmpeg workers")
+    p.add_argument(
+        "--input", default="dataset/authentic", help="Root directory containing authentic FLACs"
+    )
+    p.add_argument(
+        "--output",
+        default="dataset/transcoded",
+        help="Root directory for transcoded outputs (subdirs per codec)",
+    )
+    p.add_argument(
+        "--workers",
+        type=int,
+        default=min(16, mp.cpu_count()),
+        help="Number of parallel ffmpeg workers",
+    )
     args = p.parse_args()
     sys.exit(main(Path(args.input), Path(args.output), args.workers))

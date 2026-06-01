@@ -30,8 +30,9 @@ FLAC Detective scores each file with **11 heuristic rules** built around that id
 cutoff frequency vs. sample rate, MP3-bitrate signatures, compression artefacts
 (pre-echo, aliasing), bitrate sanity — plus *protection* rules so genuine vinyl rips,
 cassette transfers and naturally quiet recordings aren't flagged. An **optional 12th
-rule** is a small CNN (`pip install "flac-detective[ml]"`) for cases the cutoff alone
-misses. The rules sum to a 0–150 score and a 4-level verdict:
+rule** is a small CNN (`pip install "flac-detective[ml]"`) that *sharpens borderline
+verdicts* — measured, it raises confidence on already-suspect files far more than it
+catches fakes the heuristics miss outright. The rules sum to a 0–150 score and a 4-level verdict:
 
 | Verdict | Score | What to do |
 |---|---|---|
@@ -258,6 +259,7 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 - **High confidence**: >95% accuracy for AUTHENTIC and FAKE_CERTAIN verdicts
 - **Protection mechanisms**: Prevents false positives for vinyl rips, cassette transfers, and high-quality sources
 - **4-level system**: AUTHENTIC, WARNING, SUSPICIOUS, FAKE_CERTAIN for nuanced results
+- **Known blind spot (be honest)**: high-bitrate AAC and VBR transcodes, and transcodes of already band-limited recordings (baroque, historical, acoustic), are hard for *any* spectral tool to detect. On such material, treat AUTHENTIC as "no evidence of transcoding" rather than a guarantee.
 
 ### Will it damage or modify my files?
 

@@ -135,3 +135,7 @@ ml/stereo_feat.err
 
 # Sphinx build artifacts (generated)
 docs/_build/
+
+# Rule-12 value measurement logs
+ml/r12*.err
+ml/r12*.log
