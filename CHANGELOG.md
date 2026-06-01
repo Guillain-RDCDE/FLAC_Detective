@@ -1,5 +1,30 @@
 ## Unreleased
 
+## v0.15.1 (2026-06-01) — Verdict recalibration (WARNING band)
+
+A score-distribution study (`ml/score_distribution.py` + `ml/analyze_warning_band.py`,
+on a rolloff-stratified set of authentics + MP3 transcodes) showed the WARNING band
+(31-60) was swallowing real fakes: **transcodes have a median score of ~58**, i.e.
+just inside WARNING, so genuine transcodes were being under-called "WARNING (maybe
+legit)" instead of "SUSPICIOUS (likely a transcode)".
+
+**Change:** the SUSPICIOUS floor drops **61 -> 55** (`SCORE_SUSPICIOUS`).
+
+- **Effect:** ~+5 pp more transcodes reach an actionable SUSPICIOUS verdict, while
+  authentic false positives stay ~1% — ~95% of authentic files score 0, and only
+  ~1% reach the high-50s (p99 = 59), so the move is essentially free on the
+  protect-authentic side.
+- **Scope:** verdict label only — no scoring logic depends on this constant, so the
+  scores themselves are unchanged; only the AUTHENTIC/WARNING/SUSPICIOUS/FAKE label
+  for scores in 55-60 changes (WARNING -> SUSPICIOUS). FAKE_CERTAIN (86) and the
+  AUTHENTIC ceiling (30) are unchanged — the data showed no reason to move them.
+
+Tests: `tests/test_verdict_thresholds.py` pins the boundaries. Known follow-up:
+the console log line recomputes its own verdict from hard-coded 80/50/30 cut points
+(`main._log_formatted_result`), independent of these constants — the authoritative
+verdict in JSON/text reports and the API uses the constants and is correct.
+
+
 ## v0.15.0 (2026-06-01) — WAV support
 
 FLAC Detective now analyses **WAV** files, not just FLAC — the first step of the

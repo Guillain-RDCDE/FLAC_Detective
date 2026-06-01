@@ -302,8 +302,8 @@ class TestVerdictThresholds:
         assert SCORE_FAKE_CERTAIN == 86
 
     def test_suspicious_threshold(self):
-        """Score >= 61 should give SUSPICIOUS verdict."""
-        assert SCORE_SUSPICIOUS == 61
+        """Score >= 55 should give SUSPICIOUS verdict (recalibrated in v0.15.1)."""
+        assert SCORE_SUSPICIOUS == 55
 
     def test_warning_threshold(self):
         """Score >= 31 should give WARNING verdict."""

@@ -139,3 +139,6 @@ docs/_build/
 # Rule-12 value measurement logs
 ml/r12*.err
 ml/r12*.log
+ml/score_distribution.csv
+ml/scoredist.err
+ml/scoredist.log

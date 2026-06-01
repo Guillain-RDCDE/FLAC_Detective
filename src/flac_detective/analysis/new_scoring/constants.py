@@ -18,9 +18,15 @@ MP3_SIGNATURES = [
 # Bitrate tolerance (kbps)
 BITRATE_TOLERANCE = 10
 
-# Score thresholds
+# Score thresholds (verdict labels only — no scoring logic depends on these).
+# SUSPICIOUS lowered 61 -> 55 (v0.15.1): a score-distribution study found real
+# transcodes pile up with a *median of 58*, i.e. inside the old WARNING band, so
+# genuine fakes were being under-called "WARNING (maybe legit)". Moving the floor
+# to 55 reclaims them as SUSPICIOUS for ~+5 pp actionable recall, while authentic
+# false positives stay ~1% (≈95% of authentic files score 0; p99 = 59). See
+# ml/analyze_warning_band.py.
 SCORE_FAKE_CERTAIN = 86
-SCORE_SUSPICIOUS = 61
+SCORE_SUSPICIOUS = 55
 SCORE_WARNING = 31
 SCORE_AUTHENTIC = 30
 
