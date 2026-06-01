@@ -124,7 +124,7 @@ RECOMMENDATION: File is genuine lossless. Keep as-is.
 
 ---
 
-#### ⚡ WARNING (Score 31-60)
+#### ⚡ WARNING (Score 31-54)
 
 **Meaning**: Uncertain case, manual review needed
 
@@ -149,7 +149,7 @@ RECOMMENDATION: Verify with external tools. Could be legitimate.
 
 ---
 
-#### ⚠️ SUSPICIOUS (Score 61-85)
+#### ⚠️ SUSPICIOUS (Score 55-85)
 
 **Meaning**: High confidence MP3 transcode
 
@@ -349,7 +349,7 @@ mkdir -p ~/Music/quarantine
 flac-detective ~/Music/FLAC --format json > results.json
 
 # Parse JSON and move files (requires jq)
-jq -r '.files[] | select(.score >= 61) | .filepath' results.json | while read file; do
+jq -r '.files[] | select(.score >= 55) | .filepath' results.json | while read file; do
     mv "$file" ~/Music/quarantine/
 done
 ```

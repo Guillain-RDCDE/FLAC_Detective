@@ -163,7 +163,7 @@ FLAC File
    │   └─ Total: 55 pts
    │
    └─► Generate Verdict
-       └─ Score 55 → WARNING ⚡
+       └─ Score 55 → SUSPICIOUS ⚠️
 ```
 
 ## Detection Rules
@@ -413,8 +413,8 @@ Example calculation:
 
 ```
 Score ≤ 30   → AUTHENTIC ✅      (99.5% confidence)
-Score 31-60  → WARNING ⚡        (Manual review needed)
-Score 61-85  → SUSPICIOUS ⚠️     (High confidence fake)
+Score 31-54  → WARNING ⚡        (Manual review needed)
+Score 55-85  → SUSPICIOUS ⚠️     (High confidence fake)
 Score ≥ 86   → FAKE_CERTAIN ❌   (100% confidence fake)
 ```
 
@@ -427,8 +427,8 @@ Score ≥ 86   → FAKE_CERTAIN ❌   (100% confidence fake)
 
 **Thresholds explained**:
 - **≤ 30**: All protection mechanisms considered, minimal suspicious indicators
-- **31-60**: Some suspicious indicators but with protective factors
-- **61-85**: Multiple strong indicators, few protective factors
+- **31-54**: Some suspicious indicators but with protective factors
+- **55-85**: Multiple strong indicators, few protective factors
 - **≥ 86**: Overwhelming evidence, definitive fake
 
 ## Spectral Analysis

@@ -63,8 +63,8 @@ flac-detective /path/to/music --verbose
 | Verdict | Score | Meaning |
 |---------|-------|---------|
 | ✅ AUTHENTIC | ≤ 30 | High confidence - genuine lossless |
-| ⚡ WARNING | 31-60 | Manual review recommended |
-| ⚠️ SUSPICIOUS | 61-85 | Likely transcode |
+| ⚡ WARNING | 31-54 | Manual review recommended |
+| ⚠️ SUSPICIOUS | 55-85 | Likely transcode |
 | ❌ FAKE_CERTAIN | ≥ 86 | Definite transcode |
 
 ## Documentation Structure
