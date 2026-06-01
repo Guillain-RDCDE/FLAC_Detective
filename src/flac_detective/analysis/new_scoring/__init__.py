@@ -1,9 +1,9 @@
 """New FLAC fake detection scoring system based on machine specifications.
 
-This package implements a 0-100 point scoring system where:
+This package implements a scoring system where:
 - Higher score = More likely to be fake
 - Score >= 86: FAKE_CERTAIN
-- Score >= 61: SUSPICIOUS
+- Score >= 55: SUSPICIOUS   (floor lowered 61 -> 55 in v0.15.1)
 - Score >= 31: WARNING
 - Score < 31: AUTHENTIC
 

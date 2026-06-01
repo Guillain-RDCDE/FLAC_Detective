@@ -37,8 +37,8 @@ catches fakes the heuristics miss outright. The rules sum to a 0–150 score and
 | Verdict | Score | What to do |
 |---|---|---|
 | ✅ **AUTHENTIC** | ≤ 30 | keep it |
-| ⚡ **WARNING** | 31–60 | borderline — check manually |
-| ⚠️ **SUSPICIOUS** | 61–85 | likely a transcode |
+| ⚡ **WARNING** | 31–54 | borderline — check manually |
+| ⚠️ **SUSPICIOUS** | 55–85 | likely a transcode |
 | ❌ **FAKE_CERTAIN** | ≥ 86 | multiple indicators — definitely transcoded |
 
 The guiding principle throughout is **"protect authentic files first"**: a false alarm
@@ -57,11 +57,18 @@ fixed by going **stereo**.
 📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
 enable the ML extra.
 
-## 🆕 Latest release — v0.14 (Stereo CNN)
+## 🆕 Latest release — v0.15 (WAV support + coherent verdicts)
 
-The classifier now reads the stereo **mid + side** channels instead of mono, fixing its
-weak spot on band-limited music (baroque, jazz, old recordings). Real-world specificity
-on a library of 11 234 authentic FLACs climbed from **80 % to 95 %**:
+- **Analyses WAV files too**, not just FLAC — same spectral pipeline (v0.15.0).
+- **Sharper WARNING/SUSPICIOUS boundary** (v0.15.1): a score-distribution study found
+  real transcodes cluster around a score of ~58, so the SUSPICIOUS floor moved 61 → 55,
+  reclaiming ~+5 pp of transcodes as actionable while authentic false positives stay ~1 %.
+- **One source of truth for verdicts** (v0.15.2–v0.15.3): the console, the text/JSON
+  reports and the Python API now all derive the verdict from the same thresholds.
+
+The Rule 12 classifier reads the stereo **mid + side** channels instead of mono (v0.14),
+fixing its weak spot on band-limited music (baroque, jazz, old recordings). Real-world
+specificity on a library of 11 234 authentic FLACs climbed from **80 % to 95 %**:
 
 | | v0.12 (mono) | **v0.14 (stereo + gate)** |
 |---|---|---|
@@ -272,8 +279,8 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 
 Yes, but use common sense:
 - ✅ **AUTHENTIC** (score ≤30): Very high confidence, keep the file
-- ⚡ **WARNING** (31-60): Borderline case, manual verification recommended
-- ⚠️ **SUSPICIOUS** (61-85): High confidence transcode, consider replacing
+- ⚡ **WARNING** (31-54): Borderline case, manual verification recommended
+- ⚠️ **SUSPICIOUS** (55-85): High confidence transcode, consider replacing
 - ❌ **FAKE_CERTAIN** (≥86): Multiple indicators, definitely a transcode
 
 For critical decisions, use complementary tools (e.g., Spek for visual spectral analysis) to confirm.
@@ -282,7 +289,8 @@ For critical decisions, use complementary tools (e.g., Spek for visual spectral 
 
 Currently:
 - ✅ FLAC files (.flac)
-- 🔜 Future: WAV, ALAC, APE (planned for v1.0)
+- ✅ WAV files (.wav) — since v0.15.0
+- 🔜 Future: ALAC, APE (planned for v1.0)
 
 ### How long does analysis take?
 

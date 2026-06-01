@@ -2,6 +2,8 @@
 
 from typing import Dict, List
 
+from ..analysis.new_scoring import determine_verdict
+
 
 def calculate_statistics(results: List[Dict]) -> Dict:
     """Calculates global statistics from results.
@@ -28,16 +30,20 @@ def calculate_statistics(results: List[Dict]) -> Dict:
             "corrupted_files": 0,
         }
 
-    # NEW SCORING SYSTEM: higher score = more fake
-    # Score < 30: AUTHENTIQUE
-    # Score 30-49: DOUTEUX (probably authentic)
-    # Score 50-79: FAKE_PROBABLE (suspect)
-    # Score >= 80: FAKE_CERTAIN (fake)
+    # Count by the authoritative per-file verdict (new_scoring.determine_verdict /
+    # constants.py) — the single source of truth. Earlier this module re-derived its
+    # own score cut points (30/50/80), which drifted from the verdict constants
+    # (e.g. the v0.15.1 SUSPICIOUS recalibration to 55) and could disagree with the
+    # JSON/console output. Fall back to determine_verdict(score) only if a result
+    # predates verdict assignment.
+    def _verdict(r: Dict) -> str:
+        return r.get("verdict") or determine_verdict(r.get("score", 0))[0]
 
-    authentic = len([r for r in results if r.get("score", 0) < 30])
-    probably_auth = len([r for r in results if 30 <= r.get("score", 0) < 50])
-    suspect = len([r for r in results if 50 <= r.get("score", 0) < 80])
-    fake = len([r for r in results if r.get("score", 0) >= 80])
+    verdicts = [_verdict(r) for r in results]
+    authentic = verdicts.count("AUTHENTIC")
+    probably_auth = verdicts.count("WARNING")
+    suspect = verdicts.count("SUSPICIOUS")
+    fake = verdicts.count("FAKE_CERTAIN") + verdicts.count("NON_FLAC")
 
     # Statistics on duration issues
     duration_issues = len([r for r in results if r.get("duration_mismatch")])

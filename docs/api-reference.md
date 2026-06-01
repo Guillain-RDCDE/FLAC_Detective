@@ -59,7 +59,7 @@ for flac_file in flac_files:
     print(f"{result['filename']}: {result['verdict']}")
 
 # Filter suspicious files
-suspicious = [r for r in results if r['score'] >= 61]
+suspicious = [r for r in results if r['score'] >= 55]
 print(f"Found {len(suspicious)} suspicious files")
 ```
 
@@ -253,8 +253,8 @@ Each `analyze_file()` call returns a dictionary:
 # Possible verdict values
 VERDICTS = [
     "AUTHENTIC",      # Score ≤ 30
-    "WARNING",        # Score 31-60
-    "SUSPICIOUS",     # Score 61-85
+    "WARNING",        # Score 31-54
+    "SUSPICIOUS",     # Score 55-85
     "FAKE_CERTAIN",   # Score ≥ 86
 ]
 ```
@@ -271,7 +271,7 @@ elif result['verdict'] in ['SUSPICIOUS', 'FAKE_CERTAIN']:
     print(f"Likely fake: {result['reason']}")
 
 # Check score threshold
-if result['score'] >= 80:
+if result['score'] >= 86:
     print("High confidence fake")
 
 # Check specific indicators
@@ -295,8 +295,8 @@ from pathlib import Path
 analyzer = FLACAnalyzer()
 results = [analyzer.analyze_file(f) for f in find_flac_files(Path('/music'))]
 
-# Find all fake files (score >= 80)
-fakes = [r for r in results if r['score'] >= 80]
+# Find all fake files (score >= 86)
+fakes = [r for r in results if r['score'] >= 86]
 
 # Find upsampled files
 upsampled = [r for r in results if r['is_upsampled']]
@@ -409,7 +409,7 @@ print(df['verdict'].value_counts())
 print(df.groupby('verdict')['score'].mean())
 
 # Filter and sort
-suspicious = df[df['score'] >= 61].sort_values('score', ascending=False)
+suspicious = df[df['score'] >= 55].sort_values('score', ascending=False)
 print(suspicious[['filename', 'score', 'verdict', 'reason']])
 
 # Export

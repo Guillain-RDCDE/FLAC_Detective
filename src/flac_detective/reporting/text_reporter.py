@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ..__version__ import __version__
+from ..analysis.new_scoring import determine_verdict
 from .statistics import calculate_statistics
 
 logger = logging.getLogger(__name__)
@@ -65,23 +66,27 @@ class TextReporter:
         return "  " + " │ ".join(formatted_cols)
 
     def _score_icon(self, score: int, verdict: str = "") -> str:
-        """Returns an icon based on score (NEW SYSTEM: higher = more fake).
+        """Returns an icon for a result, driven by its authoritative verdict.
+
+        The verdict is the single source of truth (new_scoring.determine_verdict /
+        constants.py); the icon must not re-derive its own score cut points. Falls
+        back to determine_verdict(score) only when no verdict is supplied.
 
         Args:
-            score: Score from 0 to 100 (higher = more fake).
-            verdict: Verdict string (optional).
+            score: Score from 0 to 150 (higher = more fake).
+            verdict: Authoritative verdict string.
 
         Returns:
             ASCII icon.
         """
-        if score >= 80:  # FAKE_CERTAIN
-            return "[XX]"
-        elif score >= 50:  # FAKE_PROBABLE
-            return "[!!]"
-        elif score >= 30:  # DOUTEUX
-            return "[?]"
-        else:  # AUTHENTIQUE
-            return "[OK]"
+        if not verdict:
+            verdict = determine_verdict(score)[0]
+        return {
+            "FAKE_CERTAIN": "[XX]",
+            "NON_FLAC": "[XX]",
+            "SUSPICIOUS": "[!!]",
+            "WARNING": "[?]",
+        }.get(verdict, "[OK]")
 
     def _get_display_path(
         self, result: dict[str, Any], scan_paths: list[Path] | None = None
@@ -129,8 +134,15 @@ class TextReporter:
 
         # Calculate statistics
         stats = calculate_statistics(results)
-        # NEW SCORING: score >= 50 = suspicious
-        suspicious = [r for r in results if r.get("score", 0) >= 50]
+        # "Problematic" files = those the authoritative verdict flags as SUSPICIOUS
+        # or worse, matching the console summary in main.py — not a re-derived score
+        # cut point.
+        suspicious = [
+            r
+            for r in results
+            if (r.get("verdict") or determine_verdict(r.get("score", 0))[0])
+            in ("SUSPICIOUS", "FAKE_CERTAIN", "NON_FLAC")
+        ]
         corrupted = [r for r in results if r.get("is_corrupted", False)]
         upsampled = [r for r in results if r.get("is_upsampled", False)]
 

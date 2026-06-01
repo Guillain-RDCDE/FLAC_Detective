@@ -1,5 +1,31 @@
 ## Unreleased
 
+## v0.15.3 (2026-06-01) — Report verdict coherence
+
+v0.15.2 made the *console* render the authoritative verdict, but two reporting
+modules were still recomputing it from their own stale, hard-coded score cuts —
+so the claim "one source of truth drives the reports" wasn't actually true yet:
+
+- `reporting/statistics.py` bucketed files with `<30 / 50 / 80` cut points (the
+  pre-v0.15.1 scheme). A score-82 file was counted **FAKE** even though its
+  authoritative verdict is `SUSPICIOUS` (FAKE_CERTAIN starts at 86), and the
+  v0.15.1 SUSPICIOUS recalibration (55) never reached these counts.
+- `reporting/text_reporter.py` picked its row icon from `score >= 80 / 50 / 30`
+  and filtered the "SUSPICIOUS FILES" section at `score >= 50`, both independent
+  of `determine_verdict()`.
+
+Now both modules read the per-file authoritative `verdict` (falling back to
+`determine_verdict(score)` only if absent). `statistics.py` counts by verdict
+label; `text_reporter.py` maps the verdict → icon and selects problem files by
+verdict (`SUSPICIOUS` / `FAKE_CERTAIN` / `NON_FLAC`), matching the console
+summary. `new_scoring/constants.py` is now genuinely the single source of truth
+for the console, the text/JSON reports **and** the API.
+
+Also propagated the v0.15.1 SUSPICIOUS floor (61 → 55) through all user-facing
+docs (README, getting-started, user-guide, technical-details, api-reference,
+index) and the `new_scoring` package docstring, which still advertised 61.
+
+
 ## v0.15.2 (2026-06-01) — Console verdict coherence
 
 The console output had its own verdict thresholds, hard-coded and stale. The

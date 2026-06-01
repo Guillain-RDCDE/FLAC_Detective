@@ -72,6 +72,38 @@ Refactor `audio_loader` to be **format-agnostic**: try soundfile first, fall bac
 to an ffmpeg-decode path for containers libsndfile can't read. Once that exists,
 ALAC and APE are mostly "add the extension + a metadata reader".
 
+**Landed (v0.16 foundation):** `analysis/audio_formats.py` — the isolated,
+tested decode-façade. `ffmpeg_available()`, `probe_codec()` (ffprobe
+`codec_name`), `is_analysable_lossless()` (FLAC/WAV native; ALAC/APE/etc. by
+probe; an **AAC** `.m4a` correctly returns False → stays a reject),
+`needs_ffmpeg_decode()`, and `decode_to_wav()` (ffmpeg `-i … -vn temp.wav`).
+ffmpeg is a **hard requirement for non-native formats only** — FLAC/WAV never
+touch it. Tests in `tests/test_audio_formats.py` (skip if ffmpeg absent).
+
+### ALAC/APE wiring — the bitrate-from-original subtlety (must get right)
+The decode-façade lets the pipeline treat ALAC/APE as a plain WAV for the
+**spectral** rules. But there's a trap in the **bitrate** path:
+
+- For a *lossless-compressed* source (FLAC/ALAC/APE), `real_bitrate` =
+  `original_compressed_size × 8 / duration`, and the
+  `real/apparent < 0.92` ratio is what keeps Rules 1 & 3 **on** (the
+  "compressible → could be a fake" signal).
+- If we naively feed the **decoded WAV** to the calculator, it computes
+  `real_bitrate` from the *uncompressed* WAV → ratio ≈ 1.0 → the file is
+  mistaken for uncompressed → **R1/R3 gate off** → we'd miss ALAC-wrapped fakes.
+
+So the calculator must derive `real_bitrate` from the **original `.m4a`/`.ape`
+size**, while the rules read audio from the **decoded WAV**. Today
+`new_calculate_score(filepath, …)` derives bitrate from the *same* `filepath`
+the rules load audio from — one path can't be both (the original isn't
+soundfile-readable). The wiring therefore needs the original size/bitrate
+threaded in separately (e.g. an explicit `source_size`/pre-computed
+bitrate-metrics argument), not just a temp-path swap. This is the careful
+core-path change that distinguishes ALAC from the trivial WAV case.
+
+Metadata likewise: `.m4a` → `mutagen.mp4` (or ffprobe), `.ape` → ffprobe, since
+`mutagen.flac.FLAC` / `soundfile.info` can't read them.
+
 ## Out of scope (and why)
 - **Detecting AAC/Opus/Vorbis → lossless transcodes** is a *detection* limit, not a
   format-input one, and is near-impossible at high bitrate (see `ml/README.md` —

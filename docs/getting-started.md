@@ -87,6 +87,43 @@ source venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+## Upgrading to the Latest Version
+
+A plain `pip install flac-detective` does **not** upgrade an existing
+install — pip checks whether *any* version is already there and, if so,
+prints `Requirement already satisfied` and exits without changing
+anything. This is a common surprise: it looks like the install
+succeeded, but you still have the old version.
+
+To actually upgrade, add the `--upgrade` flag (short form `-U`):
+
+```bash
+# Upgrade to the latest version on PyPI
+pip install --upgrade flac-detective
+
+# Same thing with the optional ML extra
+pip install --upgrade "flac-detective[ml]"
+
+# Confirm the new version is active
+flac-detective --version
+```
+
+**Docker users**: pull the image again to refresh the local copy.
+
+```bash
+docker pull ghcr.io/guillain-rdcde/flac_detective:latest
+```
+
+**Installed from source?** Pull the latest commits and reinstall:
+
+```bash
+cd FLAC_Detective
+git pull
+pip install -e ".[dev]"   # or pip install -e .
+```
+
+To see what changed between versions, browse the [CHANGELOG](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/CHANGELOG.md).
+
 ## First Analysis
 
 ### Analyze a Directory
@@ -156,8 +193,8 @@ FLAC Detective assigns one of four verdicts to each file:
 | Verdict | Score Range | Icon | Meaning | What to Do |
 |---------|-------------|------|---------|-----------|
 | **AUTHENTIC** | ≤ 30 | ✅ | Genuine lossless audio | Keep the file |
-| **WARNING** | 31-60 | ⚡ | Uncertain, needs review | Manual verification recommended |
-| **SUSPICIOUS** | 61-85 | ⚠️ | Likely MP3 transcode | Replace if possible |
+| **WARNING** | 31-54 | ⚡ | Uncertain, needs review | Manual verification recommended |
+| **SUSPICIOUS** | 55-85 | ⚠️ | Likely MP3 transcode | Replace if possible |
 | **FAKE_CERTAIN** | ≥ 86 | ❌ | Definite MP3 transcode | Delete and replace |
 
 ### Sample Report Entry
@@ -182,8 +219,8 @@ RECOMMENDATION: Likely MP3 transcode. Consider re-downloading from source.
 ### Score Interpretation
 
 - **0-30**: File passes all authenticity checks → Keep it
-- **31-60**: Borderline case → Verify manually
-- **61-85**: Strong indicators of transcode → Likely fake
+- **31-54**: Borderline case → Verify manually
+- **55-85**: Strong indicators of transcode → Likely fake
 - **86-150**: Multiple definitive indicators → Definitely fake
 
 ## Common Use Cases
@@ -256,6 +293,20 @@ flac-detective -v --sample-duration 60 --format json --output report.json /music
 > Auto-repair of corrupted files is enabled by default — no flag is needed.
 
 ## Troubleshooting
+
+### `pip install` says "Requirement already satisfied" but I wanted the new version
+
+That message means an older version is already on your system, and pip
+left it alone. Plain `pip install <name>` never upgrades — you have to
+ask for it explicitly:
+
+```bash
+pip install --upgrade flac-detective
+flac-detective --version
+```
+
+See [Upgrading to the Latest Version](#upgrading-to-the-latest-version)
+above for the full set of upgrade commands (pip extras, Docker, source).
 
 ### "Command not found: flac-detective"
 
