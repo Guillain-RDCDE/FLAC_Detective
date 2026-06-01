@@ -92,7 +92,7 @@ def validate_changelog(version):
     content = changelog.read_text(encoding="utf-8")
 
     # Check if version entry exists
-    version_pattern = rf"## \[{re.escape(version)}\]"
+    version_pattern = rf"## v{re.escape(version)}"
     if not re.search(version_pattern, content):
         print(f"\n⚠️  WARNING: No CHANGELOG.md entry found for version {version}")
         print("\nPlease add a changelog entry in this format:")
@@ -115,7 +115,7 @@ def extract_changelog_section(version):
     content = changelog.read_text(encoding="utf-8")
 
     # Find the section for this version
-    pattern = rf"## \[{re.escape(version)}\].*?\n(.*?)(?=\n## \[|$)"
+    pattern = rf"## v{re.escape(version)}.*?\n(.*?)(?=\n## v|$)"
     match = re.search(pattern, content, re.DOTALL)
 
     if match:
