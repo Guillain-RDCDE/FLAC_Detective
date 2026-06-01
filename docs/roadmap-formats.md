@@ -1,8 +1,9 @@
 # Roadmap: multi-format support (WAV / ALAC / APE)
 
 > Design note for the v0.15+ work of widening FLAC Detective beyond `.flac`.
-> Status: WAV targeted for v0.15; ALAC/APE later. Written after a scoping pass —
-> see the commit history around v0.14 for context.
+> Status: **WAV shipped in v0.15.0; ALAC + APE shipped in v0.16.0** (decode-façade
+> + bitrate-from-original wiring). Kept as the design record. See the commit history
+> around v0.14 for the original scoping context.
 
 ## The key insight: detection is codec-agnostic
 
@@ -55,9 +56,9 @@ for legitimate analogue sources — so the mechanism exists.
 
 | Format | Decoder | Effort | Value | When |
 |---|---|---|---|---|
-| **WAV** | soundfile (already) | **low** (~½ day) | high — common | **v0.15** |
-| **ALAC** (`.m4a`) | ffmpeg / audioread (new path) | medium (~1–2 d) | medium — Apple | v0.16 |
-| **APE** (`.ape`) | ffmpeg (new path) | medium-high | low — niche | on request |
+| **WAV** | soundfile (already) | **low** (~½ day) | high — common | ✅ v0.15.0 |
+| **ALAC** (`.m4a`) | ffmpeg decode-façade | medium (~1–2 d) | medium — Apple | ✅ v0.16.0 |
+| **APE** (`.ape`) | ffmpeg decode-façade | medium-high | low — niche | ✅ v0.16.0 |
 
 ### WAV (v0.15) — concretely
 1. Widen file discovery to `.wav` (+ keep `.flac`).

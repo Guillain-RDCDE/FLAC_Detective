@@ -32,17 +32,26 @@ from .verdict import determine_verdict
 logger = logging.getLogger(__name__)
 
 
-def _calculate_bitrate_metrics(filepath: Path, audio_meta: AudioMetadata) -> BitrateMetrics:
+def _calculate_bitrate_metrics(
+    filepath: Path, audio_meta: AudioMetadata, source_path: Path = None
+) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
     Args:
-        filepath: Path to FLAC file
+        filepath: Path to the readable audio used for analysis (the temp copy /
+            decoded WAV).
         audio_meta: Parsed audio metadata
+        source_path: Original on-disk file to size for the *real* bitrate. For a
+            lossless-COMPRESSED source decoded to a temp WAV (ALAC/APE), this MUST
+            be the original compressed file — sizing the decoded WAV would yield a
+            ~uncompressed bitrate (ratio ≈ 1), wrongly tripping the "uncompressed"
+            gate and disabling Rules 1 & 3. Defaults to ``filepath`` (FLAC/WAV: the
+            temp is a same-size copy, so it makes no difference).
 
     Returns:
         BitrateMetrics containing all calculated bitrate values
     """
-    real_bitrate = calculate_real_bitrate(filepath, audio_meta.duration)
+    real_bitrate = calculate_real_bitrate(source_path or filepath, audio_meta.duration)
     apparent_bitrate = calculate_apparent_bitrate(
         audio_meta.sample_rate, audio_meta.bit_depth, audio_meta.channels
     )
@@ -281,6 +290,7 @@ def new_calculate_score(
     cutoff_std: float = 0.0,
     energy_ratio: float = 0.0,
     cache=None,
+    source_path: Path = None,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -288,10 +298,12 @@ def new_calculate_score(
         cutoff_freq: Detected cutoff frequency in Hz
         metadata: File metadata
         duration_check: Duration check results
-        filepath: Path to FLAC file
+        filepath: Path to the readable audio analysed (temp copy / decoded WAV)
         cutoff_std: Standard deviation of cutoff frequency (default 0.0)
         energy_ratio: High frequency energy ratio (default 0.0)
         cache: Optional AudioCache instance (contains pre-loaded full audio)
+        source_path: Original on-disk file, used for the *real* bitrate when the
+            analysed audio is a decoded WAV (ALAC/APE). See _calculate_bitrate_metrics.
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -323,7 +335,7 @@ def new_calculate_score(
                 logger.error(f"Could not read duration from file: {e}")
 
         # Calculate all bitrate metrics
-        bitrate_metrics = _calculate_bitrate_metrics(filepath, audio_meta)
+        bitrate_metrics = _calculate_bitrate_metrics(filepath, audio_meta, source_path=source_path)
 
         # Initialize Context
         context = ScoringContext(

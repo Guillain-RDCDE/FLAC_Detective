@@ -57,8 +57,11 @@ fixed by going **stereo**.
 📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
 enable the ML extra.
 
-## 🆕 Latest release — v0.15 (WAV support + coherent verdicts)
+## 🆕 Latest release — v0.16 (ALAC & APE support)
 
+- **Analyses ALAC (`.m4a`) and APE (`.ape`) too** (v0.16.0), decoded via ffmpeg —
+  detection is codec-agnostic, so it's the same spectral pipeline. A lossy AAC `.m4a`
+  is still correctly rejected (the real codec is probed, never trusted by extension).
 - **Analyses WAV files too**, not just FLAC — same spectral pipeline (v0.15.0).
 - **Sharper WARNING/SUSPICIOUS boundary** (v0.15.1): a score-distribution study found
   real transcodes cluster around a score of ~58, so the SUSPICIOUS floor moved 61 → 55,
@@ -288,9 +291,11 @@ For critical decisions, use complementary tools (e.g., Spek for visual spectral 
 ### What file formats are supported?
 
 Currently:
-- ✅ FLAC files (.flac)
-- ✅ WAV files (.wav) — since v0.15.0
-- 🔜 Future: ALAC, APE (planned for v1.0)
+- ✅ FLAC files (.flac) — read natively
+- ✅ WAV files (.wav) — read natively, since v0.15.0
+- ✅ ALAC (Apple Lossless, `.m4a`) and APE (Monkey's Audio, `.ape`) — since v0.16.0,
+  decoded via **ffmpeg** (a hard dependency for these formats only; FLAC/WAV never
+  need it). An `.m4a` holding lossy AAC is correctly rejected, not analysed.
 
 ### How long does analysis take?
 
