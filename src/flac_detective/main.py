@@ -337,54 +337,32 @@ def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
     return all_flac_files, all_non_flac_files
 
 
-def _get_score_icon(score: int) -> str:
-    """Get colored icon based on score.
-
-    Args:
-        score: Analysis score (0-100).
-
-    Returns:
-        Colored icon string.
-    """
-    if score >= 80:  # FAKE_CERTAIN
-        return colorize("[FAKE]", Colors.RED)
-    elif score >= 50:  # FAKE_PROBABLE
-        return colorize("[SUSP]", Colors.YELLOW)
-    elif score >= 30:  # DOUTEUX
-        return colorize("[?]", Colors.YELLOW)
-    else:  # AUTHENTIQUE
-        return colorize("[OK]", Colors.GREEN)
+# Authoritative verdict -> (icon, Rich style). Single source of truth for the
+# thresholds is new_scoring/constants.py via determine_verdict(); the console only
+# renders the label it produced — it must NOT recompute its own from the score.
+_VERDICT_DISPLAY = {
+    "FAKE_CERTAIN": ("❌", "fake", "FAKE"),
+    "SUSPICIOUS": ("⚠️ ", "suspicious", "SUSPICIOUS"),
+    "WARNING": ("❓", "warning", "WARNING"),
+    "AUTHENTIC": ("✅", "authentic", "AUTHENTIC"),
+    "NON_FLAC": ("🚫", "fake", "NON_FLAC"),
+    "ERROR": ("⁉️ ", "warning", "ERROR"),
+}
 
 
 def _log_formatted_result(result: dict, processed: int, total: int):
-    """Log analysis result with Rich formatting.
+    """Log one analysis result, styled by its authoritative verdict.
 
     Args:
-        result: Analysis result dictionary.
+        result: Analysis result dict. Its ``verdict`` (from determine_verdict) is
+            the source of truth — the console renders that label, never its own.
         processed: Number of files processed.
         total: Total number of files.
     """
     score = result.get("score", 0)
     verdict = result.get("verdict", "UNKNOWN")
     filename = result["filename"]
-
-    # Icons and Styles
-    if score >= 80:
-        icon = "❌"
-        style = "fake"
-        verdict = "FAKE"
-    elif score >= 50:
-        icon = "⚠️ "
-        style = "suspicious"
-        verdict = "SUSPICIOUS"
-    elif score >= 30:
-        icon = "❓"
-        style = "warning"
-        verdict = "WARNING"
-    else:
-        icon = "✅"
-        style = "authentic"
-        verdict = "AUTHENTIC"
+    icon, style, label = _VERDICT_DISPLAY.get(verdict, ("•", "info", verdict))
 
     # Truncate filename gracefully
     if len(filename) > 50:
@@ -394,12 +372,12 @@ def _log_formatted_result(result: dict, processed: int, total: int):
     if HAS_RICH:
         # We rely on RichHandler for the timestamp and base formatting
         # Here we just construct the nice message content
-        msg = f"[{style}]{icon} {verdict:<12} {score:>3}/100[/]  {filename}"
+        msg = f"[{style}]{icon} {label:<12} {score:>3}/100[/]  {filename}"
         logger.info(msg, extra={"markup": True})
     else:
         # Fallback for standard logging
         score_str = f"{score}/100"
-        msg = f"[{processed:03d}/{total:03d}] {icon} {verdict:<12} {score_str:>7}  {filename}"
+        msg = f"[{processed:03d}/{total:03d}] {icon} {label:<12} {score_str:>7}  {filename}"
         logger.info(msg)
 
 
@@ -699,17 +677,10 @@ def generate_final_report(
         )
         logger.warning(f"   Diagnostic report saved to: {diagnostic_report_path.name}")
 
-    # Summary (NEW SCORING: score >= 50 = suspicious)
-    suspicious_flac = [
-        r
-        for r in results
-        if r.get("score", 0) >= 50 and r.get("verdict") not in ["NON_FLAC", "ERROR"]
-    ]
-    fake_certain = [
-        r
-        for r in results
-        if r.get("score", 0) >= 80 and r.get("verdict") not in ["NON_FLAC", "ERROR"]
-    ]
+    # Summary — count by the authoritative verdict (determine_verdict), not by
+    # ad-hoc score cut points, so these stay consistent with the reports/API.
+    suspicious_flac = [r for r in results if r.get("verdict") in ("SUSPICIOUS", "FAKE_CERTAIN")]
+    fake_certain = [r for r in results if r.get("verdict") == "FAKE_CERTAIN"]
     non_flac_count = len(all_non_flac_files)
 
     # Check if console log contains errors/warnings, delete if empty or no issues
