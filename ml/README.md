@@ -634,10 +634,7 @@ band-limited material are near-undetectable** — the 11 rules catch 3–6 % of 
 remove almost nothing a spectrogram can see. FLAC Detective's real, well-supported
 job is the **common case — low-bitrate MP3 transcodes** — which it nails. On
 high-bitrate AAC/VBR, treat an AUTHENTIC verdict as *"no evidence of transcoding"*,
-not a guarantee. (One caveat worth a retrain someday: a `-vn` bug in
-`generate_transcodes.py` silently dropped most AAC/Opus/Vorbis from the v3/v4
-training set, so part of that blindness may be missing training data rather than a
-hard limit. Fixed in the script; not yet retrained.)
+not a guarantee. (We checked whether this was a data gap rather than a hard limit: a `-vn` bug does make `generate_transcodes.py` drop AAC/Opus/Vorbis for FLACs with embedded cover art — but the *training* clips are 30 s excerpts with the art already stripped, so the v3/v4 set did include ~5 929 / 5 964 AAC transcodes. The model trained on AAC and still can't catch AAC-256, so this is the genuine near-transparency of the codec, not missing data. The `-vn` fix still matters for anyone transcoding cover-art FLACs directly — and a 60-second count on the training host killed a 4-hour retrain built on the wrong premise.)
 
 ---
 
