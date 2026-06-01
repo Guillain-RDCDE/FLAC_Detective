@@ -1,5 +1,26 @@
 ## Unreleased
 
+## v0.15.2 (2026-06-01) — Console verdict coherence
+
+The console output had its own verdict thresholds, hard-coded and stale. The
+per-file log line and the end-of-run summary recomputed FAKE/SUSPICIOUS/WARNING
+from `score >= 80 / 50 / 30`, independent of `determine_verdict()` and its
+constants (86 / 55 / 31 / 30). So a score-82 file showed **FAKE** in the console
+while the JSON/text report and API correctly said **SUSPICIOUS** — and the v0.15.1
+recalibration didn't reach the console at all.
+
+Now the console renders the **authoritative verdict** carried in each result:
+
+- `main._log_formatted_result` maps `result["verdict"]` → icon/style via a single
+  table (no recomputation); the dead `_get_score_icon` helper is removed.
+- The summary's "suspicious" / "fake" counts are computed from the verdict
+  (`SUSPICIOUS`/`FAKE_CERTAIN`), not score cut points.
+
+One source of truth for verdict thresholds — `new_scoring/constants.py` — now
+drives reports, the API, *and* the console. Pinned by a console-label test in
+`tests/test_verdict_thresholds.py`.
+
+
 ## v0.15.1 (2026-06-01) — Verdict recalibration (WARNING band)
 
 A score-distribution study (`ml/score_distribution.py` + `ml/analyze_warning_band.py`,

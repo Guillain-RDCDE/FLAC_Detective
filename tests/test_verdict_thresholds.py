@@ -44,3 +44,22 @@ def test_verdict_boundaries(score, expected):
 def test_fake_certain_unchanged():
     assert SCORE_FAKE_CERTAIN == 86
     assert v(86) == "FAKE_CERTAIN"
+
+
+def test_console_label_follows_verdict_not_score(caplog):
+    """The console line renders the authoritative verdict, not its own score cut.
+
+    Discriminating case: score 82 is SUSPICIOUS (< FAKE_CERTAIN 86), but the old
+    console recomputed "FAKE" from a hard-coded score>=80. The label must now be
+    SUSPICIOUS, matching the reports/API.
+    """
+    import logging as _logging
+
+    from flac_detective.main import _log_formatted_result
+
+    with caplog.at_level(_logging.INFO):
+        _log_formatted_result(
+            {"score": 82, "verdict": "SUSPICIOUS", "filename": "x.flac"}, 1, 1
+        )
+    text = " ".join(r.getMessage() for r in caplog.records)
+    assert "SUSPICIOUS" in text and "FAKE" not in text
