@@ -10,25 +10,48 @@ from mutagen.flac import FLAC
 logger = logging.getLogger(__name__)
 
 
+# soundfile subtype -> bit depth, for non-FLAC PCM formats (e.g. WAV).
+_SUBTYPE_BITS = {
+    "PCM_S8": 8,
+    "PCM_U8": 8,
+    "PCM_16": 16,
+    "PCM_24": 24,
+    "PCM_32": 32,
+    "FLOAT": 32,
+    "DOUBLE": 64,
+}
+
+
 def read_metadata(filepath: Path) -> Dict:
-    """Reads FLAC file metadata.
+    """Read lossless-audio metadata (FLAC via mutagen, WAV/PCM via soundfile).
 
     Args:
-        filepath: Path to FLAC file.
+        filepath: Path to a FLAC or WAV file.
 
     Returns:
         Dictionary containing metadata (sample_rate, bit_depth, etc.).
     """
     try:
-        audio = FLAC(filepath)
-        info = audio.info
-
+        if Path(filepath).suffix.lower() == ".flac":
+            audio = FLAC(filepath)
+            info = audio.info
+            return {
+                "sample_rate": info.sample_rate,
+                "bit_depth": info.bits_per_sample,
+                "channels": info.channels,
+                "duration": info.length,
+                "encoder": (
+                    audio.get("encoder", ["Unknown"])[0] if audio.get("encoder") else "Unknown"
+                ),
+            }
+        # Non-FLAC lossless (WAV today): read the header via soundfile.
+        info = sf.info(filepath)
         return {
-            "sample_rate": info.sample_rate,
-            "bit_depth": info.bits_per_sample,
+            "sample_rate": info.samplerate,
+            "bit_depth": _SUBTYPE_BITS.get(info.subtype, 16),
             "channels": info.channels,
-            "duration": info.length,
-            "encoder": audio.get("encoder", ["Unknown"])[0] if audio.get("encoder") else "Unknown",
+            "duration": info.duration,
+            "encoder": info.format,  # e.g. "WAV"
         }
     except Exception as e:
         logger.debug(f"Metadata reading error: {e}")

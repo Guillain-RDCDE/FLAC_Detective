@@ -1,5 +1,42 @@
 ## Unreleased
 
+## v0.15.0 (2026-06-01) — WAV support
+
+FLAC Detective now analyses **WAV** files, not just FLAC — the first step of the
+multi-format roadmap (`docs/roadmap-formats.md`).
+
+### Why this is more than a new extension
+
+The detection itself was always codec-agnostic: the MP3 spectral cliff, the
+cutoff/artefact rules and the CNN all run on the decoded PCM, whatever container
+delivered it. WAV decoding is free (soundfile/libsndfile already reads it). Two
+things needed care:
+
+- **WAV was silently ignored** before (it was in neither the FLAC nor the
+  lossy-reject list). It's now a first-class **analysable lossless** input,
+  alongside FLAC, for both directory scans and a direct file argument.
+- **Container-bitrate rules are gated for uncompressed input.** Rules 1
+  (MP3-bitrate signature) and 3 (source-vs-container) assume lossless
+  *compression*: a real FLAC compresses, an MP3-sourced fake compresses into a
+  tell-tale bitrate band. A WAV is uncompressed (real ≈ apparent bitrate), so
+  those rules carry no signal and would misfire — they're now disabled when the
+  input is uncompressed (mirroring the existing cassette gate). The spectral
+  rules still see the MP3 cliff, so detection still works.
+
+### Behaviour
+
+- A genuine full-spectrum WAV → **AUTHENTIC** (no false positive from its "full"
+  bitrate). An MP3→WAV fake → flagged by the spectral cliff (e.g. a 128 kbps
+  source decodes to a WAV that scores SUSPICIOUS).
+- `read_metadata` reads the WAV header via soundfile (sample rate, bit depth from
+  subtype, channels, duration).
+- Lossy formats (mp3/m4a/aac/ogg/opus/ape) are unchanged: still reported as
+  "replace with an authentic FLAC". ALAC/APE lossless support is future work
+  (needs a non-libsndfile decoder) — see `docs/roadmap-formats.md`.
+
+Tests: `tests/test_wav_support.py` (metadata dispatch + a genuine WAV is not a
+false positive). Full FLAC behaviour unchanged.
+
 ## v0.14.1 (2026-05-31) — Metadata coherence
 
 Metadata-only patch — no code or model change; the classifier behaves exactly as
