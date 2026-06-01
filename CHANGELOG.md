@@ -1,5 +1,30 @@
 ## Unreleased
 
+## v0.16.0 (2026-06-01) — ALAC & APE support
+
+FLAC Detective now analyses **ALAC** (Apple Lossless, in `.m4a`) and **APE**
+(Monkey's Audio) sources, not just FLAC and WAV. Detection is codec-agnostic — it
+runs on decoded PCM — so widening support is an *input* problem, solved with a
+small decode-façade rather than any change to the detection science.
+
+- **New formats**: `.m4a` holding ALAC and `.ape` files are decoded to PCM via
+  **ffmpeg** and analysed on their own merits (genuine recording vs MP3→lossless
+  fake). An `.m4a` holding **AAC** is correctly identified as lossy and still
+  routed to the "replace with a real FLAC" reject list — the container extension
+  is never trusted; the real codec is probed with `ffprobe`.
+- **ffmpeg is a hard dependency for these formats only.** FLAC and WAV continue to
+  be read natively by libsndfile and never invoke ffmpeg. A missing ffmpeg yields
+  a clear per-file error for ALAC/APE, nothing more.
+- **Bitrate correctness** (the subtle part): for a lossless-*compressed* source
+  decoded to a temp WAV, the *real* bitrate is sized from the **original
+  compressed file**, not the decoded WAV. Otherwise the file would look
+  uncompressed (real/apparent ≈ 1), wrongly tripping the gate that disables
+  Rules 1 & 3 — and ALAC-wrapped fakes would slip through. Threaded a
+  `source_path` through the scoring calculator to keep this exact.
+- **New module** `analysis/audio_formats.py` (the decode-façade) and end-to-end
+  tests in `tests/test_alac_support.py` (routing, full analysis, the bitrate
+  invariant) and `tests/test_audio_formats.py` (probe / classify / decode).
+
 ## v0.15.3 (2026-06-01) — Report verdict coherence
 
 v0.15.2 made the *console* render the authoritative verdict, but two reporting

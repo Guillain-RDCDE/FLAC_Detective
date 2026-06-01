@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict
 
 from .audio_cache import AudioCache
+from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
 from .diagnostic_tracker import get_tracker
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
@@ -43,19 +44,31 @@ class FLACAnalyzer:
             duration_mismatch, quality issues (clipping, dc_offset, corruption).
         """
         # I/O STABILITY STRATEGY: "Copy-to-Temp"
-        # Copy file to local temp dir to avoid external drive I/O errors during analysis
+        # Copy (or decode) the source to a local temp file to avoid external-drive
+        # I/O errors during analysis and to normalise non-native containers.
         temp_path = None
 
         try:
-            # Create a named temp file (but we want to control the path/extension)
-            # We create a temp file, close it, and overwrite it with copy
-            with tempfile.NamedTemporaryFile(suffix=".flac", delete=False) as tmp:
-                temp_path = Path(tmp.name)
-
-            # Copy source to temp
-            # Using copy2 to preserve metadata (timestamps) although typically not critical for analysis content
-            logger.debug(f"I/O STABILITY: Copying {filepath.name} to local temp {temp_path}")
-            shutil.copy2(filepath, temp_path)
+            # libsndfile reads FLAC/WAV natively -> copy as-is. Non-native lossless
+            # containers (ALAC in .m4a, APE) can't be read by soundfile, so decode
+            # them to a temp WAV via ffmpeg; the rest of the pipeline treats that WAV
+            # exactly like any other lossless source.
+            decoded_from_source = needs_ffmpeg_decode(filepath)
+            if decoded_from_source:
+                logger.debug(f"Decoding {filepath.name} ({filepath.suffix}) to temp WAV via ffmpeg")
+                temp_path = decode_to_wav(filepath)
+                if temp_path is None:
+                    raise RuntimeError(
+                        f"Could not decode {filepath.suffix} file "
+                        f"(ffmpeg missing or decode failed): {filepath.name}"
+                    )
+            else:
+                # Create a named temp file, close it, and overwrite it with a copy.
+                with tempfile.NamedTemporaryFile(suffix=".flac", delete=False) as tmp:
+                    temp_path = Path(tmp.name)
+                # copy2 preserves timestamps (not critical for content, but cheap).
+                logger.debug(f"I/O STABILITY: Copying {filepath.name} to local temp {temp_path}")
+                shutil.copy2(filepath, temp_path)
 
             # PHASE 1 OPTIMIZATION: Create cache using the LOCAL TEMP copy
             # All subsequent reads will hit this local file (SSD/HDD) instead of USB/Network
@@ -67,8 +80,16 @@ class FLACAnalyzer:
             # Check if cache loaded partial data
             is_partial_analysis = cache.is_partial()
 
-            # Read metadata
-            metadata = read_metadata(filepath)
+            # Read metadata. For a decoded source the original isn't soundfile-readable,
+            # so read audio properties (sr / depth / channels / duration) from the
+            # decoded WAV — ffmpeg preserves them — and label the real source codec.
+            if decoded_from_source:
+                metadata = read_metadata(temp_path)
+                codec = probe_codec(filepath)
+                if codec:
+                    metadata["encoder"] = codec.upper()
+            else:
+                metadata = read_metadata(filepath)
 
             # Duration consistency check (FTF criterion)
             # Use ORIGINAL filepath for reporting, but TEMP path for reading could be safer?
@@ -87,6 +108,9 @@ class FLACAnalyzer:
             # We must pass 'filepath' (original) for logging/reporting purposes,
             # but ensure 'context.cache' (temp) is used for heavy lifting.
             logger.debug(f"Analyzing file: {filepath.name} | Cutoff: {cutoff_freq:.0f} Hz")
+            # source_path=filepath (the ORIGINAL): the real bitrate must be sized from
+            # the on-disk compressed file, not the decoded WAV — otherwise an ALAC/APE
+            # source looks uncompressed and Rules 1 & 3 wrongly switch off.
             score, verdict, confidence, reason = new_calculate_score(
                 cutoff_freq,
                 metadata,
@@ -95,6 +119,7 @@ class FLACAnalyzer:
                 cutoff_std,
                 energy_ratio,
                 cache=cache,
+                source_path=filepath,
             )
 
             # Add note if analysis was partial
