@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+[!] DEPRECATED for normal releases: this uses `cz bump --changelog`, which
+REGENERATES CHANGELOG.md from commit messages and would overwrite the
+hand-written changelog. Use `scripts/prepare_release.py <version>` instead
+(it validates the manual CHANGELOG entry and bumps every version field).
+
 Helper script to bump version and prepare release with Commitizen.
 
 This script automates the release process:

@@ -598,6 +598,49 @@ Reproduce it: `stereo_probe_features.py` / `stereo_probe_train.py` (the probe),
 
 ---
 
+## Is the ML rule even worth it? — measured
+
+Fair question, and we owe it a number rather than a vibe. Rule 12 costs a heavy
+dependency (`torch`), so it has to earn its place. The honest test isn't "how
+accurate is the CNN" — it's its **marginal** value: on a labelled set, run the
+full 12-rule pipeline and the 11 heuristics alone, and count what Rule 12 changes
+(`ml/measure_rule12_value.py` — Rule 12 runs last and only adds points, so the
+11-rule verdict is exact by subtraction).
+
+On a rolloff-stratified set (120 authentics + their MP3/AAC transcodes):
+
+| Rule 12's effect | count |
+|---|---|
+| Transcodes the 11 rules **miss entirely**, rescued by R12 to an *actionable* verdict (SUSPICIOUS+) | **~0** — every rescue stops at WARNING |
+| Already-suspect files **promoted** WARNING → SUSPICIOUS | **~59** |
+| Authentics wrongly flagged by R12 that 11 rules passed | **1** (a soft WARNING) |
+
+So Rule 12 is a **confidence sharpener, not a frontline detector**: it rarely
+catches a fake the heuristics miss outright, but it reliably turns "borderline,
+maybe legit" into "likely a transcode" on files the heuristics already doubted —
+at near-zero false-positive cost. Useful, narrow, honest. The README says exactly
+this now: *"an optional 12th rule that sharpens borderline verdicts."*
+
+> 💡 **Lesson** — a model that *looks* impressive in isolation (held-out balanced
+> accuracy 0.905) can still be a minor contributor *in the system* it ships inside.
+> Always measure the marginal value over the cheap baseline, not the standalone metric.
+
+### Where the whole tool is blind (own it)
+
+The same measurement exposed a limit that is **not** Rule 12's fault and that no
+part of the tool solves: **high-bitrate AAC, VBR (V0), and transcodes of already
+band-limited material are near-undetectable** — the 11 rules catch 3–6 % of AAC
+256k, and Rule 12 barely moves it. This is physics, not laziness: those encodes
+remove almost nothing a spectrogram can see. FLAC Detective's real, well-supported
+job is the **common case — low-bitrate MP3 transcodes** — which it nails. On
+high-bitrate AAC/VBR, treat an AUTHENTIC verdict as *"no evidence of transcoding"*,
+not a guarantee. (One caveat worth a retrain someday: a `-vn` bug in
+`generate_transcodes.py` silently dropped most AAC/Opus/Vorbis from the v3/v4
+training set, so part of that blindness may be missing training data rather than a
+hard limit. Fixed in the script; not yet retrained.)
+
+---
+
 ## Reproducing the pipeline from scratch
 
 You'll need three things: a directory of FLACs with verifiable provenance
