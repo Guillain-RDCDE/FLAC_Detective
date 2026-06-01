@@ -144,12 +144,13 @@ def _process(job):
             try:
                 dst.unlink(missing_ok=True)
             except OSError:
-                pass
+                pass  # best-effort cleanup of temp transcode; ignore if locked/gone
     return rows
 
 
 def main(csv_path: Path, out_csv: Path, per_bucket: int, workers: int) -> int:
-    allrows = list(csv.DictReader(open(csv_path, encoding="utf-8")))
+    with open(csv_path, encoding="utf-8") as f:
+        allrows = list(csv.DictReader(f))
     by = defaultdict(list)
     for r in allrows:
         by[bucket(float(r["rolloff_95_hz"]))].append(r)
