@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "0.14.1"
+__version__ = "0.15.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-05-31"
-__release_name__ = "Metadata coherence — PyPI project links + author name"
+__release_date__ = "2026-06-01"
+__release_name__ = "WAV support — analyse WAV on its own merits"
 
 # Metadata
 __author__ = "Guillain d'Erceville"

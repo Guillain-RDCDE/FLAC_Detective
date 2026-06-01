@@ -313,21 +313,26 @@ def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
     all_flac_files = []
     all_non_flac_files = []
 
+    # Lossless formats we analyse on their own merits (vs the lossy formats in
+    # find_non_flac_audio_files, which are reported as "replace with real FLAC").
+    analysable_suffixes = {".flac", ".wav"}
+
     for path in paths:
-        if path.is_file() and path.suffix.lower() == ".flac":
-            # It's a FLAC file directly
+        if path.is_file() and path.suffix.lower() in analysable_suffixes:
+            # A FLAC or WAV file directly
             all_flac_files.append(path)
             logger.info(f"File added : {path.name}")
         elif path.is_dir():
-            # It's a folder, scan recursively for FLAC
+            # It's a folder, scan recursively for analysable lossless files
             flac_files = find_flac_files(path)
             all_flac_files.extend(flac_files)
+            all_flac_files.extend(sorted(path.rglob("*.wav")))
 
-            # Also scan for non-FLAC audio files
+            # Also scan for lossy (non-lossless) audio files to flag
             non_flac_files = find_non_flac_audio_files(path)
             all_non_flac_files.extend(non_flac_files)
         else:
-            logger.warning(f"Ignored (not a FLAC file or folder) : {path}")
+            logger.warning(f"Ignored (not a FLAC/WAV file or folder) : {path}")
 
     return all_flac_files, all_non_flac_files
 

@@ -119,6 +119,14 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
         # Filter rules based on cassette detection
         fast_rules: List[ScoringRule] = []
 
+        # Uncompressed input (e.g. WAV): real ≈ apparent bitrate, so there is no
+        # lossless-compression signal for the container-bitrate rules to read.
+        # Rules 1 (MP3-bitrate signature) and 3 (source-vs-container) become
+        # meaningless and would misfire; the spectral rules still see the MP3
+        # cliff, so we gate 1 & 3 off (same idea as the cassette gate below).
+        bm = context.bitrate_metrics
+        is_uncompressed = bm.apparent_bitrate > 0 and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
+
         if cassette_score >= 30:
             logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
             logger.info(
@@ -132,6 +140,17 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
             fast_rules = [
                 Rule2Cutoff(),
                 Rule3SourceVsContainer(),
+                Rule424BitSuspect(),
+                Rule5HighVariance(),
+                Rule6HighQualityProtection(),
+            ]
+        elif is_uncompressed:
+            logger.info(
+                "UNCOMPRESSED input (e.g. WAV): disabling Rules 1 & 3 "
+                "(no lossless-compression signal); spectral rules still apply."
+            )
+            fast_rules = [
+                Rule2Cutoff(),
                 Rule424BitSuspect(),
                 Rule5HighVariance(),
                 Rule6HighQualityProtection(),
