@@ -225,6 +225,11 @@ Full story — the v3 audit, the four dead ends, and the stereo turn — is in
 
 ## v0.13.0 (2026-05-30) — Reliability Gate: Rule 12 abstains where it's a coin flip
 
+> **Note** — v0.13.0 was an internal development milestone (the Rule 12 reliability
+> gate). Its code shipped to users as part of **v0.14.0**; there is intentionally no
+> standalone `v0.13.0` git tag, GitHub Release or PyPI build. It is documented here
+> for the R&D record only.
+
 No retraining. No new model. Just a small, empirically-grounded gate in front
 of the existing v3 CNN that fixes the one thing v3 was bad at: false alarms on
 band-limited music.

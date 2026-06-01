@@ -13,7 +13,7 @@ def determine_verdict(score: int) -> Tuple[str, str]:
     """Determine verdict and confidence based on score.
 
     Args:
-        score: The calculated score (0-190, with Rule 9 adding up to +40)
+        score: The calculated score (0-150)
 
     Returns:
         Tuple of (verdict_string, confidence_level)

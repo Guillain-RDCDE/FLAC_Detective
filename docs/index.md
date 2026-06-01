@@ -15,11 +15,11 @@ Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files
 
 ## What is FLAC Detective?
 
-FLAC Detective is a command-line tool that detects fake lossless audio files (MP3s transcoded to FLAC). It uses an 11-rule scoring system with advanced spectral analysis to achieve high accuracy while protecting legitimate files from vinyl, cassettes, and high-quality MP3 sources.
+FLAC Detective is a command-line tool that detects fake lossless audio files (MP3s transcoded to FLAC, ALAC, APE or WAV). It uses an 11-rule scoring system — plus an optional 12th CNN rule — with advanced spectral analysis to achieve high accuracy while protecting legitimate files from vinyl, cassettes, and high-quality MP3 sources.
 
 ### Key Features
 
-- **High Precision**: 11-rule scoring system (0-150 points)
+- **High Precision**: 11-rule scoring system (0-150 points), plus an optional 12th CNN rule
 - **4-Level Verdict**: AUTHENTIC, WARNING, SUSPICIOUS, FAKE_CERTAIN
 - **Protection Layers**: Prevents false positives for analog sources
 - **Fast Performance**: 80% faster than baseline through caching
@@ -111,4 +111,4 @@ FLAC Detective is released under the MIT License. See [LICENSE](../LICENSE) for 
 
 ---
 
-**Version**: 0.14.0 | **Last Updated**: May 2026
+**Version**: 0.16.0 | **Last Updated**: June 2026

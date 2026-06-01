@@ -547,7 +547,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 
 ### What FLAC Detective Can Do
 
-✅ Detect MP3-to-FLAC transcodes (CBR and VBR)
+✅ Detect MP3-to-lossless transcodes (CBR and VBR)
+✅ Analyze FLAC, WAV (v0.15), ALAC and APE (v0.16, via ffmpeg) sources
 ✅ Identify fake high-resolution files
 ✅ Protect vinyl and cassette sources
 ✅ Detect compression artifacts
@@ -558,7 +559,7 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 ❌ **Detect other lossy formats** (AAC, OGG, WMA → FLAC)
 ❌ **Guarantee 100% accuracy** (see [Accuracy](#accuracy))
 ❌ **Real-time processing** (designed for batch analysis)
-❌ **Analyze non-FLAC formats** (WAV, ALAC, etc.)
+❌ **Analyze lossless formats beyond FLAC/WAV/ALAC/APE** (e.g. WavPack, TAK — not yet decoded)
 ❌ **Subjective quality assessment** (only transcode detection)
 
 ### Accuracy

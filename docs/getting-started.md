@@ -160,7 +160,7 @@ docker run --rm -v "C:\Users\YourName\Music":/data ghcr.io/guillain-rdcde/flac_d
 When you run FLAC Detective, it will:
 
 1. **Scan** for all `.flac` files recursively
-2. **Analyze** each file using 11 detection rules
+2. **Analyze** each file using 11 detection rules (plus an optional 12th CNN rule with `pip install "flac-detective[ml]"`)
 3. **Display** progress with a real-time progress bar
 4. **Generate** a detailed report
 5. **Save** results to a timestamped text file
@@ -204,7 +204,7 @@ FILE: Metallica - Enter Sandman.flac
 Location: /music/Metallica/Black Album/
 Duration: 5:29 | Sample Rate: 44100 Hz | Bit Depth: 16
 
-VERDICT: SUSPICIOUS ⚠️ (Score: 72/100)
+VERDICT: SUSPICIOUS ⚠️ (Score: 72/150)
 
 REASON: MP3 192 kbps signature detected
 

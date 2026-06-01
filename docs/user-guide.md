@@ -115,7 +115,7 @@ flac-detective /music --sample-duration 15 --output quick-scan.txt
 
 **Example**:
 ```
-VERDICT: AUTHENTIC ✅ (Score: 12/100)
+VERDICT: AUTHENTIC ✅ (Score: 12/150)
 REASON: Full spectrum preserved, no artifacts
 RECOMMENDATION: File is genuine lossless. Keep as-is.
 ```
@@ -136,7 +136,7 @@ RECOMMENDATION: File is genuine lossless. Keep as-is.
 
 **Example**:
 ```
-VERDICT: WARNING ⚡ (Score: 45/100)
+VERDICT: WARNING ⚡ (Score: 45/150)
 REASON: Cutoff at 20500 Hz, minor artifacts
 RECOMMENDATION: Verify with external tools. Could be legitimate.
 ```
@@ -161,7 +161,7 @@ RECOMMENDATION: Verify with external tools. Could be legitimate.
 
 **Example**:
 ```
-VERDICT: SUSPICIOUS ⚠️ (Score: 72/100)
+VERDICT: SUSPICIOUS ⚠️ (Score: 72/150)
 REASON: MP3 192 kbps signature detected
 ANALYSIS:
   ✓ Rule 1: +50 pts - CBR pattern at 192 kbps
@@ -189,7 +189,7 @@ RECOMMENDATION: High confidence transcode. Replace if possible.
 
 **Example**:
 ```
-VERDICT: FAKE_CERTAIN ❌ (Score: 103/100)
+VERDICT: FAKE_CERTAIN ❌ (Score: 103/150)
 REASON: Multiple MP3 signatures confirmed
 ANALYSIS:
   ✓ Rule 1: +50 pts - MP3 128 kbps signature
@@ -213,7 +213,7 @@ Each rule can add or subtract points:
 - Rule 2: Low Cutoff Frequency (+30)
 - Rule 3: Bitrate Mismatch (+50)
 - Rule 4: Suspicious 24-bit (+30)
-- Rule 9: Compression Artifacts (+30)
+- Rule 9: Compression Artifacts (+15 / +30 / +50, by artifact count)
 - Rule 10: Multi-Segment Consistency (+20)
 
 **Protection Rules** (Subtract points → Protects authentic):
@@ -223,6 +223,9 @@ Each rule can add or subtract points:
 - Rule 8: Nyquist Exception (-50)
 - Rule 11: Cassette Detection (-60)
 
+**Optional ML Rule** (requires `pip install "flac-detective[ml]"`):
+- Rule 12: CNN Classifier — sharpens borderline verdicts on suspect files; not applied unless the ML extra is installed
+
 ### Report File Format
 
 FLAC Detective saves a detailed text report:
@@ -230,7 +233,7 @@ FLAC Detective saves a detailed text report:
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
 Generated: 2026-05-25 14:30:22
-Analyzer Version: 0.14.0
+Analyzer Version: 0.16.0
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================
