@@ -35,7 +35,7 @@ result = analyzer.analyze_file(Path('song.flac'))
 
 # Check verdict
 print(f"Verdict: {result['verdict']}")
-print(f"Score: {result['score']}/100")
+print(f"Score: {result['score']}/150")
 print(f"Reason: {result['reason']}")
 ```
 
@@ -642,7 +642,7 @@ def main():
                 # Progress
                 processed, total = tracker.get_progress()
                 print(f"[{processed}/{total}] {result['filename']}: "
-                      f"{result['score']}/100 ({result['verdict']})")
+                      f"{result['score']}/150 ({result['verdict']})")
 
                 # Save periodically
                 if processed % 10 == 0:
