@@ -66,7 +66,13 @@ def probe_codec(path: Path) -> Optional[str]:
             text=True,
             timeout=30,
         )
-        codec = result.stdout.strip()
+        raw = result.stdout.strip()
+        if not raw:
+            return None
+        # ffprobe's csv output can carry a trailing empty field and a Windows CR
+        # (e.g. "alac,\r" was observed on real ALAC files that embed cover art).
+        # Take the first comma-separated token of the first line, normalised.
+        codec = raw.splitlines()[0].split(",")[0].strip().lower()
         return codec or None
     except (FileNotFoundError, subprocess.SubprocessError) as e:
         logger.debug(f"ffprobe failed for {path}: {e}")

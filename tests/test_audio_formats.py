@@ -7,6 +7,7 @@ ffmpeg; the whole module is skipped if ffmpeg/ffprobe aren't available.
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -49,6 +50,25 @@ def test_probe_codec(sources):
     assert af.probe_codec(sources["alac"]) == "alac"
     assert af.probe_codec(sources["aac"]) == "aac"
     assert af.probe_codec(sources["flac"]) == "flac"
+
+
+def test_probe_codec_strips_trailing_comma_and_cr(monkeypatch):
+    r"""Regression: ffprobe can emit 'alac,\r' on real ALAC files with cover art.
+
+    Field validation on a real library found ~10 ALAC tracks whose csv codec_name
+    came back as 'alac,' (trailing empty field + Windows CR), which made
+    is_analysable_lossless reject them as if lossy. probe_codec must normalise it.
+    """
+
+    class _R:
+        stdout = "alac,\r\n"
+
+    monkeypatch.setattr(af.subprocess, "run", lambda *a, **k: _R())
+    codec = af.probe_codec(Path("whatever.m4a"))
+    assert codec == "alac"
+    # And the file must therefore route to analysis, not the reject list.
+    monkeypatch.setattr(af, "probe_codec", lambda _p: "alac")
+    assert af.is_analysable_lossless(Path("whatever.m4a")) is True
 
 
 def test_lossless_classification(sources):

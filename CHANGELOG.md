@@ -1,3 +1,20 @@
+## v0.16.1 (2026-06-02) — ALAC routing fix (cover-art ffprobe quirk)
+
+A field-validation pass over a real 72k-file library surfaced a bug the synthetic
+fixtures couldn't: **~10 genuine ALAC albums were silently rejected as if lossy.**
+
+- On ALAC `.m4a` files that embed cover art, `ffprobe -of csv=p=0` returns the
+  codec as `alac,` (a trailing empty field, plus a Windows `\r`). `probe_codec`
+  only stripped surrounding whitespace, so `"alac,"` wasn't recognised as a
+  lossless codec → `is_analysable_lossless` returned False → the file was routed
+  to the "replace with a real FLAC" reject list instead of being analysed.
+- `probe_codec` now normalises the output: first line, first comma-separated
+  token, lower-cased. Regression test added (`test_probe_codec_strips_trailing_comma_and_cr`).
+- Validation results on the real library: routing now clean (77 AAC rejected, 20
+  ALAC + 15 APE analysed, 0 mismatch); 20 real ALAC tracks all read AUTHENTIC;
+  3/3 MP3→ALAC fakes flagged; 0 crashes across 112 m4a/ape + 120 FLACs. The
+  one-off harness is kept as `ml/field_validation.py`.
+
 ## v0.16.0 (2026-06-01) — ALAC & APE support
 
 FLAC Detective now analyses **ALAC** (Apple Lossless, in `.m4a`) and **APE**

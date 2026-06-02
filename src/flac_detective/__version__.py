@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "0.16.0"
+__version__ = "0.16.1"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-06-01"
-__release_name__ = "ALAC & APE support"
+__release_date__ = "2026-06-02"
+__release_name__ = "ALAC routing fix (cover-art ffprobe quirk)"
 
 # Metadata
 __author__ = "Guillain d'Erceville"
