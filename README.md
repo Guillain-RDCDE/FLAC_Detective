@@ -57,8 +57,15 @@ fixed by going **stereo**.
 📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
 enable the ML extra.
 
-## 🆕 Latest release — v0.16 (ALAC & APE support)
+## 🆕 Latest release — v1.0 (first stable release)
 
+- **1.0 — stable public API.** The CLI and its flags, the top-level exports
+  (`FLACAnalyzer`, `ProgressTracker`, `find_flac_files`, `LOGO`, `__version__`) and
+  the `analyze_file()` result-dict keys now follow [semantic versioning](https://semver.org).
+  Internals under `analysis/` may still change between minor versions.
+- **Field-validated on a real ~72k-file library** (v0.16.1): this surfaced and fixed
+  an ALAC routing bug (cover-art `.m4a` files were wrongly rejected) that synthetic
+  tests had missed — see `ml/field_validation.py`.
 - **Analyses ALAC (`.m4a`) and APE (`.ape`) too** (v0.16.0), decoded via ffmpeg —
   detection is codec-agnostic, so it's the same spectral pipeline. A lossy AAC `.m4a`
   is still correctly rejected (the real codec is probed, never trusted by extension).
