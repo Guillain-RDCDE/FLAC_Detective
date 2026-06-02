@@ -5,7 +5,6 @@ from external drives to temp directory.
 """
 
 import hashlib
-import os
 import shutil
 import subprocess
 import sys
@@ -104,7 +103,7 @@ def test_copy_corruption(source_path, num_tests=3):
 
             if not hash_match:
                 all_passed = False
-                print(f"    ❌ Hash mismatch!")
+                print("    ❌ Hash mismatch!")
                 print(f"       Original: {original_hash}")
                 print(f"       Copy:     {temp_hash}")
                 continue
@@ -115,7 +114,7 @@ def test_copy_corruption(source_path, num_tests=3):
 
             if not copy_valid:
                 all_passed = False
-                print(f"    ❌ Copy is corrupted!")
+                print("    ❌ Copy is corrupted!")
 
         finally:
             # Cleanup

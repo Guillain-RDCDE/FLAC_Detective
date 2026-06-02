@@ -6,10 +6,6 @@ Tests the performance of:
 - Real-world scenarios
 """
 
-from pathlib import Path
-
-import pytest
-
 from flac_detective.analysis.analyzer import FLACAnalyzer
 
 

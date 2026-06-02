@@ -1,9 +1,8 @@
 """Tests for Rule 7: Silence Analysis and Vinyl Detection (3 Phases)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
-import pytest
 
 from flac_detective.analysis.new_scoring.rules import apply_rule_7_silence_analysis
 from flac_detective.analysis.new_scoring.silence import detect_clicks_and_pops, detect_vinyl_noise
@@ -187,7 +186,7 @@ class TestSilenceModuleFunctions:
         assert details["energy_db"] > -70
         assert details["autocorr"] < 0.3
         assert details["temporal_variance"] < 5.0
-        assert is_vinyl == True
+        assert is_vinyl
 
     def test_detect_vinyl_noise_digital_silence(self):
         """Test vinyl noise detection with digital silence."""
@@ -197,7 +196,7 @@ class TestSilenceModuleFunctions:
         is_vinyl, details = detect_vinyl_noise(silence, sample_rate, cutoff_freq=10000)
 
         assert details["energy_db"] < -70
-        assert is_vinyl == False
+        assert not is_vinyl
 
     def test_detect_clicks_synthetic(self):
         """Test click detection with synthetic clicks."""

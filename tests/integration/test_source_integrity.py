@@ -1,10 +1,9 @@
-"""Test integrity of source FLAC files directly on D:\ drive.
+r"""Test integrity of source FLAC files directly on D:\ drive.
 
 This will identify which files are actually corrupted at the source,
 vs. which ones only fail during copy operations.
 """
 
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -47,7 +46,6 @@ def test_flac_file(filepath):
 
 def scan_directory(directory, verbose=False):
     """Scan all FLAC files in directory and test integrity."""
-
     directory = Path(directory)
 
     if not directory.exists():
@@ -55,7 +53,7 @@ def scan_directory(directory, verbose=False):
         return
 
     print(f"\n{'='*80}")
-    print(f"TESTING SOURCE FILE INTEGRITY")
+    print("TESTING SOURCE FILE INTEGRITY")
     print(f"{'='*80}")
     print(f"Directory: {directory}")
     print(f"{'='*80}\n")
@@ -82,13 +80,13 @@ def scan_directory(directory, verbose=False):
 
         if success:
             valid_files.append(flac_file)
-            print(f"           ✅ VALID\n")
+            print("           ✅ VALID\n")
         else:
             corrupted_files.append((flac_file, error_msg, details))
             print(f"           ❌ CORRUPTED: {error_msg}\n")
 
             if verbose and details:
-                print(f"           Details:\n")
+                print("           Details:\n")
                 for line in details.split("\n"):
                     if line.strip():
                         print(f"             {line}")
@@ -96,7 +94,7 @@ def scan_directory(directory, verbose=False):
 
     # Summary
     print(f"\n{'='*80}")
-    print(f"SUMMARY")
+    print("SUMMARY")
     print(f"{'='*80}")
     print(f"Total files:      {len(flac_files)}")
     print(f"Valid files:      {len(valid_files)} ({len(valid_files)*100//len(flac_files)}%)")
@@ -106,7 +104,7 @@ def scan_directory(directory, verbose=False):
     print(f"{'='*80}\n")
 
     if corrupted_files:
-        print(f"CORRUPTED FILES DETAILS:")
+        print("CORRUPTED FILES DETAILS:")
         print(f"{'-'*80}")
         for flac_file, error_msg, _ in corrupted_files:
             relative_path = flac_file.relative_to(directory)
@@ -117,16 +115,16 @@ def scan_directory(directory, verbose=False):
         print(f"\n{'-'*80}")
 
         # Check if these match the errors we saw during scan
-        print(f"\n💡 ANALYSIS:")
+        print("\n💡 ANALYSIS:")
         print(f"   These {len(corrupted_files)} files are ALREADY corrupted at the source.")
-        print(f"   The copy operation did NOT introduce the corruption.")
-        print(f"   The retry/repair mechanisms handled these gracefully during scan.")
+        print("   The copy operation did NOT introduce the corruption.")
+        print("   The retry/repair mechanisms handled these gracefully during scan.")
     else:
-        print(f"✅ All source files are VALID!")
-        print(f"   If errors occurred during scan, they were likely:")
-        print(f"   - Transient I/O errors during copy")
-        print(f"   - Network/USB read errors")
-        print(f"   - Not actual file corruption")
+        print("✅ All source files are VALID!")
+        print("   If errors occurred during scan, they were likely:")
+        print("   - Transient I/O errors during copy")
+        print("   - Network/USB read errors")
+        print("   - Not actual file corruption")
 
     print(f"\n{'='*80}\n")
 

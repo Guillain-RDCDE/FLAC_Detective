@@ -280,13 +280,9 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 
 ### Can I trust the results?
 
-Yes, but use common sense:
-- ✅ **AUTHENTIC** (score ≤30): Very high confidence, keep the file
-- ⚡ **WARNING** (31-54): Borderline case, manual verification recommended
-- ⚠️ **SUSPICIOUS** (55-85): High confidence transcode, consider replacing
-- ❌ **FAKE_CERTAIN** (≥86): Multiple indicators, definitely a transcode
-
-For critical decisions, use complementary tools (e.g., Spek for visual spectral analysis) to confirm.
+Yes, with common sense. Each score band and what to do about it is in the verdict
+table near the top of this README. For critical decisions, confirm with a
+complementary tool (e.g. Spek for visual spectral analysis).
 
 ### What file formats are supported?
 
@@ -299,12 +295,9 @@ Currently:
 
 ### How long does analysis take?
 
-- **Single file**: 2-5 seconds (30s sample)
-- **100 files**: ~5-10 minutes
-- **1,000 files**: ~50-90 minutes
-- **10,000 files**: ~8-15 hours
-
-Use `--sample-duration 15` for faster scans of large libraries.
+About 2–5 s per file with the default 30 s sample — roughly 50–90 min for 1,000
+files, a few hours for a 10,000-file library. The **Performance** section above
+covers throughput and how `--sample-duration` trades speed for thoroughness.
 
 ### Can I use it in my own application?
 
@@ -329,11 +322,8 @@ Yes! MIT License:
 
 ### How can I contribute?
 
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for:
-- Bug reports and feature requests
-- Code contributions
-- Documentation improvements
-- Testing and feedback
+Bug reports, code, docs, and testing are all welcome — see
+[CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
 ---
 

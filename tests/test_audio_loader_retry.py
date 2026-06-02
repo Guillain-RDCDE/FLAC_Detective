@@ -7,7 +7,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from flac_detective.analysis.new_scoring.audio_loader import (
+from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
     is_temporary_decoder_error,
     load_audio_with_retry,
 )

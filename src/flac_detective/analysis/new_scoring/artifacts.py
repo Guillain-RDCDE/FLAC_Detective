@@ -310,7 +310,7 @@ def detect_mp3_noise_pattern(audio_data: np.ndarray, sample_rate: int) -> bool:
     return pattern_detected
 
 
-def analyze_compression_artifacts(
+def analyze_compression_artifacts(  # noqa: C901
     file_path: str,
     cutoff_freq: float,
     mp3_bitrate_detected: Optional[int],
@@ -380,8 +380,8 @@ def analyze_compression_artifacts(
 
         if audio_data is None or sample_rate is None:
             logger.error(
-                f"RULE 9: Failed to load audio after retries. "
-                f"Returning 0 points (no penalty for temporary decoder issues)."
+                "RULE 9: Failed to load audio after retries. "
+                "Returning 0 points (no penalty for temporary decoder issues)."
             )
             return 0, [], details
 

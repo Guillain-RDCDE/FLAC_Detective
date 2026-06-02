@@ -20,7 +20,7 @@ def bandpass_filter(
     return signal.sosfilt(sos, data)
 
 
-def apply_rule_11_cassette_detection(
+def apply_rule_11_cassette_detection(  # noqa: C901
     file_path: str,
     cutoff_freq: float,
     cutoff_std: float,

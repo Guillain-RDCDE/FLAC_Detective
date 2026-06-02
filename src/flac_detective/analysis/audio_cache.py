@@ -9,7 +9,6 @@ from threading import Lock
 from typing import Optional, Tuple
 
 import numpy as np
-import soundfile as sf
 from scipy.fft import rfft, rfftfreq, set_workers
 
 from .new_scoring.audio_loader import load_audio_with_retry, sf_blocks_partial

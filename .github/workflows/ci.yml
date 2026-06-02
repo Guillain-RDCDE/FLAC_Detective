@@ -51,11 +51,6 @@ jobs:
         pre-commit run --all-files
       continue-on-error: true
 
-    - name: Lint with flake8
-      run: |
-        flake8 src tests --count --statistics --show-source
-      continue-on-error: true
-
     - name: Type check with mypy
       run: |
         mypy src --config-file=pyproject.toml
@@ -137,6 +132,13 @@ jobs:
     - name: Check import sorting with isort
       run: |
         isort --check-only src tests
+
+    # flake8 is a hard gate — this job ("Code Quality Checks") is a required
+    # status check on main. The tree is kept clean; existing high-complexity
+    # functions carry targeted `# noqa: C901`, so only new violations fail.
+    - name: Lint with flake8
+      run: |
+        flake8 src tests --count --statistics --show-source
 
     - name: Security check with bandit
       run: |

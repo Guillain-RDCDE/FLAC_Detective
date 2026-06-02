@@ -7,11 +7,13 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from flac_detective.analysis.new_scoring.constants import (
+from flac_detective.analysis.new_scoring.constants import (  # noqa: E402
     BITRATE_CRITICAL_THRESHOLD,
     BITRATE_RED_FLAG_THRESHOLD,
 )
-from flac_detective.analysis.new_scoring.rules.spectral import apply_rule_1_mp3_bitrate
+from flac_detective.analysis.new_scoring.rules.spectral import (  # noqa: E402
+    apply_rule_1_mp3_bitrate,
+)
 
 print("=" * 80)
 print("Rule 1 Enhancement Test - Container Bitrate Detection")
@@ -76,7 +78,7 @@ test_cases = [
     },
 ]
 
-print(f"Constants:")
+print("Constants:")
 print(f"  BITRATE_CRITICAL_THRESHOLD = {BITRATE_CRITICAL_THRESHOLD} kbps")
 print(f"  BITRATE_RED_FLAG_THRESHOLD = {BITRATE_RED_FLAG_THRESHOLD} kbps")
 print()

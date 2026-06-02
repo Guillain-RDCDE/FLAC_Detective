@@ -120,7 +120,7 @@ class TextReporter:
         # DO NOT TRUNCATE - show full path
         return display_name
 
-    def generate_report(
+    def generate_report(  # noqa: C901
         self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None
     ) -> None:
         """Generates a complete text report.
