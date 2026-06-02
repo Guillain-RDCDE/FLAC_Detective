@@ -2,7 +2,9 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
@@ -33,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def _calculate_bitrate_metrics(
-    filepath: Path, audio_meta: AudioMetadata, source_path: Path = None
+    filepath: Path, audio_meta: AudioMetadata, source_path: Optional[Path] = None
 ) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
@@ -77,6 +79,9 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:  # n
     Returns:
         Tuple of (total_score, list_of_reasons)
     """
+    audio_data: Optional[np.ndarray] = None
+    sample_rate: Optional[int] = None
+
     # ========== RULE 8: NYQUIST EXCEPTION (ALWAYS FIRST) ==========
     # This rule MUST be calculated first and applied before any short-circuit
     logger.debug("OPTIMIZATION: Calculating Rule 8 (Nyquist Exception) FIRST...")
@@ -289,7 +294,7 @@ def new_calculate_score(
     cutoff_std: float = 0.0,
     energy_ratio: float = 0.0,
     cache=None,
-    source_path: Path = None,
+    source_path: Optional[Path] = None,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 

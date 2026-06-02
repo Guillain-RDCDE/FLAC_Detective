@@ -56,7 +56,7 @@ def load_audio_with_retry(
     backoff_multiplier: float = 2.0,
     original_filepath: Optional[str] = None,
     **kwargs: Any,
-) -> Tuple[Optional[NDArray[np.float64]], Optional[int]]:
+) -> Tuple[Optional[np.ndarray], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
 
     This function attempts to load a FLAC file using soundfile.read() with

@@ -9,7 +9,7 @@ PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import soundfile as sf
@@ -119,7 +119,7 @@ def calculate_spectral_energy(
 
 
 def analyze_silence_ratio(  # noqa: C901
-    file_path: Path, cache=None
+    file_path: Union[str, Path], cache=None
 ) -> Tuple[Optional[float], str, float, float]:
     """Analyze the ratio of HF energy between silence and music.
 

@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +129,7 @@ class DiagnosticTracker:
         Returns:
             Dictionary with diagnostic statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "total_files": self._files_analyzed,
             "files_with_issues": self._files_with_issues,
             "clean_files": self._files_analyzed - self._files_with_issues,

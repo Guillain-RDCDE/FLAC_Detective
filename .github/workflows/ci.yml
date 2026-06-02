@@ -51,11 +51,6 @@ jobs:
         pre-commit run --all-files
       continue-on-error: true
 
-    - name: Type check with mypy
-      run: |
-        mypy src --config-file=pyproject.toml
-      continue-on-error: true
-
     - name: Test with pytest
       # Skip:
       #   - tests/integration/  — manual scripts that hash & copy real FLAC
@@ -139,6 +134,11 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 src tests --count --statistics --show-source
+
+    # mypy is a hard gate too — src/ is type-clean (checked against py3.10).
+    - name: Type check with mypy
+      run: |
+        mypy src --config-file=pyproject.toml
 
     - name: Security check with bandit
       run: |

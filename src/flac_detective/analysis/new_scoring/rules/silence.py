@@ -51,7 +51,7 @@ def apply_rule_7_silence_analysis(
         Tuple of (score_delta, list_of_reasons, silence_ratio)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
     ratio = None
 
     # 1. Check activation condition

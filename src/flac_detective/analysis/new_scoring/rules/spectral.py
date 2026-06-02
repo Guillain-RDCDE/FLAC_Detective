@@ -161,7 +161,7 @@ def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
     cutoff_threshold = get_cutoff_threshold(sample_rate)
 
     if cutoff_freq < cutoff_threshold:
@@ -212,7 +212,7 @@ def apply_rule_8_nyquist_exception(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     # Calculate Nyquist frequency
     nyquist_freq = sample_rate / 2.0

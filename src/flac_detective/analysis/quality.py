@@ -91,7 +91,7 @@ class QualityDetector(ABC):
     """Abstract base class for quality detectors."""
 
     @abstractmethod
-    def detect(self, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Run the quality detection.
 
         Returns:
@@ -138,7 +138,7 @@ class ClippingDetector(QualityDetector):
             "severity": severity,
         }
 
-    def detect(self, filepath: Path, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect clipping in audio data.
 
         Args:
@@ -147,6 +147,7 @@ class ClippingDetector(QualityDetector):
         Returns:
             Dictionary with detection results.
         """
+        filepath: Path = kwargs["filepath"]
         total_samples = 0
         clipped_samples = 0
 
@@ -215,7 +216,7 @@ class DCOffsetDetector(QualityDetector):
             "severity": severity,
         }
 
-    def detect(self, filepath: Path, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect DC offset in audio data.
 
         Args:
@@ -224,6 +225,7 @@ class DCOffsetDetector(QualityDetector):
         Returns:
             Dictionary with detection results.
         """
+        filepath: Path = kwargs["filepath"]
         total_samples = 0
         sum_of_samples = 0.0
 
@@ -263,8 +265,9 @@ class DCOffsetDetector(QualityDetector):
 class CorruptionDetector(QualityDetector):
     """Checks if audio file is readable and valid by iterating through it."""
 
-    def detect(self, filepath: Path, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect whether the file is readable and fully decodable."""
+        filepath: Path = kwargs["filepath"]
         frames_read = 0
         try:
             # Use sf.info for a quick header check
@@ -381,7 +384,7 @@ class SilenceDetector(QualityDetector):
             "issue_type": issue_type,
         }
 
-    def detect(self, filepath: Path, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect abnormal silence in audio data.
 
         Args:
@@ -391,6 +394,7 @@ class SilenceDetector(QualityDetector):
         Returns:
             Dictionary with detection results.
         """
+        filepath: Path = kwargs["filepath"]
         try:
             info = sf.info(str(filepath))
             samplerate = info.samplerate
@@ -480,7 +484,7 @@ class BitDepthDetector(QualityDetector):
             "details": "24-bit file contains only 16-bit data" if is_16bit else "True 24-bit",
         }
 
-    def detect(self, filepath: Path, reported_depth: int, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect true bit depth.
 
         Args:
@@ -490,6 +494,8 @@ class BitDepthDetector(QualityDetector):
         Returns:
             Dictionary with detection results.
         """
+        filepath: Path = kwargs["filepath"]
+        reported_depth: int = kwargs["reported_depth"]
         if reported_depth <= 16:
             return {"is_fake_high_res": False, "estimated_depth": reported_depth}
 
@@ -526,7 +532,7 @@ class BitDepthDetector(QualityDetector):
 class UpsamplingDetector(QualityDetector):
     """Detects sample rate upsampling."""
 
-    def detect(self, cutoff_freq: float, samplerate: int, **kwargs) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect sample rate upsampling.
 
         Args:
@@ -536,6 +542,8 @@ class UpsamplingDetector(QualityDetector):
         Returns:
             Dictionary with detection results.
         """
+        cutoff_freq: float = kwargs["cutoff_freq"]
+        samplerate: int = kwargs["samplerate"]
         if samplerate <= 48000:
             return {"is_upsampled": False, "suspected_original_rate": samplerate}
 

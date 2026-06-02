@@ -108,7 +108,8 @@ skip_gitignore = true
 [tool.mypy]
 # Match the project's actual minimum (3.10+). On "3.9" mypy parsed torch's
 # match statements with a 3.9 target and crashed before ever reaching src/,
-# so it silently checked nothing. Stays advisory in CI (continue-on-error).
+# so it silently checked nothing. src/ is now type-clean and mypy is a hard
+# gate in the Code Quality Checks CI job.
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true

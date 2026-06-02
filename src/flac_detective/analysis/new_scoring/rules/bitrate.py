@@ -31,7 +31,7 @@ def apply_rule_3_source_vs_container(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     # Container bitrate threshold
     # Using the constant defined in constants.py
@@ -81,7 +81,7 @@ def apply_rule_4_24bit_suspect(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     # Minimum expected bitrate for 24-bit files
     MIN_24BIT_BITRATE = 500
@@ -151,7 +151,7 @@ def apply_rule_5_high_variance(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     is_high_bitrate = real_bitrate > HIGH_BITRATE_THRESHOLD
     is_high_variance = bitrate_variance > VARIANCE_THRESHOLD
@@ -198,7 +198,7 @@ def apply_rule_6_variable_bitrate_protection(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     # Thresholds for high-quality FLAC protection
     BITRATE_THRESHOLD = 700  # Raised from 600 kbps

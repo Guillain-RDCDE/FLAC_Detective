@@ -118,7 +118,7 @@ class TextReporter:
                 pass  # Keep original filename if any error
 
         # DO NOT TRUNCATE - show full path
-        return display_name
+        return str(display_name)
 
     def generate_report(  # noqa: C901
         self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None = None

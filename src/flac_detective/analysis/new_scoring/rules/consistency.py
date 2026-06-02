@@ -40,7 +40,7 @@ def apply_rule_10_multi_segment_consistency(
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
-    reasons = []
+    reasons: list[str] = []
 
     # Activation condition
     if current_score <= 30:

@@ -17,7 +17,7 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .__version__ import __version__
 
@@ -48,7 +48,7 @@ try:
         }
     )
 
-    console = Console(theme=custom_theme)
+    console: Optional[Console] = Console(theme=custom_theme)
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
@@ -124,6 +124,7 @@ def setup_logging(output_dir: Path) -> Path:
     if not HAS_RICH:
         logger.info(f"Console log will be saved to: {log_file}")
     else:
+        assert console is not None
         console.print(f"[dim]Log file: {log_file}[/dim]")
 
     return log_file
@@ -462,6 +463,7 @@ def _process_flac_files(
     ]
 
     # Use Rich Progress if available
+    progress_ctx: Any
     if HAS_RICH:
         progress_ctx = Progress(*columns, console=console)
     else:

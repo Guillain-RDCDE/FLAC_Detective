@@ -5,7 +5,7 @@ analysis module to detect vinyl noise, clicks, and other audio artifacts.
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, cast
 
 import numpy as np
 from scipy import signal
@@ -38,7 +38,7 @@ def filter_band(
 
     try:
         sos = signal.butter(4, [cutoff_freq, upper_freq], "bandpass", fs=sample_rate, output="sos")
-        return signal.sosfilt(sos, audio_mono)
+        return cast(np.ndarray, signal.sosfilt(sos, audio_mono))
     except Exception as e:
         logger.warning(f"VINYL: Filtering failed: {e}")
         return None
