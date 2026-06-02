@@ -1,11 +1,9 @@
-"""Coverage quick wins: easy-to-test surface (version metadata, file discovery,
-LOGO assembly, colorize). These modules sit at the boundary of the package and
-are exercised by every CLI run, but were previously untested.
+"""Coverage quick wins for easy-to-test surface code.
+
+Version metadata, file discovery, LOGO assembly, colorize — these modules sit at
+the boundary of the package and are exercised by every CLI run, but were
+previously untested.
 """
-
-from pathlib import Path
-
-import pytest
 
 from flac_detective import __version__
 from flac_detective.__version__ import (

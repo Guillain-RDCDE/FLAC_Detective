@@ -1,11 +1,9 @@
 """Tests for Rule 9: Compression Artifacts Detection."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
-import soundfile as sf
 
 from flac_detective.analysis.new_scoring.artifacts import (
     analyze_compression_artifacts,
@@ -116,7 +114,7 @@ class TestMP3NoisePattern:
 
         pattern_detected = detect_mp3_noise_pattern(audio, sample_rate)
 
-        assert pattern_detected == False, "Should return False for low sample rate"
+        assert not pattern_detected, "Should return False for low sample rate"
 
     def test_mp3_pattern_with_short_audio(self):
         """Short audio should skip the test."""
@@ -125,7 +123,7 @@ class TestMP3NoisePattern:
 
         pattern_detected = detect_mp3_noise_pattern(audio, sample_rate)
 
-        assert pattern_detected == False, "Should return False for short audio"
+        assert not pattern_detected, "Should return False for short audio"
 
 
 @pytest.mark.skip(

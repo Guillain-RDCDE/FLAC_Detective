@@ -68,7 +68,7 @@ def _calculate_bitrate_metrics(
     )
 
 
-def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
+def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:  # noqa: C901
     """Apply all scoring rules using the Strategy pattern.
 
     Args:
@@ -77,7 +77,6 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
     Returns:
         Tuple of (total_score, list_of_reasons)
     """
-
     # ========== RULE 8: NYQUIST EXCEPTION (ALWAYS FIRST) ==========
     # This rule MUST be calculated first and applied before any short-circuit
     logger.debug("OPTIMIZATION: Calculating Rule 8 (Nyquist Exception) FIRST...")
@@ -137,7 +136,7 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:
         is_uncompressed = bm.apparent_bitrate > 0 and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
 
         if cassette_score >= 30:
-            logger.info(f"R11: Signature MP3 annulée (source cassette détectée)")
+            logger.info("R11: Signature MP3 annulée (source cassette détectée)")
             logger.info(
                 f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate)."
             )

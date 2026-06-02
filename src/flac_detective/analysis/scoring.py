@@ -51,7 +51,7 @@ def estimate_mp3_bitrate(cutoff_freq: float) -> int:
     return 0
 
 
-def calculate_score(
+def calculate_score(  # noqa: C901
     cutoff_freq: float, energy_ratio: float, metadata: Dict, duration_check: Dict
 ) -> Tuple[int, str]:
     """Calculates a confidence score (0-100) and generates a reason.

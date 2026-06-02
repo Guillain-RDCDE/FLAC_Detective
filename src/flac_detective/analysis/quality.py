@@ -264,6 +264,7 @@ class CorruptionDetector(QualityDetector):
     """Checks if audio file is readable and valid by iterating through it."""
 
     def detect(self, filepath: Path, **kwargs) -> Dict[str, Any]:
+        """Detect whether the file is readable and fully decodable."""
         frames_read = 0
         try:
             # Use sf.info for a quick header check

@@ -58,7 +58,6 @@ def get_hanning_window(size: int) -> np.ndarray:
 
 def clear_window_cache():
     """Clear the window cache to free memory."""
-    global _window_cache
     size = len(_window_cache)
     _window_cache.clear()
     logger.debug(f"⚡ WINDOW CACHE: Cleared {size} cached windows")

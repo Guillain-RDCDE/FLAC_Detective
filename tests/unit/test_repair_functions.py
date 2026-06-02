@@ -7,19 +7,16 @@ NOTE: These tests require Python 3.8-3.12 due to scipy/numpy compatibility.
       Python 3.14+ may have compatibility issues with scipy.
 """
 
-import os
-
 # Add src to path for imports
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from flac_detective.analysis.new_scoring.audio_loader import (
+from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
     _extract_metadata,
     _restore_metadata,
     repair_flac_file,
@@ -297,7 +294,7 @@ class TestRepairFlacFile:
         corrupted_file.write_bytes(b"fake flac data")
 
         with (
-            patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run") as mock_run,
+            patch("flac_detective.analysis.new_scoring.audio_loader.subprocess.run"),
             patch(
                 "flac_detective.analysis.new_scoring.audio_loader.os.path.exists",
                 return_value=False,
@@ -380,7 +377,7 @@ class TestRepairFlacFile:
                 return_value=1000000,
             ),
             patch("flac_detective.analysis.new_scoring.audio_loader.shutil.copy2") as mock_copy,
-            patch("flac_detective.analysis.new_scoring.audio_loader.get_tracker") as mock_tracker,
+            patch("flac_detective.analysis.new_scoring.audio_loader.get_tracker"),
         ):
 
             result = repair_flac_file(
@@ -421,7 +418,7 @@ class TestRepairFlacFile:
             patch("flac_detective.analysis.new_scoring.audio_loader.os.remove") as mock_remove,
         ):
 
-            result = repair_flac_file(str(corrupted_file))
+            repair_flac_file(str(corrupted_file))
 
             # Verify cleanup was attempted
             mock_remove.assert_called()

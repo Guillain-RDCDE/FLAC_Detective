@@ -1,5 +1,3 @@
-import pytest
-
 from flac_detective.analysis.new_scoring.rules import (
     apply_rule_1_mp3_bitrate,
     apply_rule_2_cutoff,
@@ -15,19 +13,16 @@ class TestMandatoryValidation:
     """Tests based on 'TESTS DE VALIDATION OBLIGATOIRES' from user specs."""
 
     def test_1_mp3_320_high_freq(self):
-        """TEST 1: MP3 320 kbps avec fréquence élevée - DOIT être FAKE_CERTAIN"""
+        """TEST 1: MP3 320 kbps avec fréquence élevée - DOIT être FAKE_CERTAIN."""
         # Data
         sample_rate = 44100
         bit_depth = 16
-        duration = 221
-        file_size = 8835450
         # Cutoff needs to be in 320kbps range (19.5-21.5 kHz)
         # 19800 Hz is in 320kbps range and below 90% Nyquist (19845 Hz for 44100 Hz)
         # Also below 95% Nyquist (20947.5 Hz) to avoid R1 Nyquist exception
         cutoff_freq = 19800
 
         # Calculations
-        real_bitrate = (file_size * 8) / (duration * 1000)  # ~319.83 kbps
         # apparent_bitrate is not used directly in new rules except via container bitrate checks
 
         # Rule 1
@@ -83,12 +78,11 @@ class TestMandatoryValidation:
         assert verdict == "FAKE_CERTAIN"
 
     def test_2_mp3_192_low_cutoff(self):
-        """TEST 2: MP3 192 kbps cutoff bas - DOIT être FAKE_CERTAIN"""
+        """TEST 2: MP3 192 kbps cutoff bas - DOIT être FAKE_CERTAIN."""
         # Data
         sample_rate = 44100
         bit_depth = 16
         cutoff_freq = 17458
-        real_bitrate = 192  # This is low, usually container is higher for fake FLAC
         container_bitrate = 844  # Simulating FLAC container bitrate
 
         # Rule 1
@@ -147,7 +141,7 @@ class TestMandatoryValidation:
         assert verdict == "FAKE_CERTAIN"
 
     def test_3_mp3_320_in_24bit(self):
-        """TEST 3: MP3 320 kbps en 24-bit - DOIT être FAKE_CERTAIN"""
+        """TEST 3: MP3 320 kbps en 24-bit - DOIT être FAKE_CERTAIN."""
         # Data
         sample_rate = 48000
         bit_depth = 24
@@ -226,14 +220,13 @@ class TestMandatoryValidation:
         # 24-bit, 224 < 500, cutoff 18321 < 19000.
         assert score_r4 == 30
 
-        total_score = score_r1 + score_r2 + score_r3 + score_r4
         # 50 + 18 + 50 + 30 = 148.
         # This matches the original test expectation.
 
         # So I will use container_bitrate = 700 for this test.
 
     def test_4_authentic_high_quality(self):
-        """TEST 4: FLAC authentique haute qualité - NE DOIT PAS être FAKE"""
+        """TEST 4: FLAC authentique haute qualité - NE DOIT PAS être FAKE."""
         # Data
         sample_rate = 44100
         bit_depth = 16
@@ -278,7 +271,7 @@ class TestMandatoryValidation:
         assert verdict == "AUTHENTIC"
 
     def test_5_authentic_low_quality(self):
-        """TEST 5: FLAC authentique mauvaise qualité - NE DOIT PAS être FAKE"""
+        """TEST 5: FLAC authentique mauvaise qualité - NE DOIT PAS être FAKE."""
         # Data
         sample_rate = 44100
         bit_depth = 16

@@ -1,6 +1,6 @@
 """Unit tests for Rule 11: Cassette Detection."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest

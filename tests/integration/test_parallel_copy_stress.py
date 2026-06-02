@@ -6,7 +6,6 @@ which is what happens during the actual FLAC analysis.
 
 import concurrent.futures
 import hashlib
-import os
 import shutil
 import subprocess
 import sys
@@ -49,7 +48,7 @@ def test_flac_integrity(filepath):
             timeout=30,
         )
         return result.returncode == 0
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -86,7 +85,7 @@ def copy_and_verify(source_path, copy_num):
                 "copy_num": copy_num,
                 "file": source.name,
                 "success": False,
-                "error": f"Hash mismatch",
+                "error": "Hash mismatch",
             }
 
         # Verify FLAC integrity
@@ -108,7 +107,6 @@ def copy_and_verify(source_path, copy_num):
 
 def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     """Stress test: copy multiple files in parallel multiple times."""
-
     # Find all FLAC files
     flac_files = list(Path(directory).rglob("*.flac"))
 
@@ -120,7 +118,7 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     flac_files = flac_files[:10]
 
     safe_print(f"\n{'='*80}")
-    safe_print(f"PARALLEL COPY STRESS TEST")
+    safe_print("PARALLEL COPY STRESS TEST")
     safe_print(f"{'='*80}")
     safe_print(f"Directory: {directory}")
     safe_print(f"Files to test: {len(flac_files)}")
@@ -162,19 +160,19 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
 
     # Summary
     safe_print(f"\n{'='*80}")
-    safe_print(f"RESULTS")
+    safe_print("RESULTS")
     safe_print(f"{'='*80}")
     safe_print(f"Total operations: {len(results)}")
     safe_print(f"Successful: {len([r for r in results if r['success']])}")
     safe_print(f"Failed: {len(failures)}")
 
     if failures:
-        safe_print(f"\n❌ FAILURES DETECTED:")
+        safe_print("\n❌ FAILURES DETECTED:")
         for fail in failures:
             safe_print(f"  - {fail['file']} (copy {fail['copy_num']}): {fail['error']}")
-        safe_print(f"\n⚠️  CONCLUSION: Parallel copying MAY introduce corruption under load!")
+        safe_print("\n⚠️  CONCLUSION: Parallel copying MAY introduce corruption under load!")
     else:
-        safe_print(f"\n✅ CONCLUSION: All parallel copies succeeded - no corruption detected!")
+        safe_print("\n✅ CONCLUSION: All parallel copies succeeded - no corruption detected!")
 
     safe_print(f"{'='*80}\n")
 

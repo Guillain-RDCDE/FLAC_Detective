@@ -1,7 +1,5 @@
 """Tests for Rule 4: 24-bit Suspicious Files with safeguards."""
 
-import pytest
-
 from flac_detective.analysis.new_scoring.rules import apply_rule_4_24bit_suspect
 
 

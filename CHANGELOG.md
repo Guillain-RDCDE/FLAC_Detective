@@ -1,5 +1,3 @@
-## Unreleased
-
 ## v0.16.0 (2026-06-01) — ALAC & APE support
 
 FLAC Detective now analyses **ALAC** (Apple Lossless, in `.m4a`) and **APE**

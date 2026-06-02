@@ -141,7 +141,7 @@ def analyze_spectrum(
         return 0, 0, 0
 
 
-def detect_cutoff(
+def detect_cutoff(  # noqa: C901
     frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100
 ) -> float:
     """Detects cutoff frequency with a robust method adapted to sample rate.
@@ -238,7 +238,7 @@ def detect_cutoff(
 
     # No cutoff detected with slice method -> try energy-based fallback
     # This catches MP3 upscales that have noise in high frequencies
-    logger.debug(f"No cutoff detected with slice method, trying energy-based detection")
+    logger.debug("No cutoff detected with slice method, trying energy-based detection")
 
     # Energy-based detection: find where 90% of cumulative energy is reached
     # Convert dB back to linear magnitude: magnitude = 10^(magnitude_db/20)
@@ -301,7 +301,7 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
     return float(np.mean(tranche_energies)) if tranche_energies else 0.0
 
 
-def analyze_segment_consistency(
+def analyze_segment_consistency(  # noqa: C901
     filepath: Path, progressive: bool = True, cache: "AudioCache" = None
 ) -> Tuple[List[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).

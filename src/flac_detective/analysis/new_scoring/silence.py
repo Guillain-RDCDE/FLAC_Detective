@@ -118,7 +118,9 @@ def calculate_spectral_energy(
     return float(normalized_energy)
 
 
-def analyze_silence_ratio(file_path: Path, cache=None) -> Tuple[Optional[float], str, float, float]:
+def analyze_silence_ratio(  # noqa: C901
+    file_path: Path, cache=None
+) -> Tuple[Optional[float], str, float, float]:
     """Analyze the ratio of HF energy between silence and music.
 
     PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.

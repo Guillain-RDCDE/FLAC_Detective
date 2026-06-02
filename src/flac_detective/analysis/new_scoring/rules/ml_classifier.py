@@ -60,7 +60,7 @@ def _load_model():
     _MODEL_LOAD_ATTEMPTED = True
 
     try:
-        import torch  # noqa: F401
+        import torch
     except ImportError:
         logger.debug("Rule 12: torch not installed; skipping (install with [ml] extra)")
         return None
@@ -70,8 +70,6 @@ def _load_model():
         return None
 
     try:
-        import torch
-
         _MODEL = torch.jit.load(str(_MODEL_PATH), map_location="cpu")
         _MODEL.eval()
         logger.info(f"Rule 12: loaded CNN model from {_MODEL_PATH}")

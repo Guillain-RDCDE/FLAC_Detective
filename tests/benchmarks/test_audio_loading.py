@@ -9,8 +9,6 @@ Tests the performance of:
 
 from pathlib import Path
 
-import pytest
-
 from flac_detective.analysis.audio_cache import AudioCache
 from flac_detective.analysis.new_scoring.audio_loader import (
     load_audio_with_retry,
