@@ -1,3 +1,35 @@
+## v1.0.0 (2026-06-02) — multi-format, ML-assisted, field-validated
+
+First stable release. The 0.x line grew from a FLAC-only heuristic checker into a
+multi-format, ML-assisted, field-validated tool — this tags that as 1.0 and commits
+to a stable public API from here on.
+
+**What 1.0 means here**
+
+- **Formats**: analyses FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`). Detection is
+  codec-agnostic (runs on decoded PCM); ffmpeg is required only for ALAC/APE.
+- **Detection**: 11 heuristic rules (0–150 score → AUTHENTIC / WARNING / SUSPICIOUS
+  / FAKE_CERTAIN) plus an optional 12th ML rule (stereo CNN) that sharpens
+  confidence on borderline cases and abstains on band-limited material it can't
+  judge reliably.
+- **Engineering**: black + isort + flake8 + mypy are all clean and gate CI; the
+  source tree is type-checked; releases ship to PyPI via trusted publishing.
+- **Field-validated**: exercised against a real ~72k-file library — routing,
+  end-to-end ALAC/APE analysis, MP3→ALAC fakes and crash-resistance all verified
+  on real data (see `ml/field_validation.py`).
+
+**Public API & SemVer.** From 1.0.0, these follow semantic versioning: the
+`flac-detective` CLI and its flags; the top-level exports `FLACAnalyzer`,
+`ProgressTracker`, `find_flac_files`, `LOGO`, `__version__`; and the keys of the
+result dict returned by `FLACAnalyzer.analyze_file()`. Internal modules under
+`analysis/` (rules, scoring internals) remain free to change between minor versions.
+
+**Honest limits (unchanged).** High-bitrate AAC/Opus→lossless transcodes and
+genuinely band-limited masters remain hard to call; measured specificity is ~80–87%
+(see `ml/README.md`). 1.0 is a stability commitment, not a claim of perfection.
+
+No code changes vs v0.16.1 — this release is the version/stability cap.
+
 ## v0.16.1 (2026-06-02) — ALAC routing fix (cover-art ffprobe quirk)
 
 A field-validation pass over a real 72k-file library surfaced a bug the synthetic
