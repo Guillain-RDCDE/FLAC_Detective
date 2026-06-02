@@ -2,7 +2,12 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, NamedTuple, Optional
+from typing import TYPE_CHECKING, List, NamedTuple, Optional
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from ..audio_cache import AudioCache
 
 
 class BitrateMetrics(NamedTuple):
@@ -41,9 +46,9 @@ class ScoringContext:
     reasons: List[str] = field(default_factory=list)
 
     # Cache for heavy rules (Rule 9/11) - Avoids reloading file
-    audio_data: Optional[object] = None  # Using object to avoid numpy dependency in models
+    audio_data: "Optional[np.ndarray]" = None  # numpy only imported under TYPE_CHECKING
     loaded_sample_rate: Optional[int] = None
-    cache: Optional[object] = None  # AudioCache instance
+    cache: "Optional[AudioCache]" = None  # AudioCache instance
 
     def add_score(self, score: int, new_reasons: List[str]):
         """Update score and reasons."""

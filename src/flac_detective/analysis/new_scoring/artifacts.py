@@ -8,7 +8,7 @@ that go beyond simple frequency cutoff analysis:
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -335,8 +335,8 @@ def analyze_compression_artifacts(  # noqa: C901
         Tuple of (score_delta, list_of_reasons, details_dict)
     """
     score = 0
-    reasons = []
-    details = {
+    reasons: list[str] = []
+    details: Dict[str, Any] = {
         "preecho_percentage": 0.0,
         "aliasing_correlation": 0.0,
         "mp3_noise_pattern": False,

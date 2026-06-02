@@ -1,7 +1,7 @@
 """Cassette audio source detection (Rule 11)."""
 
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 import soundfile as sf
@@ -17,7 +17,7 @@ def bandpass_filter(
 ) -> np.ndarray:
     """Apply a bandpass filter to the data."""
     sos = signal.butter(order, [lowcut, highcut], btype="bandpass", fs=fs, output="sos")
-    return signal.sosfilt(sos, data)
+    return cast(np.ndarray, signal.sosfilt(sos, data))
 
 
 def apply_rule_11_cassette_detection(  # noqa: C901
@@ -46,7 +46,7 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         cassette_score: 0-85 (Positive score means likely cassette)
     """
     cassette_score = 0
-    reasons = []
+    reasons: list[str] = []
 
     if cutoff_freq >= 19000:
         logger.debug(f"RULE 11: Skipped (cutoff {cutoff_freq:.0f} >= 19000)")

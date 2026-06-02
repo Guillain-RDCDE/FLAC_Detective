@@ -2,6 +2,8 @@
 
 from typing import List, Optional, Tuple
 
+import numpy as np
+
 from ..artifacts import analyze_compression_artifacts
 
 
@@ -9,7 +11,7 @@ def apply_rule_9_compression_artifacts(
     file_path: str,
     cutoff_freq: float,
     mp3_bitrate_detected: Optional[int],
-    audio_data: Optional[object] = None,
+    audio_data: Optional[np.ndarray] = None,
     sample_rate: Optional[int] = None,
 ) -> Tuple[int, List[str], dict]:
     """Apply Rule 9: Psychoacoustic Compression Artifacts Detection.

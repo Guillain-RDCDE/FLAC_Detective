@@ -5,7 +5,7 @@ Phase 3 Optimization: Cache file reads to avoid redundant I/O operations.
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, cast
 
 import numpy as np
 import soundfile as sf
@@ -68,7 +68,7 @@ class FileReadCache:
             Tuple of (audio_data, sample_rate)
         """
         if not self._enabled:
-            return sf.read(str(filepath), **kwargs)
+            return cast(Tuple[np.ndarray, int], sf.read(str(filepath), **kwargs))
 
         key = str(filepath)
 
@@ -97,7 +97,10 @@ class FileReadCache:
             Tuple of (audio_data, sample_rate)
         """
         if not self._enabled:
-            return sf.read(str(filepath), start=start, frames=frames, **kwargs)
+            return cast(
+                Tuple[np.ndarray, int],
+                sf.read(str(filepath), start=start, frames=frames, **kwargs),
+            )
 
         key = (str(filepath), start, frames)
 

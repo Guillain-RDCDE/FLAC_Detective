@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def analyze_spectrum(
-    filepath: Path, sample_duration: float = 30.0, cache: "AudioCache" = None
+    filepath: Path, sample_duration: float = 30.0, cache: "Optional[AudioCache]" = None
 ) -> Tuple[float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
@@ -302,7 +302,7 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
 
 
 def analyze_segment_consistency(  # noqa: C901
-    filepath: Path, progressive: bool = True, cache: "AudioCache" = None
+    filepath: Path, progressive: bool = True, cache: "Optional[AudioCache]" = None
 ) -> Tuple[List[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
 

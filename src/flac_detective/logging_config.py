@@ -32,7 +32,7 @@ try:
         }
     )
 
-    console = Console(theme=custom_theme)
+    console: Optional[Console] = Console(theme=custom_theme)
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False

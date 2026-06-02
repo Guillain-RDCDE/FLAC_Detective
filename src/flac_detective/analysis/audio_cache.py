@@ -6,7 +6,7 @@ Phase 3 Optimization: Avoid multiple file reads and spectrum calculations.
 import logging
 from pathlib import Path
 from threading import Lock
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 from scipy.fft import rfft, rfftfreq, set_workers
@@ -33,8 +33,8 @@ class AudioCache:
         self.filepath = filepath
         self.original_filepath = original_filepath or filepath
         self._full_audio: Optional[Tuple[np.ndarray, int]] = None
-        self._segments: dict = {}
-        self._spectrum: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
+        self._segments: Dict[Tuple[int, int], Tuple[np.ndarray, int]] = {}
+        self._spectrum: Optional[Tuple[np.ndarray, np.ndarray, int]] = None
         self._cutoff: Optional[float] = None
         self._lock = Lock()
         self._is_partial = False  # Track if audio data is partial
@@ -55,7 +55,7 @@ class AudioCache:
                         original_filepath=str(self.original_filepath),
                     )
 
-                    if data is None:
+                    if data is None or sr is None:
                         # Full load failed - try partial load
                         logger.warning(
                             f"CACHE: Full load failed for {self.filepath.name}, attempting partial load"
@@ -64,7 +64,7 @@ class AudioCache:
                             str(self.filepath), original_filepath=str(self.original_filepath)
                         )
 
-                        if data_partial is None:
+                        if data_partial is None or sr_partial is None:
                             raise RuntimeError(
                                 f"Failed to load any audio data from {self.filepath}"
                             )
@@ -86,6 +86,7 @@ class AudioCache:
         else:
             logger.debug(f"CACHE: Using cached full audio for {self.filepath.name}")
 
+        assert self._full_audio is not None
         return self._full_audio
 
     def is_partial(self) -> bool:
@@ -121,7 +122,7 @@ class AudioCache:
                         always_2d=True,
                         original_filepath=str(self.original_filepath),
                     )
-                    if data is None:
+                    if data is None or sr is None:
                         # Segment load failure is less critical, maybe return empty?
                         # But let's be consistent and raise, caught by caller
                         raise RuntimeError(
@@ -133,9 +134,7 @@ class AudioCache:
 
         return self._segments[key]
 
-    def get_spectrum(
-        self, segment_duration: float = 10.0
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_spectrum(self, segment_duration: float = 10.0) -> Tuple[np.ndarray, np.ndarray, int]:
         """Get spectrum analysis (cached).
 
         Analyzes first segment_duration seconds of the file.
@@ -183,6 +182,7 @@ class AudioCache:
         else:
             logger.debug(f"CACHE: Using cached spectrum for {self.filepath.name}")
 
+        assert self._spectrum is not None
         return self._spectrum
 
     def get_cutoff(self) -> float:
