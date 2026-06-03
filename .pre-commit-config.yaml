@@ -100,9 +100,15 @@ repos:
     rev: 1.7.10
     hooks:
       - id: bandit
+        # pass_filenames: false — bandit scans `src` recursively via `-r`; without this,
+        # pre-commit also appends the staged file list, which bandit rejects with
+        # "error: unrecognized arguments: <files>" (it can't take both -r and targets).
+        pass_filenames: false
         args: [
           '-r', 'src',
-          '--skip', 'B101,B601',  # Skip assert_used and shell injection (we use subprocess safely)
+          '-ll',                   # gate on medium+ severity (matches the CI bandit step);
+                                   # the Low subprocess/PATH findings are intentional (flac/ffmpeg)
+          '--skip', 'B101,B601',  # assert_used, paramiko shell — not relevant here
           '--exclude', 'tests'
         ]
 
