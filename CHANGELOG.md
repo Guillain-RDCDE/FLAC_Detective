@@ -1,3 +1,20 @@
+## v1.1.0 (2026-06-03) — CSV library-triage report
+
+A scan of a large collection now produces an at-a-glance triage view.
+
+- **New `--format csv`**: writes one row per file, **sorted by score (most suspicious
+  first)** — open it in any spreadsheet to work through a library from the riskiest
+  files down. Columns: `rank, score, verdict, filename, cutoff_freq_hz, sample_rate,
+  bit_depth, reason, filepath` (a stable schema for downstream scripts). Joins the
+  existing `text` (reading) and `json` (automation) formats.
+- **Console "most suspicious" summary**: when a scan finds suspicious files, the summary
+  now prints the top few ranked by score, so you see what to check first without opening
+  the report. The report-path line is now format-aware (`Report (csv): …`).
+- New `reporting/csv_reporter.py` (`CSVReporter`, exported from `flac_detective.reporting`)
+  + tests in `tests/test_csv_reporter.py`.
+
+Backward compatible; no detection-logic change.
+
 ## v1.0.1 (2026-06-03) — documentation overhaul + API ergonomics
 
 A full repo/documentation audit against one goal: be a complete reference that's clear for

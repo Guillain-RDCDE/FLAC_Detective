@@ -69,7 +69,21 @@ flac-detective /music --output custom-report.txt
 
 # JSON to file
 flac-detective /music --format json --output results.json
+
+# CSV — library triage: one row per file, ranked most-suspicious first
+flac-detective /music --format csv --output triage.csv
 ```
+
+**Three formats, three jobs:**
+
+| `--format` | For | Notes |
+|---|---|---|
+| `text` (default) | reading | human-friendly report + console summary |
+| `json` | automation | full result objects, parse with `jq` etc. |
+| `csv` | **triaging a whole library** | one row per file, **sorted by score (most suspicious first)**; open in any spreadsheet to sort/filter. Columns: `rank, score, verdict, filename, cutoff_freq_hz, sample_rate, bit_depth, reason, filepath` |
+
+When a scan finds suspicious files, the console summary also prints the **top suspects
+ranked by score**, so you immediately see what to check first.
 
 ### Analysis Options
 

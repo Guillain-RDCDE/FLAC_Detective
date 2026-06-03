@@ -172,9 +172,17 @@ flac-detective --help
 # Verbose log + JSON output to a custom path
 flac-detective -v --format json --output report.json /music
 
+# Triage a whole library: CSV ranked most-suspicious-first (opens in any spreadsheet)
+flac-detective /music --format csv --output triage.csv
+
 # Quick scan (15 s sample instead of default 30 s)
 flac-detective --sample-duration 15 /music
 ```
+
+> **Triaging a large collection?** `--format csv` writes one row per file, already
+> **sorted by score (most suspicious at the top)** — sort/filter it in any spreadsheet
+> to work through your library from the riskiest files down. The console summary also
+> prints the top suspects so you see what to check first without opening anything.
 
 **📖 See [User Guide](docs/user-guide.md) for detailed usage examples and command line options.**
 

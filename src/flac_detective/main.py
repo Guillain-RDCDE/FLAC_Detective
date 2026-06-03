@@ -59,7 +59,7 @@ from .analysis.audio_formats import is_analysable_lossless
 from .analysis.diagnostic_tracker import get_tracker, reset_tracker
 from .colors import Colors, colorize
 from .config import analysis_config
-from .reporting import TextReporter
+from .reporting import CSVReporter, TextReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files, find_non_flac_audio_files
 
@@ -279,9 +279,13 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=["text", "json"],
+        choices=["text", "json", "csv"],
         default="text",
-        help="Report format: 'text' (human-readable, default) or 'json' (machine-readable).",
+        help=(
+            "Report format: 'text' (human-readable, default), 'json' (machine-readable), "
+            "or 'csv' (one row per file, ranked most-suspicious first — for triaging a "
+            "whole library in a spreadsheet)."
+        ),
     )
     args = parser.parse_args()
 
@@ -654,7 +658,7 @@ def generate_final_report(
         output_file = output_path
         output_file.parent.mkdir(parents=True, exist_ok=True)
     else:
-        ext = "json" if report_format == "json" else "txt"
+        ext = {"json": "json", "csv": "csv"}.get(report_format, "txt")
         output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
 
     if report_format == "json":
@@ -672,6 +676,8 @@ def generate_final_report(
         }
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
+    elif report_format == "csv":
+        CSVReporter().generate_report(results, output_file, scan_paths=input_paths)
     else:
         reporter = TextReporter()
         reporter.generate_report(results, output_file, scan_paths=input_paths)
@@ -715,13 +721,25 @@ def generate_final_report(
     if non_flac_count > 0:
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
 
+    # Triage view: the most suspicious files, ranked, so a library scan surfaces
+    # what to check first without opening the full report.
+    if suspicious_flac:
+        top = sorted(suspicious_flac, key=lambda r: r.get("score", 0) or 0, reverse=True)
+        print(f"\n  {colorize('Most suspicious (top of the list):', Colors.YELLOW)}")
+        for r in top[:5]:
+            print(
+                f"    {r.get('score', 0):>4}  {r.get('verdict', ''):<12}  {r.get('filename', '')}"
+            )
+        if len(top) > 5:
+            print(f"    … and {len(top) - 5} more (full ranking in the report)")
+
     # Show diagnostic warning if there were issues
     if stats["files_with_issues"] > 0:
         print(
             f"  {colorize('⚠️  Files with reading issues', Colors.YELLOW)}: {stats['files_with_issues']} ({stats['critical_failures']} critical)"
         )
 
-    print(f"  Text report: {output_file.name}")
+    print(f"  Report ({report_format}): {output_file.name}")
     if diagnostic_report_path:
         print(f"  {colorize('Diagnostic report', Colors.YELLOW)}: {diagnostic_report_path.name}")
     if log_file_kept:
