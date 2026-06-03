@@ -124,7 +124,7 @@ RECOMMENDATION: File is genuine lossless. Keep as-is.
 
 ---
 
-#### ⚡ WARNING (Score 31-54)
+#### ❓ WARNING (Score 31-54)
 
 **Meaning**: Uncertain case, manual review needed
 
@@ -136,7 +136,7 @@ RECOMMENDATION: File is genuine lossless. Keep as-is.
 
 **Example**:
 ```
-VERDICT: WARNING ⚡ (Score: 45/150)
+VERDICT: WARNING ❓ (Score: 45/150)
 REASON: Cutoff at 20500 Hz, minor artifacts
 RECOMMENDATION: Verify with external tools. Could be legitimate.
 ```

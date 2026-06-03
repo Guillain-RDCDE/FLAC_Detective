@@ -5,7 +5,8 @@ Deep dive into FLAC Detective's architecture, detection algorithms, and rule sys
 ## Table of Contents
 
 - [System Architecture](#system-architecture)
-- [Detection Rules](#detection-rules)
+- [Supported Formats](#supported-formats)
+- [Detection Rules](#detection-rules) (Rules 1–11 + optional ML Rule 12)
 - [Scoring System](#scoring-system)
 - [Spectral Analysis](#spectral-analysis)
 - [Performance Optimizations](#performance-optimizations)
@@ -166,9 +167,30 @@ FLAC File
        └─ Score 55 → SUSPICIOUS ⚠️
 ```
 
+## Supported Formats
+
+Detection is **codec-agnostic**: every rule operates on the decoded PCM samples, so the
+container only decides *how the samples are read in*.
+
+| Format | Extension | How it's read | ffmpeg needed? |
+|---|---|---|---|
+| FLAC | `.flac` | libsndfile (native) | no |
+| WAV | `.wav` | libsndfile (native) | no |
+| ALAC (Apple Lossless) | `.m4a` | decoded to PCM via ffmpeg | **yes** |
+| APE (Monkey's Audio) | `.ape` | decoded to PCM via ffmpeg | **yes** |
+
+The real codec is probed with `ffprobe` — the extension is never trusted. A `.m4a` that
+turns out to hold **lossy AAC** is not analysed; it's reported as a non-lossless file to
+replace, exactly like an `.mp3`. ffmpeg is a hard dependency **only** for ALAC/APE; a
+FLAC/WAV-only workflow never invokes it. For lossless-*compressed* sources decoded to a
+temporary WAV (ALAC/APE), the "real bitrate" used by Rules 1 & 3 is sized from the
+**original compressed file**, not the decoded WAV — otherwise the file would look
+uncompressed and those rules would wrongly switch off.
+
 ## Detection Rules
 
-FLAC Detective uses 11 independent rules with **additive scoring** (0-150 points).
+FLAC Detective uses **11 heuristic rules** with **additive scoring** (0–150 points), plus
+an **optional 12th rule** (a CNN, enabled with the `[ml]` extra — see Rule 12 below).
 
 ### Rule 1: MP3 Spectral Signature Detection
 
@@ -391,6 +413,33 @@ Vinyl rips legitimately have:
 - Cassette characteristics: **-60 points** (protection)
 - No cassette signatures: **0 points**
 
+### Rule 12: ML Classifier (CNN) — *optional*
+
+**Purpose**: An independent, learned second opinion that *sharpens* borderline verdicts.
+It is the only non-heuristic rule and is **off unless** the ML extra is installed
+(`pip install "flac-detective[ml]"`); without it, Rule 12 is a no-op and rules 1–11 stand alone.
+
+**Model**: a small **EfficientNet-B0** CNN bundled with the package. Input is a
+**2-channel mid/side mel-spectrogram** (mid = L+R, side = L−R) rather than mono — MP3
+quantises the side channel aggressively, so its fingerprints survive even on band-limited
+material where the high-frequency cliff is faint. This stereo move is what lifted real-world
+specificity from 80 % (mono, v0.12) to 95 % (v0.14).
+
+**Reliability gate (key design choice)**: a false-positive audit on 11 234 certified-authentic
+FLACs showed the CNN is unreliable on sources that roll off below **~7 kHz** (genuinely
+band-limited masters look like transcodes to it). Below that 95 % spectral-rolloff threshold
+the model **abstains** (contributes 0) and lets the heuristic rules decide — faithful to the
+"protect authentic files first" philosophy. The rolloff is computed from the same decode used
+for the mel-spectrogram, so the gate is essentially free.
+
+**Scoring**: adds a bounded boost on already-suspect files; it is tuned to *raise confidence*
+on borderline cases far more than to catch fakes the heuristics miss outright. It cannot, by
+itself, flip a clean file to FAKE.
+
+> The full R&D story — the false-positive audit, four dead-ends, a debunked "AUC 0.99", and
+> the mono→stereo breakthrough — is written up as a learning resource in
+> [`ml/README.md`](../ml/README.md).
+
 ## Scoring System
 
 ### Additive Scoring
@@ -412,11 +461,16 @@ Example calculation:
 ### Verdict Mapping
 
 ```
-Score ≤ 30   → AUTHENTIC ✅      (99.5% confidence)
-Score 31-54  → WARNING ⚡        (Manual review needed)
-Score 55-85  → SUSPICIOUS ⚠️     (High confidence fake)
-Score ≥ 86   → FAKE_CERTAIN ❌   (100% confidence fake)
+Score ≤ 30   → AUTHENTIC ✅      (no evidence of transcoding)
+Score 31-54  → WARNING ❓        (borderline — manual review)
+Score 55-85  → SUSPICIOUS ⚠️     (likely a transcode)
+Score ≥ 86   → FAKE_CERTAIN ❌   (multiple strong indicators)
 ```
+
+The thresholds live in `new_scoring/constants.py` (`SCORE_AUTHENTIC=30`,
+`SCORE_WARNING=31`, `SCORE_SUSPICIOUS=55`, `SCORE_FAKE_CERTAIN=86`) and are the **single
+source of truth** for the console, the text/JSON reports and the Python API — none of them
+re-derive a verdict from a private cutoff.
 
 ### Score Interpretation
 
@@ -430,6 +484,25 @@ Score ≥ 86   → FAKE_CERTAIN ❌   (100% confidence fake)
 - **31-54**: Some suspicious indicators but with protective factors
 - **55-85**: Multiple strong indicators, few protective factors
 - **≥ 86**: Overwhelming evidence, definitive fake
+
+> **On "confidence".** Verdicts are *evidence levels*, not probabilities. A `FAKE_CERTAIN`
+> means several independent indicators agree — in practice very reliable — but `AUTHENTIC`
+> means *"no evidence of transcoding found"*, **not** a guarantee: high-bitrate AAC/Opus
+> transcodes and genuinely band-limited masters can score low (measured specificity is
+> ~80–87 %, see [`ml/README.md`](../ml/README.md)). For critical decisions, confirm with a
+> visual tool such as Spek.
+
+### Threshold Calibration
+
+The bands aren't arbitrary — the SUSPICIOUS floor was **moved from 61 to 55 in v0.15.1**
+after a score-distribution study. The study scored a large set of *known* MP3 transcodes
+and found their scores cluster around a **median of ~58** — i.e. inside the old WARNING
+band (31–60), so genuine fakes were being under-called as "borderline". Lowering the floor
+to 55 reclaimed roughly **+5 percentage points** of transcodes as actionable SUSPICIOUS,
+while authentic false positives stayed at ~1 %. The `FAKE_CERTAIN` floor (86) and the
+AUTHENTIC ceiling (30) were left untouched. This is the concrete trade-off the
+"protect authentic files first" philosophy makes: the boundary is placed where it catches
+the most real fakes without pushing the authentic false-positive rate up.
 
 ## Spectral Analysis
 

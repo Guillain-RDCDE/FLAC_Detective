@@ -480,8 +480,8 @@ Check [open issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues) lab
 ### ✨ New Features
 
 **Ideas for features**:
-- Support for other lossless formats (WAV, ALAC)
-- Additional detection rules
+- Support for further lossless formats (WavPack, TAK — FLAC/WAV/ALAC/APE already ship)
+- Additional detection rules (see "Implementing a New Scoring Rule" below)
 - GUI interface
 - Web service API
 - Performance improvements
@@ -491,6 +491,43 @@ Check [open issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues) lab
 2. Wait for maintainer feedback
 3. Get approval on approach
 4. Start implementation
+
+#### Implementing a New Scoring Rule
+
+Rules use the **Strategy pattern** in `analysis/new_scoring/`. Each rule is a class
+implementing `apply(self, context) -> None`, reads what it needs from the shared
+`ScoringContext` (cutoff, bitrate metrics, metadata, decoded audio…) and reports its
+contribution via `context.add_score(points, reasons)`. **Positive points = evidence of a
+transcode; negative points = protection** for a legitimate source.
+
+```python
+# In analysis/new_scoring/strategies.py
+class Rule13MyHeuristic(ScoringRule):
+    """Rule 13 — one-line description of what it flags."""
+
+    def apply(self, context: ScoringContext) -> None:
+        # Read from the context; never re-read the file (use context.audio_data etc.).
+        if context.cutoff_freq < 15000 and context.energy_ratio < 0.01:
+            context.add_score(20, ["R13: <human-readable reason shown in the report>"])
+        # Add nothing (no add_score call) when the rule doesn't fire.
+```
+
+Then wire it into the pipeline in `analysis/new_scoring/calculator.py`:
+
+- Add it to the **fast rules** list (`_apply_scoring_rules`, Phase 1) if it's cheap
+  (metadata/cutoff only), or to the **expensive rules** (Phase 2) if it needs the full
+  decoded audio — Phase 2 rules run only when the cutoff/short-circuit logic calls for them.
+- Respect the existing gates: rules that are meaningless on uncompressed input or on
+  protected sources (cassette, vinyl) should check the same conditions Rules 1/3/11 do.
+
+Finally:
+- Add a unit test in `tests/` (a synthetic fixture that makes the rule fire, and one that
+  proves it stays silent on authentic input — protect against false positives first).
+- Document it in `docs/technical-details.md` under "Detection Rules", and bump the rule
+  count in the README / docs if it's a new always-on heuristic.
+
+Open an issue first: a new rule changes the score distribution, so it may need the
+verdict thresholds (`constants.py`) re-checked against the field data.
 
 ### 📚 Documentation
 

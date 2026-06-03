@@ -53,6 +53,16 @@ def test_full_spectrum_wav_is_authentic(tmp_path):
     assert res["score"] <= 30, res
 
 
+def test_analyze_file_accepts_str_path(tmp_path):
+    """Public-API contract (v1.0): analyze_file accepts a str, not only a Path."""
+    from flac_detective.analysis.analyzer import FLACAnalyzer
+
+    wav = tmp_path / "clean.wav"
+    _write_wav(wav, cutoff_hz=None)
+    res = FLACAnalyzer().analyze_file(str(wav))  # str, not Path
+    assert res["verdict"] == "AUTHENTIC", res
+
+
 # NOTE on detecting fake (transcoded) WAVs: the cutoff/cliff rules are tuned for
 # *music*, not synthetic noise, so a faithful unit test would need a real MP3→WAV
 # round-trip (we don't want an ffmpeg dependency in the suite). That direction is

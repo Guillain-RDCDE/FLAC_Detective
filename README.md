@@ -7,7 +7,7 @@
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml/badge.svg)](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml)
-[![Status](https://img.shields.io/badge/status-active--development-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective)
+[![Status](https://img.shields.io/badge/status-stable%20(v1.0)-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective/releases)
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -37,9 +37,14 @@ catches fakes the heuristics miss outright. The rules sum to a 0–150 score and
 | Verdict | Score | What to do |
 |---|---|---|
 | ✅ **AUTHENTIC** | ≤ 30 | keep it |
-| ⚡ **WARNING** | 31–54 | borderline — check manually |
+| ❓ **WARNING** | 31–54 | borderline — check manually |
 | ⚠️ **SUSPICIOUS** | 55–85 | likely a transcode |
 | ❌ **FAKE_CERTAIN** | ≥ 86 | multiple indicators — definitely transcoded |
+
+Higher score = stronger evidence of transcoding. The 0–150 range comes from summing the
+rules (some add points for fake signatures, *protection* rules subtract them); the four
+bands above turn that raw number into an action. The same thresholds drive the console,
+the reports and the API — there's no second opinion hiding anywhere.
 
 The guiding principle throughout is **"protect authentic files first"**: a false alarm
 on real music is worse than missing a borderline fake.
@@ -77,8 +82,11 @@ enable the ML extra.
   reports and the Python API now all derive the verdict from the same thresholds.
 
 The Rule 12 classifier reads the stereo **mid + side** channels instead of mono (v0.14),
-fixing its weak spot on band-limited music (baroque, jazz, old recordings). Real-world
-specificity on a library of 11 234 authentic FLACs climbed from **80 % to 95 %**:
+fixing its weak spot on band-limited music (baroque, jazz, old recordings). *(Mid/side is
+a way to encode stereo as **mid** = L+R average and **side** = L−R difference; MP3
+quantises the side channel aggressively, so its fingerprints survive even when the
+high-frequency cliff is faint.)* Real-world specificity on a library of 11 234 authentic
+FLACs climbed from **80 % to 95 %**:
 
 | | v0.12 (mono) | **v0.14 (stereo + gate)** |
 |---|---|---|
@@ -280,10 +288,12 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 
 ### Will it damage or modify my files?
 
-**No!** FLAC Detective is read-only by default:
-- ✅ Only analyzes files, never modifies them
-- ✅ Safe for your entire music collection
-- ✅ Optional `--repair` flag for corrupted files (preserves all metadata)
+**Analysis is read-only.** It only reads your files, never rewrites them — safe to run
+across your whole collection. The one exception: if a FLAC is so corrupted it can't be
+decoded even after retries, the tool **automatically repairs it** (re-encoding via the
+`flac` CLI, preserving all metadata) so the analysis can proceed — this is rare and
+metadata-preserving. A standalone duration-fixer is also available as a separate command:
+`python -m flac_detective.repair /path/to/files`.
 
 ### Can I trust the results?
 

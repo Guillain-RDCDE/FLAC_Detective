@@ -1,3 +1,26 @@
+## v1.0.1 (2026-06-03) — documentation overhaul + API ergonomics
+
+A full repo/documentation audit against one goal: be a complete reference that's clear for
+newcomers and deep for specialists. No detection-logic changes.
+
+- **API**: `FLACAnalyzer.analyze_file()` now accepts a **`str`** path, not only a
+  `pathlib.Path` (a string is coerced internally). This matches every code example in the
+  docs and is covered by a regression test. Backward compatible.
+- **Docs — accuracy fixes**: removed a non-existent `--repair` CLI flag from the README FAQ
+  (repair is automatic on unreadable files; a standalone `python -m flac_detective.repair`
+  also exists); status badge now reflects *stable (v1.0)*; verdict icons aligned to what the
+  tool actually prints (WARNING is ❓); `__init__` docstring score corrected to /150.
+- **Docs — depth for specialists**: `technical-details.md` gains a **Rule 12 (CNN)** section
+  (architecture, mid/side input, the 7 kHz reliability gate), a **Supported Formats** table,
+  and a **Threshold Calibration** rationale (why the SUSPICIOUS floor moved 61→55). Honest
+  "what a verdict means" note (evidence levels, not probabilities; ~80–87% specificity).
+- **Docs — onboarding for beginners**: `getting-started.md` documents **ffmpeg as a per-OS
+  prerequisite for ALAC/APE** (and that FLAC/WAV never need it); a "mid/side" gloss in the
+  README; an explanation of the 0–150 score scale.
+- **Docs — navigation**: the ML case study (`ml/README.md`) and the formats roadmap are now
+  linked from the docs index; `CONTRIBUTING.md` gains a worked **"Implementing a New Scoring
+  Rule"** guide (Strategy pattern + where to wire it in).
+
 ## v1.0.0 (2026-06-02) — multi-format, ML-assisted, field-validated
 
 First stable release. The 0.x line grew from a FLAC-only heuristic checker into a

@@ -4,14 +4,21 @@ Welcome! This is the streamlined documentation for FLAC Detective.
 
 ## Documentation Files
 
-We've simplified the documentation structure to just **6 essential files**:
+The documentation is organised into focused files:
+
+**Core guides**
 
 1. **[index.md](index.md)** - Start here! Overview and navigation
 2. **[getting-started.md](getting-started.md)** - Installation and first analysis
 3. **[user-guide.md](user-guide.md)** - Complete usage guide with examples
 4. **[api-reference.md](api-reference.md)** - Python API documentation
-5. **[technical-details.md](technical-details.md)** - How it works (architecture + rules)
+5. **[technical-details.md](technical-details.md)** - How it works (architecture + the 11 rules + the optional ML Rule 12)
 6. **[CONTRIBUTING.md](../.github/CONTRIBUTING.md)** - Development and contribution guide
+
+**Deep dives**
+
+7. **[../ml/README.md](../ml/README.md)** - The ML case study: how Rule 12's CNN was built, the false-positive audit, the dead-ends, and the mono→stereo breakthrough (a learning resource in its own right)
+8. **[roadmap-formats.md](roadmap-formats.md)** - Design note on multi-format support (WAV/ALAC/APE) — the codec-agnostic insight and the bitrate-from-original gotcha
 
 ## Quick Links
 
@@ -23,6 +30,10 @@ We've simplified the documentation structure to just **6 essential files**:
 - Want to use the API? → [API Reference](api-reference.md)
 - Curious how it works? → [Technical Details](technical-details.md)
 - Want to contribute? → [Contributing](../.github/CONTRIBUTING.md)
+
+**For the curious / specialists**:
+- How the ML model was really built → [ML case study](../ml/README.md)
+- Why multi-format is an *input* problem → [Formats roadmap](roadmap-formats.md)
 
 ## External Resources
 
