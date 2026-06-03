@@ -276,7 +276,7 @@ flac-detective "/staging/my-album"
 | `-v`, `--verbose`          | Set log level to DEBUG; surface per-rule scoring details                 |
 | `--sample-duration SECS`   | Audio sample duration (default 30, range 5–120; lower = faster)          |
 | `--output PATH`            | Write the report to this path (default: auto-named in scan directory)    |
-| `--format {text,json}`     | Report format (default `text`; `json` includes scan metadata + results)  |
+| `--format {text,json,csv}` | Report format (default `text`; `json` = scan metadata + results; `csv` = one row per file, ranked most-suspicious first) |
 
 Examples:
 
