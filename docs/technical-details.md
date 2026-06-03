@@ -6,6 +6,7 @@ Deep dive into FLAC Detective's architecture, detection algorithms, and rule sys
 
 - [System Architecture](#system-architecture)
 - [Supported Formats](#supported-formats)
+- [Repair: lossless reconstruction, only when needed](#repair-lossless-reconstruction-only-when-needed)
 - [Detection Rules](#detection-rules) (Rules 1–11 + optional ML Rule 12)
 - [Scoring System](#scoring-system)
 - [Spectral Analysis](#spectral-analysis)
@@ -192,6 +193,62 @@ FLAC/WAV-only workflow never invokes it. For lossless-*compressed* sources decod
 temporary WAV (ALAC/APE), the "real bitrate" used by Rules 1 & 3 is sized from the
 **original compressed file**, not the decoded WAV — otherwise the file would look
 uncompressed and those rules would wrongly switch off.
+
+## Repair: lossless reconstruction, only when needed
+
+Analysis is **read-only**. There is exactly one case where FLAC Detective writes: when a
+FLAC is **so corrupted it cannot be decoded at all**, even after the loader's retry/backoff.
+A file that won't decode can't be analysed — so, rather than skip it, the tool rebuilds a
+**valid, byte-identical FLAC** from whatever the audio data still allows, and then analyses
+that. This is the opposite of "tinkering with the sound": **nothing in the audio is
+processed, resampled, normalised or 'enhanced'.**
+
+### Why it's lossless (the part that matters for hi-fi)
+
+FLAC is a *lossless* codec: decoding a FLAC and re-encoding it yields the **exact same PCM
+samples**, bit for bit. Repair uses Xiph's **reference `flac` tool** for both halves of the
+round-trip, so the repaired file's audio is sample-identical to what the corrupted file
+could still deliver. The corruption is in the FLAC *framing/container*, not in the PCM you
+can still read; repair rebuilds correct framing around those exact samples. No psychoacoustic
+processing, no dithering, no gain — none of the things a "repair" might scarily imply.
+
+### The procedure (each step is verifiable)
+
+```
+corrupted .flac  ── can't be decoded after retries
+   │
+   1. extract metadata        (mutagen: all tags + embedded album art)
+   2. decode → WAV            (flac --decode-through-errors: recover every
+   │                            sample the corruption didn't destroy)
+   3. re-encode WAV → FLAC     (flac --best: lossless, exact same samples)
+   4. restore metadata         (tags + pictures put back, untouched)
+   5. verify                   (flac --test: refuse to proceed unless the
+   │                            rebuilt file is provably valid)
+   6. replace original         (only after a .corrupted.bak backup is written)
+   ▼
+ valid .flac  ── now analysable; backup of the original kept beside it
+```
+
+### Safety guarantees
+
+- **Only broken files.** A file that decodes normally is *never* rewritten. Healthy music is
+  read and left exactly as it is.
+- **A backup is always kept.** The original is copied to `<name>.flac.corrupted.bak` *before*
+  anything replaces it — you can always go back.
+- **Verified before trusted.** If the rebuilt file fails `flac --test`, repair aborts and the
+  original is left untouched.
+- **Metadata preserved.** Tags and embedded artwork are carried across verbatim.
+- **Honest limit.** Samples that corruption genuinely destroyed can't be invented back —
+  `--decode-through-errors` recovers everything still readable and no less. Repair never makes
+  a file *worse* than the corruption already did; it makes a broken file *usable* again.
+
+There are two entry points to the same lossless machinery:
+
+- **Automatic**, during analysis — triggered only by the undecodable-file case above, so a
+  scan of a healthy library never writes anything.
+- **Standalone**, `python -m flac_detective.repair /path` — a duration-header fixer for FLACs
+  whose declared length disagrees with their actual decoded length (also a lossless re-encode,
+  also with a `.bak` backup).
 
 ## Detection Rules
 
