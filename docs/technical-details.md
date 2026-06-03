@@ -542,7 +542,7 @@ itself, flip a clean file to FAKE.
 
 > The full R&D story — the false-positive audit, four dead-ends, a debunked "AUC 0.99", and
 > the mono→stereo breakthrough — is written up as a learning resource in
-> [`ml/README.md`](../ml/README.md).
+> [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md).
 
 ## Scoring System
 
@@ -593,7 +593,7 @@ re-derive a verdict from a private cutoff.
 > means several independent indicators agree — in practice very reliable — but `AUTHENTIC`
 > means *"no evidence of transcoding found"*, **not** a guarantee: high-bitrate AAC/Opus
 > transcodes and genuinely band-limited masters can score low (measured specificity is
-> ~80–87 %, see [`ml/README.md`](../ml/README.md)). For critical decisions, confirm with a
+> ~80–87 %, see [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)). For critical decisions, confirm with a
 > visual tool such as Spek.
 
 ### Threshold Calibration
@@ -833,7 +833,7 @@ function analyze_flac(filepath):
 
 - **User documentation**: [User Guide](user-guide.md)
 - **Python API**: [API Reference](api-reference.md)
-- **Development**: [Contributing](../.github/CONTRIBUTING.md)
+- **Development**: [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 - **Quick start**: [Getting Started](getting-started.md)
 
 ---
