@@ -106,7 +106,7 @@ Full version-by-version history → **[CHANGELOG](CHANGELOG.md)**.
 - **🛡️ Protection Layers**: Prevents false positives for vinyl rips, cassette transfers, and high-quality MP3s
 - **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
 - **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
-- **🔨 Automatic Repair**: Corrupted FLAC files are automatically repaired with full metadata preservation
+- **🔨 Automatic Repair**: Undecodable FLAC files are losslessly rebuilt (reference `flac` tool, exact PCM, metadata preserved, `.bak` backup kept) so they can still be analysed — healthy files are never touched ([how & why](docs/technical-details.md#repair-lossless-reconstruction-only-when-needed))
 - **🤖 CNN classifier (optional)**: A small ML model bundled with the package adds a 12th scoring rule on borderline cases. `pip install "flac-detective[ml]"` to enable.
 
 ---
@@ -289,11 +289,16 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 ### Will it damage or modify my files?
 
 **Analysis is read-only.** It only reads your files, never rewrites them — safe to run
-across your whole collection. The one exception: if a FLAC is so corrupted it can't be
-decoded even after retries, the tool **automatically repairs it** (re-encoding via the
-`flac` CLI, preserving all metadata) so the analysis can proceed — this is rare and
-metadata-preserving. A standalone duration-fixer is also available as a separate command:
-`python -m flac_detective.repair /path/to/files`.
+across your whole collection. There is exactly **one** exception, and it's hi-fi-safe by
+design: if a FLAC is *so corrupted it can't be decoded at all* (even after retries), the
+tool rebuilds a valid FLAC from it so the analysis can proceed. That rebuild is **lossless**
+— it uses Xiph's reference `flac` tool to recover the exact PCM samples and re-encode them
+bit-for-bit; **no resampling, normalisation or "enhancement" ever touches the audio.** It
+**keeps a `.corrupted.bak` backup**, restores all tags/artwork, and **verifies** the result
+before replacing anything. Healthy files are never rewritten.
+
+→ Full, step-by-step explanation: [Repair — lossless reconstruction](docs/technical-details.md#repair-lossless-reconstruction-only-when-needed).
+A standalone duration-fixer is also available: `python -m flac_detective.repair /path/to/files`.
 
 ### Can I trust the results?
 

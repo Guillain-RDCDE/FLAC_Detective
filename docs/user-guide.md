@@ -86,8 +86,12 @@ flac-detective /music --sample-duration 60
 ```
 
 > **Note**: Auto-repair of corrupted FLAC files is enabled by default — no flag is
-> needed. The tool detects unreadable files, runs `flac --decode-through-errors`
-> with metadata preservation, and re-analyses the repaired file transparently.
+> needed, and it's **lossless and hi-fi-safe**. It triggers *only* on files that can't be
+> decoded at all; it rebuilds a valid FLAC with the exact same PCM samples (Xiph's reference
+> `flac` tool), preserves tags/artwork, keeps a `.corrupted.bak` backup, and verifies the
+> result before replacing anything. Healthy files are never rewritten. See
+> [Technical Details → Repair](technical-details.md#repair-lossless-reconstruction-only-when-needed)
+> for the full procedure.
 
 ### Combining Options
 
