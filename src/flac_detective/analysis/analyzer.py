@@ -7,7 +7,7 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union
 
 from .audio_cache import AudioCache
 from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
@@ -31,18 +31,21 @@ class FLACAnalyzer:
         """
         self.sample_duration = sample_duration
 
-    def analyze_file(self, filepath: Path) -> Dict:
-        """Analyzes a FLAC file and determines if it is authentic.
+    def analyze_file(self, filepath: Union[str, Path]) -> Dict:
+        """Analyzes a lossless audio file and determines if it is authentic.
 
         PHASE 1 OPTIMIZATION: Creates AudioCache once and reuses it for all analyses.
 
         Args:
-            filepath: Path to FLAC file to analyze.
+            filepath: Path to the file to analyze (FLAC/WAV/ALAC/APE). Accepts a
+                ``str`` or a ``pathlib.Path`` — a string is coerced to ``Path``.
 
         Returns:
             Dict with: filepath, filename, score, reason, cutoff_freq, metadata,
             duration_mismatch, quality issues (clipping, dc_offset, corruption).
         """
+        # Accept str for ergonomics; the pipeline relies on Path methods (.suffix, …).
+        filepath = Path(filepath)
         # I/O STABILITY STRATEGY: "Copy-to-Temp"
         # Copy (or decode) the source to a local temp file to avoid external-drive
         # I/O errors during analysis and to normalise non-native containers.

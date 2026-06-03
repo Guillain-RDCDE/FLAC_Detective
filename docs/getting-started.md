@@ -16,8 +16,19 @@ This guide will help you install and run your first FLAC analysis in minutes.
 - **Python**: 3.10 or higher
 - **Operating System**: Windows, macOS, or Linux
 
+### Required for ALAC / APE
+- **ffmpeg**: needed **only** to analyse ALAC (`.m4a`) and APE (`.ape`) files — these are
+  decoded to PCM via ffmpeg. **FLAC and WAV never need it.** If you only ever scan
+  FLAC/WAV, you can skip this; if you point the tool at an ALAC/APE file without ffmpeg
+  installed, that file is skipped with a clear message (everything else still works).
+  - Linux: `sudo apt-get install ffmpeg`
+  - macOS: `brew install ffmpeg`
+  - Windows: `winget install ffmpeg` (or download from [ffmpeg.org](https://ffmpeg.org/download.html) and add it to your `PATH`)
+  - Verify: `ffmpeg -version`
+
 ### Optional (Recommended)
-- **FLAC command-line tool**: For advanced repair features
+- **FLAC command-line tool**: used for the automatic repair of corrupted FLACs (and the
+  standalone `python -m flac_detective.repair` duration-fixer)
   - Linux: `sudo apt-get install flac`
   - macOS: `brew install flac`
   - Windows: Download from [Xiph.org](https://xiph.org/flac/download.html)
@@ -193,7 +204,7 @@ FLAC Detective assigns one of four verdicts to each file:
 | Verdict | Score Range | Icon | Meaning | What to Do |
 |---------|-------------|------|---------|-----------|
 | **AUTHENTIC** | ≤ 30 | ✅ | Genuine lossless audio | Keep the file |
-| **WARNING** | 31-54 | ⚡ | Uncertain, needs review | Manual verification recommended |
+| **WARNING** | 31-54 | ❓ | Uncertain, needs review | Manual verification recommended |
 | **SUSPICIOUS** | 55-85 | ⚠️ | Likely MP3 transcode | Replace if possible |
 | **FAKE_CERTAIN** | ≥ 86 | ❌ | Definite MP3 transcode | Delete and replace |
 

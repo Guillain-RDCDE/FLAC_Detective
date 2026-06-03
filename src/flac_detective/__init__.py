@@ -29,7 +29,7 @@ Basic usage for analyzing a single file:
 >>> from flac_detective import FLACAnalyzer
 >>> analyzer = FLACAnalyzer(sample_duration=30.0)
 >>> result = analyzer.analyze_file('path/to/file.flac')
->>> print(f"Score: {result['score']}/100")
+>>> print(f"{result['verdict']} (score {result['score']}/150)")
 
 Analyzing multiple files with progress tracking:
 
