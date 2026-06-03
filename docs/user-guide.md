@@ -250,8 +250,8 @@ FLAC Detective saves a detailed text report:
 
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
-Generated: 2026-05-25 14:30:22
-Analyzer Version: 1.0.0
+Generated: 2026-06-03 14:30:22
+Analyzer Version: 1.1.0
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================
