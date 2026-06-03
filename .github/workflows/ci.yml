@@ -28,17 +28,19 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsndfile1
+        # flac CLI enables the end-to-end lossless-repair proof (test_repair_lossless.py)
+        sudo apt-get install -y libsndfile1 flac
 
     - name: Install system dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install libsndfile
+        brew install libsndfile flac
 
     - name: Install system dependencies (Windows)
       if: runner.os == 'Windows'
       run: |
-        # libsndfile is bundled with soundfile wheel on Windows
+        # libsndfile is bundled with the soundfile wheel; the flac CLI is optional
+        # here — test_repair_lossless.py skips itself if `flac` isn't on PATH.
         echo "No additional dependencies needed"
 
     - name: Install Python dependencies
