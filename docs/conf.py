@@ -14,7 +14,14 @@ sys.path.insert(0, os.path.abspath("../src"))
 project = "FLAC Detective"
 copyright = "2025–2026, Guillain d'Erceville"
 author = "Guillain d'Erceville"
-release = "0.16.0"
+
+# Single source of truth for the version (avoids stale hard-coded numbers).
+# NB: assign from the imported module rather than `import ... as release` — the
+# latter reads to static analysis (CodeQL) as an unused import, since Sphinx only
+# ever reads `release` as a module global and never references it in this file.
+import flac_detective  # noqa: E402
+
+release = flac_detective.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -29,7 +36,8 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+# README.md is the docs-folder meta-index (mirrors index.md); don't build it as a page.
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

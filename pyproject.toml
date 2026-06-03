@@ -67,7 +67,7 @@ docs = [
 [project.urls]
 Homepage = "https://github.com/Guillain-RDCDE/FLAC_Detective"
 Repository = "https://github.com/Guillain-RDCDE/FLAC_Detective"
-Documentation = "https://github.com/Guillain-RDCDE/FLAC_Detective/tree/main/docs"
+Documentation = "https://guillain-rdcde.github.io/FLAC_Detective/"
 Changelog = "https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/CHANGELOG.md"
 Issues = "https://github.com/Guillain-RDCDE/FLAC_Detective/issues"
 

@@ -585,7 +585,7 @@ flac-detective ~/Music --format json | jq -r '.files[] | select(.score <= 30) | 
 
 - **Detailed technical info**: [Technical Details](technical-details.md)
 - **Python API usage**: [API Reference](api-reference.md)
-- **Development & bugs**: [Contributing](../.github/CONTRIBUTING.md)
+- **Development & bugs**: [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 - **Installation issues**: [Getting Started](getting-started.md)
 
 ---

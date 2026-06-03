@@ -2,6 +2,17 @@
 
 Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files to detect MP3-to-FLAC transcodes using advanced spectral analysis.
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+getting-started
+user-guide
+api-reference
+technical-details
+roadmap-formats
+```
+
 ## Quick Navigation
 
 ### For Users
@@ -11,10 +22,10 @@ Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files
 ### For Developers
 - **[API Reference](api-reference.md)** - Python API documentation and examples
 - **[Technical Details](technical-details.md)** - Architecture, detection rules, algorithms
-- **[Contributing](../.github/CONTRIBUTING.md)** - Development setup, contributing guidelines
+- **[Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)** - Development setup, contributing guidelines
 
 ### Deep dives (for the curious & specialists)
-- **[ML case study](../ml/README.md)** - How Rule 12's CNN was built: the false-positive audit, the dead-ends, the mono→stereo breakthrough
+- **[ML case study](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** - How Rule 12's CNN was built: the false-positive audit, the dead-ends, the mono→stereo breakthrough
 - **[Formats roadmap](roadmap-formats.md)** - Why supporting ALAC/APE is an *input* problem, and the bitrate-from-original gotcha
 
 ## What is FLAC Detective?
@@ -80,8 +91,8 @@ The documentation is organised into core guides plus two deep dives:
 3. **[user-guide.md](user-guide.md)** - Complete usage guide with examples
 4. **[api-reference.md](api-reference.md)** - Python API documentation
 5. **[technical-details.md](technical-details.md)** - How it works under the hood (11 rules + optional ML Rule 12)
-6. **[CONTRIBUTING.md](../.github/CONTRIBUTING.md)** - Development and contribution guide
-7. **[ml/README.md](../ml/README.md)** - The ML model R&D case study
+6. **[CONTRIBUTING.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)** - Development and contribution guide
+7. **[ml/README.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** - The ML model R&D case study
 8. **[roadmap-formats.md](roadmap-formats.md)** - Multi-format design note
 
 ## Common Tasks
@@ -96,7 +107,7 @@ The documentation is organised into core guides plus two deep dives:
 → Read [Technical Details](technical-details.md)
 
 ### I want to contribute code or report bugs
-→ Read [Contributing](../.github/CONTRIBUTING.md)
+→ Read [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 
 ## External Resources
 
@@ -109,11 +120,11 @@ The documentation is organised into core guides plus two deep dives:
 
 - **Report bugs**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - **Ask questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
-- **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](../.github/SECURITY.md))
+- **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/SECURITY.md))
 
 ## License
 
-FLAC Detective is released under the MIT License. See [LICENSE](../LICENSE) for details.
+FLAC Detective is released under the MIT License. See [LICENSE](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/LICENSE) for details.
 
 ---
 

@@ -11,6 +11,7 @@
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Docs](https://img.shields.io/badge/docs-online-blue)](https://guillain-rdcde.github.io/FLAC_Detective/)
 
 **Advanced FLAC Authenticity Analyzer for Detecting MP3-to-FLAC Transcodes**
 
@@ -359,7 +360,9 @@ Bug reports, code, docs, and testing are all welcome — see
 
 ## 📚 Documentation
 
-Detailed documentation is available in the `docs/` directory:
+📖 **Full documentation site: [guillain-rdcde.github.io/FLAC_Detective](https://guillain-rdcde.github.io/FLAC_Detective/)** (searchable, built from `docs/` on every release).
+
+The same content lives in the `docs/` directory:
 
 - [**Documentation Index**](docs/index.md) - Overview and navigation
 - [**Getting Started**](docs/getting-started.md) - Installation and first analysis

@@ -686,7 +686,7 @@ if __name__ == '__main__':
 
 - **User guide**: [User Guide](user-guide.md)
 - **Technical details**: [Technical Details](technical-details.md)
-- **Contributing**: [Contributing](../.github/CONTRIBUTING.md)
+- **Contributing**: [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 
 ---
 
