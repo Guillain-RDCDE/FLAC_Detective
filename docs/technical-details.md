@@ -17,46 +17,52 @@ Deep dive into FLAC Detective's architecture, detection algorithms, and rule sys
 ### High-Level Overview
 
 ```
-┌─────────────────────────────────────────────┐
-│         User Input (FLAC files)             │
-└────────────────┬────────────────────────────┘
-                 │
-                 ▼
-         ┌──────────────────┐
-         │  File Scanner    │  Find all .flac files recursively
-         └────────┬─────────┘
-                  │
-                  ▼
-         ┌──────────────────┐
-         │  Metadata Reader │  Extract: sample rate, bit depth,
-         └────────┬─────────┘  duration, encoder
-                  │
-                  ▼
-      ┌───────────────────────────┐
-      │  Audio Loader & Cache     │  Load audio data (30s default)
-      └────────┬──────────────────┘  Cache for performance
-               │
-               ▼
-      ┌──────────────────────────┐
-      │   Spectral Analyzer      │  FFT computation
-      │   (FFT, cutoff, etc)     │  Frequency analysis
-      └────────┬─────────────────┘
-               │
-               ▼
-      ┌──────────────────────────┐
-      │   11-Rule Scorer         │  Apply detection rules
-      │  (Rules 1-11)            │  Calculate total score
-      └────────┬─────────────────┘
-               │
-               ▼
-      ┌──────────────────────────┐
-      │  Verdict Generator       │  Determine verdict based on score
-      └────────┬─────────────────┘
-               │
-               ▼
-      ┌──────────────────────────┐
-      │  Report Generator        │  Console + text file output
-      └──────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Input: files / folders (scanned recursively)                │
+ │  .flac   .wav   .m4a   .ape   (+ any other audio it finds)   │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Scanner / Router          (main.scan_files)                 │
+ │   • .flac / .wav            → analyse (read natively)        │
+ │   • .m4a / .ape → ffprobe ──┬─ ALAC / APE → analyse          │
+ │                             └─ AAC / lossy → reject          │
+ │   • .mp3 / .ogg / .opus / … → reject ("not lossless,         │
+ │                                        replace with a FLAC") │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼   one analysable file
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Decode to local temp      (analyzer.analyze_file)           │
+ │   • FLAC / WAV → copy-to-temp, read by libsndfile            │
+ │   • ALAC / APE → ffmpeg decode → temporary WAV               │
+ │   ↻ on read failure: auto-repair via `flac` CLI, then retry  │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Feature extraction  (one shared AudioCache — the temp file  │
+ │  is read once and reused by every step below)                │
+ │   • Metadata     sample rate, bit depth, channels, duration  │
+ │   • Spectral     FFT → cutoff freq, energy ratio, stability  │
+ │   • Quality      clipping, DC offset, silence, fake hi-res,  │
+ │                  upsampling, corruption                      │
+ │   • Duration     metadata vs decoded (consistency check)     │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Scoring engine     (new_scoring/calculator.py)              │
+ │  11 heuristic rules + optional CNN (Rule 12) → 0–150 pts     │
+ │  phased execution with gates & short-circuits — see below    │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Verdict        (single source of truth: constants.py)       │
+ │  ≤30 AUTHENTIC · 31–54 WARNING · 55–85 SUSPICIOUS · ≥86 FAKE │
+ └────────────────────────────────┬─────────────────────────────┘
+                                   ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Reporting:  Rich console  ·  text report  ·  JSON           │
+ │  (all derive the verdict from the thresholds above)          │
+ └──────────────────────────────────────────────────────────────┘
 ```
 
 ### Core Components
@@ -191,6 +197,47 @@ uncompressed and those rules would wrongly switch off.
 
 FLAC Detective uses **11 heuristic rules** with **additive scoring** (0–150 points), plus
 an **optional 12th rule** (a CNN, enabled with the `[ml]` extra — see Rule 12 below).
+
+### Scoring engine flow
+
+**Order matters.** The rules don't just sum — the engine runs them in a deliberate order
+with *gates* (that switch rules off when they'd misfire) and *short-circuits* (that stop
+early once the answer is certain, skipping the expensive rules). This is both for accuracy
+and for speed.
+
+```
+ cutoff freq · bitrate · metadata · audio ─►  ScoringContext  (mutable, shared)
+
+ 1. Rule 8   Nyquist exception        ── always first (refined later if MP3 found)
+ 2. Rule 11  Cassette detection       ── EARLY, only if cutoff < 19 kHz (protect rips)
+
+    ┌─ Gates — these DISABLE the container-bitrate rules (1 & 3) ────────────────┐
+    │   cassette detected (R11 ≥ 30)        → drop Rule 1, apply −40 protection  │
+    │   uncompressed input  (real/apparent  → drop Rules 1 & 3                   │
+    │     bitrate ratio > 0.92, e.g. WAV)     (no lossless-compression signal)   │
+    └────────────────────────────────────────────────────────────────────────────┘
+
+ 3. PHASE 1 — fast rules, always run:   R1  R2  R3  R4  R5  R6
+       │
+       ├─►  score ≥ 86               →  FAKE_CERTAIN   (stop — skip costly rules)
+       └─►  score < 10 and no MP3    →  AUTHENTIC      (stop)
+
+ 4. PHASE 2 — expensive rules, only when relevant (need the full decoded audio):
+       • R7  silence / vinyl     if 19 kHz ≤ cutoff ≤ 21.5 kHz
+       • R9  compression artefacts if cutoff < 21 kHz  OR  an MP3 signature was seen
+       • R11 cassette            if cutoff < 19 kHz and not already run early
+       └─ Rule 8 re-refined now that MP3 context is known
+       └─►  score ≥ 86            →  FAKE_CERTAIN   (stop)
+
+ 5. Rule 10  multi-segment consistency   ── only if score > 30 (already suspect)
+ 6. Rule 12  CNN classifier (optional)   ── abstains if rolloff < 7 kHz;
+                                            no-op unless installed with [ml]
+       │
+       ▼
+   total score (0–150)  ─►  verdict
+```
+
+The rules themselves, in detail:
 
 ### Rule 1: MP3 Spectral Signature Detection
 
