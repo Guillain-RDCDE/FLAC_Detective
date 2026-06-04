@@ -23,13 +23,17 @@ logger = logging.getLogger(__name__)
 class FLACAnalyzer:
     """FLAC file analyzer to detect MP3 transcoding."""
 
-    def __init__(self, sample_duration: float = 30.0):
+    def __init__(self, sample_duration: float = 30.0, deep: bool = False):
         """Initializes the analyzer.
 
         Args:
             sample_duration: Duration in seconds to analyze (default 30s).
+            deep: If True, run Rule 12 (ML) on every file, bypassing the authentic
+                fast path — needed for the high-confidence WARNING floor to catch
+                silent-heuristic AAC/Vorbis transcodes. Slower. See the ``--deep`` flag.
         """
         self.sample_duration = sample_duration
+        self.deep = deep
 
     def analyze_file(self, filepath: Union[str, Path]) -> Dict:
         """Analyzes a lossless audio file and determines if it is authentic.
@@ -123,6 +127,7 @@ class FLACAnalyzer:
                 energy_ratio,
                 cache=cache,
                 source_path=filepath,
+                deep=self.deep,
             )
 
             # Add note if analysis was partial

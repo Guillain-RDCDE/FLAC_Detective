@@ -595,6 +595,15 @@ re-derive a verdict from a private cutoff.
 > transcodes and genuinely band-limited masters can score low (measured specificity is
 > ~80–87 %, see [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)). For critical decisions, confirm with a
 > visual tool such as Spek.
+>
+> **`--deep` narrows this.** A default scan skips the CNN (Rule 12) on files the fast
+> heuristics clear instantly — which is exactly where a high-bitrate AAC/Opus/Vorbis
+> transcode hides (it leaves no heuristic trace). `--deep` runs the CNN on *every* file and,
+> when it is highly confident (p ≥ 0.90) on a full-range file the heuristics left silent,
+> lifts the verdict to **WARNING**. On a 240-file calibration that surfaces ~72 % of AAC-256
+> and ~95 % of Vorbis transcodes for a ~4 % authentic-file cost — all WARNING, never a false
+> SUSPICIOUS. It does **not** rescue band-limited material (a fundamental signal limit), and
+> it is slower (a decode + CNN pass per file), which is why it's opt-in.
 
 ### Threshold Calibration
 
@@ -725,6 +734,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 ### What FLAC Detective Can Do
 
 ✅ Detect MP3-to-lossless transcodes (CBR and VBR)
+✅ Detect high-bitrate **AAC / Opus / Vorbis** transcodes on full-range audio — with
+   `--deep` (the CNN, surfaced as WARNING; see "On confidence" above)
 ✅ Analyze FLAC, WAV (v0.15), ALAC and APE (v0.16, via ffmpeg) sources
 ✅ Identify fake high-resolution files
 ✅ Protect vinyl and cassette sources
@@ -733,7 +744,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 
 ### What It Cannot Do
 
-❌ **Detect other lossy formats** (AAC, OGG, WMA → FLAC)
+❌ **Detect lossy transcodes of band-limited material** (baroque, 1920s, solo acoustic) —
+   a fundamental signal limit, not fixed by `--deep`; and **WMA → FLAC** is unsupported
 ❌ **Guarantee 100% accuracy** (see [Accuracy](#accuracy))
 ❌ **Real-time processing** (designed for batch analysis)
 ❌ **Analyze lossless formats beyond FLAC/WAV/ALAC/APE** (e.g. WavPack, TAK — not yet decoded)

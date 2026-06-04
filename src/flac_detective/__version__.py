@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-06-03"
-__release_name__ = "CSV library-triage report"
+__release_date__ = "2026-06-04"
+__release_name__ = "Deep mode — AAC/Vorbis transcode detection"
 
 # Metadata
 __author__ = "Guillain d'Erceville"

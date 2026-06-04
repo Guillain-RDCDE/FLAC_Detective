@@ -310,6 +310,42 @@ class TestVerdictThresholds:
         assert SCORE_WARNING == 31
 
 
+class TestDeepMode:
+    """Deep mode (v1.2): Rule 12 must run even when the authentic fast path fires.
+
+    A clean, full-range, no-MP3 file scores ~0 and hits SHORT-CIRCUIT 2, which
+    normally returns *before* Rule 12. That is exactly where a silent high-bitrate
+    AAC/Vorbis transcode hides, so ``--deep`` must bypass the short-circuit and run
+    Rule 12 (so its high-confidence WARNING floor gets a chance).
+    """
+
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
+    def test_fast_path_skips_rule12_but_deep_runs_it(
+        self, mock_rule7, mock_variance, mock_real_bitrate, mock_r12
+    ):
+        """Default fast path skips Rule 12; --deep forces it on the same file."""
+        mock_real_bitrate.return_value = 900  # healthy FLAC bitrate, no MP3 signature
+        mock_variance.return_value = 50
+        mock_rule7.return_value = (0, [], None)
+        mock_r12.return_value = (0, [])
+
+        metadata = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
+        duration_check = {"mismatch": None, "diff_ms": 0}
+        # cutoff 22000: above every MP3 signature band -> no mp3 detected, score ~0,
+        # so SHORT-CIRCUIT 2 (authentic fast path) triggers.
+        cutoff_freq = 22000
+
+        new_calculate_score(cutoff_freq, metadata, duration_check, Mock(spec=Path), deep=False)
+        assert mock_r12.call_count == 0, "Fast path should skip Rule 12 by default"
+
+        mock_r12.reset_mock()
+        new_calculate_score(cutoff_freq, metadata, duration_check, Mock(spec=Path), deep=True)
+        assert mock_r12.call_count == 1, "Deep mode should run Rule 12 despite the fast path"
+
+
 class TestMP3BitrateConstants:
     """Test that MP3 bitrate constants are immutable and correct."""
 

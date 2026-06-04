@@ -212,5 +212,9 @@ class Rule12MLClassifier(ScoringRule):
 
     def apply(self, context: ScoringContext) -> None:
         """Apply Rule 12 to ``context``."""
-        score, reasons = apply_rule_12_ml_classifier(context.filepath)
+        # Pass the heuristic baseline (R1-R11) so R12 can apply its high-confidence
+        # WARNING floor — lifting a confident detection on an otherwise-silent file
+        # (high-bitrate AAC/Vorbis) just to WARNING. R12 runs last, so current_score
+        # is exactly the heuristic total here.
+        score, reasons = apply_rule_12_ml_classifier(context.filepath, context.current_score)
         context.add_score(score, reasons)

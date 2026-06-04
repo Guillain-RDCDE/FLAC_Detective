@@ -21,6 +21,8 @@ import logging
 from pathlib import Path
 from typing import List, Tuple
 
+from ..constants import SCORE_WARNING
+
 logger = logging.getLogger(__name__)
 
 # Module-level model cache: only load the model once per process.
@@ -50,6 +52,20 @@ _HOP = 512
 # detection given up is the least-harmful case (a 320 kbps MP3 of a 5 kHz-bandwidth
 # source is sonically transparent). Measured on the file, so it works at inference.
 _ROLLOFF_GATE_HZ = 7000.0
+
+# High-confidence WARNING floor (v1.2). On full-range material the v4 model detects
+# high-bitrate AAC/Vorbis fakes well (AUC ~0.95 — ml/measure_v4_per_codec.py), but
+# those leave almost no heuristic score, and R12's capped +30 lands exactly on
+# SCORE_AUTHENTIC (30) — one point short of WARNING (31) — so a confident detection
+# couldn't surface at all (it stayed AUTHENTIC). When the model is highly confident
+# (p >= this) and the heuristic rules are silent enough that the file would still
+# read AUTHENTIC, we lift the total just to WARNING ("worth checking"), never higher
+# and never lower. Calibrated on full-range (ml/calibrate_r12_threshold.py, n=240):
+# at p>=0.90, ~72% AAC-256 / ~95% Vorbis recall for ~3.8% authentic cost — and that
+# cost is an upper bound, since clean authentics (score<10, no MP3) short-circuit
+# before Rule 12 ever runs. A WARNING, not a condemnation, true to "protect
+# authentic files first": the model says "look here", it does not call it a fake.
+_WARNING_FLOOR_P = 0.90
 
 
 def _load_model():
@@ -135,18 +151,26 @@ def _compute_mel(filepath: Path):
         return None, None
 
 
-def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
+def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> Tuple[int, List[str]]:
     """Apply Rule 12: ML-based transcode detection.
 
     Args:
         filepath: Path to the FLAC file under analysis.
+        heuristic_score: The score accumulated by Rules 1-11 before Rule 12 runs.
+            Used only by the high-confidence WARNING floor (see ``_WARNING_FLOOR_P``)
+            to know whether the file would still read AUTHENTIC after R12's normal
+            contribution. Defaults to 0 (the floor then treats the model as the only
+            signal — the conservative case).
 
     Returns:
-        Tuple of (score_contribution, reason_strings). Score is in [0, 30]:
+        Tuple of (score_contribution, reason_strings). Score is normally in [0, 30]:
             * 0  if the model is unavailable, or it predicts "authentic"
             * up to +30 when the model is highly confident the file is
               transcoded (confidence ≥ 0.95)
-        Confidence between 0.5 and 0.95 is mapped linearly to [0, 25].
+        Confidence between 0.5 and 0.95 is mapped linearly to [0, 30]. When the model
+        is highly confident (p >= ``_WARNING_FLOOR_P``) but ``heuristic_score`` +
+        contribution would still fall below WARNING, the contribution is lifted just
+        enough to reach WARNING (never beyond it, never below the normal value).
     """
     model = _load_model()
     if model is None:
@@ -202,9 +226,23 @@ def apply_rule_12_ml_classifier(filepath: Path) -> Tuple[int, List[str]]:
         else:
             confidence_str = "low"
 
-    reason = (
+    reasons = [
         f"R12: CNN classifier flags transcode "
         f"(p={p_transcoded:.2f}, confidence={confidence_str}, +{score}pts)"
-    )
+    ]
+
+    # High-confidence WARNING floor: a confident detection on a file the heuristics
+    # left silent (high-bitrate AAC/Vorbis) would otherwise stay AUTHENTIC, because
+    # the capped +30 reaches only SCORE_AUTHENTIC. Lift it just to WARNING so it
+    # surfaces for review. See ``_WARNING_FLOOR_P``.
+    if p_transcoded >= _WARNING_FLOOR_P and heuristic_score + score < SCORE_WARNING:
+        bump = SCORE_WARNING - heuristic_score - score
+        score += bump
+        reasons.append(
+            f"R12: high-confidence floor (p={p_transcoded:.2f}) lifts a "
+            f"silent-heuristic file to WARNING (+{bump}pts)"
+        )
+        logger.info(f"RULE 12: high-confidence WARNING floor applied (+{bump} to reach WARNING)")
+
     logger.info(f"RULE 12: ML classifier score {score} (p={p_transcoded:.3f})")
-    return score, [reason]
+    return score, reasons

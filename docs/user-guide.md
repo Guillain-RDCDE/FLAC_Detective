@@ -97,7 +97,21 @@ flac-detective /music --sample-duration 15
 # Longer analysis (60 seconds, more accurate)
 flac-detective /music --sample-duration 60
 
+# Deep mode: run the ML rule (CNN) on every file
+flac-detective /music --deep
 ```
+
+> **When to use `--deep`.** A normal scan keeps things fast by skipping the ML rule (Rule
+> 12, the CNN) on files the quick heuristic rules clear instantly. That's the right default
+> for the common case (low-bitrate MP3 fakes, which the heuristics catch anyway) — but it's
+> also exactly where a **high-bitrate AAC, Opus or Vorbis** transcode hides: those leave no
+> heuristic trace, so they sail through as AUTHENTIC. `--deep` runs the CNN on **every** file;
+> when it is highly confident a full-range file is a transcode, the verdict is lifted to
+> **WARNING** ("worth checking", never an outright "fake"). The price is speed — every file is
+> decoded and run through the CNN, so a large library takes noticeably longer. Reach for it
+> when you specifically suspect AAC/Opus/Vorbis sources, or for a thorough second pass on a
+> collection a fast scan called clean. It does **not** help with band-limited recordings
+> (early-music, 1920s, solo acoustic) — that's a genuine signal limit no tool can cross.
 
 > **Note**: Auto-repair of corrupted FLAC files is enabled by default — no flag is
 > needed, and it's **lossless and hi-fi-safe**. It triggers *only* on files that can't be
@@ -250,8 +264,8 @@ FLAC Detective saves a detailed text report:
 
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
-Generated: 2026-06-03 14:30:22
-Analyzer Version: 1.1.0
+Generated: 2026-06-04 14:30:22
+Analyzer Version: 1.2.0
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================

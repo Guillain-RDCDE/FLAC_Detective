@@ -1,3 +1,38 @@
+## v1.2.0 (2026-06-04) — Deep mode: catching high-bitrate AAC/Vorbis transcodes
+
+The tool's documented blind spot — high-bitrate AAC, Opus and Vorbis transcodes —
+turned out to be smaller than we'd written down. A measurement campaign showed the
+bundled CNN (Rule 12) actually *does* separate these codecs from genuine FLAC on
+full-range material (ROC-AUC 0.94–0.99), but two things stopped that ability from
+ever reaching you: the score it earned was capped one point below the WARNING
+threshold, and the fast-path skipped Rule 12 entirely on exactly the silent files
+where these fakes hide. This release fixes both — opt-in, so the default scan stays
+as fast as before.
+
+- **New `--deep` flag.** By default, FLAC Detective short-circuits on obviously-clean
+  files to keep large scans fast (it never decodes them or runs the CNN). `--deep`
+  turns that off: Rule 12 runs on **every** file. It's slower (a decode + a CNN pass
+  per file), but it's the only way to catch a high-bitrate AAC/Vorbis transcode,
+  because those leave **no** heuristic trace for the fast rules to flag.
+- **High-confidence WARNING floor (Rule 12).** When the CNN is highly confident a
+  full-range file is a transcode (p ≥ 0.90) but the heuristic rules found nothing, the
+  verdict is now lifted to **WARNING** ("worth checking") instead of staying AUTHENTIC.
+  Previously Rule 12's capped +30 points landed exactly on the AUTHENTIC/WARNING
+  boundary (30), so a confident detection on a silent file couldn't surface at all.
+  This is deliberately a WARNING, never a SUSPICIOUS — the model says *"look here"*, it
+  does not call the file a fake. Calibrated on 240 full-range files: at p ≥ 0.90 it
+  surfaces ~72% of AAC-256 and ~95% of Vorbis transcodes, for a ~4% authentic-file cost
+  (all WARNING, **zero** false SUSPICIOUS).
+- **Honest docs.** The FAQ/README line claiming AAC/Opus/Vorbis are "near-undetectable"
+  was too pessimistic for full-range audio and is now corrected and scoped: high-bitrate
+  AAC is the hardest case (and band-limited material of any codec remains a real limit),
+  but Opus/Vorbis and much of AAC are within reach — with `--deep`. The reasoning, the
+  measurements, and the dead ends are written up in `ml/README.md`.
+
+Backward compatible. Without `--deep`, behaviour and speed are unchanged: the WARNING
+floor only ever applies when Rule 12 actually runs, which on the default fast path
+still means borderline / MP3-flagged files only.
+
 ## v1.1.0 (2026-06-03) — CSV library-triage report
 
 A scan of a large collection now produces an at-a-glance triage view.
