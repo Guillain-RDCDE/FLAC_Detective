@@ -178,6 +178,10 @@ flac-detective /music --format csv --output triage.csv
 
 # Quick scan (15 s sample instead of default 30 s)
 flac-detective --sample-duration 15 /music
+
+# Deep scan: run the ML rule on every file to catch high-bitrate AAC/Vorbis
+# transcodes the fast path would otherwise skip (slower — see the FAQ)
+flac-detective --deep /music
 ```
 
 > **Triaging a large collection?** `--format csv` writes one row per file, already
@@ -293,7 +297,17 @@ FLAC Detective uses an 11-rule scoring system with protection layers:
 - **High confidence**: >95% accuracy for AUTHENTIC and FAKE_CERTAIN verdicts
 - **Protection mechanisms**: Prevents false positives for vinyl rips, cassette transfers, and high-quality sources
 - **4-level system**: AUTHENTIC, WARNING, SUSPICIOUS, FAKE_CERTAIN for nuanced results
-- **Known blind spot (be honest)**: high-bitrate AAC and VBR transcodes, and transcodes of already band-limited recordings (baroque, historical, acoustic), are hard for *any* spectral tool to detect. On such material, treat AUTHENTIC as "no evidence of transcoding" rather than a guarantee.
+- **Hard cases, and the `--deep` flag**: high-bitrate **AAC**, **Opus** and **Vorbis**
+  transcodes leave no signal the *fast heuristic rules* can see — so on a default scan they
+  read AUTHENTIC. But the optional ML rule (the CNN) *can* tell most of them apart from real
+  FLAC on full-range audio. The catch: to keep big scans fast, the default skips the CNN on
+  files the heuristics clear instantly — exactly where these fakes hide. Run **`--deep`** to
+  force the CNN on every file; confident detections then surface as **WARNING** ("worth
+  checking"). It's slower (a decode + CNN pass per file). The genuinely hard limit that
+  `--deep` does *not* solve is **band-limited** material (baroque, 1920s, solo acoustic): a
+  transcode there removes almost nothing, so authentic and fake look alike to any spectral
+  tool. Treat AUTHENTIC as "no evidence of transcoding", not a guarantee — most for AAC and
+  for band-limited sources.
 
 ### Will it damage or modify my files?
 

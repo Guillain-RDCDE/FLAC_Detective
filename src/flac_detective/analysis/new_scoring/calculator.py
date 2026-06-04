@@ -70,11 +70,16 @@ def _calculate_bitrate_metrics(
     )
 
 
-def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:  # noqa: C901
+def _apply_scoring_rules(  # noqa: C901
+    context: ScoringContext, deep: bool = False
+) -> Tuple[int, List[str]]:
     """Apply all scoring rules using the Strategy pattern.
 
     Args:
         context: The scoring context containing all necessary data.
+        deep: If True, run Rule 12 even when the authentic fast path would otherwise
+            short-circuit — so the high-confidence WARNING floor can catch silent
+            AAC/Vorbis transcodes. See the ``--deep`` flag.
 
     Returns:
         Tuple of (total_score, list_of_reasons)
@@ -194,10 +199,24 @@ def _apply_scoring_rules(context: ScoringContext) -> Tuple[int, List[str]]:  # n
 
         # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
         if context.current_score < 10 and context.mp3_bitrate_detected is None:
+            if not deep:
+                logger.info(
+                    f"OPTIMIZATION: Fast path for authentic file "
+                    f"(score={context.current_score}, no MP3)"
+                )
+                context.reasons.append(
+                    "⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses"
+                )
+                return context.current_score, context.reasons
+            # Deep mode: the heuristics are silent, but a silent file is exactly where a
+            # high-bitrate AAC/Vorbis transcode hides. Skip the expensive heuristic rules
+            # (they can't help here) but still run the CNN so its high-confidence WARNING
+            # floor (ml_classifier) gets a chance. R12 decodes the audio itself.
             logger.info(
-                f"OPTIMIZATION: Fast path for authentic file (score={context.current_score}, no MP3)"
+                f"DEEP: heuristics silent (score={context.current_score}), running Rule 12 "
+                f"anyway (fast path bypassed)"
             )
-            context.reasons.append("⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses")
+            Rule12MLClassifier().apply(context)
             return context.current_score, context.reasons
 
         # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
@@ -295,6 +314,7 @@ def new_calculate_score(
     energy_ratio: float = 0.0,
     cache=None,
     source_path: Optional[Path] = None,
+    deep: bool = False,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -308,6 +328,8 @@ def new_calculate_score(
         cache: Optional AudioCache instance (contains pre-loaded full audio)
         source_path: Original on-disk file, used for the *real* bitrate when the
             analysed audio is a decoded WAV (ALAC/APE). See _calculate_bitrate_metrics.
+        deep: Run Rule 12 on every file, bypassing the authentic fast path (slower;
+            catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -353,7 +375,7 @@ def new_calculate_score(
         )
 
         # Apply scoring rules
-        score, reasons = _apply_scoring_rules(context)
+        score, reasons = _apply_scoring_rules(context, deep=deep)
 
         # Determine verdict and confidence
         verdict, confidence = determine_verdict(score)

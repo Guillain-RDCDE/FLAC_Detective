@@ -636,6 +636,131 @@ job is the **common case — low-bitrate MP3 transcodes** — which it nails. On
 high-bitrate AAC/VBR, treat an AUTHENTIC verdict as *"no evidence of transcoding"*,
 not a guarantee. (We checked whether this was a data gap rather than a hard limit: a `-vn` bug does make `generate_transcodes.py` drop AAC/Opus/Vorbis for FLACs with embedded cover art — but the *training* clips are 30 s excerpts with the art already stripped, so the v3/v4 set did include ~5 929 / 5 964 AAC transcodes. The model trained on AAC and still can't catch AAC-256, so this is the genuine near-transparency of the codec, not missing data. The `-vn` fix still matters for anyone transcoding cover-art FLACs directly — and a 60-second count on the training host killed a 4-hour retrain built on the wrong premise.)
 
+> ⚠️ **Half of this section was wrong, and the next chapter says how.** "Rule 12
+> barely moves it" measured the *verdict*, and conflated two different things: whether
+> the **model** can see AAC/Opus/Vorbis (it can, on full-range audio) and whether the
+> **scoring + fast path** let that ability reach a verdict (they didn't). The "blind"
+> framing held only for the second. Read on.
+
+---
+
+## The sixth attempt — the blind spot that wasn't (v1.2, `--deep`)
+
+The section above closes the v0.14 story confident that high-bitrate AAC/Opus/Vorbis
+are a near-fundamental wall. Like the band-limited "wall" before it, that conclusion
+was half-right and half a shared blind assumption. This chapter is how we found the
+other half — and it's the most *product*-shaped R&D in the repo, because the fix turned
+out to live in the scoring and the control flow, not the model.
+
+### The crack: the stereo trick was never tried on the blind-spot codecs
+
+The stereo side-channel insight that beat the band-limited wall (previous chapter) was
+only ever tested against **MP3**. But AAC, Opus and Vorbis also code stereo aggressively
+(M/S per scalefactor band, intensity stereo, PNS) — the same family of artefact. Nobody
+had run the decisive mono-vs-stereo probe on them. So we did
+(`ml/aac_stereo_probe_features.py` + `_train.py`): 180 **full-range** authentics + their
+transcodes, a compact CNN trained once on mid, once on mid+side, GroupKFold by source.
+
+| codec     | mono (mid) AUC | stereo (mid+side) AUC | Δ side |
+|-----------|----------------|------------------------|--------|
+| mp3_128 (control) | 0.88   | 0.88               | −0.00  |
+| aac_256   | 0.51           | 0.53                   | +0.03  |
+| opus_128  | 0.74           | **0.83**               | +0.09  |
+| vorbis_q5 | 0.69           | **0.80**               | +0.11  |
+
+Two readings. The mp3_128 control's Δ≈0 is *not* a broken harness — on full-range
+material the MP3 cliff is in the mono spectrum already, so the side channel adds nothing
+(it only mattered for *band-limited* MP3, the previous chapter's regime). And the side
+channel clearly helps Opus/Vorbis. AAC-256 looked like a genuine wall at 0.53.
+
+> 💡 **Lesson (again)** — a probe is only as good as its operating point. This one read
+> the **start** of every track (offset 0), where many songs are a quiet intro and the
+> side channel is nearly silent. The production model reads the **middle**. The same
+> start-vs-middle bug that has bitten this project twice already was quietly deflating
+> the AAC number. We didn't trust 0.53 — we measured the real model.
+
+### Measuring the model we actually ship
+
+`ml/measure_v4_per_codec.py` runs the **exact production inference**
+(`ml_classifier._compute_mel`: middle segment, 16-bit quant, per-channel norm) and the
+bundled `cnn_v4_stereo.ts.pt` over the same 180 full-range sources:
+
+| codec     | shipped-v4 ROC-AUC | recall @ 0.5 |
+|-----------|--------------------|--------------|
+| mp3_128   | 0.991              | 98.3 %       |
+| aac_192   | 0.990              | 99.4 %       |
+| **aac_256** | **0.945**        | 82.2 %       |
+| opus_128  | 0.986              | 99.4 %       |
+| vorbis_q5 | 0.984              | 98.9 %       |
+
+The "near-undetectable" AAC-256 scores **0.945** for the real model — far above both the
+probe's 0.53 (start-offset) and the docs' pessimism. EfficientNet-B0 on 65 k samples
+finds what a tiny CNN on 180 start-clips couldn't.
+
+> 💡 **The control that makes it believable.** A 0.95 AUC is worthless if the model is
+> keying on a *pipeline* artefact (resample, dither, re-encode) rather than the codec. So
+> `ml/measure_v4_passthrough_control.py` runs the same machinery with a **lossless** FLAC
+> round-trip through ffmpeg as the "transcode" — same container/resample ops, no lossy
+> step. Result: AUC **0.500**, predictions identical to the authentics (mean p 0.109 vs
+> 0.109). The model ignores the pipeline entirely; the per-codec numbers are real. *Verify
+> the inference path before you trust the metric* — for the third time in this README.
+
+### So why did v0.14 say "Rule 12 barely moves AAC"? Two reasons, both fixable
+
+If the model is this good, why were AAC verdicts unmoved? `ml/measure_r12_verdict_fullrange.py`
+runs the **full 12-rule pipeline** and separates verdict-without-R12 (by subtraction) from
+verdict-with-R12. Two mechanisms, neither of them the model:
+
+1. **The score cap lands one point short.** The verdict thresholds are AUTHENTIC ≤ 30,
+   WARNING 31–54, SUSPICIOUS 55–85. A full-range AAC transcode earns ~0 from the
+   heuristics, and Rule 12 is capped at **+30** — which lands *exactly* on 30, the top of
+   AUTHENTIC. A maximally-confident CNN detection on a silent file literally could not
+   reach even WARNING. Off by one point.
+2. **The fast path skips Rule 12 entirely.** To keep big scans fast, the calculator
+   short-circuits on files the heuristics clear (score < 10, no MP3) and returns *before*
+   Rule 12 ever runs. That's exactly the silent-heuristic profile of a high-bitrate AAC
+   fake — so on a default scan the CNN never even looks at them.
+
+### The fix: a WARNING floor, and an opt-in that lets it fire
+
+Two small, honest changes (v1.2):
+
+- **High-confidence WARNING floor** (`ml_classifier._WARNING_FLOOR_P = 0.90`). When the
+  CNN is highly confident (p ≥ 0.90) on a full-range file the heuristics left silent, lift
+  the verdict just to **WARNING** — never SUSPICIOUS. The model says "look here", it does
+  not call the file a fake. We calibrated the threshold (`ml/calibrate_r12_threshold.py`,
+  240 files): the authentic false-positive floor is ~3 % even at p ≥ 0.95, so this is a
+  real specificity↔recall trade, not a free lunch — which is why it stops at WARNING.
+
+  | p ≥ | authentic FP | aac_256 recall | vorbis recall |
+  |-----|--------------|----------------|----------------|
+  | 0.90 | 3.8 %       | 71.7 %         | 94.6 %         |
+  | 0.95 | 2.9 %       | 60.0 %         | 84.6 %         |
+
+- **`--deep`** runs Rule 12 on every file, bypassing the fast-path short-circuit (and so
+  letting the floor fire). The default stays fast; `--deep` is the thorough pass.
+
+Proof it works, on the real pipeline (`measure_r12_verdict_fullrange.py` with deep mode,
+full-range, 36 sources/codec, WARNING count before → after):
+
+| codec     | WARNING before | WARNING after | authentic cost |
+|-----------|----------------|---------------|----------------|
+| aac_256   | 1              | **22**        |                |
+| vorbis_q5 | 1              | **29**        |                |
+| opus_128  | 1              | 21            |                |
+| *authentic* |              |               | +2 WARNING, **0 SUSPICIOUS** |
+
+> 💡 **Lesson — a model can be capable and still inert.** The v4 CNN had separated these
+> codecs since v0.14; two lines of plumbing (a +30 cap, a fast-path `return`) kept that
+> ability from ever reaching a verdict. When a feature "doesn't work", check whether the
+> code even *runs* it on the inputs it's meant for before you blame the model. The science
+> was done a release ago; v1.2 is entirely a scoring-and-control-flow fix.
+
+Reproduce it: `aac_stereo_probe_features.py`/`_train.py` (the probe), `measure_v4_per_codec.py`
+(shipped-model AUC), `measure_v4_passthrough_control.py` (the confound control),
+`calibrate_r12_threshold.py` (the operating point), `measure_r12_verdict_fullrange.py`
+(verdict effect; set `R12_DEEP=1` for deep mode).
+
 ---
 
 ## Reproducing the pipeline from scratch

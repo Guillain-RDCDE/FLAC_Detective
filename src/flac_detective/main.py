@@ -271,6 +271,16 @@ def parse_arguments() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--deep",
+        action="store_true",
+        help=(
+            "Deep mode: run the ML rule (12) on every file, even ones the fast "
+            "heuristics clear instantly. Slower (decode + CNN per file), but catches "
+            "high-bitrate AAC/Vorbis transcodes that leave no heuristic trace and are "
+            "otherwise skipped by the fast path. Surfaces them as WARNING for review."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -533,6 +543,7 @@ def run_analysis_loop(
     all_non_flac_files: list[Path],
     output_dir: Path,
     sample_duration: Optional[float] = None,
+    deep: bool = False,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -542,6 +553,8 @@ def run_analysis_loop(
         output_dir: Directory for saving progress and reports.
         sample_duration: Override the default audio sample duration (seconds).
             None falls back to `analysis_config.SAMPLE_DURATION`.
+        deep: Run Rule 12 (ML) on every file, bypassing the authentic fast path.
+            See the ``--deep`` flag.
 
     Returns:
         List of result dictionaries.
@@ -549,7 +562,7 @@ def run_analysis_loop(
     effective_duration = (
         sample_duration if sample_duration is not None else analysis_config.SAMPLE_DURATION
     )
-    analyzer = FLACAnalyzer(sample_duration=effective_duration)
+    analyzer = FLACAnalyzer(sample_duration=effective_duration, deep=deep)
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
 
     # Filter already processed files
@@ -783,6 +796,7 @@ def main():
         all_non_flac_files,
         output_dir,
         sample_duration=args.sample_duration,
+        deep=args.deep,
     )
 
     generate_final_report(
