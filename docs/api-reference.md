@@ -98,13 +98,15 @@ analyzer = FLACAnalyzer(sample_duration=60.0)
 ##### analyze_file()
 
 ```python
-analyze_file(filepath: Path) -> dict
+analyze_file(filepath: str | Path) -> dict
 ```
 
-Analyzes a single FLAC file.
+Analyzes a single lossless audio file. Despite the name, it handles **FLAC, WAV, ALAC
+(`.m4a`) and APE (`.ape`)** — ALAC/APE are decoded via ffmpeg (a lossy `.m4a` is rejected,
+not analysed). The argument accepts a **`str` or a `pathlib.Path`** (since v1.0.1).
 
 **Parameters**:
-- `filepath` (Path): Path to FLAC file
+- `filepath` (`str | Path`): Path to a FLAC / WAV / ALAC / APE file
 
 **Returns**: Dictionary with analysis results (see [Result Objects](#result-objects))
 
@@ -112,7 +114,8 @@ Analyzes a single FLAC file.
 ```python
 from pathlib import Path
 
-result = analyzer.analyze_file(Path('song.flac'))
+result = analyzer.analyze_file('song.flac')          # str works
+result = analyzer.analyze_file(Path('album.wav'))    # Path works; WAV/ALAC/APE too
 ```
 
 **Raises**:
@@ -134,6 +137,10 @@ flac_files = find_flac_files(Path('/music'))
 # Returns list of Path objects
 print(f"Found {len(flac_files)} files")
 ```
+
+> `find_flac_files()` discovers **`.flac` files only** (as its name says). To also analyse
+> WAV/ALAC/APE programmatically, gather those paths yourself (e.g. `Path('/music').rglob('*.wav')`)
+> and pass each to `analyze_file()`, which handles every supported format.
 
 ### Progress Tracking with ProgressTracker
 

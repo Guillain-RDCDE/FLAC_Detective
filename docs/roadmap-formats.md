@@ -18,7 +18,7 @@ What is actually coupled to FLAC:
 | Concern | Location | Notes |
 |---|---|---|
 | File discovery | `main.py` (`suffix == ".flac"`) | trivial: widen the accepted extensions |
-| Audio decoding | `analysis/new_scoring/audio_loader.py` (soundfile) | WAV is free (libsndfile); ALAC/APE need another decoder |
+| Audio decoding | `analysis/new_scoring/audio_loader.py` (soundfile) for FLAC/WAV; `analysis/audio_formats.py` (ffmpeg decode-façade) for ALAC/APE | WAV is free (libsndfile); ALAC/APE are decoded to a temp WAV via ffmpeg (shipped v0.16) |
 | Metadata | `analysis/metadata.py` (`mutagen.flac.FLAC`) | needs a per-format reader or `mutagen.File` |
 | Container-bitrate rules | `analysis/new_scoring/bitrate.py` + Rules 1/3 | **format-dependent semantics — see below** |
 

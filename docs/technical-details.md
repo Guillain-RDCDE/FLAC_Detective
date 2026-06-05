@@ -123,18 +123,19 @@ cutoff_freq = detect_cutoff(magnitude, frequencies)
 
 #### 5. Scoring Engine (`flac_detective/analysis/new_scoring/`)
 
-Strategy pattern implementation with 11 independent rules.
+Strategy pattern implementation with 11 heuristic rules plus an optional 12th (the CNN).
 
 **Structure**:
 ```
 new_scoring/
-├── calculator.py      # Orchestrates rule execution
-├── verdict.py         # Maps score to verdict
-└── rules/            # Individual rule implementations
-    ├── rule_01.py    # MP3 Spectral Signature
-    ├── rule_02.py    # Cutoff vs Nyquist
+├── calculator.py        # Orchestrates rule execution
+├── verdict.py           # Maps score to verdict
+└── rules/               # Individual rule implementations
+    ├── rule_01.py       # MP3 Spectral Signature
+    ├── rule_02.py       # Cutoff vs Nyquist
     ├── ...
-    └── rule_11.py    # Cassette Detection
+    ├── rule_11.py       # Cassette Detection
+    └── ml_classifier.py # Rule 12 — optional CNN (ML), only with the [ml] extra
 ```
 
 #### 6. Report Generator (`flac_detective/reporting/`)
