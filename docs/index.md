@@ -6,6 +6,7 @@ Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files
 :maxdepth: 2
 :hidden:
 
+start-here
 getting-started
 user-guide
 api-reference
@@ -14,6 +15,9 @@ roadmap-formats
 ```
 
 ## Quick Navigation
+
+### New here? Start here
+- **[Start Here](start-here.md)** - A 5-minute, jargon-free guide: what it does, install, scan, read results
 
 ### For Users
 - **[Getting Started](getting-started.md)** - Installation, basic usage, first analysis

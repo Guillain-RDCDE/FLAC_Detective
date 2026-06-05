@@ -19,6 +19,31 @@ FLAC Detective is a professional-grade command-line tool that analyzes FLAC audi
 
 ---
 
+## 🚀 Just want to check your music?
+
+Someone can take an **MP3, re-save it as FLAC, and it *looks* lossless** — but the quality
+was already thrown away. FLAC Detective finds those fakes.
+
+```bash
+pip install flac-detective       # install (needs Python 3.10+)
+flac-detective /path/to/music    # scan a file or a whole folder
+```
+
+It reads each file and gives a verdict, like a traffic light:
+
+```
+✅ AUTHENTIC      real lossless         -> keep it
+❓ WARNING        borderline            -> give it a listen
+⚠️  SUSPICIOUS     probably a transcode  -> likely a fake
+❌ FAKE_CERTAIN   definitely a fake     -> replace it
+```
+
+**Your files are safe** — the scan only *reads* them, it never changes anything.
+
+👉 **New to all this? → [Start Here: the 5-minute beginner's guide](docs/start-here.md)**
+
+---
+
 ## 🔍 How it works
 
 Transcode an MP3 back to FLAC and the file is lossless *as a container* — but the
