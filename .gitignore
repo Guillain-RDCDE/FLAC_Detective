@@ -111,8 +111,8 @@ docs/_build/
 docs/_autosummary/
 docs/.buildinfo
 
-# agent scheduled tasks (per-session)
-agent scheduled-tasks lockfile
+# local agent config (per-user, not part of the project)
+.claude/
 
 # ML pipeline scratch — never commit datasets or per-user manifests
 ml/trimmed/
