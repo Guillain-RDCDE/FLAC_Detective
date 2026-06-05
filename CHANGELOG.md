@@ -1,3 +1,28 @@
+## v1.3.0 (2026-06-05) — Visual HTML report: see the spectral cliff
+
+Until now the reports told you *which* files were suspect (text/csv) or handed the
+raw numbers to a script (json). This release adds a way to **see why** — a single,
+self-contained HTML page you double-click to open.
+
+- **New `--format html`.** Writes one `.html` file (no external assets, no extra
+  dependency) with two parts: a **sortable, filterable triage table** (click a column
+  to sort, click a verdict to filter), and — for every flagged file — a **detail card
+  with an inline spectrum plot**. The plot is the real FFT magnitude (dB, peak-normalised)
+  of a 10 s middle segment, with the detected cutoff marked, so the MP3 **"cliff"** (a
+  sharp drop well below Nyquist) is visible to the eye rather than inferred from a score.
+- **Lightweight by design.** The curve is computed with numpy (already a core dependency)
+  and drawn as a hand-rolled inline `<svg>` polyline — no matplotlib, no PNGs, no base64
+  blobs. The core analysis path is **untouched**: the spectrum is recomputed at report
+  time and **only for flagged files** (typically a handful), so the per-file result dict
+  carries no extra payload and the json/csv reports stay lean.
+- **Graceful degradation.** A file that isn't natively readable (e.g. ALAC/APE without
+  ffmpeg, or an unreadable file) simply shows no plot — its table row and facts are still
+  there. The report never fails because one curve couldn't render.
+
+New `reporting/html_reporter.py` (`HTMLReporter`, exported from
+`flac_detective.reporting`) + tests in `tests/test_html_reporter.py`. Backward
+compatible; no detection-logic change — `text`, `json` and `csv` are unchanged.
+
 ## v1.2.0 (2026-06-04) — Deep mode: catching high-bitrate AAC/Vorbis transcodes
 
 The tool's documented blind spot — high-bitrate AAC, Opus and Vorbis transcodes —

@@ -72,15 +72,19 @@ flac-detective /music --format json --output results.json
 
 # CSV — library triage: one row per file, ranked most-suspicious first
 flac-detective /music --format csv --output triage.csv
+
+# HTML — a visual report you double-click to open (spectrum plots for flagged files)
+flac-detective /music --format html --output report.html
 ```
 
-**Three formats, three jobs:**
+**Four formats, four jobs:**
 
 | `--format` | For | Notes |
 |---|---|---|
 | `text` (default) | reading | human-friendly report + console summary |
 | `json` | automation | full result objects, parse with `jq` etc. |
 | `csv` | **triaging a whole library** | one row per file, **sorted by score (most suspicious first)**; open in any spreadsheet to sort/filter. Columns: `rank, score, verdict, filename, cutoff_freq_hz, sample_rate, bit_depth, reason, filepath` |
+| `html` | **seeing the evidence** | a single self-contained `.html` (no external assets) with a sortable/filterable triage table **and an inline spectrum plot for every flagged file** — the MP3 "cliff" is visible to the eye, with the detected cutoff marked. Plots are drawn for flagged files only; a file that isn't natively readable simply shows no plot |
 
 When a scan finds suspicious files, the console summary also prints the **top suspects
 ranked by score**, so you immediately see what to check first.
@@ -264,8 +268,8 @@ FLAC Detective saves a detailed text report:
 
 ```
 FLAC AUTHENTICITY ANALYSIS REPORT
-Generated: 2026-06-04 14:30:22
-Analyzer Version: 1.2.0
+Generated: 2026-06-05 14:30:22
+Analyzer Version: 1.3.0
 Sample Duration: 30.0s
 Scan Path: /music/collection
 ======================================================================

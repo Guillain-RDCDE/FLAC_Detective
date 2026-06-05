@@ -59,7 +59,7 @@ from .analysis.audio_formats import is_analysable_lossless
 from .analysis.diagnostic_tracker import get_tracker, reset_tracker
 from .colors import Colors, colorize
 from .config import analysis_config
-from .reporting import CSVReporter, TextReporter
+from .reporting import CSVReporter, HTMLReporter, TextReporter
 from .tracker import ProgressTracker
 from .utils import LOGO, find_flac_files, find_non_flac_audio_files
 
@@ -289,12 +289,13 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=["text", "json", "csv"],
+        choices=["text", "json", "csv", "html"],
         default="text",
         help=(
             "Report format: 'text' (human-readable, default), 'json' (machine-readable), "
-            "or 'csv' (one row per file, ranked most-suspicious first — for triaging a "
-            "whole library in a spreadsheet)."
+            "'csv' (one row per file, ranked most-suspicious first — for triaging a "
+            "whole library in a spreadsheet), or 'html' (a single self-contained page "
+            "with a sortable triage table and a spectrum plot for each flagged file)."
         ),
     )
     args = parser.parse_args()
@@ -643,6 +644,50 @@ def _cleanup_console_log_if_empty(log_file: Path) -> bool:
         return True
 
 
+def _write_report(
+    results: list[dict],
+    output_file: Path,
+    report_format: str,
+    input_paths: list[Path],
+    all_flac_files: list[Path],
+    all_non_flac_files: list[Path],
+) -> None:
+    """Write ``results`` to ``output_file`` in the requested format.
+
+    Splits the format dispatch out of ``generate_final_report`` so that function
+    stays within the complexity budget as new formats are added.
+
+    Args:
+        results: Per-file analysis result dicts.
+        output_file: Destination path (extension already chosen by the caller).
+        report_format: "text", "json", "csv" or "html".
+        input_paths: Scan roots (passed to reporters for relative paths / scan_info).
+        all_flac_files: All FLAC files analyzed (json scan_info only).
+        all_non_flac_files: All non-FLAC files found (json scan_info only).
+    """
+    if report_format == "json":
+        import json
+
+        payload = {
+            "scan_info": {
+                "timestamp": datetime.now().isoformat(),
+                "analyzer_version": __version__,
+                "scan_paths": [str(p) for p in input_paths],
+                "total_flac_files": len(all_flac_files),
+                "total_non_flac_files": len(all_non_flac_files),
+            },
+            "results": results,
+        }
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
+    elif report_format == "csv":
+        CSVReporter().generate_report(results, output_file, scan_paths=input_paths)
+    elif report_format == "html":
+        HTMLReporter().generate_report(results, output_file, scan_paths=input_paths)
+    else:
+        TextReporter().generate_report(results, output_file, scan_paths=input_paths)
+
+
 def generate_final_report(
     results: list[dict],
     output_dir: Path,
@@ -663,7 +708,7 @@ def generate_final_report(
         log_file: Path to the console log file.
         input_paths: List of user input paths (scan roots).
         output_path: Explicit output path; if None, auto-named in `output_dir`.
-        report_format: "text" or "json".
+        report_format: "text", "json", "csv" or "html".
     """
     logger.info("\nGenerating report...")
 
@@ -671,29 +716,17 @@ def generate_final_report(
         output_file = output_path
         output_file.parent.mkdir(parents=True, exist_ok=True)
     else:
-        ext = {"json": "json", "csv": "csv"}.get(report_format, "txt")
+        ext = {"json": "json", "csv": "csv", "html": "html"}.get(report_format, "txt")
         output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
 
-    if report_format == "json":
-        import json
-
-        payload = {
-            "scan_info": {
-                "timestamp": datetime.now().isoformat(),
-                "analyzer_version": __version__,
-                "scan_paths": [str(p) for p in input_paths],
-                "total_flac_files": len(all_flac_files),
-                "total_non_flac_files": len(all_non_flac_files),
-            },
-            "results": results,
-        }
-        with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
-    elif report_format == "csv":
-        CSVReporter().generate_report(results, output_file, scan_paths=input_paths)
-    else:
-        reporter = TextReporter()
-        reporter.generate_report(results, output_file, scan_paths=input_paths)
+    _write_report(
+        results,
+        output_file,
+        report_format,
+        input_paths,
+        all_flac_files,
+        all_non_flac_files,
+    )
 
     # Generate diagnostic report if there were issues
     tracker = get_tracker()

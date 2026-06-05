@@ -7,7 +7,7 @@
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml/badge.svg)](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml)
-[![Status](https://img.shields.io/badge/status-stable%20(v1.2.0)-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective/releases)
+[![Status](https://img.shields.io/badge/status-stable%20(v1.3.0)-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective/releases)
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -93,6 +93,11 @@ enable the ML extra.
 
 ## 🆕 Latest releases
 
+- **v1.3.0 — visual HTML report.** `--format html` writes a single self-contained page
+  (no external assets, no extra dependency) with a sortable/filterable triage table **and an
+  inline spectrum plot for every flagged file** — the MP3 "cliff" is visible to the eye, with
+  the detected cutoff marked. Computed with numpy and drawn as inline SVG; the core analysis
+  path is untouched (spectra are recomputed at report time, for flagged files only).
 - **v1.2.0 — `--deep` mode + high-confidence WARNING floor.** The CNN (Rule 12) actually
   *does* separate high-bitrate **AAC / Opus / Vorbis** transcodes from genuine FLAC on
   full-range audio (ROC-AUC 0.94–0.99) — but the fast path used to skip Rule 12 on the very
@@ -204,6 +209,9 @@ flac-detective -v --format json --output report.json /music
 # Triage a whole library: CSV ranked most-suspicious-first (opens in any spreadsheet)
 flac-detective /music --format csv --output triage.csv
 
+# Visual HTML report: a sortable triage table + a spectrum plot per flagged file
+flac-detective /music --format html --output report.html
+
 # Quick scan (15 s sample instead of default 30 s)
 flac-detective --sample-duration 15 /music
 
@@ -216,6 +224,11 @@ flac-detective --deep /music
 > **sorted by score (most suspicious at the top)** — sort/filter it in any spreadsheet
 > to work through your library from the riskiest files down. The console summary also
 > prints the top suspects so you see what to check first without opening anything.
+>
+> **Want to *see* why a file was flagged?** `--format html` writes a single self-contained
+> page with a sortable triage table and an **inline spectrum plot for each flagged file** —
+> the MP3 "cliff" (a sharp drop well below Nyquist) becomes visible at a glance, with the
+> detected cutoff marked. No external assets, no extra dependency; just double-click to open.
 
 **📖 See [User Guide](docs/user-guide.md) for detailed usage examples and command line options.**
 
