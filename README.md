@@ -7,7 +7,7 @@
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml/badge.svg)](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml)
-[![Status](https://img.shields.io/badge/status-stable%20(v1.0)-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective/releases)
+[![Status](https://img.shields.io/badge/status-stable%20(v1.2.0)-brightgreen)](https://github.com/Guillain-RDCDE/FLAC_Detective/releases)
 [![codecov](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective/branch/main/graph/badge.svg)](https://codecov.io/gh/Guillain-RDCDE/FLAC_Detective)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -58,7 +58,10 @@ cutoff frequency vs. sample rate, MP3-bitrate signatures, compression artefacts
 cassette transfers and naturally quiet recordings aren't flagged. An **optional 12th
 rule** is a small CNN (`pip install "flac-detective[ml]"`) that *sharpens borderline
 verdicts* — measured, it raises confidence on already-suspect files far more than it
-catches fakes the heuristics miss outright. The rules sum to a 0–150 score and a 4-level verdict:
+catches fakes the heuristics miss outright. (Run with **`--deep`** and it does more: on a
+full-range file the heuristics left silent, a confident CNN detection is surfaced as
+**WARNING** — this is how high-bitrate AAC/Opus/Vorbis transcodes get caught.) The rules
+sum to a 0–150 score and a 4-level verdict:
 
 | Verdict | Score | What to do |
 |---|---|---|
@@ -88,24 +91,24 @@ fixed by going **stereo**.
 📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
 enable the ML extra.
 
-## 🆕 Latest release — v1.0 (first stable release)
+## 🆕 Latest releases
 
-- **1.0 — stable public API.** The CLI and its flags, the top-level exports
-  (`FLACAnalyzer`, `ProgressTracker`, `find_flac_files`, `LOGO`, `__version__`) and
-  the `analyze_file()` result-dict keys now follow [semantic versioning](https://semver.org).
-  Internals under `analysis/` may still change between minor versions.
-- **Field-validated on a real ~72k-file library** (v0.16.1): this surfaced and fixed
-  an ALAC routing bug (cover-art `.m4a` files were wrongly rejected) that synthetic
-  tests had missed — see `ml/field_validation.py`.
-- **Analyses ALAC (`.m4a`) and APE (`.ape`) too** (v0.16.0), decoded via ffmpeg —
-  detection is codec-agnostic, so it's the same spectral pipeline. A lossy AAC `.m4a`
-  is still correctly rejected (the real codec is probed, never trusted by extension).
-- **Analyses WAV files too**, not just FLAC — same spectral pipeline (v0.15.0).
-- **Sharper WARNING/SUSPICIOUS boundary** (v0.15.1): a score-distribution study found
-  real transcodes cluster around a score of ~58, so the SUSPICIOUS floor moved 61 → 55,
-  reclaiming ~+5 pp of transcodes as actionable while authentic false positives stay ~1 %.
-- **One source of truth for verdicts** (v0.15.2–v0.15.3): the console, the text/JSON
-  reports and the Python API now all derive the verdict from the same thresholds.
+- **v1.2.0 — `--deep` mode + high-confidence WARNING floor.** The CNN (Rule 12) actually
+  *does* separate high-bitrate **AAC / Opus / Vorbis** transcodes from genuine FLAC on
+  full-range audio (ROC-AUC 0.94–0.99) — but the fast path used to skip Rule 12 on the very
+  files those fakes hide in. `--deep` runs the CNN on every file and surfaces a confident
+  detection as **WARNING** (default scans stay fast). The old "AAC/Opus/Vorbis are
+  near-undetectable" claim is now corrected: the real fundamental limit is *band-limited*
+  material (baroque, 1920s, solo acoustic), not these codecs at high bitrate.
+- **v1.1.0 — CSV library-triage report.** `--format csv` writes one row per file, **ranked
+  most-suspicious-first** — triage a whole collection in a spreadsheet, riskiest first.
+- **v1.0 — stable public API** ([SemVer](https://semver.org)): the CLI and its flags, the
+  top-level exports (`FLACAnalyzer`, `ProgressTracker`, `find_flac_files`, `LOGO`,
+  `__version__`) and the `analyze_file()` result-dict keys. Internals under `analysis/`
+  may still change between minor versions.
+- **Multi-format**: analyses **FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`)** — detection is
+  codec-agnostic (same spectral pipeline), and a lossy AAC `.m4a` is still correctly
+  rejected (the real codec is probed, never trusted by extension).
 
 The Rule 12 classifier reads the stereo **mid + side** channels instead of mono (v0.14),
 fixing its weak spot on band-limited music (baroque, jazz, old recordings). *(Mid/side is

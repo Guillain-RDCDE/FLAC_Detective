@@ -107,5 +107,9 @@ Metadata likewise: `.m4a` → `mutagen.mp4` (or ffprobe), `.ape` → ffprobe, si
 
 ## Out of scope (and why)
 - **Detecting AAC/Opus/Vorbis → lossless transcodes** is a *detection* limit, not a
-  format-input one, and is near-impossible at high bitrate (see `ml/README.md` —
-  the tool's measured blind spot). Supporting a container ≠ being able to judge it.
+  format-input one. As of v1.2.0 this is **less of a wall than once thought**: the CNN
+  (Rule 12) separates these codecs from genuine FLAC on full-range audio (ROC-AUC
+  0.94–0.99), surfaced via the `--deep` flag as WARNING. The genuine fundamental limit is
+  **band-limited** material of any codec (baroque, 1920s, solo acoustic), where a transcode
+  removes almost nothing — see `ml/README.md`. Supporting a container ≠ being able to judge
+  it, but for these codecs the gap is now mostly closed on full-range audio.
