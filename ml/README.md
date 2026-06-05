@@ -2,13 +2,15 @@
 
 This directory holds the ML side of **Rule 12** — the one that asks "is
 this FLAC actually a FLAC, or did someone transcode an MP3 and rename the
-extension?" The model currently shipping (`cnn_v3.ts.pt`, in **v0.12.0**)
-is a fine-tuned **EfficientNet-B0** sitting at **balanced accuracy 0.834**
-— 80 % specificity, 86.9 % recall on transcoded, on a 9 786-sample
-held-out test set.
+extension?" The model currently shipping (`cnn_v4_stereo.ts.pt`, since
+**v0.14.0**) is a fine-tuned **2-channel (mid+side) EfficientNet-B0** at
+**balanced accuracy 0.905** — 95.1 % real-library specificity (with the
+<7 kHz reliability gate), 94 % recall on transcoded. Earlier mono models
+(`cnn_v2`/`cnn_v3`) are part of the story below, not what ships.
 
-Getting there took six attempts. Four of them crashed in four genuinely
-different ways. This README is half pipeline reference, half postmortem —
+Getting there took six attempts (plus a stereo breakthrough and, in v1.2,
+a scoring fix). Several crashed in genuinely different ways. This README is
+half pipeline reference, half postmortem —
 because audio classification on imbalanced datasets is full of footguns,
 and writing the lessons down saves the next person (you, in three
 months) from stepping on the same mines.
@@ -48,18 +50,18 @@ ml/trimmed/  --(tar | ssh)-->  dataset/authentic/
                                    train.py
                                           |
                                           v
-                                   models/cnn_v2/best.pt
+                                   models/cnn_v4_stereo/best.pt
                                           |
                                           v
                                    export_torchscript.py
                                           |
-                                  (download cnn_v2.ts.pt)
+                              (download cnn_v4_stereo.ts.pt)
                                           |
                                           v
 [Local]
    |
    v
-src/flac_detective/models/cnn_v2.ts.pt
+src/flac_detective/models/cnn_v4_stereo.ts.pt
    |
    v
 Rule12MLClassifier (12th scoring rule)
@@ -784,7 +786,7 @@ bash setup_hetzner.sh      # one-time provisioning (PyTorch, librosa, etc.)
 bash run_pipeline.sh       # ~2 h end-to-end for ~2 200 files
 
 # Pull the trained TorchScript back
-scp GPU_HOST:/root/flac-detective-ml/models/cnn_v3.ts.pt src/flac_detective/models/
+scp GPU_HOST:/root/flac-detective-ml/models/cnn_v4_stereo.ts.pt src/flac_detective/models/
 ```
 
 Everything seeds with 42 and writes its config next to its outputs. The

@@ -538,7 +538,10 @@ for the mel-spectrogram, so the gate is essentially free.
 
 **Scoring**: adds a bounded boost on already-suspect files; it is tuned to *raise confidence*
 on borderline cases far more than to catch fakes the heuristics miss outright. It cannot, by
-itself, flip a clean file to FAKE.
+itself, flip a clean file to FAKE. **With `--deep`** (v1.2), one exception applies: on a
+full-range file the heuristics left silent, a *highly confident* CNN detection (p ≥ 0.90)
+lifts the verdict to **WARNING** — never higher — so high-bitrate AAC/Vorbis transcodes
+surface for review. See the "On confidence / `--deep`" note above.
 
 > The full R&D story — the false-positive audit, four dead-ends, a debunked "AUC 0.99", and
 > the mono→stereo breakthrough — is written up as a learning resource in
@@ -827,11 +830,12 @@ function analyze_flac(filepath):
     score += rule_09(audio, fft_result)            # Compression artifacts
     score += rule_10(filepath, sample_rate)        # Multi-segment
     score += rule_11(audio)                        # Cassette
+    score += rule_12(filepath, score)              # Optional CNN (ML); --deep WARNING floor
 
     # Step 5: Determine verdict
     if score <= 30:
         verdict = "AUTHENTIC"
-    elif score <= 60:
+    elif score <= 54:
         verdict = "WARNING"
     elif score <= 85:
         verdict = "SUSPICIOUS"
