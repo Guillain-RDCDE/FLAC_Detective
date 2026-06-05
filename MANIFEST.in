@@ -6,8 +6,7 @@ include CHANGELOG.md
 # Include configuration files
 include pyproject.toml
 
-# Exclude development tools and examples
-prune dev-tools
+# Exclude development tooling and the ML pipeline from the sdist
 prune scripts
 prune ml
 

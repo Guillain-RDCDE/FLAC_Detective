@@ -58,6 +58,19 @@ make test-cov          # run pytest with coverage report
 make clean             # remove build artifacts and caches
 ```
 
+## Build & CI helpers
+
+- **`build_package.bat`** / **`test_coverage.bat`** — Windows helpers for building the
+  distribution and running coverage locally (the `make` targets above are the
+  cross-platform equivalents).
+- **`CODECOV_SETUP.md`** — notes on the Codecov integration used by CI.
+
+## `tools/` — diagnostic utilities
+
+Standalone scripts for inspecting and preparing audio, independent of the release flow
+(`diagnose_flac.py`, `run_analysis.py`, `wav_to_flac.py`, …). See
+[`tools/README.md`](tools/README.md) and [`tools/WAV_TO_FLAC_GUIDE.md`](tools/WAV_TO_FLAC_GUIDE.md).
+
 ## Notes
 
 Three legacy shims (`run_detective.py`, `run_windows.bat`, `repair_flac.py`) used
