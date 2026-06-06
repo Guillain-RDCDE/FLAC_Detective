@@ -14,6 +14,7 @@ import argparse
 import logging
 import os
 import sys
+import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -71,17 +72,84 @@ if sys.platform == "win32":
 # Configure Logging
 # If Rich is available, we use RichHandler for beautiful console logs
 # But we ALWAYS keep a FileHandler for the persistent log file
-def setup_logging(output_dir: Path) -> Path:
-    """Setup logging: Rich for console (if avail), File for persistence.
+class _ResilientFileHandler(logging.FileHandler):
+    """A FileHandler that disables itself on the first write/flush failure.
+
+    The console log is written next to the scanned files. If that location turns
+    out to be read-only or on a flaky external drive, a plain FileHandler raises
+    (e.g. ``PermissionError`` on flush) for *every* record — and Python prints a
+    full traceback each time, which on a large scan both floods the output and
+    cripples throughput (the main thread blocks on logging once per file). Instead
+    we no-op after the first failure and carry on console-only.
+
+    We deliberately don't touch the logger's handler list from ``handleError``
+    (lock-ordering risk while emitting); flipping a flag + closing the stream is
+    enough to stop both the retries and the traceback flood.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._disabled = False
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if self._disabled:
+            return
+        super().emit(record)
+
+    def handleError(self, record: logging.LogRecord) -> None:
+        if not self._disabled:
+            self._disabled = True
+            try:
+                self.close()
+            except Exception:
+                pass
+
+
+def _writable_log_file(preferred: Path) -> Optional[Path]:
+    """Pick a writable console-log path: prefer the scan dir, fall back to temp.
+
+    A music archive often lives on a read-only or external drive, so writing the
+    log into the scanned tree can fail. We probe each candidate by actually
+    writing **and flushing** (the failure mode is a flush error, not an open
+    error), returning the first that works — or ``None`` if none is writable, in
+    which case logging stays console-only.
 
     Args:
-        output_dir: Directory where the log file will be saved.
+        preferred: First-choice directory (usually the scan directory).
 
     Returns:
-        Path to the created log file.
+        A writable log-file path, or None if no candidate location is writable.
     """
-    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = output_dir / f"flac_console_log_{log_timestamp}.txt"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    name = f"flac_console_log_{timestamp}.txt"
+    for base in (preferred, Path(tempfile.gettempdir())):
+        candidate = base / name
+        try:
+            with open(candidate, "w", encoding="utf-8") as probe:
+                probe.write("flac-detective console log\n")
+                probe.flush()
+            return candidate
+        except OSError:
+            continue
+    return None
+
+
+def setup_logging(output_dir: Path) -> Optional[Path]:
+    """Setup logging: Rich for console (if avail), File for persistence.
+
+    The console-log file is placed in ``output_dir`` when writable, otherwise in
+    the system temp dir; if neither is writable, logging stays console-only. This
+    keeps a read-only / external scan drive from crippling a large scan with a
+    per-record ``PermissionError``. See `_writable_log_file` and
+    `_ResilientFileHandler`.
+
+    Args:
+        output_dir: Preferred directory for the log file (usually the scan dir).
+
+    Returns:
+        Path to the created log file, or None if file logging is unavailable.
+    """
+    log_file = _writable_log_file(output_dir)
 
     # Root logger
     root_log = logging.getLogger()
@@ -90,14 +158,16 @@ def setup_logging(output_dir: Path) -> Path:
     # Remove existing handlers to avoid duplicates
     root_log.handlers = []
 
-    # File Handler (Always detailed)
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
     file_formatter = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
     )
-    file_handler.setFormatter(file_formatter)
-    root_log.addHandler(file_handler)
+
+    # File Handler (Always detailed) — only when a writable location was found.
+    if log_file is not None:
+        file_handler = _ResilientFileHandler(log_file, encoding="utf-8")
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(file_formatter)
+        root_log.addHandler(file_handler)
 
     # Console Handler
     if HAS_RICH:
@@ -121,7 +191,16 @@ def setup_logging(output_dir: Path) -> Path:
         root_log.addHandler(console_handler)
 
     logger = logging.getLogger(__name__)
-    if not HAS_RICH:
+    if log_file is None:
+        warning = (
+            "Could not create a console-log file (scan dir and temp dir both "
+            "unwritable); continuing with console output only."
+        )
+        if HAS_RICH and console is not None:
+            console.print(f"[yellow]{warning}[/yellow]")
+        else:
+            logger.warning(warning)
+    elif not HAS_RICH:
         logger.info(f"Console log will be saved to: {log_file}")
     else:
         assert console is not None
@@ -596,15 +675,18 @@ def run_analysis_loop(
     return tracker.get_results()
 
 
-def _cleanup_console_log_if_empty(log_file: Path) -> bool:
+def _cleanup_console_log_if_empty(log_file: Optional[Path]) -> bool:
     """Delete console log file if it's empty or contains no errors/warnings.
 
     Args:
-        log_file: Path to the console log file.
+        log_file: Path to the console log file, or None if file logging was
+            unavailable (read-only scan dir + temp).
 
     Returns:
-        True if log file was kept (has errors/warnings), False if deleted.
+        True if log file was kept (has errors/warnings), False if deleted/absent.
     """
+    if log_file is None:
+        return False
     try:
         # Close all file handlers to allow file deletion on Windows
         root_logger = logging.getLogger()
@@ -693,7 +775,7 @@ def generate_final_report(
     output_dir: Path,
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
-    log_file: Path,
+    log_file: Optional[Path],
     input_paths: list[Path],
     output_path: Optional[Path] = None,
     report_format: str = "text",
@@ -788,7 +870,7 @@ def generate_final_report(
     print(f"  Report ({report_format}): {output_file.name}")
     if diagnostic_report_path:
         print(f"  {colorize('Diagnostic report', Colors.YELLOW)}: {diagnostic_report_path.name}")
-    if log_file_kept:
+    if log_file_kept and log_file is not None:
         print(f"  Console log: {log_file.name}")
     print(colorize("=" * 70, Colors.CYAN))
 

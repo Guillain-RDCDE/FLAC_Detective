@@ -1,3 +1,25 @@
+## v1.3.2 (2026-06-06) — Resilient logging on read-only / external scan drives
+
+A correctness/robustness fix found while scanning a large library on an external
+drive. The console log (`flac_console_log_*.txt`) is written into the scanned
+directory — but a music archive often lives on a read-only or flaky external
+drive. When a log write/flush failed there, a plain `FileHandler` raised on
+**every** record, and Python printed a full traceback each time: on a large scan
+this both flooded the output and **crippled throughput** (the main thread blocked
+on logging once per file — observed ~160 files/h instead of ~1000+).
+
+- **Log location now probed and falls back to temp.** `setup_logging` write-probes
+  the scan directory; if it isn't writable, the log goes to the system temp dir
+  instead, and if neither is writable the run continues **console-only** (no crash).
+  The common case (writable scan dir) is unchanged.
+- **`_ResilientFileHandler`** disables itself after the first write/flush failure
+  (no-ops further records and closes the stream) instead of raising — and flooding
+  a traceback — for every subsequent line. This stops a transient mid-scan failure
+  (antivirus lock, external-drive hiccup) from tanking a long scan.
+
+No API or detection-logic change. Tests in `tests/test_logging_setup.py` cover the
+temp fallback and the resilient handler.
+
 ## v1.3.1 (2026-06-06) — HTML report: large-scan performance guard
 
 A small robustness follow-up to v1.3.0. Each flagged file's detail card re-decodes
