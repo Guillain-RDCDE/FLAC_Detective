@@ -1,3 +1,18 @@
+## v1.3.1 (2026-06-06) — HTML report: large-scan performance guard
+
+A small robustness follow-up to v1.3.0. Each flagged file's detail card re-decodes
+its audio to draw the spectrum plot — fine for a handful of suspects, but on a
+full-library scan that flags thousands of files it would mean thousands of decodes
+at report time and a huge page.
+
+- **Spectrum cards are now capped** to the worst-scoring `_MAX_SPECTRUM_CARDS`
+  (200) flagged files. The triage table still lists **every** file; only the
+  expensive plots are limited, and a banner names the cap and points back to the
+  table for the rest. Below the cap, behaviour is identical to v1.3.0.
+
+No API or detection-logic change. Tests in `tests/test_html_reporter.py` cover the
+cap and the no-banner-under-limit case.
+
 ## v1.3.0 (2026-06-05) — Visual HTML report: see the spectral cliff
 
 Until now the reports told you *which* files were suspect (text/csv) or handed the

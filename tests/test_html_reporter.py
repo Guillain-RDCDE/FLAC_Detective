@@ -6,6 +6,7 @@ import numpy as np
 import soundfile as sf
 
 from flac_detective.reporting import HTMLReporter
+from flac_detective.reporting import html_reporter as hr
 from flac_detective.reporting.html_reporter import _compute_spectrum_curve
 
 
@@ -130,6 +131,28 @@ def test_compute_spectrum_curve_shape(tmp_path):
 def test_compute_spectrum_curve_returns_none_on_bad_input(tmp_path):
     assert _compute_spectrum_curve("") is None
     assert _compute_spectrum_curve(str(tmp_path / "nope.wav")) is None
+
+
+def test_spectrum_cards_capped_on_large_flagged_set(tmp_path, monkeypatch):
+    """Detail cards (which re-decode for SVG) are capped; the table keeps every file."""
+    monkeypatch.setattr(hr, "_MAX_SPECTRUM_CARDS", 5)
+    results = [
+        {"filename": f"f{i}.flac", "score": 90 + (i % 5), "verdict": "FAKE_CERTAIN"}
+        for i in range(20)
+    ]
+    html = _write(results, tmp_path)
+    # 20 flagged, cap 5 → only 5 detail cards, with a banner naming the cap.
+    assert html.count('class="detail') == 5
+    assert "top 5 of 20 flagged" in html
+    # Every file still appears in the triage table.
+    for i in range(20):
+        assert f"f{i}.flac" in html
+
+
+def test_no_cap_banner_when_under_limit(tmp_path):
+    results = [{"filename": "f.flac", "score": 95, "verdict": "FAKE_CERTAIN"}]
+    html = _write(results, tmp_path)
+    assert "capped for performance" not in html
 
 
 def test_handles_empty_results(tmp_path):
