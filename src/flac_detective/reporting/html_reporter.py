@@ -54,6 +54,13 @@ _CURVE_POINTS = 240
 _CURVE_SECONDS = 10.0
 _DB_FLOOR = -100.0  # clamp the normalised magnitude floor (peak = 0 dB)
 
+# Each detail card re-decodes its file to draw the spectrum (an I/O + FFT pass).
+# On a full-library scan that flags thousands of files this would be very slow and
+# produce a huge page, so we cap the number of spectrum cards to the worst-scoring
+# files. The triage table still lists *every* file; only the (expensive) plots are
+# capped, with a banner pointing back to the table for the rest.
+_MAX_SPECTRUM_CARDS = 200
+
 
 class HTMLReporter:
     """Write analysis results to a single self-contained HTML file."""
@@ -199,8 +206,20 @@ class HTMLReporter:
         if not flagged:
             return '<section><h2>Flagged files</h2><p class="empty">None — nothing to inspect.</p></section>'
 
+        # Cap the (expensive, re-decoding) spectrum cards to the worst-scoring files;
+        # `flagged` is already sorted by descending score. The table keeps the full list.
+        total_flagged = len(flagged)
+        shown = flagged[:_MAX_SPECTRUM_CARDS]
+        banner = ""
+        if total_flagged > _MAX_SPECTRUM_CARDS:
+            banner = (
+                f'<p class="cap-note">Showing spectrum plots for the top '
+                f"{_MAX_SPECTRUM_CARDS} of {total_flagged} flagged files (capped for "
+                f"performance) — the full list is in the triage table above.</p>"
+            )
+
         cards = []
-        for r in flagged:
+        for r in shown:
             verdict = self._verdict_of(r)
             label, cls = _VERDICT_META.get(verdict, (verdict, "v-authentic"))
             path = html.escape(self._display_path(r, scan_paths))
@@ -230,7 +249,7 @@ class HTMLReporter:
                 "</article>"
             )
 
-        return "<section><h2>Flagged files</h2>" + "".join(cards) + "</section>"
+        return "<section><h2>Flagged files</h2>" + banner + "".join(cards) + "</section>"
 
     # ------------------------------------------------------------- spectrum SVG
 
@@ -392,6 +411,8 @@ padding:14px 16px;margin:0 0 14px}
 .facts dd{margin:0;font-weight:600}
 .detail .reason{color:var(--muted);margin:8px 0 0}
 .no-spectrum{color:var(--muted);font-style:italic;margin:4px 0}
+.cap-note{color:var(--susp);background:var(--panel);border:1px solid var(--line);
+border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:13px}
 svg.spectrum{width:100%;max-width:640px;height:auto;display:block;margin:4px 0}
 .plot-bg{fill:#0b0d11;stroke:var(--line)}
 .curve{fill:none;stroke:var(--ok);stroke-width:1.4}
