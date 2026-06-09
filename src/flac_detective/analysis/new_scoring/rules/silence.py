@@ -81,14 +81,14 @@ def apply_rule_7_silence_analysis(
     if ratio > 0.3:
         score += 50
         reasons.append(
-            f"R7-P1: Dither artificiel détecté dans les silences (Ratio {ratio:.2f} > 0.3) (+50pts)"
+            f"R7-P1: Artificial dither detected in silences (ratio {ratio:.2f} > 0.3) (+50pts)"
         )
         logger.info(f"RULE 7 Phase 1: +50 points (TRANSCODE - Ratio {ratio:.2f} > 0.3)")
         return score, reasons, ratio  # Stop here, clear transcode
 
     elif ratio < 0.15:
         score -= 50
-        reasons.append(f"R7-P1: Silence naturel propre (Ratio {ratio:.2f} < 0.15) (-50pts)")
+        reasons.append(f"R7-P1: Clean natural silence (ratio {ratio:.2f} < 0.15) (-50pts)")
         logger.info(f"RULE 7 Phase 1: -50 points (AUTHENTIC - Ratio {ratio:.2f} < 0.15)")
         return score, reasons, ratio  # Stop here, clear authentic
 
@@ -109,7 +109,7 @@ def apply_rule_7_silence_analysis(
             # Vinyl noise detected -> Authentic vinyl rip
             score -= 40
             reasons.append(
-                f"R7-P2: Bruit vinyle détecté (énergie={vinyl_details['energy_db']:.1f}dB, "
+                f"R7-P2: Vinyl noise detected (energy={vinyl_details['energy_db']:.1f}dB, "
                 f"autocorr={vinyl_details['autocorr']:.2f}) (-40pts)"
             )
             logger.info(
@@ -126,7 +126,7 @@ def apply_rule_7_silence_analysis(
                 # Typical vinyl click rate -> Confirms vinyl
                 score -= 10
                 reasons.append(
-                    f"R7-P3: Clicks vinyle détectés ({clicks_per_min:.1f} clicks/min) (-10pts)"
+                    f"R7-P3: Vinyl clicks detected ({clicks_per_min:.1f} clicks/min) (-10pts)"
                 )
                 logger.info(
                     f"RULE 7 Phase 3: -10 points (VINYL CONFIRMED - "
@@ -142,8 +142,8 @@ def apply_rule_7_silence_analysis(
             # No noise above cutoff -> Digital upsample suspect
             score += 20
             reasons.append(
-                f"R7-P2: Pas de bruit au-dessus du cutoff (énergie={vinyl_details['energy_db']:.1f}dB) "
-                f"-> Upsampling digital suspect (+20pts)"
+                f"R7-P2: No noise above cutoff (energy={vinyl_details['energy_db']:.1f}dB) "
+                f"-> Digital upsampling suspect (+20pts)"
             )
             logger.info(
                 f"RULE 7 Phase 2: +20 points (NO NOISE - "
@@ -153,8 +153,8 @@ def apply_rule_7_silence_analysis(
         else:
             # Noise present but with pattern (not vinyl-like)
             reasons.append(
-                f"R7-P2: Bruit avec pattern détecté (autocorr={vinyl_details['autocorr']:.2f}) "
-                f"-> Incertain (0pts)"
+                f"R7-P2: Noise with pattern detected (autocorr={vinyl_details['autocorr']:.2f}) "
+                f"-> Uncertain (0pts)"
             )
             logger.info(
                 f"RULE 7 Phase 2: 0 points (UNCERTAIN - "
@@ -164,7 +164,7 @@ def apply_rule_7_silence_analysis(
     except Exception as e:
         logger.error(f"RULE 7 Phase 2/3: Error during vinyl analysis: {e}")
         # If Phase 2 fails, just return Phase 1 result (0 points)
-        reasons.append("R7-P2: Analyse vinyle échouée (0pts)")
+        reasons.append("R7-P2: Vinyl analysis failed (0pts)")
 
     logger.info(f"RULE 7: Total score = {score:+d} points")
 

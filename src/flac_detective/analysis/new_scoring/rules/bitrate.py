@@ -40,7 +40,7 @@ def apply_rule_3_source_vs_container(
     if mp3_bitrate_detected is not None and bitrate_conteneur > CONTAINER_THRESHOLD:
         score += 50
         reasons.append(
-            f"R3: Source {mp3_bitrate_detected} kbps vs conteneur {bitrate_conteneur:.0f} kbps"
+            f"R3: Source {mp3_bitrate_detected} kbps vs container {bitrate_conteneur:.0f} kbps"
         )
         logger.info(
             f"RULE 3: +50 points (source {mp3_bitrate_detected} kbps vs container {bitrate_conteneur:.0f} kbps)"
@@ -215,8 +215,8 @@ def apply_rule_6_variable_bitrate_protection(
     if is_variable_bitrate and is_high_bitrate and has_hf_content and has_variance:
         score -= 30
         reasons.append(
-            f"R6: Haute qualité confirmée (bitrate {bitrate_conteneur:.0f} kbps, "
-            f"cutoff {cutoff_freq:.0f} Hz, variance {bitrate_variance:.0f} kbps) → Authentique (-30pts)"
+            f"R6: High quality confirmed (bitrate {bitrate_conteneur:.0f} kbps, "
+            f"cutoff {cutoff_freq:.0f} Hz, variance {bitrate_variance:.0f} kbps) → Authentic (-30pts)"
         )
         logger.info(
             f"RULE 6: -30 points (high quality: bitrate {bitrate_conteneur:.0f} > {BITRATE_THRESHOLD}, "

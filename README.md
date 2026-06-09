@@ -71,6 +71,15 @@ Real-time progress bars, colored verdicts, and a clean summary at the end:
 ======================================================================
 ```
 
+Prefer something visual? `--format html` writes a single self-contained page: a triage
+table sorted worst-first, plus an **inline spectrum plot for every flagged file** — the
+MP3 "cliff" is right there for the eye, with the detected cutoff marked. Here three
+transcodes at different MP3 bitrates show the wall falling at different frequencies
+(96 kbps cuts ~11 kHz, 128 kbps ~16 kHz, 160 kbps ~17.5 kHz), while the authentic file
+runs full-range:
+
+![FLAC Detective HTML report — triage table and per-file spectrum cliffs](https://raw.githubusercontent.com/Guillain-RDCDE/FLAC_Detective/main/assets/html_report_demo.png)
+
 ---
 
 ## 🚀 Quick Start

@@ -23,7 +23,7 @@ class TestRule7VinylLogic:
             )
 
             assert score == 50
-            assert "Dither artificiel" in reasons[0]
+            assert "Artificial dither" in reasons[0]
             assert ratio == 0.45
 
     def test_rule7_phase1_authentic(self):
@@ -38,7 +38,7 @@ class TestRule7VinylLogic:
             )
 
             assert score == -50
-            assert "Silence naturel" in reasons[0]
+            assert "natural silence" in reasons[0]
             assert ratio == 0.05
 
     def test_rule7_phase2_vinyl_detected(self):
@@ -72,7 +72,7 @@ class TestRule7VinylLogic:
                         )
 
                         assert score == -40
-                        assert "Bruit vinyle détecté" in reasons[0]
+                        assert "Vinyl noise detected" in reasons[0]
 
     def test_rule7_phase3_vinyl_confirmed_with_clicks(self):
         """Phase 3: Vinyl noise + Clicks should return -50 points (-40 + -10)."""
@@ -103,7 +103,7 @@ class TestRule7VinylLogic:
                         )
 
                         assert score == -50  # -40 (vinyl) + -10 (clicks)
-                        assert any("Clicks vinyle détectés" in r for r in reasons)
+                        assert any("Vinyl clicks detected" in r for r in reasons)
 
     def test_rule7_phase2_digital_upsample(self):
         """Phase 2: No noise detected should return +20 points (Digital Upsample)."""
@@ -129,7 +129,7 @@ class TestRule7VinylLogic:
                     )
 
                     assert score == 20
-                    assert "Pas de bruit" in reasons[0]
+                    assert "No noise" in reasons[0]
 
     def test_rule7_phase2_uncertain(self):
         """Phase 2: Noise with pattern should return 0 points (Uncertain)."""
@@ -155,7 +155,7 @@ class TestRule7VinylLogic:
                     )
 
                     assert score == 0
-                    assert "Bruit avec pattern" in reasons[0]
+                    assert "Noise with pattern" in reasons[0]
 
     def test_rule7_skipped_outside_range(self):
         """Rule 7 should be skipped if cutoff is outside 19-21.5 kHz."""

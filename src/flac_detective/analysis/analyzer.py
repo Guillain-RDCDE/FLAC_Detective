@@ -132,7 +132,7 @@ class FLACAnalyzer:
 
             # Add note if analysis was partial
             if is_partial_analysis:
-                reason += " (analysé à partir d'une lecture partielle du fichier)"
+                reason += " (analysed from a partial read of the file)"
 
             # Increment files analyzed counter
             get_tracker().increment_files_analyzed()

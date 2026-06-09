@@ -86,7 +86,7 @@ def apply_rule_10_multi_segment_consistency(
     if variance > 1000:
         score -= 20
         reasons.append(
-            f"R10: Cutoff variance élevée ({variance:.0f} Hz) -> Mastering dynamique probable (-20pts)"
+            f"R10: High cutoff variance ({variance:.0f} Hz) -> Likely dynamic mastering (-20pts)"
         )
         logger.info(f"RULE 10: -20 points (High variance {variance:.0f} Hz)")
 
@@ -94,14 +94,16 @@ def apply_rule_10_multi_segment_consistency(
     elif problematic_segments == 1:
         score -= 30
         reasons.append(
-            "R10: Anomalie locale détectée (1 seul segment problématique) -> Artefact probable (-30pts)"
+            "R10: Local anomaly detected (single problematic segment) -> Likely artifact (-30pts)"
         )
         logger.info("RULE 10: -30 points (Local artifact - 1 problematic segment)")
 
     # 3. Consistent transcoding (all segments problematic or low variance)
     elif variance < 500 and problematic_segments >= 3:
         # No score change, but confirms the diagnosis
-        reasons.append(f"R10: Anomalie cohérente sur tout le fichier (Variance {variance:.0f} Hz)")
+        reasons.append(
+            f"R10: Consistent anomaly across the whole file (variance {variance:.0f} Hz)"
+        )
         logger.info(f"RULE 10: 0 points (Consistent anomaly, variance {variance:.0f} Hz)")
 
     return score, reasons

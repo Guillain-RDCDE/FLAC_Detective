@@ -146,13 +146,13 @@ def _apply_scoring_rules(  # noqa: C901
         is_uncompressed = bm.apparent_bitrate > 0 and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
 
         if cassette_score >= 30:
-            logger.info("R11: Signature MP3 annulée (source cassette détectée)")
+            logger.info("R11: MP3 signature cancelled (cassette source detected)")
             logger.info(
                 f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate)."
             )
             # Add bonus manually as requested: "score -= 40"
             # The Context.add_score handles addition. To subtract, add negative.
-            context.add_score(-40, ["R11: Source cassette audio authentique (Bonus -40pts)"])
+            context.add_score(-40, ["R11: Authentic cassette audio source (bonus -40pts)"])
 
             # Skip Rule 1
             fast_rules = [
@@ -194,7 +194,9 @@ def _apply_scoring_rules(  # noqa: C901
             logger.info(
                 f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)"
             )
-            context.reasons.append("⚡ Analyse rapide : FAKE_CERTAIN détecté sans règles coûteuses")
+            context.reasons.append(
+                "⚡ Fast analysis: FAKE_CERTAIN detected without expensive rules"
+            )
             return context.current_score, context.reasons
 
         # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
@@ -205,7 +207,7 @@ def _apply_scoring_rules(  # noqa: C901
                     f"(score={context.current_score}, no MP3)"
                 )
                 context.reasons.append(
-                    "⚡ Analyse rapide : AUTHENTIC détecté sans règles coûteuses"
+                    "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
                 )
                 return context.current_score, context.reasons
             # Deep mode: the heuristics are silent, but a silent file is exactly where a
