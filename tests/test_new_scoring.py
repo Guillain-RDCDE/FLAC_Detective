@@ -371,7 +371,7 @@ class TestRule7SilenceAnalysis:
 
         assert score == 50
         assert ratio == 0.4
-        assert "Dither artificiel" in reasons[0]
+        assert "Artificial dither" in reasons[0]
 
     @patch("flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio")
     def test_authentic_detection(self, mock_analyze):
@@ -386,7 +386,7 @@ class TestRule7SilenceAnalysis:
 
         assert score == -50
         assert ratio == 0.05
-        assert "Silence naturel" in reasons[0]
+        assert "natural silence" in reasons[0]
 
     @patch("flac_detective.analysis.new_scoring.rules.silence.detect_vinyl_noise")
     @patch("flac_detective.analysis.new_scoring.rules.silence.sf.read")
@@ -409,7 +409,7 @@ class TestRule7SilenceAnalysis:
         assert score == 0
         assert ratio == 0.2
         assert len(reasons) == 1
-        assert "Bruit avec pattern" in reasons[0] or "Incertain" in reasons[0]
+        assert "Noise with pattern" in reasons[0] or "Uncertain" in reasons[0]
 
     @patch("flac_detective.analysis.new_scoring.rules.silence.analyze_silence_ratio")
     def test_skipped_outside_range_low(self, mock_analyze):

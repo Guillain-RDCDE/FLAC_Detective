@@ -105,7 +105,7 @@ def apply_rule_11_cassette_detection(  # noqa: C901
                     if abs(autocorr) < 0.2:  # White/Pink noise (Random)
                         cassette_score += 30
                         reasons.append(
-                            f"R11A: Bruit de bande détecté ({noise_energy_db:.1f} dB, aléatoire) (Prob. Cassette)"
+                            f"R11A: Tape hiss detected ({noise_energy_db:.1f} dB, random) (likely cassette)"
                         )
                         logger.info(
                             f"RULE 11A: Tape hiss detected ({noise_energy_db:.1f} dB, random)"
@@ -133,21 +133,21 @@ def apply_rule_11_cassette_detection(  # noqa: C901
             if -6 < slope < -3:  # Natural progressive roll-off
                 cassette_score += 20
                 reasons.append(
-                    f"R11B: Roll-off naturel cassette ({slope:.1f} dB/kHz) (Prob. Cassette)"
+                    f"R11B: Natural cassette roll-off ({slope:.1f} dB/kHz) (likely cassette)"
                 )
                 logger.info(f"RULE 11B: Natural cassette roll-off ({slope:.1f} dB/kHz)")
             elif slope < -10:  # Sharp cut
                 cassette_score -= 20
-                reasons.append(
-                    f"R11B: Coupure nette numérique ({slope:.1f} dB/kHz) (Prob. Numérique)"
-                )
+                reasons.append(f"R11B: Sharp digital cut ({slope:.1f} dB/kHz) (likely digital)")
                 logger.info(f"RULE 11B: Sharp digital cut ({slope:.1f} dB/kHz)")
 
         # TEST 11C: No MP3 Pattern
         # ================================
         if not mp3_pattern_detected:
             cassette_score += 15
-            reasons.append("R11C: Aucun pattern MP3 détecté (compatible cassette) (Prob. Cassette)")
+            reasons.append(
+                "R11C: No MP3 pattern detected (compatible with cassette) (likely cassette)"
+            )
             logger.info("RULE 11C: No MP3 pattern detected (compatible with cassette)")
 
         # TEST 11D: Cutoff Modulation (wow/flutter)
@@ -155,13 +155,13 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         if 50 < cutoff_std < 300:  # Moderate variation
             cassette_score += 15
             reasons.append(
-                f"R11D: Variation cutoff naturelle ({cutoff_std:.0f} Hz, wow/flutter) (Prob. Cassette)"
+                f"R11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter) (likely cassette)"
             )
             logger.info(f"RULE 11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter)")
         elif cutoff_std < 30:  # Very stable (digital silence/CBR)
             cassette_score -= 10
             reasons.append(
-                f"R11D: Cutoff très stable ({cutoff_std:.0f} Hz, suspect digital) (Prob. Numérique)"
+                f"R11D: Cutoff very stable ({cutoff_std:.0f} Hz, suspect digital) (likely digital)"
             )
             logger.info(f"RULE 11D: Cutoff very stable ({cutoff_std:.0f} Hz, suspect digital)")
         elif cutoff_std < 50:

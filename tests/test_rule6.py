@@ -17,7 +17,7 @@ class TestRule6HighQualityProtection:
         )
 
         assert score == -30
-        assert "Haute qualité confirmée" in reasons[0]
+        assert "High quality confirmed" in reasons[0]
         assert "800" in reasons[0]
         assert "20000" in reasons[0]
         assert "100" in reasons[0]
@@ -109,4 +109,4 @@ class TestRule6HighQualityProtection:
         )
 
         assert score == -30
-        assert "Authentique" in reasons[0]
+        assert "Authentic" in reasons[0]

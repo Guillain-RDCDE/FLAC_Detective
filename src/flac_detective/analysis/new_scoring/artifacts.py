@@ -396,12 +396,14 @@ def analyze_compression_artifacts(  # noqa: C901
             if preecho_pct > 10:
                 score += 15
                 reasons.append(
-                    f"R9A: Pré-echo détecté ({preecho_pct:.1f}% transitoires affectées) (+15pts)"
+                    f"R9A: Pre-echo detected ({preecho_pct:.1f}% of transients affected) (+15pts)"
                 )
                 logger.info(f"RULE 9A: +15 points (pre-echo {preecho_pct:.1f}% > 10%)")
             elif preecho_pct >= 5:
                 score += 10
-                reasons.append(f"R9A: Pré-echo modéré ({preecho_pct:.1f}% transitoires) (+10pts)")
+                reasons.append(
+                    f"R9A: Moderate pre-echo ({preecho_pct:.1f}% of transients) (+10pts)"
+                )
                 logger.info(f"RULE 9A: +10 points (pre-echo {preecho_pct:.1f}% >= 5%)")
             else:
                 logger.debug(f"RULE 9A: 0 points (pre-echo {preecho_pct:.1f}% < 5%)")
@@ -417,11 +419,11 @@ def analyze_compression_artifacts(  # noqa: C901
 
             if aliasing_corr > 0.5:
                 score += 15
-                reasons.append(f"R9B: Aliasing HF fort (corr={aliasing_corr:.2f}) (+15pts)")
+                reasons.append(f"R9B: Strong HF aliasing (corr={aliasing_corr:.2f}) (+15pts)")
                 logger.info(f"RULE 9B: +15 points (aliasing {aliasing_corr:.2f} > 0.5)")
             elif aliasing_corr >= 0.3:
                 score += 10
-                reasons.append(f"R9B: Aliasing HF modéré (corr={aliasing_corr:.2f}) (+10pts)")
+                reasons.append(f"R9B: Moderate HF aliasing (corr={aliasing_corr:.2f}) (+10pts)")
                 logger.info(f"RULE 9B: +10 points (aliasing {aliasing_corr:.2f} >= 0.3)")
             else:
                 logger.debug(f"RULE 9B: 0 points (aliasing {aliasing_corr:.2f} < 0.3)")
@@ -437,7 +439,7 @@ def analyze_compression_artifacts(  # noqa: C901
 
             if mp3_pattern:
                 score += 10
-                reasons.append("R9C: Pattern de bruit MP3 détecté (+10pts)")
+                reasons.append("R9C: MP3 noise pattern detected (+10pts)")
                 logger.info("RULE 9C: +10 points (MP3 noise pattern detected)")
             else:
                 logger.debug("RULE 9C: 0 points (no MP3 noise pattern)")

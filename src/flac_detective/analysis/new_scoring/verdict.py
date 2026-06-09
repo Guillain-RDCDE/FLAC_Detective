@@ -19,10 +19,10 @@ def determine_verdict(score: int) -> Tuple[str, str]:
         Tuple of (verdict_string, confidence_level)
     """
     if score >= SCORE_FAKE_CERTAIN:
-        return "FAKE_CERTAIN", "❌ Transcoding confirmé avec certitude"
+        return "FAKE_CERTAIN", "❌ Transcoding confirmed with certainty"
     elif score >= SCORE_SUSPICIOUS:
-        return "SUSPICIOUS", "⚠️  Probable transcoding, vérification recommandée"
+        return "SUSPICIOUS", "⚠️  Probable transcoding, manual check recommended"
     elif score >= SCORE_WARNING:
-        return "WARNING", "⚡ Anomalies détectées, peut être légitime"
+        return "WARNING", "⚡ Anomalies detected, may be legitimate"
     else:
-        return "AUTHENTIC", "✅ Fichier authentique"
+        return "AUTHENTIC", "✅ Authentic file"

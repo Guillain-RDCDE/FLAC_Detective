@@ -60,14 +60,14 @@ def apply_rule_1_mp3_bitrate(
         # Test 1 : Énergie résiduelle au-dessus de 20 kHz (HIGH_FREQ_THRESHOLD)
         # Seuil minimal pour détecter présence d'énergie HF
         if energy_ratio > 0.000001:
-            logger.info(f"RULE 1: Cutoff 20 kHz mais énergie HF = {energy_ratio:.6f}")
-            logger.info("RULE 1: Probablement arrondi FFT, pas MP3 320k - SKIP")
+            logger.info(f"RULE 1: Cutoff 20 kHz but HF energy = {energy_ratio:.6f}")
+            logger.info("RULE 1: Likely FFT rounding, not MP3 320k - SKIP")
             return (0, []), None
 
         # Test 2 : Variance nulle + cutoff pile = ambigu
         if cutoff_std == 0.0:
             logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
-            logger.info("RULE 1: Ambigu (peut être arrondi FFT) - SKIP par prudence")
+            logger.info("RULE 1: Ambiguous (could be FFT rounding) - SKIP for safety")
             return (0, []), None
 
     # Safety check 2: If cutoff > 21.5 kHz, it's likely an authentic high-quality FLAC
@@ -225,10 +225,10 @@ def apply_rule_8_nyquist_exception(
 
     if cutoff_ratio >= 0.98:
         base_bonus = -50
-        bonus_description = "Très proche limite"
+        bonus_description = "Very close to limit"
     elif cutoff_ratio >= 0.95:
         base_bonus = -30
-        bonus_description = "Probablement authentique"
+        bonus_description = "Probably authentic"
     else:
         # No bonus for cutoff < 95% of Nyquist
         logger.debug(
@@ -242,23 +242,23 @@ def apply_rule_8_nyquist_exception(
     if mp3_bitrate_detected is not None:
         # MP3 signature detected - check silence ratio
         if silence_ratio is not None and silence_ratio > 0.2:
-            # Dither artificiel suspect - CANCEL bonus
+            # Suspect artificial dither - CANCEL bonus
             final_bonus = 0
             reasons.append(
-                f"R8: Bonus Nyquist annulé (MP3 signature {mp3_bitrate_detected} kbps + "
-                f"dither suspect {silence_ratio:.2f} > 0.2)"
+                f"R8: Nyquist bonus cancelled (MP3 signature {mp3_bitrate_detected} kbps + "
+                f"suspect dither {silence_ratio:.2f} > 0.2)"
             )
             logger.info(
                 f"RULE 8: Bonus CANCELLED (MP3 {mp3_bitrate_detected} kbps + "
                 f"silence ratio {silence_ratio:.2f} > 0.2)"
             )
         elif silence_ratio is not None and silence_ratio > 0.15:
-            # Zone grise - REDUCE bonus
+            # Grey zone - REDUCE bonus
             final_bonus = -15
             reasons.append(
-                f"R8: Cutoff à {cutoff_ratio*100:.1f}% de Nyquist "
-                f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → Bonus réduit "
-                f"(MP3 signature + zone grise) (-15pts)"
+                f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
+                f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → Reduced bonus "
+                f"(MP3 signature + grey zone) (-15pts)"
             )
             logger.info(
                 f"RULE 8: Bonus REDUCED to -15 points (MP3 {mp3_bitrate_detected} kbps + "
@@ -267,9 +267,9 @@ def apply_rule_8_nyquist_exception(
         else:
             # Silence ratio <= 0.15 or None - APPLY bonus (authentic)
             reasons.append(
-                f"R8: Cutoff à {cutoff_ratio*100:.1f}% de Nyquist "
+                f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
                 f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → {bonus_description} "
-                f"({base_bonus}pts, MP3 signature mais silence authentique)"
+                f"({base_bonus}pts, MP3 signature but authentic silence)"
             )
             logger.info(
                 f"RULE 8: {base_bonus} points (cutoff {cutoff_freq:.0f} Hz >= "
@@ -278,7 +278,7 @@ def apply_rule_8_nyquist_exception(
     else:
         # No MP3 signature - APPLY bonus unconditionally
         reasons.append(
-            f"R8: Cutoff à {cutoff_ratio*100:.1f}% de Nyquist "
+            f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
             f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → {bonus_description} ({base_bonus}pts)"
         )
         logger.info(

@@ -9,7 +9,7 @@ class TestRule8NyquistException:
         score, reasons = apply_rule_8_nyquist_exception(21800, 44100, None, None)
 
         assert score == -50
-        assert "98" in reasons[0] or "Très proche limite" in reasons[0]
+        assert "98" in reasons[0] or "Very close to limit" in reasons[0]
         assert len(reasons) == 1
 
     def test_moderate_bonus_95_percent(self):
@@ -21,7 +21,7 @@ class TestRule8NyquistException:
 
         assert score == -30
         assert "95" in reasons[0]  # Check for 95% threshold
-        assert "Probablement authentique" in reasons[0]
+        assert "Probably authentic" in reasons[0]
 
     def test_no_bonus_below_95_percent(self):
         """Test no bonus for cutoff < 95% of Nyquist."""
@@ -42,8 +42,8 @@ class TestRule8NyquistException:
 
         assert score == 0
         assert len(reasons) == 1
-        assert "annulé" in reasons[0]
-        assert "dither suspect" in reasons[0]
+        assert "cancelled" in reasons[0]
+        assert "suspect dither" in reasons[0]
 
     def test_applied_with_authentic_silence(self):
         """Test bonus APPLIED when MP3 signature but authentic silence (ratio <= 0.15)."""
@@ -54,7 +54,7 @@ class TestRule8NyquistException:
 
         assert score == -50
         assert len(reasons) == 1
-        assert "MP3 signature mais silence authentique" in reasons[0]
+        assert "MP3 signature but authentic silence" in reasons[0]
 
     def test_reduced_in_grey_zone(self):
         """Test bonus REDUCED when MP3 signature + grey zone (0.15 < ratio <= 0.2)."""
@@ -65,8 +65,8 @@ class TestRule8NyquistException:
 
         assert score == -15
         assert len(reasons) == 1
-        assert "Bonus réduit" in reasons[0]
-        assert "zone grise" in reasons[0]
+        assert "Reduced bonus" in reasons[0]
+        assert "grey zone" in reasons[0]
 
     def test_different_sample_rates(self):
         """Test with different sample rates."""
