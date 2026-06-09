@@ -1,6 +1,10 @@
 # FLAC Detective Documentation
 
-Welcome to the FLAC Detective documentation! This tool analyzes FLAC audio files to detect MP3-to-FLAC transcodes using advanced spectral analysis.
+FLAC Detective is a command-line tool that detects **fake lossless** audio files — MP3s
+(and other lossy codecs) re-saved as FLAC, ALAC, APE or WAV so they *look* lossless when
+the quality was already thrown away. It scores each file with an 11-rule spectral engine
+(plus an optional 12th CNN rule) and gives a clear, four-level verdict, while protecting
+genuine vinyl rips, cassette transfers and quiet recordings from false alarms.
 
 ```{toctree}
 :maxdepth: 2
@@ -14,122 +18,71 @@ technical-details
 roadmap-formats
 ```
 
-## Quick Navigation
+---
 
-### New here? Start here
-- **[Start Here](start-here.md)** - A 5-minute, jargon-free guide: what it does, install, scan, read results
+## 👉 Find your path
 
-### For Users
-- **[Getting Started](getting-started.md)** - Installation, basic usage, first analysis
-- **[User Guide](user-guide.md)** - Complete usage guide, examples, understanding results
+Pick the row that sounds like you — each leads straight to the right page.
 
-### For Developers
-- **[API Reference](api-reference.md)** - Python API documentation and examples
-- **[Technical Details](technical-details.md)** - Architecture, detection rules, algorithms
-- **[Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)** - Development setup, contributing guidelines
+| If you are… | Start with | You'll get |
+|---|---|---|
+| 🟢 **New to all this** — just want to check your music | **[Start Here](start-here.md)** | A 5-minute, jargon-free walkthrough: what it does, install, scan, read results. *No command-line experience needed.* |
+| 🎧 **A user** ready to scan a real library | **[Getting Started](getting-started.md)** → **[User Guide](user-guide.md)** | Install options (ffmpeg, Docker, ML extra), every flag, real examples, `--deep`, CSV/HTML reports. |
+| 🐍 **A developer** integrating it in Python | **[API Reference](api-reference.md)** | The public API, the result dict, and integration examples. |
+| 🔬 **Curious how it works** under the hood | **[Technical Details](technical-details.md)** | All 11 rules + the optional ML Rule 12, the scoring, the protection layers. |
+| 🧪 **Here for the deep dives** | **[ML case study](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** · **[Formats roadmap](roadmap-formats.md)** | How Rule 12's CNN was built (the false-positive audit, the dead-ends, the mono→stereo breakthrough), and why multi-format support is an *input* problem. |
 
-### Deep dives (for the curious & specialists)
-- **[ML case study](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** - How Rule 12's CNN was built: the false-positive audit, the dead-ends, the mono→stereo breakthrough
-- **[Formats roadmap](roadmap-formats.md)** - Why supporting ALAC/APE is an *input* problem, and the bitrate-from-original gotcha
+> **New here and not sure?** Start with **[Start Here](start-here.md)** — it's enough for
+> day-to-day use, and it points onward when you want more.
 
-## What is FLAC Detective?
+---
 
-FLAC Detective is a command-line tool that detects fake lossless audio files (MP3s transcoded to FLAC, ALAC, APE or WAV). It uses an 11-rule scoring system — plus an optional 12th CNN rule — with advanced spectral analysis to achieve high accuracy while protecting legitimate files from vinyl, cassettes, and high-quality MP3 sources.
-
-### Key Features
-
-- **High Precision**: 11-rule scoring system (0-150 points), plus an optional 12th CNN rule
-- **4-Level Verdict**: AUTHENTIC, WARNING, SUSPICIOUS, FAKE_CERTAIN
-- **Protection Layers**: Prevents false positives for analog sources
-- **Fast Performance**: 80% faster than baseline through caching
-- **Flexible Output**: Console, text reports, JSON export
-- **Auto-Repair**: Corrupted FLAC files automatically fixed
-
-## Quick Start
-
-### Installation
+## The 30-second version
 
 ```bash
-# Via pip (recommended)
-pip install flac-detective
-
-# Already installed? Use --upgrade to get the latest version
-pip install --upgrade flac-detective
-
-# Via Docker
-docker pull ghcr.io/guillain-rdcde/flac_detective:latest
+pip install flac-detective       # needs Python 3.10+
+flac-detective /path/to/music    # scan a file or a whole folder
 ```
 
-> Plain `pip install` does not upgrade an existing install — it prints
-> "Requirement already satisfied" and exits. Use `--upgrade` (or `-U`).
-> See [Getting Started → Upgrading](getting-started.md#upgrading-to-the-latest-version) for details.
-
-### Basic Usage
-
-```bash
-# Analyze a directory
-flac-detective /path/to/music
-
-# Generate JSON report
-flac-detective /path/to/music --format json
-
-# Verbose output
-flac-detective /path/to/music --verbose
-```
-
-### Understanding Verdicts
+Every file comes back with one of four verdicts — read them like traffic lights:
 
 | Verdict | Score | Meaning |
 |---------|-------|---------|
-| ✅ AUTHENTIC | ≤ 30 | No evidence of transcoding |
-| ❓ WARNING | 31-54 | Borderline - manual review recommended |
-| ⚠️ SUSPICIOUS | 55-85 | Likely transcode |
-| ❌ FAKE_CERTAIN | ≥ 86 | Multiple strong indicators of transcoding |
+| ✅ AUTHENTIC | ≤ 30 | No evidence of transcoding — keep it |
+| ❓ WARNING | 31–54 | Borderline — give it a listen |
+| ⚠️ SUSPICIOUS | 55–85 | Likely a transcode |
+| ❌ FAKE_CERTAIN | ≥ 86 | Multiple strong indicators — replace it |
 
-## Documentation Structure
+The scan **only reads** your files — it never edits, moves or deletes anything. The same
+thresholds drive the console, the reports and the API.
 
-The documentation is organised into core guides plus two deep dives:
+*(Plain `pip install` won't upgrade an existing install — use `pip install --upgrade
+flac-detective`. See [Getting Started → Upgrading](getting-started.md#upgrading-to-the-latest-version).)*
 
-1. **[index.md](index.md)** (this file) - Overview and navigation
-2. **[getting-started.md](getting-started.md)** - Installation and first steps
-3. **[user-guide.md](user-guide.md)** - Complete usage guide with examples
-4. **[api-reference.md](api-reference.md)** - Python API documentation
-5. **[technical-details.md](technical-details.md)** - How it works under the hood (11 rules + optional ML Rule 12)
-6. **[CONTRIBUTING.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)** - Development and contribution guide
-7. **[ml/README.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** - The ML model R&D case study
-8. **[roadmap-formats.md](roadmap-formats.md)** - Multi-format design note
+---
 
-## Common Tasks
+## Why a fake is detectable
 
-### I want to analyze my music collection
-→ Start with [Getting Started](getting-started.md), then read [User Guide](user-guide.md)
+To save space, an MP3 throws away the highest frequencies — a real recording keeps them,
+so the *shape* of the spectrum gives a fake away (it "falls off a cliff" well below where
+a real file keeps going). FLAC Detective measures that cliff plus a dozen other clues.
+The full story is in **[Start Here](start-here.md)** (the gentle version) and
+**[Technical Details](technical-details.md)** (every rule).
 
-### I want to use FLAC Detective in my Python code
-→ Read [API Reference](api-reference.md)
+---
 
-### I want to understand how detection works
-→ Read [Technical Details](technical-details.md)
+## Project links
 
-### I want to contribute code or report bugs
-→ Read [Contributing](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
+- **GitHub**: <https://github.com/Guillain-RDCDE/FLAC_Detective>
+- **PyPI**: <https://pypi.org/project/flac-detective/>
+- **Issues**: <https://github.com/Guillain-RDCDE/FLAC_Detective/issues>
+- **Discussions**: <https://github.com/Guillain-RDCDE/FLAC_Detective/discussions>
+- **Contributing**: [CONTRIBUTING.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
+- **Security**: email guillain@poulpe.us (see [SECURITY.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/SECURITY.md))
 
-## External Resources
-
-- **GitHub Repository**: https://github.com/Guillain-RDCDE/FLAC_Detective
-- **PyPI Package**: https://pypi.org/project/flac-detective/
-- **Issue Tracker**: https://github.com/Guillain-RDCDE/FLAC_Detective/issues
-- **Discussions**: https://github.com/Guillain-RDCDE/FLAC_Detective/discussions
-
-## Support
-
-- **Report bugs**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
-- **Ask questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
-- **Security issues**: Email guillain@poulpe.us (see [SECURITY.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/SECURITY.md))
-
-## License
-
-FLAC Detective is released under the MIT License. See [LICENSE](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/LICENSE) for details.
+FLAC Detective is released under the MIT License.
 
 ---
 
 **Version**: 1.3.2 | **Last Updated**: June 2026
+</content>
