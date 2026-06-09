@@ -40,108 +40,36 @@ It reads each file and gives a verdict, like a traffic light:
 
 **Your files are safe** — the scan only *reads* them, it never changes anything.
 
-👉 **New to all this? → [Start Here: the 5-minute beginner's guide](docs/start-here.md)**
+> ### 🟢 New to all this?
+> **→ [Start Here — the 5-minute beginner's guide](docs/start-here.md)**
+> No command-line experience needed, no jargon, no theory. It walks you from
+> *"what is this?"* to *"I checked my music"* — and that's genuinely all most people need.
 
 ---
 
-## 🔍 How it works
+## 🎬 See it in action
 
-Transcode an MP3 back to FLAC and the file is lossless *as a container* — but the
-audio already went through a lossy codec, and that leaves fingerprints. The clearest
-is a **spectral cliff**: MP3 discards everything above a bitrate-dependent frequency
-(~16 kHz at 128 kbps, ~20 kHz at 320), so the spectrum falls off a wall where a real
-recording keeps going.
+![FLAC Detective in Action](assets/demo.gif)
 
-FLAC Detective scores each file with **11 heuristic rules** built around that idea —
-cutoff frequency vs. sample rate, MP3-bitrate signatures, compression artefacts
-(pre-echo, aliasing), bitrate sanity — plus *protection* rules so genuine vinyl rips,
-cassette transfers and naturally quiet recordings aren't flagged. An **optional 12th
-rule** is a small CNN (`pip install "flac-detective[ml]"`) that *sharpens borderline
-verdicts* — measured, it raises confidence on already-suspect files far more than it
-catches fakes the heuristics miss outright. (Run with **`--deep`** and it does more: on a
-full-range file the heuristics left silent, a confident CNN detection is surfaced as
-**WARNING** — this is how high-bitrate AAC/Opus/Vorbis transcodes get caught.) The rules
-sum to a 0–150 score and a 4-level verdict:
+Real-time progress bars, colored verdicts, and a clean summary at the end:
 
-| Verdict | Score | What to do |
-|---|---|---|
-| ✅ **AUTHENTIC** | ≤ 30 | keep it |
-| ❓ **WARNING** | 31–54 | borderline — check manually |
-| ⚠️ **SUSPICIOUS** | 55–85 | likely a transcode |
-| ❌ **FAKE_CERTAIN** | ≥ 86 | multiple indicators — definitely transcoded |
+```
+======================================================================
+  FLAC AUTHENTICITY ANALYZER
+  Detection of MP3s transcoded to FLAC
+======================================================================
 
-Higher score = stronger evidence of transcoding. The 0–150 range comes from summing the
-rules (some add points for fake signatures, *protection* rules subtract them); the four
-bands above turn that raw number into an action. The same thresholds drive the console,
-the reports and the API — there's no second opinion hiding anywhere.
+⠋ Analyzing audio files... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  15% 0:02:34
 
-The guiding principle throughout is **"protect authentic files first"**: a false alarm
-on real music is worse than missing a borderline fake.
-
-→ Every rule explained: [Technical Details](docs/technical-details.md).
-
-## 🤖 The ML side is a case study worth reading
-
-Rule 12's model went through a real R&D saga, written up as a **learning resource**:
-a false-positive audit over 11 234 real FLACs, four dead-ends that *didn't* work (each
-instructive), a debunked "AUC 0.99" false discovery caught by cross-validation, and a
-twist where a "fundamental limit" turned out to be an artifact of listening in **mono** —
-fixed by going **stereo**.
-
-📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
-enable the ML extra.
-
-## 🆕 Latest releases
-
-- **v1.3.0 — visual HTML report.** `--format html` writes a single self-contained page
-  (no external assets, no extra dependency) with a sortable/filterable triage table **and an
-  inline spectrum plot for every flagged file** — the MP3 "cliff" is visible to the eye, with
-  the detected cutoff marked. Computed with numpy and drawn as inline SVG; the core analysis
-  path is untouched (spectra are recomputed at report time, for flagged files only).
-- **v1.2.0 — `--deep` mode + high-confidence WARNING floor.** The CNN (Rule 12) actually
-  *does* separate high-bitrate **AAC / Opus / Vorbis** transcodes from genuine FLAC on
-  full-range audio (ROC-AUC 0.94–0.99) — but the fast path used to skip Rule 12 on the very
-  files those fakes hide in. `--deep` runs the CNN on every file and surfaces a confident
-  detection as **WARNING** (default scans stay fast). The old "AAC/Opus/Vorbis are
-  near-undetectable" claim is now corrected: the real fundamental limit is *band-limited*
-  material (baroque, 1920s, solo acoustic), not these codecs at high bitrate.
-- **v1.1.0 — CSV library-triage report.** `--format csv` writes one row per file, **ranked
-  most-suspicious-first** — triage a whole collection in a spreadsheet, riskiest first.
-- **v1.0 — stable public API** ([SemVer](https://semver.org)): the CLI and its flags, the
-  top-level exports (`FLACAnalyzer`, `ProgressTracker`, `find_flac_files`, `LOGO`,
-  `__version__`) and the `analyze_file()` result-dict keys. Internals under `analysis/`
-  may still change between minor versions.
-- **Multi-format**: analyses **FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`)** — detection is
-  codec-agnostic (same spectral pipeline), and a lossy AAC `.m4a` is still correctly
-  rejected (the real codec is probed, never trusted by extension).
-
-The Rule 12 classifier reads the stereo **mid + side** channels instead of mono (v0.14),
-fixing its weak spot on band-limited music (baroque, jazz, old recordings). *(Mid/side is
-a way to encode stereo as **mid** = L+R average and **side** = L−R difference; MP3
-quantises the side channel aggressively, so its fingerprints survive even when the
-high-frequency cliff is faint.)* Real-world specificity on a library of 11 234 authentic
-FLACs climbed from **80 % to 95 %**:
-
-| | v0.12 (mono) | **v0.14 (stereo + gate)** |
-|---|---|---|
-| Specificity (authentic kept) | 80 % | **95 %** |
-| Transcode recall | 87 % | **94 %** |
-
-Full version-by-version history → **[CHANGELOG](CHANGELOG.md)**.
-
----
-
-## ✨ Key Features
-
-- **🎯 High Precision Detection**: 11-rule scoring system with intelligent protection mechanisms
-- **📊 4-Level Verdict System**: Clear confidence ratings from AUTHENTIC to FAKE_CERTAIN
-- **⚡ Performance Optimized**: 80% faster than baseline through smart caching and parallel processing
-- **🔍 Advanced Analysis**: Spectral analysis, compression artifact detection, and multi-segment validation
-- **🛡️ Protection Layers**: Prevents false positives for vinyl rips, cassette transfers, and high-quality MP3s
-- **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
-- **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
-- **🔨 Automatic Repair**: Undecodable FLAC files are losslessly rebuilt (reference `flac` tool, exact PCM, metadata preserved, `.bak` backup kept) so they can still be analysed — healthy files are never touched ([how & why](docs/technical-details.md#repair-lossless-reconstruction-only-when-needed))
-- **🤖 CNN classifier (optional)**: A small ML model bundled with the package adds a 12th scoring rule on borderline cases. `pip install "flac-detective[ml]"` to enable.
+======================================================================
+  ANALYSIS COMPLETE
+======================================================================
+  FLAC files analyzed: 245
+  Authentic files: 215 (87.8%)
+  Fake/Suspicious files: 12 (4.9%)
+  Text report: flac_report_20251220_143022.txt
+======================================================================
+```
 
 ---
 
@@ -270,32 +198,84 @@ This creates test files and shows FLAC Detective in action in 30 seconds!
 
 ---
 
-## 🎬 Demo
+> ## 🧭 The two commands at the top are all you need.
+> Everything below is for when you get curious — **how it works**, the **ML story**, the
+> **performance numbers**, every flag and the **FAQ**. Read as much or as little as you like.
 
-### Live Demo
+---
 
-![FLAC Detective in Action](assets/demo.gif)
+## 🔍 How it works
 
-Watch FLAC Detective analyze files with real-time progress bars and colored output!
+Transcode an MP3 back to FLAC and the file is lossless *as a container* — but the
+audio already went through a lossy codec, and that leaves fingerprints. The clearest
+is a **spectral cliff**: MP3 discards everything above a bitrate-dependent frequency
+(~16 kHz at 128 kbps, ~20 kHz at 320), so the spectrum falls off a wall where a real
+recording keeps going.
 
-### Example Output
-```
-======================================================================
-  FLAC AUTHENTICITY ANALYZER
-  Detection of MP3s transcoded to FLAC
-======================================================================
+FLAC Detective scores each file with **11 heuristic rules** built around that idea —
+cutoff frequency vs. sample rate, MP3-bitrate signatures, compression artefacts
+(pre-echo, aliasing), bitrate sanity — plus *protection* rules so genuine vinyl rips,
+cassette transfers and naturally quiet recordings aren't flagged. An **optional 12th
+rule** is a small CNN (`pip install "flac-detective[ml]"`) that *sharpens borderline
+verdicts* — measured, it raises confidence on already-suspect files far more than it
+catches fakes the heuristics miss outright. (Run with **`--deep`** and it does more: on a
+full-range file the heuristics left silent, a confident CNN detection is surfaced as
+**WARNING** — this is how high-bitrate AAC/Opus/Vorbis transcodes get caught.) The rules
+sum to a 0–150 score and a 4-level verdict:
 
-⠋ Analyzing audio files... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  15% 0:02:34
+| Verdict | Score | What to do |
+|---|---|---|
+| ✅ **AUTHENTIC** | ≤ 30 | keep it |
+| ❓ **WARNING** | 31–54 | borderline — check manually |
+| ⚠️ **SUSPICIOUS** | 55–85 | likely a transcode |
+| ❌ **FAKE_CERTAIN** | ≥ 86 | multiple indicators — definitely transcoded |
 
-======================================================================
-  ANALYSIS COMPLETE
-======================================================================
-  FLAC files analyzed: 245
-  Authentic files: 215 (87.8%)
-  Fake/Suspicious files: 12 (4.9%)
-  Text report: flac_report_20251220_143022.txt
-======================================================================
-```
+Higher score = stronger evidence of transcoding. The 0–150 range comes from summing the
+rules (some add points for fake signatures, *protection* rules subtract them); the four
+bands above turn that raw number into an action. The same thresholds drive the console,
+the reports and the API — there's no second opinion hiding anywhere.
+
+The guiding principle throughout is **"protect authentic files first"**: a false alarm
+on real music is worse than missing a borderline fake.
+
+→ Every rule explained: [Technical Details](docs/technical-details.md).
+
+## 🤖 The ML side is a case study worth reading
+
+Rule 12's model went through a real R&D saga, written up as a **learning resource**:
+a false-positive audit over 11 234 real FLACs, four dead-ends that *didn't* work (each
+instructive), a debunked "AUC 0.99" false discovery caught by cross-validation, and a
+twist where a "fundamental limit" turned out to be an artifact of listening in **mono** —
+fixed by going **stereo**.
+
+📖 **[Read the ML detective story →](ml/README.md)** — worth a look even if you never
+enable the ML extra.
+
+The Rule 12 classifier reads the stereo **mid + side** channels instead of mono (v0.14),
+fixing its weak spot on band-limited music (baroque, jazz, old recordings). *(Mid/side is
+a way to encode stereo as **mid** = L+R average and **side** = L−R difference; MP3
+quantises the side channel aggressively, so its fingerprints survive even when the
+high-frequency cliff is faint.)* Real-world specificity on a library of 11 234 authentic
+FLACs climbed from **80 % to 95 %**:
+
+| | v0.12 (mono) | **v0.14 (stereo + gate)** |
+|---|---|---|
+| Specificity (authentic kept) | 80 % | **95 %** |
+| Transcode recall | 87 % | **94 %** |
+
+---
+
+## ✨ Key Features
+
+- **🎯 High Precision Detection**: 11-rule scoring system with intelligent protection mechanisms
+- **📊 4-Level Verdict System**: Clear confidence ratings from AUTHENTIC to FAKE_CERTAIN
+- **⚡ Performance Optimized**: 80% faster than baseline through smart caching and parallel processing
+- **🔍 Advanced Analysis**: Spectral analysis, compression artifact detection, and multi-segment validation
+- **🛡️ Protection Layers**: Prevents false positives for vinyl rips, cassette transfers, and high-quality MP3s
+- **📝 Flexible Output**: Console reports with Rich formatting, JSON export, and detailed logging
+- **🔧 Robust Error Handling**: Automatic retries, partial file reading, and comprehensive diagnostic tracking
+- **🔨 Automatic Repair**: Undecodable FLAC files are losslessly rebuilt (reference `flac` tool, exact PCM, metadata preserved, `.bak` backup kept) so they can still be analysed — healthy files are never touched ([how & why](docs/technical-details.md#repair-lossless-reconstruction-only-when-needed))
+- **🤖 CNN classifier (optional)**: A small ML model bundled with the package adds a 12th scoring rule on borderline cases. `pip install "flac-detective[ml]"` to enable.
 
 ---
 
@@ -320,6 +300,34 @@ flac-detective /music
 # More thorough (60s per file) - maximum accuracy
 flac-detective /music --sample-duration 60
 ```
+
+---
+
+## 🆕 Latest releases
+
+- **v1.3.0 — visual HTML report.** `--format html` writes a single self-contained page
+  (no external assets, no extra dependency) with a sortable/filterable triage table **and an
+  inline spectrum plot for every flagged file** — the MP3 "cliff" is visible to the eye, with
+  the detected cutoff marked. Computed with numpy and drawn as inline SVG; the core analysis
+  path is untouched (spectra are recomputed at report time, for flagged files only).
+- **v1.2.0 — `--deep` mode + high-confidence WARNING floor.** The CNN (Rule 12) actually
+  *does* separate high-bitrate **AAC / Opus / Vorbis** transcodes from genuine FLAC on
+  full-range audio (ROC-AUC 0.94–0.99) — but the fast path used to skip Rule 12 on the very
+  files those fakes hide in. `--deep` runs the CNN on every file and surfaces a confident
+  detection as **WARNING** (default scans stay fast). The old "AAC/Opus/Vorbis are
+  near-undetectable" claim is now corrected: the real fundamental limit is *band-limited*
+  material (baroque, 1920s, solo acoustic), not these codecs at high bitrate.
+- **v1.1.0 — CSV library-triage report.** `--format csv` writes one row per file, **ranked
+  most-suspicious-first** — triage a whole collection in a spreadsheet, riskiest first.
+- **v1.0 — stable public API** ([SemVer](https://semver.org)): the CLI and its flags, the
+  top-level exports (`FLACAnalyzer`, `ProgressTracker`, `find_flac_files`, `LOGO`,
+  `__version__`) and the `analyze_file()` result-dict keys. Internals under `analysis/`
+  may still change between minor versions.
+- **Multi-format**: analyses **FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`)** — detection is
+  codec-agnostic (same spectral pipeline), and a lossy AAC `.m4a` is still correctly
+  rejected (the real codec is probed, never trusted by extension).
+
+Full version-by-version history → **[CHANGELOG](CHANGELOG.md)**.
 
 ---
 
@@ -367,7 +375,7 @@ A standalone duration-fixer is also available: `python -m flac_detective.repair 
 ### Can I trust the results?
 
 Yes, with common sense. Each score band and what to do about it is in the verdict
-table near the top of this README. For critical decisions, confirm with a
+table in the **How it works** section above. For critical decisions, confirm with a
 complementary tool (e.g. Spek for visual spectral analysis).
 
 ### What file formats are supported?
@@ -490,3 +498,5 @@ Thanks to the community members who took the time to report bugs and confirm fix
 ---
 
 **FLAC Detective** - *Maintaining authentic lossless audio collections*
+</content>
+</invoke>
