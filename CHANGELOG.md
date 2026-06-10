@@ -1,3 +1,34 @@
+## v1.4.0 (2026-06-10) — Beets plugin + English-only output
+
+An adoption-focused feature release: FLAC Detective now plugs into beets, speaks
+English everywhere, and shows its work with a visual report in the docs.
+
+- **beets plugin (`pip install "flac-detective[beets]"`).** A new `beet flacdetective
+  [query]` command runs the analysis over the lossless items in a beets library
+  (FLAC/WAV/ALAC/APE; lossy tracks skipped), prints a colourised verdict, and stores
+  `flacdetective_verdict` and `flacdetective_score` as flexible attributes — so you can
+  `beet ls flacdetective_verdict:FAKE_CERTAIN` or `beet ls flacdetective_score:55..`
+  afterwards. Options mirror the CLI (`--sample-duration`, `--deep`, `-W/--no-write`,
+  `-p/--pretend`), and an optional `auto: yes` analyses files as they're imported. Enable
+  with `plugins: flacdetective`. Validated against beets 2.x. (#50)
+- **English-only output.** Every scoring reason and verdict message was hard-coded in
+  French while the tool is marketed in English — an English speaker saw verdicts they could
+  read next to explanations they couldn't. All user-facing strings are now English (rule
+  codes `R8`/`R11C`… and the `(±Npts)` suffixes unchanged). **Detection logic is untouched:
+  verdicts and scores are identical.** (#49)
+- **Visual HTML report in the README.** The "See it in action" section now shows a real
+  `--format html` report — a worst-first triage table plus per-file spectrum cliffs at
+  staggered MP3 bitrates (96k cuts ~11 kHz, 128k ~16 kHz, 160k ~17.5 kHz) against a
+  full-range authentic file. (#49)
+- **Docs onboarding rework.** README and the docs landing reorganised for an instant
+  beginner→advanced path: a jargon-free top half (two commands + traffic-light verdicts + a
+  "Start Here" call-to-action), a clear separator, then everything under the hood; the docs
+  index became a "find your path" router. (#48)
+
+No public API change — the CLI flags, top-level exports and `analyze_file()` result-dict
+keys are unchanged (reason *text* is not part of the stable API). New optional `[beets]`
+extra.
+
 ## v1.3.2 (2026-06-06) — Resilient logging on read-only / external scan drives
 
 A correctness/robustness fix found while scanning a large library on an external
