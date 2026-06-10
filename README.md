@@ -430,6 +430,38 @@ Bug reports, code, docs, and testing are all welcome — see
 
 ---
 
+## 🎚️ Use it with beets
+
+If you manage your library with **[beets](https://beets.io)**, FLAC Detective ships a
+plugin so you can triage transcodes without leaving your usual workflow:
+
+```bash
+pip install "flac-detective[beets]"
+```
+
+```yaml
+# add to your beets config.yaml
+plugins: flacdetective
+```
+
+```bash
+# analyse the whole library (or any beets query) and tag each file
+beet flacdetective
+beet flacdetective artist:Radiohead        # just part of it
+
+# afterwards, the verdict & score are stored as flexible attributes:
+beet ls flacdetective_verdict:FAKE_CERTAIN # list the certain fakes
+beet ls flacdetective_score:55..           # everything scoring 55 or worse
+```
+
+By default it stores `flacdetective_verdict` and `flacdetective_score` on each item
+(disable with `-W`/`--pretend`). Options mirror the CLI — `--sample-duration`, `--deep` —
+and an optional `auto: yes` config analyses files **as they're imported**, warning you the
+moment a suspected transcode enters your collection. Only lossless files (FLAC/WAV/ALAC/APE)
+are analysed; lossy tracks are skipped.
+
+---
+
 ## 📚 Documentation
 
 📖 **Full documentation site: [guillain-rdcde.github.io/FLAC_Detective](https://guillain-rdcde.github.io/FLAC_Detective/)** (searchable, built from `docs/` on every release).
