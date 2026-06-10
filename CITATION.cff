@@ -14,8 +14,8 @@ authors:
 repository-code: "https://github.com/Guillain-RDCDE/FLAC_Detective"
 url: "https://github.com/Guillain-RDCDE/FLAC_Detective"
 license: MIT
-version: "1.3.2"
-date-released: "2026-06-06"
+version: "1.4.0"
+date-released: "2026-06-10"
 keywords:
   - "FLAC"
   - "lossless audio"
