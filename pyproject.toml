@@ -39,7 +39,11 @@ ml = [
     "torch>=2.0",
     "librosa>=0.10",
 ]
+beets = [
+    "beets>=1.6.0",
+]
 dev = [
+    "beets>=1.6.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
@@ -131,6 +135,7 @@ module = [
     "mutagen.*",
     "soundfile.*",
     "scipy.*",
+    "beets.*",
 ]
 ignore_missing_imports = true
 
