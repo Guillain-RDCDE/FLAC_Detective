@@ -159,6 +159,5 @@ on 11 234 authentic FLACs climbed from **80 % to 95 %**.
 
 Licensed under the **[MIT License](LICENSE)**.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Guillain-RDCDE/FLAC_Detective&type=Date)](https://star-history.com/#Guillain-RDCDE/FLAC_Detective&Date)
 </content>
 </invoke>
