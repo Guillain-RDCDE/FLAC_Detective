@@ -17,9 +17,73 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _welch_magnitude_db(
+    data_mono: np.ndarray, samplerate: int, nfft: int = 16384
+) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+    """Welch-averaged magnitude spectrum (Hann, 50% overlap) in dB.
+
+    A stable spectrum estimate for the residual-floor metric. Returns (None, None)
+    if the signal is shorter than one FFT window.
+    """
+    if len(data_mono) < nfft:
+        return None, None
+    win = get_hann_window(nfft)
+    step = nfft // 2
+    acc: Optional[np.ndarray] = None
+    count = 0
+    with set_workers(1):
+        for start in range(0, len(data_mono) - nfft, step):
+            seg = data_mono[start : start + nfft] * win
+            m = np.abs(rfft(seg))
+            acc = m if acc is None else acc + m
+            count += 1
+    if count == 0 or acc is None:
+        return None, None
+    mag = acc / count
+    freq = rfftfreq(nfft, 1 / samplerate)
+    magnitude_db = 20 * np.log10(mag + 1e-10)
+    return freq, magnitude_db
+
+
+def compute_residual_floor_db(
+    full_audio: np.ndarray, samplerate: int, max_seconds: float = 30.0
+) -> float:
+    """Residual spectral floor just above the ~20.5 kHz wall, vs the in-band reference.
+
+    A real 320 kbps MP3 brickwall drops to the digital-silence floor (strongly
+    negative, ~ -70 dB); an authentic band-limited rolloff keeps a higher
+    analog/dither floor (~ -25 to -50 dB). This is the discriminator that cutoff
+    position alone cannot provide near Nyquist (calibrated on 50 synthetic
+    FLAC->320k pairs + a band-limited surrogate; see Rule 1's near-Nyquist gate).
+
+    Returns NaN when the reference/top bands are unavailable (e.g. hi-res) or the
+    signal is too short — callers must treat NaN as "unknown" and fall back to the
+    legacy behaviour.
+    """
+    try:
+        data = full_audio
+        if data.ndim > 1:
+            data = np.mean(data, axis=1)
+        data = np.asarray(data[: int(max_seconds * samplerate)], dtype=np.float64)
+        freq, magnitude_db = _welch_magnitude_db(data, samplerate)
+        if freq is None or magnitude_db is None:
+            return float("nan")
+        nyq = samplerate / 2.0
+        ref_mask = (freq >= 0.45 * nyq) & (freq <= 0.65 * nyq)
+        top_mask = (freq >= 0.961 * nyq) & (freq <= 0.993 * nyq)
+        if not (np.any(ref_mask) and np.any(top_mask)):
+            return float("nan")
+        ref = float(np.median(magnitude_db[ref_mask]))
+        top = float(np.median(magnitude_db[top_mask]))
+        return top - ref
+    except Exception as e:  # pragma: no cover - defensive
+        logger.debug(f"Residual floor computation failed: {e}")
+        return float("nan")
+
+
 def analyze_spectrum(
     filepath: Path, sample_duration: float = 30.0, cache: "Optional[AudioCache]" = None
-) -> Tuple[float, float, float]:
+) -> Tuple[float, float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
@@ -31,10 +95,12 @@ def analyze_spectrum(
         cache: Optional AudioCache instance for optimization.
 
     Returns:
-        Tuple (cutoff_frequency, energy_ratio, cutoff_std) where:
+        Tuple (cutoff_frequency, energy_ratio, cutoff_std, residual_floor_db) where:
         - cutoff_frequency: detected cutoff frequency in Hz
         - energy_ratio: energy ratio in high frequencies
         - cutoff_std: standard deviation of cutoff frequency
+        - residual_floor_db: floor above the ~20.5 kHz wall (NaN unless the cutoff
+          sits in the near-Nyquist 320 kbps zone, where Rule 1 needs it)
     """
     try:
         # Create cache if not provided
@@ -129,16 +195,26 @@ def analyze_spectrum(
         # Authentic FLACs often have high variance in cutoff frequency
         cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
 
+        # Residual-floor metric for Rule 1's near-Nyquist 320 kbps gate. Only the
+        # ~90-95% Nyquist band needs it (where a 320k brickwall overlaps an authentic
+        # rolloff), so we skip the extra Welch pass everywhere else to keep the hot
+        # path fast.
+        nyquist = samplerate / 2.0
+        residual_floor_db = float("nan")
+        if 0.90 * nyquist <= final_cutoff < 0.95 * nyquist:
+            residual_floor_db = compute_residual_floor_db(full_audio, samplerate)
+
         logger.info(
             f"Spectrum analysis: cutoff={final_cutoff:.0f} Hz, "
-            f"energy_ratio={final_energy:.6f}, cutoff_std={cutoff_std:.1f}, samples={cutoff_freqs}"
+            f"energy_ratio={final_energy:.6f}, cutoff_std={cutoff_std:.1f}, "
+            f"residual_floor_db={residual_floor_db:.1f}, samples={cutoff_freqs}"
         )
 
-        return final_cutoff, final_energy, cutoff_std
+        return final_cutoff, final_energy, cutoff_std, residual_floor_db
 
     except Exception as e:
         logger.debug(f"Spectral analysis error: {e}")
-        return 0, 0, 0
+        return 0, 0, 0, float("nan")
 
 
 def detect_cutoff(  # noqa: C901

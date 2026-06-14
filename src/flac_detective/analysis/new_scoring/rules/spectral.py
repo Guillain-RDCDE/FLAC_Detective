@@ -1,19 +1,38 @@
 """Spectral analysis rules (Rule 1, Rule 2, Rule 8)."""
 
 import logging
+import math
 from typing import List, Optional, Tuple
 
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
 
 logger = logging.getLogger(__name__)
 
+# Wall-hardness gate for the near-Nyquist 320 kbps zone (Rule 1).
+# A 320 kbps cutoff (~20.5 kHz) sits where an authentic band-limited rolloff and a
+# real MP3 brickwall overlap, so cutoff position alone cannot tell them apart — this
+# is the dominant false-positive source in real libraries. The residual spectral
+# floor above the wall does separate them (calibrated on 50 synthetic FLAC->320k
+# pairs + a band-limited surrogate, ROC AUC 0.95; the one confirmed real near-Nyquist
+# transcode floored at -57 dB):
+#   residual >  -55 dB -> authentic analog/dither floor      -> drop the signature
+#   residual <= -55 dB -> digital-silence floor (transcode)  -> keep the +50 (FAKE)
+# A single threshold (not a 3-band scheme): an intermediate "gray" band that withholds
+# the +50 lets the score fall below the fast FAKE_CERTAIN short-circuit, after which
+# protective rules (e.g. R7 clean-silence -50) can wrongly clear a genuine transcode.
+# Keeping real transcodes at +50 preserves that short-circuit. Threshold favours the
+# project's "protect authentic first" rule, accepting that transcodes of already
+# band-limited material (shallow wall, floor > -55 dB) are near-undetectable anyway.
+NEARNYQ_FLOOR_DB = -55.0
 
-def apply_rule_1_mp3_bitrate(
+
+def apply_rule_1_mp3_bitrate(  # noqa: C901
     cutoff_freq: float,
     container_bitrate: float,
     cutoff_std: float = 0.0,
     sample_rate: int = 44100,
     energy_ratio: float = 0.0,
+    residual_floor_db: float = float("nan"),
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -30,6 +49,9 @@ def apply_rule_1_mp3_bitrate(
         cutoff_std: Standard deviation of cutoff frequency
         sample_rate: Sample rate in Hz (default: 44100)
         energy_ratio: High frequency energy ratio (default: 0.0)
+        residual_floor_db: Spectral floor above the ~20.5 kHz wall in dB (NaN =
+            unknown). Gates the near-Nyquist 320 kbps branch; NaN falls back to the
+            legacy cutoff-only behaviour.
 
     Returns:
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
@@ -126,6 +148,25 @@ def apply_rule_1_mp3_bitrate(
 
         # Le bitrate conteneur est-il dans la plage attendue ?
         if min_br <= container_bitrate <= max_br:
+            # Near-Nyquist 320 kbps wall-hardness gate. The cutoff alone cannot tell a
+            # 320k brickwall from an authentic band-limited rolloff here; the residual
+            # floor can. NaN (unknown / not in the near-Nyquist zone) -> legacy +50.
+            if (
+                estimated_bitrate == 320
+                and not math.isnan(residual_floor_db)
+                and residual_floor_db > NEARNYQ_FLOOR_DB
+            ):
+                logger.info(
+                    f"RULE 1: 320 kbps signature dropped (residual floor "
+                    f"{residual_floor_db:.0f} dB > {NEARNYQ_FLOOR_DB:.0f} → authentic band-limited)"
+                )
+                reasons.append(
+                    f"R1: 320 kbps cutoff near Nyquist but high residual floor "
+                    f"({residual_floor_db:.0f} dB) → authentic band-limited, signature dropped"
+                )
+                return (score, reasons), None
+            # residual <= -55 dB (or unknown): digital-silence floor = real transcode.
+
             score += 50
             reasons.append(f"Constant MP3 bitrate detected (Spectral): {estimated_bitrate} kbps")
             logger.info(
