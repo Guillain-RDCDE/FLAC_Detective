@@ -37,6 +37,9 @@ class ScoringContext:
     cutoff_freq: float
     cutoff_std: float = 0.0
     energy_ratio: float = 0.0
+    # Residual spectral floor above the ~20.5 kHz wall (NaN = unknown / not in the
+    # near-Nyquist 320 kbps zone). Drives Rule 1's wall-hardness gate.
+    residual_floor_db: float = float("nan")
 
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None

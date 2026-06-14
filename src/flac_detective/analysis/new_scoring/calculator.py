@@ -317,6 +317,7 @@ def new_calculate_score(
     cache=None,
     source_path: Optional[Path] = None,
     deep: bool = False,
+    residual_floor_db: float = float("nan"),
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -332,6 +333,8 @@ def new_calculate_score(
             analysed audio is a decoded WAV (ALAC/APE). See _calculate_bitrate_metrics.
         deep: Run Rule 12 on every file, bypassing the authentic fast path (slower;
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
+        residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
+            Drives Rule 1's near-Nyquist 320 kbps wall-hardness gate.
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -373,6 +376,7 @@ def new_calculate_score(
             cutoff_freq=cutoff_freq,
             cutoff_std=cutoff_std,
             energy_ratio=energy_ratio,
+            residual_floor_db=residual_floor_db,
             cache=cache,  # Pass shared cache to context
         )
 

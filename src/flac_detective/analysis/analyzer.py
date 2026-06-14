@@ -104,7 +104,7 @@ class FLACAnalyzer:
             duration_check = check_duration_consistency(temp_path, metadata)
 
             # Spectral analysis (OPTIMIZED: uses cache -> points to TEMP)
-            cutoff_freq, energy_ratio, cutoff_std = analyze_spectrum(
+            cutoff_freq, energy_ratio, cutoff_std, residual_floor_db = analyze_spectrum(
                 temp_path, self.sample_duration, cache=cache
             )
 
@@ -128,6 +128,7 @@ class FLACAnalyzer:
                 cache=cache,
                 source_path=filepath,
                 deep=self.deep,
+                residual_floor_db=residual_floor_db,
             )
 
             # Add note if analysis was partial
