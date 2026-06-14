@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-06-10"
-__release_name__ = "Beets plugin + English-only output"
+__release_date__ = "2026-06-14"
+__release_name__ = "Band-limited false-positive gate"
 
 # Metadata
 __author__ = "Guillain d'Erceville"

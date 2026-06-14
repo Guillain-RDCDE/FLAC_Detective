@@ -1,4 +1,4 @@
-## Unreleased
+## v1.5.0 (2026-06-14) — Band-limited false-positive gate
 
 - **Fewer false positives on band-limited music (Rule 1 near-Nyquist gate).** A 320 kbps
   MP3 low-passes at ~20.5 kHz — exactly where genuinely band-limited lossless (baroque,
