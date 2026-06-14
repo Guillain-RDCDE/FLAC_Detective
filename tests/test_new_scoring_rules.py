@@ -1,3 +1,4 @@
+from flac_detective.analysis.new_scoring import estimate_mp3_bitrate
 from flac_detective.analysis.new_scoring.rules import (
     apply_rule_1_mp3_bitrate,
     apply_rule_2_cutoff,
@@ -313,3 +314,71 @@ class TestMandatoryValidation:
         assert total_score == 0
         verdict, _ = determine_verdict(total_score)
         assert verdict == "AUTHENTIC"
+
+
+class TestRule1NearNyquistWallGate:
+    """Rule 1's wall-hardness gate for the near-Nyquist 320 kbps zone.
+
+    A 320 kbps cutoff (~20.5 kHz) overlaps an authentic band-limited rolloff, so the
+    verdict is gated on the residual spectral floor (the dominant real-world
+    false-positive source) instead of cutoff position alone. Single threshold at
+    -55 dB: above = authentic (drop the signature), at/below = real transcode (keep
+    the +50). A NaN residual falls back to the legacy behaviour.
+    """
+
+    SR = 44100
+    CUTOFF = 20250  # in the 320 zone, below the 94% Nyquist skip (20727 Hz)
+    CONTAINER = 850  # within the 320 kbps range (700-1050)
+
+    def test_cutoff_maps_to_320(self):
+        """Guard: the chosen cutoff must actually be estimated as 320 kbps."""
+        assert estimate_mp3_bitrate(self.CUTOFF) == 320
+
+    def test_clear_high_floor_drops_signature(self):
+        """High residual floor (> -55 dB, authentic analog) -> signature dropped, no R3."""
+        (score, reasons), bitrate = apply_rule_1_mp3_bitrate(
+            self.CUTOFF, self.CONTAINER, 0.0, self.SR, residual_floor_db=-49.0
+        )
+        assert score == 0
+        assert bitrate is None  # R3 will not fire -> authentic
+        assert any("authentic band-limited" in r for r in reasons)
+
+    def test_keep_real_transcode_floor(self):
+        """Floor just below -55 dB (real near-Nyquist transcode) keeps the +50.
+
+        Mirrors the one confirmed real ``@320`` transcode (floor -57 dB): it must stay
+        FAKE so the fast short-circuit fires before protective rules can clear it.
+        """
+        (score, reasons), bitrate = apply_rule_1_mp3_bitrate(
+            self.CUTOFF, self.CONTAINER, 0.0, self.SR, residual_floor_db=-57.0
+        )
+        assert score == 50
+        assert bitrate == 320
+        assert any("Constant MP3 bitrate detected" in r for r in reasons)
+        # R1 + R3 reach FAKE_CERTAIN
+        score_r3, _ = apply_rule_3_source_vs_container(bitrate, self.CONTAINER)
+        verdict, _ = determine_verdict(score + score_r3)
+        assert verdict == "FAKE_CERTAIN"
+
+    def test_keep_deep_digital_floor_scores_fake(self):
+        """Floor deep below -55 dB (digital-silence) -> real transcode, +50."""
+        (score, _), bitrate = apply_rule_1_mp3_bitrate(
+            self.CUTOFF, self.CONTAINER, 0.0, self.SR, residual_floor_db=-75.0
+        )
+        assert score == 50
+        assert bitrate == 320
+
+    def test_unknown_residual_falls_back_to_legacy(self):
+        """Unknown residual (NaN: non-44.1k / short file) keeps the legacy +50 behaviour."""
+        (score, _), bitrate = apply_rule_1_mp3_bitrate(self.CUTOFF, self.CONTAINER, 0.0, self.SR)
+        assert score == 50
+        assert bitrate == 320
+
+    def test_gate_only_applies_to_320(self):
+        """A lower-bitrate signature with a residual value is unaffected by the gate."""
+        # 17458 Hz -> 192 kbps; container 700 within (500, 750)
+        (score, _), bitrate = apply_rule_1_mp3_bitrate(
+            17458, 700, 0.0, self.SR, residual_floor_db=-30.0
+        )
+        assert score == 50
+        assert bitrate == 192

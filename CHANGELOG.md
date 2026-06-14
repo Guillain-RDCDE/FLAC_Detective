@@ -1,3 +1,20 @@
+## Unreleased
+
+- **Fewer false positives on band-limited music (Rule 1 near-Nyquist gate).** A 320 kbps
+  MP3 low-passes at ~20.5 kHz — exactly where genuinely band-limited lossless (baroque,
+  harpsichord, 1960s–80s mastering, world-music reissues) also rolls off. Rule 1 used to
+  flag both as a "320 kbps spectral" transcode from the cutoff position alone, which on a
+  full-library audit accounted for ~65% of all FAKE_CERTAIN verdicts — most of them
+  authentic. Rule 1 now measures the **residual spectral floor above the wall**: a real
+  320k brickwall drops to digital silence, while an authentic rolloff keeps an
+  analog/dither floor. Above −55 dB the signature is dropped (→ AUTHENTIC); at or below it
+  the file stays FAKE_CERTAIN. Calibrated on 50 synthetic FLAC→320k pairs plus a
+  band-limited surrogate (ROC AUC 0.95) and verified against a confirmed real transcode.
+  **This changes verdicts**: near-Nyquist files previously marked FAKE_CERTAIN on
+  band-limited material now read AUTHENTIC. Only the near-Nyquist 320 kbps zone at
+  44.1 kHz is affected; all other detection paths are unchanged, and unknown/short inputs
+  fall back to the previous behaviour.
+
 ## v1.4.0 (2026-06-10) — Beets plugin + English-only output
 
 An adoption-focused feature release: FLAC Detective now plugs into beets, speaks
