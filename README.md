@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/social-preview.jpg" width="100%" alt="FLAC Detective — catch lossy files masquerading as FLAC">
+</p>
+
 # 🎵 FLAC Detective
 
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
