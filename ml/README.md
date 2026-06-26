@@ -118,12 +118,45 @@ Three things landed on top of the v4 stereo model, none of them retraining it:
 
    **AUC drop Δ 0.009 — negligible.** The model holds up against encoders it never
    trained on: it learned a genuine transcode fingerprint, not an ffmpeg-encoder
-   tell, at least for these MP3/Vorbis/Opus families. Caveats kept honest: this did
-   **not** test Apple/Fraunhofer AAC encoders (qaac/fdkaac/afconvert — unavailable on
-   the Linux box, and AAC is historically the hardest codec), and it is an
-   *encoder-diversity* test, not a truly *wild* one (files collected from the
-   internet). Both remain the next step. But the first generalisation signal is
-   reassuring, not alarming.
+   tell, at least for these MP3/Vorbis/Opus families.
+
+   **AAC encoder diversity (the codec that mattered most).** AAC was the historical
+   hard case, so the obvious worry was a *different AAC encoder*. We added Fraunhofer
+   **fdkaac** (genuinely distinct from ffmpeg's native `aac`) and compared, same 300
+   sources, same 256k target:
+
+   | set                          | AUC   | recall | specificity |
+   |------------------------------|-------|--------|-------------|
+   | ffmpeg-aac (in-distribution) | 0.952 | 0.805  | 0.923       |
+   | fdkaac / Fraunhofer (OOD)    | **0.971** | 0.903 | 0.923    |
+
+   **No drop — Δ −0.019, fdkaac is if anything *easier*.** The model generalises to a
+   different AAC encoder. AAC's difficulty is the codec's near-transparency at 256k
+   (both ~0.95–0.97), **not** the encoder's identity. The last encoder-diversity gap
+   closes the same way the others did: no evidence of an ffmpeg-specific tell.
+   (Apple's qaac / afconvert need macOS/Windows and stay untested, but they're the
+   *same* AAC family fdkaac just validated.)
+
+   **A first truly-wild specificity test.** Encoder diversity isn't the wild — so we
+   also pulled **45 genuine lossless FLACs from the Internet Archive Live Music
+   Archive** (`etree` taper recordings, freely distributable), files from outside our
+   corpus in genres/mastering the model never saw, and ran the **full pipeline with
+   `--deep`**. Every one *should* read AUTHENTIC:
+
+   | verdict       | count |
+   |---------------|-------|
+   | AUTHENTIC     | 39    |
+   | WARNING       | 5     |
+   | SUSPICIOUS    | 1     |
+   | FAKE_CERTAIN  | **0** |
+
+   **86.7 % specificity, zero hard false condemnations**, and 0/45 false fake-hi-res
+   flags. Honest framing: live *audience* recordings are adversarial for a
+   cliff-based detector (board patches, mic-limited HF can look band-limited), and
+   `--deep` is the most aggressive mode (Rule 12 + WARNING floor on every file) — the
+   default scan would read higher. Reproduce with `ml/fetch_wild_authentic.py`
+   (download) then `flac-detective <dir> --deep` (verdict per file). The harness now
+   exists; a larger, genre-stratified wild set is the natural next expansion.
 
 ---
 
