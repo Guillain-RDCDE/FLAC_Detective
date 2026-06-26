@@ -37,6 +37,8 @@ def _patch_windows(monkeypatch, probs, rolloff=mc._ROLLOFF_GATE_HZ + 5000):
     monkeypatch.setattr(
         mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel] * len(probs), rolloff)
     )
+    # Neutralise the bundled calibration so aggregation is checked on raw probabilities.
+    monkeypatch.setattr(mc, "calibrate_probability", lambda p: p)
 
 
 def test_aggregates_mean_over_windows(monkeypatch):

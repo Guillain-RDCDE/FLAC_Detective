@@ -1,0 +1,12 @@
+{
+  "method": "platt",
+  "a": 1.50861243075175,
+  "b": -0.5411329078746715,
+  "model": "cnn_v4_stereo",
+  "fit_n": 690,
+  "fit_date": "2026-06-26T16:36:38Z",
+  "brier_before": 0.02242,
+  "brier_after": 0.01977,
+  "ece_before": 0.03721,
+  "ece_after": 0.00604
+}

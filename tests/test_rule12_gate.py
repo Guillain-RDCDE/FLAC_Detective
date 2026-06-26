@@ -27,6 +27,8 @@ def _patch(monkeypatch, rolloff, n_windows=1):
     mel = np.zeros((1, 1, mc._N_MELS, 8), dtype=np.float32)
     monkeypatch.setattr(mc, "_load_model", lambda: _FakeModel())
     monkeypatch.setattr(mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel] * n_windows, rolloff))
+    # Neutralise the bundled calibration so the gate logic is tested on raw p.
+    monkeypatch.setattr(mc, "calibrate_probability", lambda p: p)
 
 
 def test_abstains_below_gate(monkeypatch):
