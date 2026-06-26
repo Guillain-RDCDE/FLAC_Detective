@@ -36,7 +36,7 @@ class _PModel:
 def _patch(monkeypatch, p, rolloff=mc._ROLLOFF_GATE_HZ + 5000):
     mel = np.zeros((1, 2, mc._N_MELS, 8), dtype=np.float32)
     monkeypatch.setattr(mc, "_load_model", lambda: _PModel(p))
-    monkeypatch.setattr(mc, "_compute_mel", lambda _fp: (mel, rolloff))
+    monkeypatch.setattr(mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel], rolloff))
 
 
 def test_floor_lifts_silent_high_confidence_to_warning(monkeypatch):

@@ -10,8 +10,10 @@ include pyproject.toml
 prune scripts
 prune ml
 
-# Include bundled ML model weights (TorchScript .pt files)
+# Include bundled ML model weights (TorchScript .pt files) and the optional
+# probability-calibration mapping fitted for Rule 12 (cnn_v4_stereo.calibration.json).
 recursive-include src/flac_detective/models *.pt
+recursive-include src/flac_detective/models *.json
 
 # Exclude version control and CI/CD files
 prune .github

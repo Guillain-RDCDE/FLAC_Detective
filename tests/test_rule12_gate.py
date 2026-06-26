@@ -3,7 +3,7 @@
 The gate exists because an empirical audit showed the model's precision collapses
 to a coin flip below ~7 kHz of spectral rolloff (see ml/README.md). These tests
 pin the gate logic without needing the real TorchScript model or audio decode —
-``_load_model`` and ``_compute_mel`` are monkeypatched so we test only the gate.
+``_load_model`` and ``_compute_mel_windows`` are monkeypatched so we test only the gate.
 """
 
 from __future__ import annotations
@@ -23,10 +23,12 @@ class _FakeModel:
         return torch.tensor([[0.0, 5.0]])
 
 
-def _patch(monkeypatch, rolloff):
+def _patch(monkeypatch, rolloff, n_windows=1):
     mel = np.zeros((1, 1, mc._N_MELS, 8), dtype=np.float32)
     monkeypatch.setattr(mc, "_load_model", lambda: _FakeModel())
-    monkeypatch.setattr(mc, "_compute_mel", lambda _fp: (mel, rolloff))
+    monkeypatch.setattr(
+        mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel] * n_windows, rolloff)
+    )
 
 
 def test_abstains_below_gate(monkeypatch):
