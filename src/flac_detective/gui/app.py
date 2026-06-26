@@ -28,7 +28,9 @@ def main() -> int:
     app.setApplicationName("FLAC Detective")
     window = MainWindow()
     window.show()
-    return app.exec()
+    # int(...) — QApplication.exec() is typed Any in the PySide6 stubs and the
+    # project's mypy config has warn_return_any.
+    return int(app.exec())
 
 
 if __name__ == "__main__":
