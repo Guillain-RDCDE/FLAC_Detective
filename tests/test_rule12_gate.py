@@ -26,9 +26,7 @@ class _FakeModel:
 def _patch(monkeypatch, rolloff, n_windows=1):
     mel = np.zeros((1, 1, mc._N_MELS, 8), dtype=np.float32)
     monkeypatch.setattr(mc, "_load_model", lambda: _FakeModel())
-    monkeypatch.setattr(
-        mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel] * n_windows, rolloff)
-    )
+    monkeypatch.setattr(mc, "_compute_mel_windows", lambda _fp, **_kw: ([mel] * n_windows, rolloff))
 
 
 def test_abstains_below_gate(monkeypatch):
