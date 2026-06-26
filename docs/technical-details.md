@@ -548,6 +548,47 @@ surface for review. See the "On confidence / `--deep`" note above.
 > the mono→stereo breakthrough — is written up as a learning resource in
 > [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md).
 
+### CNN inference: calibration and multi-window aggregation (v1.6)
+
+Two refinements to *how* Rule 12 turns audio into a probability — neither changes
+the model weights:
+
+- **Calibrated probability.** The CNN's softmax output is a confidence, not a
+  true probability (cross-entropy training leaves it over-confident). A monotonic
+  Platt/isotonic mapping — fitted offline on a held-out labelled set by
+  `ml/calibrate_model.py` and bundled as `cnn_v4_stereo.calibration.json` —
+  rescales it, so the 0.5/0.95 score ramp, the 0.90 WARNING floor, and any
+  displayed `p` mean a real probability. Absent the file, calibration is the
+  identity (no behaviour change). See
+  `analysis/new_scoring/rules/ml_calibration.py`.
+- **Multi-window inference.** Instead of one 10 s middle segment, several
+  evenly-spaced windows are scored and their probabilities averaged; the
+  per-window spread is surfaced as an uncertainty signal. This removes the
+  single-segment fragility (a quiet intro or band-limited bridge) behind several
+  past measurement bugs. `infer_file_probability()` is the single source of truth
+  shared by the rule and the `ml/` scripts.
+
+## Fake High-Resolution Detection
+
+A **separate axis** from the transcode verdict, reported as `hires_verdict`
+(`GENUINE_HIRES` / `UPSAMPLED` / `PADDED_DEPTH` / `UPSAMPLED_AND_PADDED` /
+`NOT_HIRES`). A file can be genuinely lossless and still be a fake hi-res product
+(`analysis/hires.py`):
+
+- **Upsampling** — 44.1/48 kHz content resampled to 88.2/96/176/192 kHz. The
+  fingerprint is a hard spectral **cliff at the original Nyquist** (~22.05 / 24 kHz)
+  with **digital silence** above it. Crucially, the test reuses Rule 1's
+  silent-floor-vs-analog-floor discriminator: a genuine high-Nyquist recording
+  that simply rolls off early keeps an analog/dither floor and reads
+  `GENUINE_HIRES`, **not** a false alarm. The naive "cutoff < 24 kHz" heuristic it
+  replaces would have flagged real hi-res.
+- **Padded bit depth** — 16-bit audio written into a 24-bit container, the low
+  8 bits all zero (`BitDepthDetector`).
+
+The hi-res axis is informational about *provenance*; it does not feed the
+transcode score. It is surfaced in the CSV report, the desktop GUI and the Python
+API result dict.
+
 ## Scoring System
 
 ### Additive Scoring

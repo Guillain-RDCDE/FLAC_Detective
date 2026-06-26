@@ -1,3 +1,42 @@
+## v1.6.0 (unreleased) — Desktop GUI, fake-hi-res verdict, calibrated multi-window CNN
+
+A feature release on four fronts. No breaking changes: the CLI flags, top-level
+exports and `analyze_file()` keys are unchanged (two new keys added: `hires_verdict`,
+`hires_reason`).
+
+- **Desktop GUI (`pip install "flac-detective[gui]"`, `flac-detective-gui`).** A
+  PySide6 window over the same analyser: choose a folder (or drag-drop), watch a live
+  progress bar, get a sortable verdict table coloured by verdict, and click any file to
+  see its spectrum with the detected cutoff marked plus the reasons behind its verdict.
+  Export the result set to HTML/CSV/JSON. Analysis runs on a background thread with the
+  same process pool as the CLI, so the UI stays responsive and cancellable. (#1 — GUI)
+- **Fake high-resolution detection — now a first-class verdict.** Upsampling and padded
+  bit depth were computed but only reported informationally. They are now a dedicated
+  axis (`hires_verdict`: `GENUINE_HIRES` / `UPSAMPLED` / `PADDED_DEPTH` /
+  `UPSAMPLED_AND_PADDED` / `NOT_HIRES`), surfaced in the CSV report, the GUI, and the
+  result dict. The upsampling test was rebuilt: instead of the naive "cutoff < 24 kHz"
+  (which flagged genuine hi-res that simply rolls off early), it requires a hard spectral
+  **cliff at the original Nyquist with digital silence above it** — the same
+  silent-floor-vs-analog-floor discriminator as Rule 1's near-Nyquist gate — so a real
+  96 kHz recording reads `GENUINE_HIRES`. (#1)
+- **Calibrated CNN probability (Rule 12).** The model's softmax output was used as if it
+  were a true probability; modern CNNs are over-confident. A monotonic Platt/isotonic
+  mapping (fitted offline by `ml/calibrate_model.py`, bundled as
+  `cnn_v4_stereo.calibration.json`) now rescales it, so the 0.5/0.95 score ramp, the 0.90
+  WARNING floor and any displayed `p` mean a real probability. Identity (no-op) if no
+  calibration file is bundled — safe by default. (#4)
+- **Multi-window CNN inference.** Rule 12 inferred on a single 10 s middle segment, which
+  made the verdict hostage to one patch of audio (the start-vs-middle fragility behind
+  three past measurement bugs). It now samples several evenly-spaced windows, aggregates
+  the per-window probabilities (mean), and surfaces the spread as an uncertainty signal.
+  Set `_N_WINDOWS = 1` to recover the old behaviour. (#3)
+- **Out-of-ffmpeg generalisation harness (`ml/`).** New scripts to measure whether the
+  model generalises beyond its ffmpeg-only training: `generate_transcodes_external.py`
+  (a zoo of standalone encoders — LAME, qaac, fdkaac, oggenc, opusenc, afconvert),
+  `build_wild_testset.py` (score a labelled real-world corpus through the shipped
+  inference) and `measure_auc_drop.py` (quantify the AUC drop from in-distribution to
+  wild). `emit_probs.py` produces calibration-fit input from the production path. (#2)
+
 ## v1.5.0 (2026-06-14) — Band-limited false-positive gate
 
 - **Fewer false positives on band-limited music (Rule 1 near-Nyquist gate).** A 320 kbps

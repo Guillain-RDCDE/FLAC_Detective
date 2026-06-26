@@ -82,6 +82,32 @@ Rule12MLClassifier (12th scoring rule)
 | `train.py` | Train the EfficientNet-B0 classifier with Mixup + WeightedRandomSampler, save best checkpoint by `balanced_acc`. |
 | `export_torchscript.py` | Trace the best checkpoint to TorchScript for runtime use. |
 | `run_pipeline.sh` | Chain the four GPU-side stages (transcode → features → train → export). |
+| `emit_probs.py` | Walk a labelled corpus through the **shipped** inference (`infer_file_probability`, multi-window + calibration) and write a `p_raw,label` CSV — the input for `calibrate_model.py`. |
+| `calibrate_model.py` | Fit a monotonic Platt/isotonic mapping `p_raw → p_cal` (Newton-Raphson / PAVA, no sklearn) and write `cnn_v4_stereo.calibration.json`. Reports Brier/ECE before vs after. |
+| `generate_transcodes_external.py` | Widen the zoo with **external** (non-ffmpeg) encoders — LAME, qaac, fdkaac, oggenc, opusenc, afconvert — for out-of-distribution data. Auto-skips encoders not on PATH. |
+| `build_wild_testset.py` | Score a labelled **wild** corpus (real collected fakes + authentics) through the shipped inference; emit `path,label,source,p_raw,p_cal,rolloff,abstained`. |
+| `measure_auc_drop.py` | Compare per-set ROC-AUC / balanced-acc / ECE across labelled prob CSVs and report the **AUC drop** from the in-distribution (ffmpeg) baseline to the wild/external sets. |
+
+### v1.6 — calibration, multi-window, and the wild-generalisation harness
+
+Three things landed on top of the v4 stereo model, none of them retraining it:
+
+1. **Calibration (`calibrate_model.py` → `cnn_v4_stereo.calibration.json`).** The
+   softmax `p` is over-confident; a Platt/isotonic mapping rescales it so a
+   reported probability means what it says. Fit it on held-out data emitted by
+   `emit_probs.py` (which uses the *production* inference path, so the fit matches
+   what ships). Absent the JSON, calibration is the identity — safe by default.
+2. **Multi-window inference.** The runtime now averages several windows per file
+   instead of trusting one middle segment (the start-vs-middle fragility that
+   bit the measurements in this README three times). `infer_file_probability()`
+   in `ml_classifier.py` is the shared source of truth.
+3. **Out-of-ffmpeg generalisation.** The honest open question this README keeps
+   circling — *does the model generalise past our own ffmpeg pipeline?* — now has
+   a harness. `generate_transcodes_external.py` builds fakes with other encoders;
+   `build_wild_testset.py` scores a real-world corpus; `measure_auc_drop.py`
+   quantifies the gap. A large AUC drop is the signal to fold those encoders into
+   the training zoo. **This measurement has not been run yet — it is the next
+   chapter, not a result.**
 
 ---
 

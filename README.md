@@ -93,12 +93,34 @@ is correctly rejected (the real codec is probed, never trusted by extension).
 
 → Full guide & every flag: **[User Guide](docs/user-guide.md)**.
 
+### 🖥️ Prefer a window to a command line?
+
+```bash
+pip install "flac-detective[gui]"
+flac-detective-gui
+```
+
+A desktop app (PySide6): choose a folder or drag it in, watch the progress bar, then
+triage a sortable, colour-coded verdict table — click any file to see its spectrum with
+the detected cutoff marked and the reasons for its verdict. Export to HTML/CSV/JSON.
+
+### 🎚️ It also catches **fake hi-res**
+
+Beyond lossy-as-lossless, FLAC Detective flags files *sold* as high-resolution that
+aren't: 44.1/48 kHz **upsampled** to 96/192 kHz (a hard spectral cliff with digital
+silence above it), and 16-bit audio **padded** into a 24-bit container. This is a
+separate axis from the transcode verdict — reported as `hires_verdict`
+(`GENUINE_HIRES` / `UPSAMPLED` / `PADDED_DEPTH` / …) in the CSV report, the GUI and the
+Python API. A genuine 96 kHz recording that simply rolls off early reads `GENUINE_HIRES`,
+not a false alarm.
+
 <details>
 <summary><b>Install options &amp; upgrading</b></summary>
 
 ```bash
 pip install flac-detective                 # base
 pip install "flac-detective[ml]"           # + optional CNN (Rule 12)
+pip install "flac-detective[gui]"          # + desktop GUI (flac-detective-gui)
 docker pull ghcr.io/guillain-rdcde/flac_detective:latest   # or Docker (amd64 + arm64)
 ```
 
