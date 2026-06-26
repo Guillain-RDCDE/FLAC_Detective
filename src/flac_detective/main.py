@@ -532,6 +532,8 @@ def _create_non_flac_result(non_flac_file: Path) -> dict:
         "is_upsampled": False,
         "suspected_original_rate": 0,
         "estimated_mp3_bitrate": 0,
+        "hires_verdict": "NOT_HIRES",
+        "hires_reason": "",
     }
 
 

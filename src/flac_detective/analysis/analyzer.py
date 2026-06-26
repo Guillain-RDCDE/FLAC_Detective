@@ -12,6 +12,7 @@ from typing import Dict, Union
 from .audio_cache import AudioCache
 from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
 from .diagnostic_tracker import get_tracker
+from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .quality import analyze_audio_quality
@@ -135,6 +136,30 @@ class FLACAnalyzer:
             if is_partial_analysis:
                 reason += " (analysed from a partial read of the file)"
 
+            # Fake hi-res verdict (#1): a SEPARATE axis from the transcode verdict.
+            # Combines the upsampling (spectral cliff + silent floor) and bit-depth
+            # (padded 24-bit) signals into one label (GENUINE_HIRES / UPSAMPLED /
+            # PADDED_DEPTH / …). NOT_HIRES for ordinary ≤48 kHz / ≤16-bit files.
+            bd = quality_analysis["bit_depth"]
+            up = quality_analysis["upsampling"]
+            try:
+                sr_int = int(metadata.get("sample_rate", 0) or 0)
+            except (TypeError, ValueError):
+                sr_int = 0
+            try:
+                depth_int = int(metadata.get("bit_depth", 0) or 0)
+            except (TypeError, ValueError):
+                depth_int = 0
+            hires_verdict, hires_reasons = classify_hires(
+                sample_rate=sr_int,
+                bit_depth=depth_int,
+                is_upsampled=up.get("is_upsampled", False),
+                suspected_original_rate=up.get("suspected_original_rate", sr_int),
+                is_fake_high_res=bd.get("is_fake_high_res", False),
+                estimated_depth=bd.get("estimated_depth", depth_int),
+                floor_above_db=up.get("floor_above_db", float("nan")),
+            )
+
             # Increment files analyzed counter
             get_tracker().increment_files_analyzed()
 
@@ -175,6 +200,9 @@ class FLACAnalyzer:
                     "suspected_original_rate"
                 ],
                 "estimated_mp3_bitrate": estimate_mp3_bitrate(cutoff_freq),
+                # Fake hi-res axis (#1) — independent of the transcode verdict.
+                "hires_verdict": hires_verdict,
+                "hires_reason": " | ".join(hires_reasons) if hires_reasons else "",
             }
 
         except Exception as e:
@@ -208,6 +236,8 @@ class FLACAnalyzer:
                 "estimated_bit_depth": 0,
                 "is_upsampled": False,
                 "suspected_original_rate": 0,
+                "hires_verdict": "UNKNOWN",
+                "hires_reason": "",
             }
         finally:
             # Cleanup resources

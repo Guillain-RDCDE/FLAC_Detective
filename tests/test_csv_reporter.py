@@ -36,6 +36,7 @@ def test_csv_header_and_columns(tmp_path):
         "rank",
         "score",
         "verdict",
+        "hires_verdict",
         "filename",
         "cutoff_freq_hz",
         "sample_rate",
@@ -45,6 +46,8 @@ def test_csv_header_and_columns(tmp_path):
     }
     # Cutoff rounds to an int; absent cutoff stays blank.
     assert rows[0]["cutoff_freq_hz"] == ""
+    # Hi-res verdict blank for an ordinary file (no/NOT_HIRES value).
+    assert rows[0]["hires_verdict"] == ""
 
 
 def test_csv_cutoff_rounded_and_reason_single_line(tmp_path):

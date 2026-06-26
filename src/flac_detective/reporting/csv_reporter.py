@@ -17,6 +17,7 @@ _FIELDNAMES = [
     "rank",
     "score",
     "verdict",
+    "hires_verdict",
     "filename",
     "cutoff_freq_hz",
     "sample_rate",
@@ -54,6 +55,12 @@ class CSVReporter:
                         "rank": rank,
                         "score": r.get("score", ""),
                         "verdict": r.get("verdict", ""),
+                        # Fake-hi-res axis (#1); blank for ordinary CD-quality files.
+                        "hires_verdict": (
+                            r.get("hires_verdict", "")
+                            if r.get("hires_verdict", "NOT_HIRES") != "NOT_HIRES"
+                            else ""
+                        ),
                         "filename": r.get("filename", ""),
                         "cutoff_freq_hz": round(cutoff) if isinstance(cutoff, (int, float)) else "",
                         "sample_rate": r.get("sample_rate", ""),

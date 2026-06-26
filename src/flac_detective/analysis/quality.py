@@ -656,16 +656,20 @@ class AudioQualityAnalyzer:
                 filepath=filepath, reported_depth=reported_depth
             )
 
-            # 7. Upsampling detection - this one doesn't need audio data, just metadata
-            # It needs the sample rate. Let's get it from sf.info to be safe.
+            # 7. Upsampling detection. For high-rate files (>48 kHz) we use the
+            # robust spectral test in `hires.detect_upsampling` — a hard cliff at
+            # the original Nyquist with a *digital-silence* floor above it — instead
+            # of the naive "cutoff < 24 kHz" heuristic, which would flag genuine
+            # hi-res that simply rolls off early. Needs the decoded audio (from the
+            # shared cache); falls back to the metadata-only detector if unavailable.
             try:
                 info = sf.info(str(filepath))
                 reported_rate = info.samplerate
             except Exception:
                 reported_rate = self._get_reported_rate(metadata, 0)
 
-            results["upsampling"] = self.detectors["upsampling"].detect(
-                cutoff_freq=cutoff_freq, samplerate=reported_rate
+            results["upsampling"] = self._detect_upsampling(
+                filepath, reported_rate, cutoff_freq, cache
             )
 
         except Exception as e:
@@ -673,6 +677,39 @@ class AudioQualityAnalyzer:
             return self._get_empty_results(results, error_mode=True, error_msg=str(e))
 
         return results
+
+    def _detect_upsampling(
+        self, filepath: Path, samplerate: int, cutoff_freq: float, cache
+    ) -> Dict[str, Any]:
+        """Robust upsampling detection: spectral cliff + silent floor (>48 kHz only).
+
+        Uses the decoded audio (shared cache, else a direct read) to run
+        :func:`hires.detect_upsampling`. Falls back to the naive metadata-only
+        detector if no audio is available or the rate is <=48 kHz.
+        """
+        from .hires import detect_upsampling
+
+        if samplerate <= 48000:
+            return self.detectors["upsampling"].detect(
+                cutoff_freq=cutoff_freq, samplerate=samplerate
+            )
+        try:
+            if cache is not None:
+                audio, sr = cache.get_full_audio()
+            else:
+                audio, sr = sf.read(str(filepath), dtype="float32")
+            spectral = detect_upsampling(audio, sr or samplerate)
+            return {
+                "is_upsampled": spectral["is_upsampled"],
+                "suspected_original_rate": spectral["suspected_original_rate"],
+                "cutoff_freq": cutoff_freq,
+                "floor_above_db": spectral["floor_above_db"],
+            }
+        except Exception as e:
+            logger.warning(f"Spectral upsampling detection failed for {filepath.name}: {e}")
+            return self.detectors["upsampling"].detect(
+                cutoff_freq=cutoff_freq, samplerate=samplerate
+            )
 
     def _get_reported_depth(self, metadata: Dict | None) -> int:
         """Extract reported bit depth from metadata.
