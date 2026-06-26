@@ -104,10 +104,26 @@ Three things landed on top of the v4 stereo model, none of them retraining it:
 3. **Out-of-ffmpeg generalisation.** The honest open question this README keeps
    circling — *does the model generalise past our own ffmpeg pipeline?* — now has
    a harness. `generate_transcodes_external.py` builds fakes with other encoders;
-   `build_wild_testset.py` scores a real-world corpus; `measure_auc_drop.py`
-   quantifies the gap. A large AUC drop is the signal to fold those encoders into
-   the training zoo. **This measurement has not been run yet — it is the next
-   chapter, not a result.**
+   `build_wild_testset.py` scores a corpus; `measure_auc_drop.py` quantifies the gap.
+
+   **First measurement (2026-06-26, n=300 authentic sources):** fakes built with
+   *standalone* encoders not in the training zoo — LAME (320/V0/V2), oggenc (Vorbis),
+   opusenc (Opus) — scored through the shipped inference and compared to the ffmpeg
+   in-distribution baseline:
+
+   | set                                   | AUC   | bal acc | specificity |
+   |---------------------------------------|-------|---------|-------------|
+   | ffmpeg (in-distribution)              | 0.995 | 0.975   | 0.968       |
+   | external encoders (LAME/oggenc/opusenc) | **0.986** | 0.945 | 0.923    |
+
+   **AUC drop Δ 0.009 — negligible.** The model holds up against encoders it never
+   trained on: it learned a genuine transcode fingerprint, not an ffmpeg-encoder
+   tell, at least for these MP3/Vorbis/Opus families. Caveats kept honest: this did
+   **not** test Apple/Fraunhofer AAC encoders (qaac/fdkaac/afconvert — unavailable on
+   the Linux box, and AAC is historically the hardest codec), and it is an
+   *encoder-diversity* test, not a truly *wild* one (files collected from the
+   internet). Both remain the next step. But the first generalisation signal is
+   reassuring, not alarming.
 
 ---
 
