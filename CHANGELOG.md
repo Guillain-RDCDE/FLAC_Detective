@@ -1,4 +1,4 @@
-## v1.6.0 (unreleased) — Desktop GUI, fake-hi-res verdict, calibrated multi-window CNN
+## v1.6.0 (2026-06-26) — Desktop GUI, fake-hi-res verdict, calibrated multi-window CNN
 
 A feature release on four fronts. No breaking changes: the CLI flags, top-level
 exports and `analyze_file()` keys are unchanged (two new keys added: `hires_verdict`,
