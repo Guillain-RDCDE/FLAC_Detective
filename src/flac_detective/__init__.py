@@ -55,9 +55,6 @@ flac_detective.reporting.text_reporter : Report generation
 """
 
 from .__version__ import __version__
-from .analysis import FLACAnalyzer
-from .tracker import ProgressTracker
-from .utils import LOGO, find_flac_files
 
 __all__ = [
     "FLACAnalyzer",
@@ -66,3 +63,28 @@ __all__ = [
     "LOGO",
     "__version__",
 ]
+
+
+# Lazy re-exports (PEP 562). Importing FLACAnalyzer eagerly here pulled in the
+# whole analysis stack (scipy, ~4.5s) on *any* `import flac_detective.*`,
+# including the GUI shell that doesn't need it until you actually analyse. The
+# public API (`from flac_detective import FLACAnalyzer`) is unchanged — the
+# import just happens on first access instead of at package load.
+def __getattr__(name: str):
+    if name == "FLACAnalyzer":
+        from .analysis import FLACAnalyzer
+
+        return FLACAnalyzer
+    if name == "ProgressTracker":
+        from .tracker import ProgressTracker
+
+        return ProgressTracker
+    if name in ("LOGO", "find_flac_files"):
+        from . import utils
+
+        return getattr(utils, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return sorted(__all__)
