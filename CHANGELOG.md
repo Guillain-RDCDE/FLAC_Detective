@@ -1,3 +1,23 @@
+## v1.6.1 (2026-06-27) — Calibration shipped; generalisation validated
+
+A refinement release. No API change; the shipped behavioural change is that Rule 12's
+probability is now **calibrated by default**.
+
+- **Fitted Platt calibration bundled** (`cnn_v4_stereo.calibration.json`). Until now the
+  calibration mechanism shipped but with no fitted file, so it was the identity. The
+  mapping is now fitted on a 690-file held-out set scored through the production
+  inference path — lowering expected calibration error from 0.037 to 0.006. Verdicts
+  shift only marginally (a touch fewer borderline false positives); the model was
+  already fairly calibrated in-distribution, so this is a polish, not an overhaul.
+- **Out-of-ffmpeg generalisation validated** (no shipped-code change — `ml/` study only).
+  The long-standing open question — *does the CNN generalise past its ffmpeg-only
+  training?* — now has answers: standalone LAME/oggenc/opusenc fakes drop AUC by only
+  0.009; Fraunhofer **fdkaac** AAC scores **0.971** vs 0.952 for ffmpeg-aac (no drop at
+  all); and a first **wild** test on 45 Internet-Archive live FLACs reads 86.7 %
+  specificity with zero hard false positives. The model learned a real transcode
+  fingerprint, not an encoder tell. New `ml/fetch_wild_authentic.py`; full write-up in
+  `ml/README.md`.
+
 ## v1.6.0 (2026-06-26) — Desktop GUI, fake-hi-res verdict, calibrated multi-window CNN
 
 A feature release on four fronts. No breaking changes: the CLI flags, top-level
