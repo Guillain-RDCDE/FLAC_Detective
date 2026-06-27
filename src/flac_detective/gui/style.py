@@ -8,16 +8,16 @@ modern macOS app than a dense data grid.
 from __future__ import annotations
 
 # --- palette ------------------------------------------------------------
-WINDOW_BG = "#f5f5f7"   # app background (Apple light grey)
-CARD_BG = "#ffffff"     # panels / table
-TEXT = "#1d1d1f"        # primary text (near-black)
+WINDOW_BG = "#f5f5f7"  # app background (Apple light grey)
+CARD_BG = "#ffffff"  # panels / table
+TEXT = "#1d1d1f"  # primary text (near-black)
 TEXT_SECONDARY = "#6e6e73"
 SEPARATOR = "#e5e5ea"
 HAIRLINE = "#d2d2d7"
-ACCENT = "#0071e3"      # primary button / highlights
+ACCENT = "#0071e3"  # primary button / highlights
 ACCENT_HOVER = "#0077ed"
 ACCENT_PRESSED = "#006edb"
-SELECTION = "#e8f1ff"   # selected table row
+SELECTION = "#e8f1ff"  # selected table row
 
 # Verdict -> (text colour, soft pill background, human label).
 VERDICT_THEME = {
