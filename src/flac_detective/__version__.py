@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.6.1"
+__version__ = "1.7.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
 __release_date__ = "2026-06-27"
-__release_name__ = "Calibration shipped; generalisation validated"
+__release_name__ = "Easy mode & Advanced mode"
 
 # Metadata
 __author__ = "Guillain d'Erceville"
