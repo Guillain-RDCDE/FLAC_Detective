@@ -360,6 +360,15 @@ def parse_arguments() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--advanced",
+        action="store_true",
+        help=(
+            "Advanced output: show the plumbing — numeric scores, detected cutoff and "
+            "MP3 bitrate, and the per-rule reasoning. Default ('easy') mode hides all "
+            "that and prints a plain-language verdict and recommended action per file."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -461,7 +470,7 @@ _VERDICT_DISPLAY = {
 }
 
 
-def _log_formatted_result(result: dict, processed: int, total: int):
+def _log_formatted_result(result: dict, processed: int, total: int, advanced: bool = False):
     """Log one analysis result, styled by its authoritative verdict.
 
     Args:
@@ -469,6 +478,8 @@ def _log_formatted_result(result: dict, processed: int, total: int):
             the source of truth — the console renders that label, never its own.
         processed: Number of files processed.
         total: Total number of files.
+        advanced: If True, show the numeric score (plumbing). Default 'easy' mode
+            shows a plain verdict label only.
     """
     score = result.get("score", 0)
     verdict = result.get("verdict", "UNKNOWN")
@@ -479,16 +490,16 @@ def _log_formatted_result(result: dict, processed: int, total: int):
     if len(filename) > 50:
         filename = filename[:47] + "..."
 
-    # Rich formatted message
+    # Easy mode hides the 0-150 score; advanced shows it.
+    score_field = f" {score:>3}/100" if advanced else ""
     if HAS_RICH:
         # We rely on RichHandler for the timestamp and base formatting
         # Here we just construct the nice message content
-        msg = f"[{style}]{icon} {label:<12} {score:>3}/100[/]  {filename}"
+        msg = f"[{style}]{icon} {label:<12}{score_field}[/]  {filename}"
         logger.info(msg, extra={"markup": True})
     else:
         # Fallback for standard logging
-        score_str = f"{score}/100"
-        msg = f"[{processed:03d}/{total:03d}] {icon} {label:<12} {score_str:>7}  {filename}"
+        msg = f"[{processed:03d}/{total:03d}] {icon} {label:<12}{score_field}  {filename}"
         logger.info(msg)
 
 
@@ -538,7 +549,10 @@ def _create_non_flac_result(non_flac_file: Path) -> dict:
 
 
 def _process_flac_files(
-    files_to_process: list[Path], tracker: ProgressTracker, analyzer: FLACAnalyzer
+    files_to_process: list[Path],
+    tracker: ProgressTracker,
+    analyzer: FLACAnalyzer,
+    advanced: bool = False,
 ):
     """Process FLAC files with multi-processing and rich progress.
 
@@ -546,6 +560,7 @@ def _process_flac_files(
         files_to_process: List of FLAC files to analyze.
         tracker: Progress tracker instance.
         analyzer: FLAC analyzer instance.
+        advanced: Pass-through to the per-file console line (show score or not).
     """
     total_files = len(files_to_process)
 
@@ -587,7 +602,7 @@ def _process_flac_files(
                     progress.update(task_id, advance=1)
 
                     # Log result (will appear above progress bar thanks to RichHandler)
-                    _log_formatted_result(result, processed_count, total_files)
+                    _log_formatted_result(result, processed_count, total_files, advanced)
 
                     # Periodic save
                     if processed_count % analysis_config.SAVE_INTERVAL == 0:
@@ -626,6 +641,7 @@ def run_analysis_loop(
     output_dir: Path,
     sample_duration: Optional[float] = None,
     deep: bool = False,
+    advanced: bool = False,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -637,6 +653,7 @@ def run_analysis_loop(
             None falls back to `analysis_config.SAMPLE_DURATION`.
         deep: Run Rule 12 (ML) on every file, bypassing the authentic fast path.
             See the ``--deep`` flag.
+        advanced: Show numeric scores in the per-file console line (else easy mode).
 
     Returns:
         List of result dictionaries.
@@ -663,7 +680,7 @@ def run_analysis_loop(
         print()
 
         # Multi-process analysis
-        _process_flac_files(files_to_process, tracker, analyzer)
+        _process_flac_files(files_to_process, tracker, analyzer, advanced)
 
         # Final save
         tracker.save()
@@ -735,6 +752,7 @@ def _write_report(
     input_paths: list[Path],
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
+    advanced: bool = False,
 ) -> None:
     """Write ``results`` to ``output_file`` in the requested format.
 
@@ -748,6 +766,7 @@ def _write_report(
         input_paths: Scan roots (passed to reporters for relative paths / scan_info).
         all_flac_files: All FLAC files analyzed (json scan_info only).
         all_non_flac_files: All non-FLAC files found (json scan_info only).
+        advanced: Text report verbosity — easy (plain language) vs advanced (plumbing).
     """
     if report_format == "json":
         import json
@@ -769,7 +788,9 @@ def _write_report(
     elif report_format == "html":
         HTMLReporter().generate_report(results, output_file, scan_paths=input_paths)
     else:
-        TextReporter().generate_report(results, output_file, scan_paths=input_paths)
+        TextReporter(advanced=advanced).generate_report(
+            results, output_file, scan_paths=input_paths
+        )
 
 
 def generate_final_report(
@@ -781,6 +802,7 @@ def generate_final_report(
     input_paths: list[Path],
     output_path: Optional[Path] = None,
     report_format: str = "text",
+    advanced: bool = False,
 ):
     """Generate the final report and print summary.
 
@@ -793,6 +815,7 @@ def generate_final_report(
         input_paths: List of user input paths (scan roots).
         output_path: Explicit output path; if None, auto-named in `output_dir`.
         report_format: "text", "json", "csv" or "html".
+        advanced: Text report verbosity — easy (default) vs advanced (plumbing).
     """
     logger.info("\nGenerating report...")
 
@@ -810,6 +833,7 @@ def generate_final_report(
         input_paths,
         all_flac_files,
         all_non_flac_files,
+        advanced=advanced,
     )
 
     # Generate diagnostic report if there were issues
@@ -852,14 +876,20 @@ def generate_final_report(
         print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
 
     # Triage view: the most suspicious files, ranked, so a library scan surfaces
-    # what to check first without opening the full report.
+    # what to check first without opening the full report. Advanced shows the raw
+    # score; easy mode shows the plain verdict label instead.
     if suspicious_flac:
+        from .presentation import verdict_plain
+
         top = sorted(suspicious_flac, key=lambda r: r.get("score", 0) or 0, reverse=True)
         print(f"\n  {colorize('Most suspicious (top of the list):', Colors.YELLOW)}")
         for r in top[:5]:
-            print(
-                f"    {r.get('score', 0):>4}  {r.get('verdict', ''):<12}  {r.get('filename', '')}"
-            )
+            if advanced:
+                lead = f"{r.get('score', 0):>4}  {r.get('verdict', ''):<12}"
+            else:
+                icon, label, _ = verdict_plain(r.get("verdict", ""))
+                lead = f"{icon}  {label:<14}"
+            print(f"    {lead}  {r.get('filename', '')}")
         if len(top) > 5:
             print(f"    … and {len(top) - 5} more (full ranking in the report)")
 
@@ -914,6 +944,7 @@ def main():
         output_dir,
         sample_duration=args.sample_duration,
         deep=args.deep,
+        advanced=args.advanced,
     )
 
     generate_final_report(
@@ -925,6 +956,7 @@ def main():
         args.paths,
         output_path=args.output,
         report_format=args.format,
+        advanced=args.advanced,
     )
 
 

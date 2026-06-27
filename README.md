@@ -86,7 +86,13 @@ flac-detective                             # interactive (prompts for a path)
 flac-detective /music --format csv  -o triage.csv   # spreadsheet, worst-first
 flac-detective /music --format html -o report.html  # visual report (see above)
 flac-detective /music --deep                        # catch high-bitrate AAC/Opus/Vorbis (slower)
+flac-detective /music --advanced                    # show the plumbing: scores, cutoff, per-rule detail
 ```
+
+By default the output is **easy mode** — a plain-language verdict and a recommended action
+per file (*"Almost certainly a fake — the sound stops dead at ~16 kHz, the wall of a
+128 kbps MP3. → Replace it."*). Add `--advanced` for the scores, cutoff frequencies and
+per-rule reasoning. The desktop GUI has the same **Advanced** toggle.
 
 Analyses **FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`)** — codec-agnostic, and a lossy `.m4a`
 is correctly rejected (the real codec is probed, never trusted by extension).

@@ -15,9 +15,59 @@ logger = logging.getLogger(__name__)
 class TextReporter:
     """Text report generator with ASCII formatting."""
 
-    def __init__(self):
-        """Initialize the report generator."""
+    def __init__(self, advanced: bool = True):
+        """Initialize the report generator.
+
+        Args:
+            advanced: When True (default, the historical behaviour) the report shows
+                the plumbing — scores, cutoff, bitrate, per-issue counts. When False
+                ('easy' mode) it prints a plain-language verdict + recommended action
+                per flagged file and hides the technical columns.
+        """
         self.width = 140  # Report width (increased for better file visibility)
+        self.advanced = advanced
+
+    def _generate_easy(
+        self, results: list[dict[str, Any]], output_file: Path, scan_paths: list[Path] | None
+    ) -> None:
+        """Write a plain-language report: traffic-light verdicts + actions, no plumbing."""
+        from ..analysis.new_scoring import determine_verdict
+        from ..presentation import plain_explanation, verdict_plain
+
+        def verdict_of(r: dict[str, Any]) -> str:
+            return r.get("verdict") or determine_verdict(r.get("score", 0))[0]
+
+        flagged = [
+            r for r in results if verdict_of(r) in ("SUSPICIOUS", "FAKE_CERTAIN", "NON_FLAC")
+        ]
+        flagged.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
+
+        lines = [
+            "=" * self.width,
+            f" FLAC DETECTIVE — {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "=" * self.width,
+            f" {len(results)} file(s) checked · {len(flagged)} need attention.",
+            "",
+        ]
+        if flagged:
+            lines.append(" FILES TO LOOK AT")
+            lines.append("")
+            for r in flagged:
+                icon, label, action = verdict_plain(verdict_of(r))
+                lines.append(f" {icon}  {label.upper()} — {self._get_display_path(r, scan_paths)}")
+                explanation = plain_explanation(r)
+                if explanation:
+                    lines.append(f"      {explanation}")
+                lines.append(f"      → {action}")
+                lines.append("")
+        else:
+            lines.append(" All clear — no transcodes or fakes found. Everything looks genuine.")
+            lines.append("")
+        lines.append(
+            " Tip: run with --advanced for scores, cutoff frequencies and per-rule detail."
+        )
+        output_file.write_text("\n".join(lines), encoding="utf-8")
+        logger.info(f"Report generated (easy mode): {output_file}")
 
     def _header(self, title: str) -> str:
         """Generates a formatted header.
@@ -131,6 +181,10 @@ class TextReporter:
             scan_paths: List of scan root directories to calculate relative paths.
         """
         logger.info(f"Generating text report: {output_file}")
+
+        if not self.advanced:
+            self._generate_easy(results, output_file, scan_paths)
+            return
 
         # Calculate statistics
         stats = calculate_statistics(results)

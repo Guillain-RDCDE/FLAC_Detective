@@ -67,9 +67,41 @@ def test_append_row_and_summary(app):
     win._update_summary(cancelled=False)
     text = win._summary_label.text()
     assert "1 fake" in text and "1 fake hi-res" in text
-    # The stashed result round-trips on the first cell.
-    stashed = win._table.item(0, 0).data(Qt.ItemDataRole.UserRole)
+    # The stashed result round-trips on the File cell (where _append_row puts it).
+    from flac_detective.gui.main_window import _COL_FILE
+
+    stashed = win._table.item(0, _COL_FILE).data(Qt.ItemDataRole.UserRole)
     assert stashed["filename"] in {"a.flac", "b.flac"}
+
+
+def test_easy_advanced_toggle(app):
+    """The Advanced toggle shows/hides the Score column and re-renders the detail."""
+    from flac_detective.gui.main_window import _COL_SCORE
+
+    win = MainWindow()
+    r = {
+        "filename": "x.flac",
+        "filepath": "",
+        "score": 92,
+        "verdict": "FAKE_CERTAIN",
+        "cutoff_freq": 16000,
+        "estimated_mp3_bitrate": 128,
+        "reason": "R2: cutoff low | R9: artefacts",
+        "hires_verdict": "NOT_HIRES",
+    }
+    win._results.append(r)
+    win._append_row(r)
+
+    # Default = easy: Score column hidden, reasons are plain (no rule codes).
+    assert win._table.isColumnHidden(_COL_SCORE)
+    win._populate_detail(r)
+    assert "R2" not in win._reasons.toHtml()
+    assert "128 kbps" in win._reasons.toPlainText()
+
+    # Flip to advanced: Score column shown, per-rule bullets return.
+    win._advanced_check.setChecked(True)
+    assert not win._table.isColumnHidden(_COL_SCORE)
+    assert "R2" in win._reasons.toHtml()
 
 
 def test_collect_files_dedup(app, tmp_path):

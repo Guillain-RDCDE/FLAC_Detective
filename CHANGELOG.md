@@ -1,3 +1,27 @@
+## v1.7.0 (2026-06-27) — Easy mode (plain language) vs Advanced mode (the plumbing)
+
+Both the CLI and the desktop GUI now have two voices. **Easy mode is the new default**:
+a traffic-light verdict and a plain-language explanation + recommended action per file,
+with none of the plumbing. **Advanced mode** shows exactly what earlier versions did —
+scores, cutoff/bitrate, per-rule reasoning.
+
+- **CLI `--advanced` flag.** Without it (easy mode), the console prints `❌ Fake  track.flac`
+  and the text report reads *"Almost certainly a fake — the sound stops dead at about
+  16 kHz, the tell-tale wall of a ~128 kbps MP3. → Replace it."* — no rule codes, no
+  scores, no Hz/dB. With `--advanced`, the familiar score/cutoff/bitrate table and the
+  per-rule reasons return unchanged. (JSON/CSV/HTML reports are data formats and are
+  unaffected.)
+- **GUI "Advanced" toggle.** Off by default: the detail card shows a plain explanation and
+  an action, and the numeric Score column is hidden. Flip it on for the score, the
+  sample-rate/bit-depth/cutoff metadata and the per-rule "why".
+- **New `flac_detective.presentation` module** is the single source of truth for the
+  plain-language voice (verdict → icon/label/action, and a jargon-free explanation built
+  from the spectral cliff, the implied MP3 bitrate and the fake-hi-res axis), so the CLI,
+  the report and the GUI all say the same thing.
+
+No API break: `analyze_file()` keys are unchanged, and constructing `TextReporter()`
+directly still defaults to the advanced report.
+
 ## v1.6.1 (2026-06-27) — Calibration shipped; generalisation validated
 
 A refinement release. No API change; the shipped behavioural change is that Rule 12's
