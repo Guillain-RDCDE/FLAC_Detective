@@ -4,6 +4,8 @@
 
 # 🎵 FLAC Detective
 
+> **An MP3 renamed to .flac looks lossless, weighs lossless, and fools every player you own. It can't fool a spectrogram — and this reads it for you.**
+
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)
 [![CI](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml/badge.svg)](https://github.com/Guillain-RDCDE/FLAC_Detective/actions/workflows/ci.yml)
@@ -12,9 +14,9 @@
 
 **Find the fake FLACs in your music library.**
 
-Anyone can take an MP3, re-save it as FLAC, and it *looks* lossless — but the quality is
-already gone. FLAC Detective reads each file, spots the fingerprints a lossy codec leaves
-behind, and tells you which files are real and which are fakes.
+A lossy codec throws away the top of the spectrum and never gives it back. FLAC Detective reads
+each file, spots the fingerprints that loss leaves behind, and tells you which files are real and
+which are fakes.
 
 ```bash
 pip install flac-detective       # needs Python 3.10+
