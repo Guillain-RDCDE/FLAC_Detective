@@ -24,7 +24,6 @@ def apply_rule_11_cassette_detection(  # noqa: C901
     file_path: str,
     cutoff_freq: float,
     cutoff_std: float,
-    mp3_pattern_detected: bool,
     sample_rate: int,
     audio_data: Optional[object] = None,
 ) -> Tuple[int, List[str]]:
@@ -34,16 +33,25 @@ def apply_rule_11_cassette_detection(  # noqa: C901
     30-second segment from the middle of the file (MEMORY OPTIMIZED).
     This approach avoids loading the entire file into memory.
 
+    IMPORTANT — the returned score is EVIDENCE OF BEING A CASSETTE, not evidence
+    of being fake. It must never be added to the transcode score. It was, until
+    v1.8, and the audit caught it: Rule 11 measured AUC 0.321, meaning it handed
+    *more* points to genuine files than to transcodes (+18.3 vs +11.2 on
+    average). A genuine analog transfer was being pushed toward conviction for
+    the crime of sounding like an analog transfer. The caller now reads this
+    score as a signal and converts it into protection (a negative bonus) or
+    nothing at all.
+
     Args:
         file_path: Path to the FLAC file.
         cutoff_freq: Detected cutoff frequency in Hz.
         cutoff_std: Standard deviation of cutoff frequency.
-        mp3_pattern_detected: Result from Rule 9C.
         sample_rate: Sample rate in Hz.
+        audio_data: Optional pre-loaded audio (unused; kept for call compatibility).
 
     Returns:
         Tuple of (cassette_score, list_of_reasons)
-        cassette_score: 0-85 (Positive score means likely cassette)
+        cassette_score: 0-70 (higher = more likely a genuine cassette transfer)
     """
     cassette_score = 0
     reasons: list[str] = []
@@ -141,14 +149,13 @@ def apply_rule_11_cassette_detection(  # noqa: C901
                 reasons.append(f"R11B: Sharp digital cut ({slope:.1f} dB/kHz) (likely digital)")
                 logger.info(f"RULE 11B: Sharp digital cut ({slope:.1f} dB/kHz)")
 
-        # TEST 11C: No MP3 Pattern
-        # ================================
-        if not mp3_pattern_detected:
-            cassette_score += 15
-            reasons.append(
-                "R11C: No MP3 pattern detected (compatible with cassette) (likely cassette)"
-            )
-            logger.info("RULE 11C: No MP3 pattern detected (compatible with cassette)")
+        # TEST 11C — REMOVED in v1.8.
+        # It read Rule 9C's MP3-noise-pattern flag and awarded +15 whenever no
+        # pattern was found. Rule 9C measured AUC 0.497 (chance) and returned 0
+        # for 118 of 120 files in an earlier feature study, so 11C was a constant
+        # +15 dressed up as evidence. Rule 9 is gone; 11C goes with it, and the
+        # cassette threshold below drops by the same 15 points so that every
+        # other test keeps exactly the weight it had.
 
         # TEST 11D: Cutoff Modulation (wow/flutter)
         # ===========================================

@@ -282,8 +282,8 @@ and for speed.
 
  4. PHASE 2 — expensive rules, only when relevant (need the full decoded audio):
        • R7  silence / vinyl     if 19 kHz ≤ cutoff ≤ 21.5 kHz
-       • R9  compression artefacts if cutoff < 21 kHz  OR  an MP3 signature was seen
        • R11 cassette            if cutoff < 19 kHz and not already run early
+       • R13 MDCT alignment      if cutoff ≥ 18 kHz and not already convicted
        └─ Rule 8 re-refined now that MP3 context is known
        └─►  score ≥ 86            →  FAKE_CERTAIN   (stop)
 
@@ -474,19 +474,32 @@ Vinyl rips legitimately have:
 
 ---
 
-### Rule 9: Compression Artifacts
+### Rule 9: Compression Artifacts — REMOVED in v1.8
 
-**Purpose**: Detect MP3 compression artifacts
+Rule 9 ran three psychoacoustic tests (pre-echo, HF aliasing, MP3 quantisation
+noise) and awarded up to +40 points. It was removed after being measured, for the
+first time, on its own:
 
-**Sub-tests**:
-- **Pre-echo**: MDCT temporal masking artifacts
-- **Aliasing**: High-frequency aliasing patterns
-- **Quantization noise**: MP3 quantization patterns
+| test | AUC | fires on genuine | fires on fakes |
+|---|---|---|---|
+| 9A pre-echo | 0.513 | 83 % | 85 % |
+| 9B HF aliasing | 0.586 | 6 % | 9 % |
+| 9C MP3 noise pattern | 0.497 | ~0 % | ~0 % |
 
-**Scoring**:
-- One artifact: **+15 points**
-- Two artifacts: **+30 points**
-- Three artifacts: **+50 points**
+An AUC of 0.5 is a coin flip. The physics the rule was built on is real — MDCT
+codecs genuinely produce pre-echo — but the implementation did not measure it:
+the pre-echo test compared HF energy before a transient against three times the
+file's median, a bar that the natural attack ramp of real music clears on its
+own. So it fired on nearly everything and separated nothing, while adding +15 to
+any genuine file that passed its gate. With the WARNING bar at 31, that made the
+effective bar 16 for those files.
+
+The finding was first reported by Jamie Dodd (Provir), who measured 9A standalone
+at AUC 0.517 on 364 files of his own; it reproduced here at 0.513 on a disjoint
+480-file set, and again in-pipeline at 0.486.
+
+Its replacement is [Rule 13](#rule-13-mdct-frame-alignment), which reads MDCT
+quantisation directly instead of inferring it from spectral side effects.
 
 ---
 
@@ -514,9 +527,61 @@ Vinyl rips legitimately have:
 - Age-related noise floor elevation
 - Dropout patterns
 
+**Scoring**: **none, by design (v1.8).**
+
+Rule 11 contributes zero points. What it produces is *evidence that the source is
+a genuine analog transfer*, which the calculator reads to cancel Rule 1 and apply
+a −40 protection bonus.
+
+Until v1.8 that evidence was added to the transcode score instead, so a file that
+sounded like a cassette was pushed toward being called fake — precisely backwards.
+The per-rule audit caught it: Rule 11 measured **AUC 0.321**, handing genuine files
++18.3 points on average against +11.2 for transcodes. Two of the five false
+positives in the audit corpus were analog-sourced reissues that Rule 11 had pushed
+*up*. Its test 11C ("no MP3 pattern → +15") was also removed: it keyed off Rule 9C,
+which measured at chance, so it was a constant. The cassette gate dropped 30 → 15
+to compensate exactly, leaving every real test at its original weight.
+
+### Rule 13: MDCT Frame Alignment
+
+**Purpose**: Detect high-bitrate transcodes that leave the spectrum intact — the
+regime where every other rule in this list runs out of signal.
+
+**Why it is different**: Rules 1–8 and 11 read the spectral cutoff and the band
+above it; Rule 12's CNN reads a mel-spectrogram dominated by the same region. At
+256–320 kbps a modern encoder keeps the band, so there is nothing up there to
+find. Rule 13 never looks at the cutoff. It looks for the arithmetic the encoder
+left behind.
+
+**Detection method**: an MDCT codec quantises transform coefficients, and
+quantisation sends many of them to exactly zero. Those zeros survive decoding:
+re-analyse the decoded audio with the same transform — same 2048-sample window,
+same Kaiser-Bessel-derived window (alpha = 4 for ffmpeg-family AAC), same
+sample-exact alignment — and the zeroed bins reappear as deep holes. Analyse at
+any other alignment and they smear away.
+
+The statistic is therefore not "how many holes" (real music has holes) but
+**peak ratio**: hole density at the best alignment divided by the median across
+unrelated alignments. Genuine lossless audio has no preferred alignment, so its
+curve is flat and the ratio sits near 1.0. All 1024 offsets are searched, in two
+stages so the cost stays around 4 s per file.
+
 **Scoring**:
-- Cassette characteristics: **-60 points** (protection)
-- No cassette signatures: **0 points**
+- peak ratio ≥ 6.0: **+45 points**
+- peak ratio ≥ 3.5: **+22 points**
+- below: **0 points**
+
+**Gate**: cutoff ≥ 18 kHz and the file not already at FAKE_CERTAIN — below that
+the cheap spectral rules already have plenty to work with.
+
+**Scope, stated plainly**: this tests the AAC-family hypothesis (2048-sample long
+block). MP3, Opus/CELT and Vorbis use different framing and score at the null.
+That is not a gap — the existing rules convict on those — but it does mean Rule 13
+is an *AAC* answer, not a universal one. It also loses the signal above roughly
+60 % zeroed coefficients, i.e. at very low bitrates, where the spectral cliff is
+obvious anyway. Both limits have tests pinning them (`tests/test_mdct.py`).
+
+---
 
 ### Rule 12: ML Classifier (CNN) — *optional*
 
@@ -602,10 +667,18 @@ Example calculation:
   Rule 1 (MP3 Spectral):      +50 pts
   Rule 2 (Cutoff):            +15 pts
   Rule 5 (VBR Protection):    -10 pts
-  Rule 9 (Compression):       +7 pts
+  Rule 13 (MDCT alignment):  +25 pts
   ────────────────────────────────────
-  Total:                      62 pts → SUSPICIOUS ⚠️
+  Total:                      80 pts → SUSPICIOUS ⚠️
 ```
+
+**The sum is clamped to zero once, at the end — not on every addition (v1.8).**
+This matters more than it sounds. Rule 8 is calculated *first* by design and
+contributes −50 to a genuine full-band file; with a per-addition clamp that −50
+was erased before any later rule could be offset against it, so a file scoring
+45 − 50 read 45 rather than 0. Every protection rule that happened to run before
+a penalty was inert. Protections are the whole basis of "protect authentic files
+first", so they now survive to the end of the calculation.
 
 ### Verdict Mapping
 

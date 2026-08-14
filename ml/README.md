@@ -885,3 +885,302 @@ authentic files.
 At inference, the model is happily CPU-friendly: a single mel-spec
 forward pass on a recent laptop is under 200 ms. No GPU needed once it
 ships into the wheel.
+
+---
+
+# v1.8 — The audit that killed a rule, and the rule that replaced it
+
+This chapter starts with a message from a competitor and ends with the project's
+first detector that works at 320 kbps. The order matters: the second only became
+measurable once the first was done.
+
+## 0. The message
+
+Jamie Dodd, who builds **Provir**, sent over a head-to-head benchmark on a corpus
+of his own — 29 lawful sources, 800 constructed transcodes, 12 codecs, sha256
+frozen, both tools on byte-identical inputs. He led on the review tier (10 codecs
+to 2 ties); FLAC Detective led about 4x on convictions (123 of 714 against 30).
+He documented five limitations of his own benchmark unprompted, including "it is
+my corpus" and "these are constructed transcodes, not wild files", and he put a
+Wilson bound on his own 0/29 false-positive row rather than quoting it as zero.
+
+The benchmark was not the useful part. This was:
+
+> I imported your Rule 9A (pre-echo) and ran it standalone on 364 files — it fires
+> on 98.2 % of genuine and 98.6 % of fakes, AUC 0.517. Genuine median actually came
+> out higher than fake. [...] I think the axis is just dead, and I'd rather tell you
+> than watch you carry it.
+
+He was right.
+
+## 1. Rule 9 was a coin flip, and we could have known
+
+Reproduced immediately on `ml/texture_probe.csv` — 480 files, 120 band-limited
+genuine plus 360 transcodes, a corpus disjoint from his:
+
+| Rule 9 test | AUC | fires on genuine | fires on fakes |
+|---|---|---|---|
+| 9A pre-echo | **0.513** | 82.5 % | 84.7 % |
+| 9B HF aliasing | 0.586 | 6 % | 9 % |
+| 9C MP3 noise pattern | **0.497** | ~0 % | ~0 % |
+
+Two independent corpora, 0.513 against his 0.517. And it was worse than he could
+see from standalone: **all three** of Rule 9's tests were at or near chance, not
+just 9A.
+
+*Why* 9A failed is worth keeping, because the physics it was built on is real.
+MDCT codecs genuinely produce pre-echo. The implementation looked for HF energy
+(10-20 kHz) in the 20 ms before each transient and called it pre-echo if it
+exceeded 3x the file's median HF energy. Three problems, each fatal:
+
+1. **Real music does that anyway.** A drum attack is not a wall; it ramps. The
+   "before the transient" window catches the beginning of the actual attack.
+2. **The reference was too low.** A file median that includes silences and quiet
+   passages makes "3x the median" a bar that any loud moment clears.
+3. **The band is empty in the accused.** A lossy file is cut near 16 kHz — the
+   evidence was being sought exactly where the encoder had erased everything.
+
+So it fired on ~everything and separated nothing, while adding **+15 points to
+any genuine file that passed its gate**. With `SCORE_WARNING = 31`, that is an
+effective bar of 16 for those files.
+
+Ninety per cent of this was already in this README. The `mp3_pattern` incident
+(see "Dead end #2" above) recorded that Rule 9C's noise test was a degenerate
+near-constant with a meaningless pooled AUC of 0.99. That finding was correct,
+was written down, and **never crossed from the ML study into the scoring table**.
+The lesson is not "measure your features". It is *measure the thing you ship*.
+
+## 2. So we measured everything: `ml/rule_audit.py`
+
+Two pieces of new infrastructure:
+
+* **Per-rule score attribution** (`ScoringContext.rule_scores`). Every
+  `add_score` is credited to the rule executing it, so a file's verdict can be
+  broken down into what each rule actually contributed. Exposed as
+  `score_breakdown` on the analyzer result.
+* **A frozen audit corpus** (`ml/build_audit_corpus.py`): 80 certified-genuine
+  sources — EAC/XLD/Audiochecker ripper log present, **one per album**, because
+  ten tracks off one CD are not ten observations — round-tripped through 9
+  codecs weighted toward the high-bitrate end. 800 files.
+
+The first run, on the twelve rules as they stood:
+
+```
+rule                            auc  n_gen  n_fake  fire_gen  fire_fake  mean_gen  mean_fake
+Rule1MP3Bitrate               0.580     80     720     0.037      0.197      1.88       9.86
+Rule2Cutoff                   0.660     80     720     0.075      0.389      0.61       3.59
+Rule3SourceVsContainer        0.577     80     720     0.037      0.192      1.88       9.58
+Rule424BitSuspect             0.500     80     720     0.000      0.000      0.00       0.00
+Rule5HighVariance             0.500     80     720     0.000      0.000      0.00       0.00
+Rule6HighQualityProtection    0.500     80     720     0.000      0.000      0.00       0.00
+Rule8NyquistException         0.700     80     720     0.800      0.421    -36.25     -18.54
+Rule9CompressionArtifacts     0.486      2     140     1.000      0.957     15.00      14.50   DEAD
+Rule10Consistency             0.476      2      85     0.000      0.047      0.00      -1.18
+Rule11CassetteDetection       0.321      3     174     1.000      0.994     18.33      11.18
+Rule12MLClassifier            0.787     77     578     0.000      0.574      0.00      15.85
+```
+
+Rule 9 confirmed dead in-pipeline. But the audit found something nobody was
+looking for.
+
+## 3. Rule 11 was pointing the wrong way
+
+**AUC 0.321.** Below 0.5 is not noise — it is *inverted*. Rule 11 handed genuine
+files +18.3 points on average and transcodes +11.2.
+
+Reading the code with that number in hand, the bug is obvious and had been there
+since the rule was written. Rule 11 detects cassette sources: tape hiss, wow and
+flutter, natural roll-off. Its output is **evidence of being a genuine analog
+transfer**. It was being added straight to the *transcode* score. A strong signal
+(>= 30) then earned a -40 bonus, so a clear cassette netted out roughly even —
+but a *moderate* cassette signal, say 25, got the penalty and no bonus. Sounding
+like a cassette made you look like a fake.
+
+Five of the 80 genuine files were flagged. Two were analog-sourced African
+reissues that Rule 11 had personally pushed upward; one more was a WARNING
+sitting at exactly 31, composed of Rule 9's free +15 and Rule 11's +5.
+
+The fix: Rule 11 contributes **zero** points and records its evidence in
+`context.cassette_score`, which the calculator reads to cancel Rule 1 and apply
+the protection bonus. Its test 11C ("no MP3 pattern -> +15") went too — it keyed
+off Rule 9C, so it was a constant wearing the costume of evidence; the cassette
+gate dropped 30 -> 15 to compensate exactly, leaving every real test at its
+original weight.
+
+Two of the tests covering Rule 11 had been skipped for a year behind a
+"TODO: rewrite mocks". They are rewritten, and one now pins the contract:
+`test_rule_11_never_penalises_the_score`.
+
+## 3b. And a third bug, from the same instrument
+
+Once every rule's contribution was visible per file, this showed up:
+
+```
+AAC 320k     score=45  {'Rule8NyquistException': -50, 'Rule13MDCTAlignment': 45}
+```
+
+Minus fifty plus forty-five is minus five, not forty-five. `add_score` clamped the
+running total at zero on **every** addition, and Rule 8 — which the pipeline
+calculates *first*, by explicit design — contributes −50 to a genuine full-band
+file. That −50 was erased the instant it was added, before anything could be
+offset against it.
+
+So every protection rule that happened to run before a penalty was inert. The
+architecture said "protect authentic files first"; the arithmetic said otherwise.
+The clamp now happens once, on the final score.
+
+Worth noting how this was found: not by reading the code, and not by a failing
+test. By building an instrument that shows what each rule contributed, then
+looking at a number that didn't add up. Three bugs — a dead rule, an inverted
+rule, and a destroyed protection — all invisible in a total, all obvious in a
+breakdown.
+
+## 4. The structural fix: you cannot ship an unmeasured rule
+
+`tests/test_rule_audit_guard.py` runs in CI against the committed audit CSV — no
+corpus needed — and fails if:
+
+* a `ScoringRule` subclass exists in the code but not in the audit
+  (**this is the one that matters**: add a rule, re-run the audit or CI stops you),
+* any rule that fires on >= 10 % of files has |AUC - 0.5| < 0.05,
+* any rule hands genuine files more than 2 points on average without discriminating.
+
+Rule 9 would have failed all three on the day it was written.
+
+## 5. Rule 13 — the 320 kbps wall, and a way through it
+
+The section "Where the whole tool is blind (own it)" above is honest and was, for
+its method, correct: everything the tool did looked above the cutoff, and at
+256-320 kbps there is nothing up there. The audit put a number on it — **17.5 %
+of 320 kbps AAC flagged at all** — and Jamie's benchmark independently measured
+28 %.
+
+Jamie also pointed at the way out: Derrien, JAES 67(3) 2019 — MDCT
+quantisation-residual with an analytic null — plus the implementation trap that
+cost him a day. **ffmpeg-family AAC uses a KBD window with alpha = 4 for long
+blocks, not sine; with a sine analysis window the statistic reads at the floor.**
+
+The mechanism (`src/flac_detective/analysis/new_scoring/mdct.py`): an MDCT codec
+quantises coefficients, and quantisation sends many of them to exactly zero.
+Those zeros survive decoding. Re-analyse with the *same* transform — same
+2048-sample window, same KBD shape, same sample-exact alignment — and they
+reappear as deep spectral holes; analyse at any other alignment and they smear
+away. The statistic is not "how many holes" but **peak ratio**: hole density at
+the best alignment over the median across unrelated alignments. Genuine audio has
+no preferred alignment, so its curve is flat near 1.0. That is the analytic null.
+
+Measured on the audit corpus (`ml/mdct_probe.py`):
+
+| codec | n | median peak ratio | AUC |
+|---|---|---|---|
+| aac_ff128 | 80 | 19.57 | **0.998** |
+| aac_ff256 | 80 | 21.51 | **0.990** |
+| aac_ff320 | 80 | 13.60 | **0.993** |
+| aacmf_256 | 80 | 2.66 | 0.791 |
+| vorbis_q8 | 80 | 1.42 | 0.806 |
+| opus_256 | 80 | 1.26 | 0.526 |
+| mp3_V0 | 80 | 1.25 | 0.457 |
+| mp3_320 | 80 | 1.24 | 0.438 |
+| mp3_192 | 80 | 1.23 | 0.399 |
+| **genuine** | **80** | **1.25** (p95 1.37, max 1.42) | — |
+
+The separation is not marginal. No genuine file exceeded 1.42; ffmpeg AAC sits at
+13-21 regardless of bitrate. 234 of the 240 ffmpeg-AAC files peaked at the *same*
+offset (1020), which is the encoder delay showing through — a confirmation that
+the statistic reads what it claims to read.
+
+### What it does not do, stated as plainly as the wins
+
+* **MP3 and Opus score at the null.** They do not use a 2048-sample MDCT long
+  block, so this hypothesis does not fit them. That is fine — the cutoff rules
+  already convict there — but Rule 13 is an *AAC* answer, not a universal one.
+* **MediaFoundation AAC is only half-caught** (AUC 0.791, bimodal: p25 = 1.27,
+  p50 = 2.66). A different AAC encoder makes different windowing decisions.
+  Reading the ffmpeg numbers as "AAC is solved" would be over-reading; what is
+  solved is *ffmpeg-family AAC*, and the MediaFoundation column is in the corpus
+  precisely so that distinction cannot be quietly lost.
+* **Very aggressive quantisation defeats it.** Above ~60 % zeroed coefficients
+  the +/-16-bin median reference is itself zero and the statistic collapses. That
+  means very low bitrates — where the spectral cliff is obvious anyway. Pinned by
+  `test_extreme_zeroing_defeats_the_median_reference`.
+* **This is still a constructed corpus.** Same limitation Jamie flags about his:
+  clean source -> encoder -> FLAC, with no mastering stage after the codec.
+
+### The fix that broke the fix
+
+Removing the per-addition clamp (§3b) was correct, and it immediately cut 320 kbps
+AAC detection from **97.5 % back down to 26.2 %**.
+
+The cause is not a bug in either rule — it is the two rules disagreeing, and the
+clamp having hidden the disagreement. Rule 8, the Nyquist exception, grants −50 to
+a file whose spectrum runs to Nyquist, reasoning that a transcode would have left
+a cliff. That reasoning is precisely what stops holding at 256–320 kbps. Rule 8
+had been arguing "no cliff, therefore genuine" about the exact population Rule 13
+exists to catch — and once the clamp stopped erasing it, it won: −50 + 55 = 5,
+AUTHENTIC.
+
+Rule 8 is an *absence of evidence* argument. Rule 13 produces direct positive
+evidence: the encoder's own quantisation grid, at one sample-exact alignment, an
+order of magnitude above the file's own baseline. So the resolution is precedence,
+not a points arms race — when Rule 13 fires, Rule 8's protection is explicitly
+withdrawn, with a reason string saying so. `TestRule8Precedence` pins both
+directions: withdrawn when Rule 13 has evidence, untouched when it doesn't.
+
+The general lesson is the one this whole chapter keeps repeating: **a rule that
+never fires can hide a rule that is wrong.** Rule 8's protection had been dead
+weight since the clamp was written, so nobody ever had to decide what it should
+do when it disagreed with new evidence. Fixing an unrelated bug forced the
+question.
+
+### Cost
+
+An exhaustive 24-frame scan of all 1024 offsets is ~24 s per file. The peak is
+sharp enough that a 3-frame triage ranks the true alignment first on every AAC
+transcode measured, so stage 1 triages cheaply and stage 2 re-measures only the
+survivors plus a spread of baseline offsets: **~4 s per file**. Gated to
+cutoff >= 18 kHz and files not already convicted, since below that the cheap
+rules already have signal.
+
+## 6. Where v1.8 lands, and the next thing the audit found
+
+Same corpus, same 800 files, before and after:
+
+| | before | after |
+|---|---|---|
+| genuine flagged (false positives) | 6.2 % | **3.8 %** |
+| AAC 320 kbps (ffmpeg) flagged | 17.5 % | **97.5 %** |
+| AAC 256 kbps (ffmpeg) flagged | 50.0 % | **98.8 %** |
+| AAC 256 kbps (MediaFoundation) flagged | 70.0 % | **88.8 %** |
+| all fakes flagged | 60.3 % | **76.0 %** |
+| all fakes convicted | 19.9 % | 19.7 % |
+| rules at chance while firing | 1 | **0** |
+
+Rule 13 contributed to **0 of the 80 genuine files**. Convictions are flat, which
+is the intended shape: Rule 13 is calibrated to reach SUSPICIOUS on its own and
+no further.
+
+### The next one, stated with its numbers rather than fixed in a hurry
+
+Three genuine files are still convicted, all with the same signature:
+
+```
+FAKE_CERTAIN  score=102  {Rule1: 50, Rule2: 2,  Rule3: 50}
+FAKE_CERTAIN  score=100  {Rule1: 50,            Rule3: 50}
+FAKE_CERTAIN  score=111  {Rule1: 50, Rule2: 11, Rule3: 50}
+```
+
+Rules 1 and 3 fire together on 141 of the 800 files, and in **141 of those 141
+cases they contribute the identical value**. That is not two pieces of evidence;
+Rule 3 reads `mp3_bitrate_detected`, which Rule 1 produced. One inference is
+convicting twice, and 100 points clears the 86-point conviction bar by itself.
+
+The tempting fix is wrong. Simulated on this corpus, discounting Rule 3 whenever
+Rule 1 has already fired takes genuine convictions from **3/80 to 0/80** — and
+takes fake convictions from **142/720 to 4/720**. The conviction tier *is* that
+pair. The 86-point threshold was implicitly calibrated around a 100-point
+double-count, so removing the double-count means recalibrating the threshold,
+which needs its own measurement rather than a one-line change made at the end of
+a long day.
+
+Logged here with the numbers so the next person starts from evidence instead of
+from the same temptation.

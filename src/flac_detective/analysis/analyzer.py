@@ -119,6 +119,7 @@ class FLACAnalyzer:
             # source_path=filepath (the ORIGINAL): the real bitrate must be sized from
             # the on-disk compressed file, not the decoded WAV — otherwise an ALAC/APE
             # source looks uncompressed and Rules 1 & 3 wrongly switch off.
+            score_breakdown: Dict[str, int] = {}
             score, verdict, confidence, reason = new_calculate_score(
                 cutoff_freq,
                 metadata,
@@ -130,6 +131,7 @@ class FLACAnalyzer:
                 source_path=filepath,
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
+                breakdown_out=score_breakdown,
             )
 
             # Add note if analysis was partial
@@ -203,6 +205,9 @@ class FLACAnalyzer:
                 # Fake hi-res axis (#1) — independent of the transcode verdict.
                 "hires_verdict": hires_verdict,
                 "hires_reason": " | ".join(hires_reasons) if hires_reasons else "",
+                # Per-rule score attribution — what each rule actually contributed
+                # to this file's score. Feeds ml/rule_audit.py (per-rule AUC).
+                "score_breakdown": score_breakdown,
             }
 
         except Exception as e:

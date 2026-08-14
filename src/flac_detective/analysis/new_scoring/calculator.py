@@ -4,14 +4,13 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
     calculate_apparent_bitrate,
     calculate_bitrate_variance,
     calculate_real_bitrate,
 )
+from .constants import CASSETTE_THRESHOLD
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .strategies import (
@@ -22,13 +21,14 @@ from .strategies import (
     Rule6HighQualityProtection,
     Rule7SilenceAnalysis,
     Rule8NyquistException,
-    Rule9CompressionArtifacts,
     Rule10Consistency,
     Rule11CassetteDetection,
     Rule12MLClassifier,
+    Rule13MDCTAlignment,
     Rule424BitSuspect,
     ScoringRule,
 )
+from .rules.mdct_alignment import should_run_rule_13
 from .verdict import determine_verdict
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,65 @@ def _calculate_bitrate_metrics(
     )
 
 
+def _ensure_audio(context: ScoringContext) -> None:
+    """Load the full audio into ``context`` once, if a rule needs it.
+
+    Rules 11 and 13 both want the decoded signal. Loading it is the single most
+    expensive step in the pipeline, so it happens at most once per file and is
+    shared — via the AudioCache when the analyzer provides one.
+    """
+    if context.audio_data is not None:
+        return
+    if context.cache is not None:
+        logger.debug("OPTIMIZATION: Using shared AudioCache")
+        audio_data, sample_rate = context.cache.get_full_audio()
+    else:
+        logger.debug("OPTIMIZATION: No shared cache, loading from file")
+        audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
+    context.audio_data = audio_data
+    context.loaded_sample_rate = sample_rate
+
+
+def _run_rule_13(context: ScoringContext) -> None:
+    """Run Rule 13 and, if it found evidence, withdraw Rule 8's protection.
+
+    These two rules disagree by construction, and Rule 13 is right.
+
+    Rule 8 grants −50 to a file whose spectrum runs up to Nyquist, on the
+    reasoning that a transcode would have left a cliff. That reasoning is exactly
+    what stops being true at 256–320 kbps: a modern encoder at those rates keeps
+    the whole band, so "no cliff" stops being evidence of anything. Rule 8 is an
+    *absence of evidence* argument; Rule 13 produces direct positive evidence —
+    the encoder's own quantisation grid, at one sample-exact frame alignment,
+    ~10x above the file's own baseline. Direct evidence has to win.
+
+    The conflict was invisible until v1.8 because the score accumulator clamped
+    at zero on every addition, which silently erased Rule 8's −50 before anything
+    could be offset against it. Fixing that clamp made Rule 8 real, and Rule 8
+    immediately swallowed Rule 13: 320 kbps AAC detection fell from 97.5 % to
+    26.2 % in the audit. Hence this explicit precedence rule rather than a
+    points arms race between the two.
+    """
+    before = context.rule_scores.get("Rule13MDCTAlignment", 0)
+    Rule13MDCTAlignment().apply(context)
+    gained = context.rule_scores.get("Rule13MDCTAlignment", 0) - before
+    if gained <= 0:
+        return
+
+    protection = context.rule_scores.get("Rule8NyquistException", 0)
+    if protection < 0:
+        context.add_score(
+            -protection,
+            [
+                "R8 protection withdrawn: R13 found a positive MDCT quantisation "
+                "signature, so a full-range spectrum is no longer evidence of authenticity"
+            ],
+        )
+        logger.info(
+            "RULE 8: protection withdrawn (%+d) — Rule 13 found direct evidence", -protection
+        )
+
+
 def _apply_scoring_rules(  # noqa: C901
     context: ScoringContext, deep: bool = False
 ) -> Tuple[int, List[str]]:
@@ -84,9 +143,6 @@ def _apply_scoring_rules(  # noqa: C901
     Returns:
         Tuple of (total_score, list_of_reasons)
     """
-    audio_data: Optional[np.ndarray] = None
-    sample_rate: Optional[int] = None
-
     # ========== RULE 8: NYQUIST EXCEPTION (ALWAYS FIRST) ==========
     # This rule MUST be calculated first and applied before any short-circuit
     logger.debug("OPTIMIZATION: Calculating Rule 8 (Nyquist Exception) FIRST...")
@@ -104,31 +160,16 @@ def _apply_scoring_rules(  # noqa: C901
     # Trade-off: R11 is expensive (bandpass filtering) but only triggered when cutoff < 19 kHz.
     rule11 = Rule11CassetteDetection()
     run_rule11_early = context.cutoff_freq < 19000
-    cassette_score = 0
 
     # MEMORY OPTIMIZATION: Manage audio buffer scope
     try:
         if run_rule11_early:
             logger.info("Executing Rule 11 (Cassette) EARLY as priority...")
 
-            # Pre-load audio for R11 (and likely R9 later)
+            # Pre-load audio for R11 (and Rule 13 later)
             logger.debug("OPTIMIZATION: Pre-loading full audio for Rule 11...")
-
-            if context.cache is not None:
-                # Use shared cache from FLACAnalyzer
-                logger.debug("OPTIMIZATION: Using shared AudioCache for Rule 11")
-                audio_data, sample_rate = context.cache.get_full_audio()
-            else:
-                logger.debug("OPTIMIZATION: No shared cache, loading from file")
-                audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
-
-            context.audio_data = audio_data
-            context.loaded_sample_rate = sample_rate
-
+            _ensure_audio(context)
             rule11.apply(context)
-
-            # Extract the score contribution from R11
-            cassette_score = context.current_score - initial_r8_score
 
         # ========== PHASE 1: FAST RULES (R1-R6) ==========
         # These are cheap (<0.01s total), always execute
@@ -145,13 +186,15 @@ def _apply_scoring_rules(  # noqa: C901
         bm = context.bitrate_metrics
         is_uncompressed = bm.apparent_bitrate > 0 and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
 
-        if cassette_score >= 30:
+        # Threshold lowered 30 -> 15 in v1.8, purely to preserve behaviour: test 11C
+        # was a constant +15 (it keyed off Rule 9C, which measured at chance) and has
+        # been removed, so every remaining test keeps the weight it always had.
+        if context.cassette_score >= CASSETTE_THRESHOLD:
             logger.info("R11: MP3 signature cancelled (cassette source detected)")
             logger.info(
-                f"CASSETTE DETECTED (Score {cassette_score} >= 30). Disabling Rule 1 (MP3 Bitrate)."
+                f"CASSETTE DETECTED (evidence {context.cassette_score} >= {CASSETTE_THRESHOLD}). "
+                f"Disabling Rule 1 (MP3 Bitrate)."
             )
-            # Add bonus manually as requested: "score -= 40"
-            # The Context.add_score handles addition. To subtract, add negative.
             context.add_score(-40, ["R11: Authentic cassette audio source (bonus -40pts)"])
 
             # Skip Rule 1
@@ -212,19 +255,23 @@ def _apply_scoring_rules(  # noqa: C901
                 return context.current_score, context.reasons
             # Deep mode: the heuristics are silent, but a silent file is exactly where a
             # high-bitrate AAC/Vorbis transcode hides. Skip the expensive heuristic rules
-            # (they can't help here) but still run the CNN so its high-confidence WARNING
-            # floor (ml_classifier) gets a chance. R12 decodes the audio itself.
+            # (they can't help here) and run the two that can: the CNN's high-confidence
+            # WARNING floor, and Rule 13 — which reads MDCT frame alignment and is the
+            # ONLY rule with signal left once the encoder keeps the whole band. This
+            # branch is precisely the 256-320 kbps AAC blind spot.
             logger.info(
-                f"DEEP: heuristics silent (score={context.current_score}), running Rule 12 "
+                f"DEEP: heuristics silent (score={context.current_score}), running Rules 12/13 "
                 f"anyway (fast path bypassed)"
             )
+            if should_run_rule_13(context.cutoff_freq, context.current_score):
+                _ensure_audio(context)
+                _run_rule_13(context)
             Rule12MLClassifier().apply(context)
             return context.current_score, context.reasons
 
         # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
         # Determine which expensive rules to run
         run_rule7 = 19000 <= context.cutoff_freq <= 21500
-        run_rule9 = context.cutoff_freq < 21000 or context.mp3_bitrate_detected is not None
         # Logic fix: if R11 already ran early (cutoff < 19000), we don't run it here.
         # Check if R11 needed and NOT ran yet
         run_rule11 = (context.cutoff_freq < 19000) and (not run_rule11_early)
@@ -232,48 +279,47 @@ def _apply_scoring_rules(  # noqa: C901
         expensive_rules: List[ScoringRule] = []
         if run_rule7:
             expensive_rules.append(Rule7SilenceAnalysis())
-        if run_rule9:
-            expensive_rules.append(Rule9CompressionArtifacts())
-        if run_rule11 and cassette_score == 0:
+        if run_rule11:
             expensive_rules.append(Rule11CassetteDetection())
 
         if expensive_rules:
             # Check if we need to load audio (if NOT already loaded by R11 early)
-            need_full_audio = any(
-                isinstance(r, (Rule9CompressionArtifacts, Rule11CassetteDetection))
-                for r in expensive_rules
-            )
+            need_full_audio = any(isinstance(r, Rule11CassetteDetection) for r in expensive_rules)
 
-            if need_full_audio and context.audio_data is None:
-                logger.debug("OPTIMIZATION: Pre-loading full audio for Rules 9/11 (Phase 2)...")
-                if context.cache is not None:
-                    logger.debug("OPTIMIZATION: Using shared AudioCache for Phase 2")
-                    audio_data, sample_rate = context.cache.get_full_audio()
-                else:
-                    audio_data, sample_rate = load_audio_with_retry(str(context.filepath))
-
-                context.audio_data = audio_data
-                context.loaded_sample_rate = sample_rate
+            if need_full_audio:
+                _ensure_audio(context)
 
             # Sequential execution: ScoringContext.add_score mutates shared state,
             # so concurrent rules would race without locking. Cost is acceptable.
             for rule in expensive_rules:
                 rule.apply(context)
         else:
-            logger.info("OPTIMIZATION: Skipping expensive rules (R7/R9/R11)")
+            logger.info("OPTIMIZATION: Skipping expensive rules (R7/R11)")
 
         # Rule 8: refine with MP3 detection context if it became available after Phase 2.
         # We rollback the initial R8 contribution by exact-match reason filtering — fragile but
         # acceptable as long as R8's reasons stay deterministic for a given context.
         if context.mp3_bitrate_detected is not None:
             context.current_score -= initial_r8_score
+            context.rule_scores["Rule8NyquistException"] = (
+                context.rule_scores.get("Rule8NyquistException", 0) - initial_r8_score
+            )
             for reason in initial_r8_reasons:
                 if reason in context.reasons:
                     context.reasons.remove(reason)
             rule8.apply(context)
             logger.info("RULE 8 (refined): Score updated")
 
-        # SHORT-CIRCUIT 3: Check again after R7+R8+R9+R11
+        # Rule 13: MDCT frame alignment. Gated on cutoff (below ~18 kHz the cheap
+        # spectral rules already have signal) and on the file not being convicted
+        # already. It is the only rule that survives a high-bitrate encode, and it
+        # runs AFTER the Rule 8 refinement so that the refinement cannot re-apply a
+        # protection Rule 13 has just withdrawn. See _run_rule_13.
+        if should_run_rule_13(context.cutoff_freq, context.current_score):
+            _ensure_audio(context)
+            _run_rule_13(context)
+
+        # SHORT-CIRCUIT 3: Check again after R7/R8/R11/R13
         if context.current_score >= 86:
             logger.info(
                 f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules"
@@ -318,6 +364,7 @@ def new_calculate_score(
     source_path: Optional[Path] = None,
     deep: bool = False,
     residual_floor_db: float = float("nan"),
+    breakdown_out: Optional[Dict[str, int]] = None,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -335,6 +382,10 @@ def new_calculate_score(
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
         residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
             Drives Rule 1's near-Nyquist 320 kbps wall-hardness gate.
+        breakdown_out: Optional dict, updated in place with the per-rule score
+            attribution for this file (``{"Rule2Cutoff": 25, …}``). Used by
+            ml/rule_audit.py to measure each rule's discriminative power in
+            isolation. Rules that contributed nothing are omitted.
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
@@ -381,7 +432,16 @@ def new_calculate_score(
         )
 
         # Apply scoring rules
-        score, reasons = _apply_scoring_rules(context, deep=deep)
+        raw_score, reasons = _apply_scoring_rules(context, deep=deep)
+
+        if breakdown_out is not None:
+            breakdown_out.update(context.rule_scores)
+
+        # Clamp ONCE, here, on the final total. Clamping inside add_score (the
+        # pre-v1.8 behaviour) destroyed every protection that ran before a
+        # penalty — including Rule 8's −50, which by design runs first. See
+        # ScoringContext.add_score.
+        score = max(0, raw_score)
 
         # Determine verdict and confidence
         verdict, confidence = determine_verdict(score)

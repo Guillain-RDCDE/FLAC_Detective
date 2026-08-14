@@ -11,8 +11,17 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Force UTF-8 output on Windows
-if sys.platform == "win32":
+
+def _force_utf8_stdio() -> None:
+    """Re-wrap stdout/stderr as UTF-8 — for STANDALONE runs of this script only.
+
+    Doing this at import time breaks the whole pytest session: the new wrappers
+    close pytest's capture buffers when they are garbage-collected, and every
+    later test dies on "I/O operation on closed file". Under pytest the capture
+    plugin already handles encoding, so this must stay behind the __main__ guard.
+    """
+    if sys.platform != "win32":
+        return
     import io
 
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -28,7 +37,7 @@ def get_file_hash(filepath):
     return sha256.hexdigest()
 
 
-def test_flac_integrity(filepath):
+def check_flac_integrity(filepath):
     """Test FLAC file integrity using flac --test."""
     try:
         result = subprocess.run(
@@ -43,7 +52,7 @@ def test_flac_integrity(filepath):
         return False
 
 
-def test_copy_corruption(source_path, num_tests=3):
+def check_copy_corruption(source_path, num_tests=3):
     """Test if copying a FLAC file introduces corruption."""
     source = Path(source_path)
 
@@ -63,7 +72,7 @@ def test_copy_corruption(source_path, num_tests=3):
     original_hash = get_file_hash(source)
     print(f"    Hash: {original_hash[:16]}...")
 
-    original_valid = test_flac_integrity(source)
+    original_valid = check_flac_integrity(source)
     print(f"    FLAC test: {'✅ PASS' if original_valid else '❌ FAIL'}")
 
     if not original_valid:
@@ -109,7 +118,7 @@ def test_copy_corruption(source_path, num_tests=3):
                 continue
 
             # Test FLAC integrity
-            copy_valid = test_flac_integrity(temp_path)
+            copy_valid = check_flac_integrity(temp_path)
             print(f"    FLAC test: {'✅ PASS' if copy_valid else '❌ FAIL'}")
 
             if not copy_valid:
@@ -133,6 +142,7 @@ def test_copy_corruption(source_path, num_tests=3):
 
 
 if __name__ == "__main__":
+    _force_utf8_stdio()
     if len(sys.argv) < 2:
         print("Usage: python test_copy_integrity.py <path_to_flac_file>")
         print("\nSuggested test files from your collection:")
@@ -145,4 +155,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     test_file = sys.argv[1]
-    test_copy_corruption(test_file, num_tests=5)
+    check_copy_corruption(test_file, num_tests=5)

@@ -1,6 +1,5 @@
 """Rules package exporting all scoring rules."""
 
-from .artifacts import apply_rule_9_compression_artifacts
 from .bitrate import (
     apply_rule_3_source_vs_container,
     apply_rule_4_24bit_suspect,
@@ -9,6 +8,7 @@ from .bitrate import (
 )
 from .cassette import apply_rule_11_cassette_detection
 from .consistency import apply_rule_10_multi_segment_consistency
+from .mdct_alignment import apply_rule_13_mdct_alignment, should_run_rule_13
 from .ml_classifier import apply_rule_12_ml_classifier
 from .silence import apply_rule_7_silence_analysis
 from .spectral import (
@@ -26,8 +26,9 @@ __all__ = [
     "apply_rule_6_variable_bitrate_protection",
     "apply_rule_7_silence_analysis",
     "apply_rule_8_nyquist_exception",
-    "apply_rule_9_compression_artifacts",
     "apply_rule_10_multi_segment_consistency",
     "apply_rule_11_cassette_detection",
     "apply_rule_12_ml_classifier",
+    "apply_rule_13_mdct_alignment",
+    "should_run_rule_13",
 ]

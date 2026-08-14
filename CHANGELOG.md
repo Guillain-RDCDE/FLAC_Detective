@@ -1,3 +1,159 @@
+## v1.8.0 (2026-08-14) — Every rule measured; one deleted, one un-inverted, one new that works at 320 kbps
+
+The release started as a courtesy: a competitor, Jamie Dodd of **Provir**, ran a
+head-to-head benchmark and mentioned in passing that FLAC Detective's Rule 9A
+(pre-echo) measured **AUC 0.517** standalone on 364 files — a coin flip. He was
+right, it reproduced here at 0.513 on a disjoint corpus, and checking it properly
+required building the thing the project never had: a way to measure a single rule.
+That harness then found a second bug nobody was looking for, and made a new
+high-bitrate detector measurable enough to ship.
+
+### The blind spot is no longer blind — Rule 13 (MDCT frame alignment)
+
+Every detector the tool had looked *above* the encoder's cutoff. At 256–320 kbps
+a modern encoder keeps the band, so there was nothing to read: **17.5 %** of
+320 kbps AAC got flagged at all.
+
+Rule 13 reads something the cutoff cannot hide — the alignment fingerprint left
+by MDCT quantisation. Re-analysed with the encoder's own transform (2048-sample
+window, Kaiser-Bessel-derived, alpha = 4, sample-exact alignment), coefficients
+quantised to zero reappear as deep spectral holes at exactly one frame alignment
+and nowhere else. Genuine audio has no preferred alignment.
+
+| codec | AUC | | codec | AUC |
+|---|---|---|---|---|
+| AAC 128k (ffmpeg) | **0.998** | | AAC 320k (ffmpeg) | **0.993** |
+| AAC 256k (ffmpeg) | **0.990** | | Vorbis q8 | 0.806 |
+| AAC 256k (MediaFoundation) | 0.791 | | MP3 / Opus | at the null |
+
+No genuine file in the audit corpus exceeded a peak ratio of 1.42; ffmpeg AAC
+sits at 13–21 regardless of bitrate.
+
+**Scope, stated as plainly as the win.** This is an *AAC-family* answer, not a
+universal one: MP3, Opus and Vorbis use different framing and score at the null
+(the existing rules already convict there). MediaFoundation AAC is only half
+caught. Very low bitrates defeat the statistic — which is where the spectral
+cliff is obvious anyway. All three limits have tests pinning them.
+
+Cost is ~4 s per file, gated to cutoff ≥ 18 kHz on files not already convicted.
+Credit where it is due: the Derrien (JAES 67(3) 2019) pointer and the KBD-alpha-4
+trap both came from Jamie.
+
+### Rule 9 (compression artefacts) — **removed**
+
+Three tests, up to +40 points, all at or near chance when measured alone:
+
+| test | AUC | fires on genuine | fires on fakes |
+|---|---|---|---|
+| 9A pre-echo | 0.513 | 82.5 % | 84.7 % |
+| 9B HF aliasing | 0.586 | 6 % | 9 % |
+| 9C MP3 noise pattern | 0.497 | ~0 % | ~0 % |
+
+The physics was real; the implementation did not measure it. 9A compared HF
+energy before a transient against 3× the file median — a bar the natural attack
+ramp of real music clears on its own, in a band a lossy file has already erased.
+It fired on nearly everything and separated nothing, while handing **+15 points
+to every genuine file that passed its gate**: with the WARNING bar at 31, an
+effective bar of 16 for those files.
+
+### Rule 11 (cassette protection) — **sign corrected**
+
+The audit measured Rule 11 at **AUC 0.321** — inverted. It was adding its
+*cassette evidence* to the *transcode* score, so a genuine analog transfer was
+pushed toward being called fake: +18.3 points on average to genuine files against
++11.2 to transcodes. Rule 11 now contributes zero points and records its evidence
+for the calculator to turn into protection. Its test 11C ("no MP3 pattern → +15")
+keyed off Rule 9C and was a constant; it is gone, and the cassette gate dropped
+30 → 15 to compensate exactly.
+
+### Protection rules now actually protect — the zero-clamp bug
+
+`ScoringContext.add_score` clamped the running total at zero on **every**
+addition. Rule 8 (the Nyquist exception) is calculated *first* by design and
+contributes **−50** to a genuine full-band file — and that −50 was clamped away
+immediately, before any rule could benefit from it. A file that should have
+scored 45 − 50 = 0 scored 45.
+
+Every protection that happened to run before a penalty was doing nothing at all,
+which is the exact inverse of the project's stated "protect authentic files
+first" principle. The clamp now happens once, on the final score. Found by the
+new per-rule breakdown: Rule 8 was credited −50 on files whose total never moved.
+
+### Rule 13 now overrides Rule 8's protection
+
+Fixing the clamp above exposed a disagreement the bug had been hiding. Rule 8
+grants −50 to a full-range spectrum on the reasoning that a transcode would have
+left a cliff — the exact reasoning that stops holding at 256–320 kbps. With the
+clamp gone, Rule 8 started winning against Rule 13 and 320 kbps AAC detection
+fell from 97.5 % to 26.2 %.
+
+Rule 8 argues from *absence* of evidence; Rule 13 produces direct positive
+evidence. When Rule 13 fires, Rule 8's protection is now explicitly withdrawn,
+with a reason string that says so. When Rule 13 is silent, Rule 8 is untouched.
+
+### You can no longer ship an unmeasured rule
+
+- **Per-rule score attribution.** `analyze_file()` results now carry a
+  `score_breakdown` dict — what each rule contributed to this file's score.
+- **`ml/rule_audit.py`** measures every rule alone (AUC, fire rate, and the
+  average points it hands genuine files) over a frozen corpus built by
+  `ml/build_audit_corpus.py`: 80 certified-genuine sources, one per album, times
+  9 codecs.
+- **`tests/test_rule_audit_guard.py`** runs that measurement in CI from a
+  committed CSV, and fails if a rule exists in the code but not in the audit, if
+  a firing rule sits at chance, or if a rule taxes genuine files without
+  discriminating. Rule 9 would have failed all three the day it was written.
+
+### Also fixed
+
+- **The full test suite can run in one process again.** Three modules under
+  `tests/integration/` re-wrapped `sys.stdout` at import time; the wrappers closed
+  pytest's capture buffers on garbage collection and every subsequent test died
+  with "I/O operation on closed file". CI had been hiding this by skipping the
+  directory. The re-wrap now lives behind a `__main__` guard, and three helper
+  functions named `test_*` that pytest was collecting as broken tests are renamed.
+- **Two Rule 11 tests skipped for a year** behind a "TODO: rewrite mocks" are
+  rewritten against the real call path.
+
+### Measured effect, same corpus before and after
+
+| | before | after |
+|---|---|---|
+| genuine files flagged (false positives) | 6.2 % | **3.8 %** |
+| AAC 320 kbps flagged | 17.5 % | **97.5 %** |
+| AAC 256 kbps flagged | 50.0 % | **98.8 %** |
+| AAC 256 kbps (MediaFoundation) flagged | 70.0 % | **88.8 %** |
+| all fakes flagged | 60.3 % | **76.0 %** |
+| rules firing at chance | 1 | **0** |
+
+Rule 13 contributed to 0 of the 80 genuine files. Convictions are deliberately
+flat: Rule 13 is calibrated to reach SUSPICIOUS alone and no further.
+
+### Known issue, documented rather than rushed
+
+Three genuine files are still convicted, all with the same signature: Rules 1 and
+3 contributing +50 each. Those two fire together on 141 of 800 files and give the
+**identical value in all 141** — Rule 3 reads the bitrate Rule 1 inferred, so one
+inference convicts twice, and 100 points clears the 86-point bar on its own.
+
+Discounting Rule 3 when Rule 1 has fired takes genuine convictions from 3/80 to
+0/80 — and fake convictions from 142/720 to 4/720. The conviction tier *is* that
+pair, and the 86 threshold was implicitly calibrated around the double-count.
+Fixing it means recalibrating the threshold with its own measurement, so it is
+logged with its numbers (`ml/README.md`) rather than patched blind.
+
+### Performance
+
+`--deep` scans are slower: Rule 13 adds ~4 s per file for files with a cutoff at
+or above 18 kHz. Default (non-deep) scans are largely unaffected, since authentic
+files still short-circuit before Rule 13 is reached.
+
+### Compatibility
+
+`analyze_file()` gains a key (`score_breakdown`) and loses none. Verdicts change
+where Rule 9 or Rule 11 was moving them — in both cases toward fewer false
+accusations of genuine files.
+
 ## v1.7.0 (2026-06-27) — Easy mode (plain language) vs Advanced mode (the plumbing)
 
 Both the CLI and the desktop GUI now have two voices. **Easy mode is the new default**:

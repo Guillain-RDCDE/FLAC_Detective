@@ -119,25 +119,16 @@ def _features(path: str) -> dict | None:
     hist, _ = np.histogram(logm, bins=40, range=(-120, 0))
     terrace_peakfrac = float(hist.max() / max(hist.sum(), 1))
 
-    # Rule-9 controls (operate at 10-20 kHz -> expected ~0 for band-limited).
-    from flac_detective.analysis.new_scoring.artifacts import (
-        detect_hf_aliasing,
-        detect_mp3_noise_pattern,
-        detect_preecho_artifacts,
-    )
-
-    try:
-        preecho_pct, _, _ = detect_preecho_artifacts(mid, sr)
-    except Exception:  # noqa: BLE001
-        preecho_pct = -1.0
-    try:
-        aliasing = detect_hf_aliasing(mid, sr)
-    except Exception:  # noqa: BLE001
-        aliasing = -1.0
-    try:
-        mp3_pat = int(detect_mp3_noise_pattern(mid, sr))
-    except Exception:  # noqa: BLE001
-        mp3_pat = -1
+    # Rule-9 controls — REMOVED in v1.8 along with Rule 9 itself.
+    #
+    # These three columns existed to prove the old arsenal was blind inside the
+    # occupied band, and they did their job: preecho_pct measured AUC 0.513,
+    # aliasing_corr 0.586, mp3_pattern 0.497 on this very corpus. Rule 9 was
+    # deleted on that evidence, so there is nothing left to import. The
+    # historical values remain in the committed ml/texture_probe.csv.
+    preecho_pct = float("nan")
+    aliasing = float("nan")
+    mp3_pat = -1
 
     return {
         "is_stereo": is_stereo,

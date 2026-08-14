@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, ClassVar, Dict, List, NamedTuple, Optional
 
 if TYPE_CHECKING:
     import numpy as np
@@ -44,18 +44,45 @@ class ScoringContext:
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None
     silence_ratio: Optional[float] = None
-    mp3_pattern_detected: bool = False
+    # Rule 11's cassette evidence (0-70). NOT part of the transcode score — the
+    # calculator reads it to decide whether to protect the file. See Rule 11.
+    cassette_score: int = 0
+    # Rule 13's statistic, kept for reporting (NaN = the rule did not run).
+    mdct_peak_ratio: float = float("nan")
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)
 
-    # Cache for heavy rules (Rule 9/11) - Avoids reloading file
+    # Per-rule score attribution (v1.8). Every add_score is credited to whichever
+    # rule is executing, so a rule's own contribution can be read back per file —
+    # which is what makes ml/rule_audit.py able to measure a single rule's AUC.
+    # Without it, a dead rule (see Rule 9, AUC 0.51) is invisible inside the total.
+    # The recorded delta is the RAW requested one, before ``max(0, …)`` clamping:
+    # the clamp is a property of the running total, not of the rule's signal.
+    rule_scores: Dict[str, int] = field(default_factory=dict)
+    # Score changes made by the calculator itself rather than by a rule object
+    # (e.g. the cassette −40 bonus, the Rule 8 refinement rollback).
+    UNCREDITED: "ClassVar[str]" = "_calculator"
+    active_rule: Optional[str] = None
+
+    # Cache for heavy rules (Rules 11/13) - avoids reloading the file
     audio_data: "Optional[np.ndarray]" = None  # numpy only imported under TYPE_CHECKING
     loaded_sample_rate: Optional[int] = None
     cache: "Optional[AudioCache]" = None  # AudioCache instance
 
     def add_score(self, score: int, new_reasons: List[str]):
-        """Update score and reasons."""
+        """Update score and reasons, crediting the delta to the running rule.
+
+        The running total is deliberately allowed to go negative. Clamping at
+        zero on *every* addition — as this did until v1.8 — silently destroys
+        protection. Rule 8 is calculated first by design and contributes −50 to a
+        genuine full-band file; that −50 was immediately clamped away, so when a
+        later rule added +45 the file scored 45 instead of 0. Every protection
+        rule that happened to run before a penalty was doing nothing at all,
+        which is the exact opposite of "protect authentic files first".
+
+        The clamp now happens once, on the final score, in ``new_calculate_score``.
+        """
+        key = self.active_rule or self.UNCREDITED
+        self.rule_scores[key] = self.rule_scores.get(key, 0) + score
         self.current_score += score
         self.reasons.extend(new_reasons)
-        # Ensure score doesn't go below 0
-        self.current_score = max(0, self.current_score)

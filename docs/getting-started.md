@@ -222,7 +222,6 @@ REASON: MP3 192 kbps signature detected
 ANALYSIS DETAILS:
   ✓ Rule 1 (MP3 Spectral): +50 pts - CBR pattern at 192 kbps
   ✓ Rule 2 (Cutoff Frequency): +15 pts - Cutoff at 19500 Hz
-  ✓ Rule 9 (Compression): +7 pts - Pre-echo artifacts
 
 RECOMMENDATION: Likely MP3 transcode. Consider re-downloading from source.
 ```

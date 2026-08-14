@@ -36,19 +36,24 @@ def _get(url: str, timeout: int = 60) -> bytes:
         return r.read()
 
 
-def _search(rows: int) -> list:
-    """Return identifiers of etree FLAC items, most-downloaded first.
+def _search(rows: int, collection: str = "etree", sort: str = "downloads desc") -> list:
+    """Return identifiers of FLAC items in ``collection``.
 
     Every URL param is encoded — urllib is stricter than a shell ``curl`` and
     rejects a raw space or ``[]`` bracket in the URL.
+
+    ``sort`` is exposed because the default (most-downloaded) returns the same
+    head of the distribution every run. A specificity test that keeps re-scoring
+    the same 45 popular shows measures nothing new; varying the sort order is the
+    cheapest way to get genuinely fresh files.
     """
     params = [
-        ("q", "collection:etree AND format:(Flac)"),
+        ("q", f"collection:{collection} AND format:(Flac)"),
         ("fl[]", "identifier"),
         ("rows", str(rows)),
         ("page", "1"),
         ("output", "json"),
-        ("sort[]", "downloads desc"),
+        ("sort[]", sort),
     ]
     url = "https://archive.org/advancedsearch.php?" + urllib.parse.urlencode(params)
     data = json.loads(_get(url))
@@ -64,12 +69,14 @@ def main() -> None:
     ap.add_argument(
         "--max-mb", type=int, default=70, help="Skip files larger than this (whole-show dumps)"
     )
+    ap.add_argument("--collection", default="etree", help="archive.org collection")
+    ap.add_argument("--sort", default="downloads desc", help="archive.org sort order")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     max_bytes = args.max_mb * 1024 * 1024
 
-    ids = _search(rows=max(60, args.max_files * 2))
-    print(f"found {len(ids)} candidate etree items", flush=True)
+    ids = _search(rows=max(60, args.max_files * 2), collection=args.collection, sort=args.sort)
+    print(f"found {len(ids)} candidate {args.collection} items", flush=True)
     got = 0
     for ident in ids:
         if got >= args.max_files:

@@ -8,7 +8,7 @@
 ## The key insight: detection is codec-agnostic
 
 The transcode signal FLAC Detective looks for — the MP3 **spectral cliff**, the
-cutoff vs. sample rate, compression artefacts (pre-echo, aliasing), and the CNN
+cutoff vs. sample rate, the MDCT frame-alignment fingerprint, and the CNN
 mel-spectrogram — all operate on the **decoded PCM**. They don't care what
 container delivered the samples. So widening to other *lossless* containers is
 overwhelmingly an **input/output** problem, not a detection-science problem.

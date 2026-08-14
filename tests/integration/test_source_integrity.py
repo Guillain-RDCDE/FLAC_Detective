@@ -8,15 +8,24 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Force UTF-8 output on Windows
-if sys.platform == "win32":
+
+def _force_utf8_stdio() -> None:
+    """Re-wrap stdout/stderr as UTF-8 — for STANDALONE runs of this script only.
+
+    Doing this at import time breaks the whole pytest session: the new wrappers
+    close pytest's capture buffers when they are garbage-collected, and every
+    later test dies on "I/O operation on closed file". Under pytest the capture
+    plugin already handles encoding, so this must stay behind the __main__ guard.
+    """
+    if sys.platform != "win32":
+        return
     import io
 
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 
-def test_flac_file(filepath):
+def check_flac_file(filepath):
     """Test a FLAC file using official flac tool.
 
     Returns:
@@ -76,7 +85,7 @@ def scan_directory(directory, verbose=False):
         relative_path = flac_file.relative_to(directory)
         print(f"[{idx}/{len(flac_files)}] Testing: {relative_path}")
 
-        success, error_msg, details = test_flac_file(flac_file)
+        success, error_msg, details = check_flac_file(flac_file)
 
         if success:
             valid_files.append(flac_file)
@@ -132,6 +141,7 @@ def scan_directory(directory, verbose=False):
 
 
 if __name__ == "__main__":
+    _force_utf8_stdio()
     if len(sys.argv) < 2:
         print("Usage: python test_source_integrity.py <directory> [--verbose]")
         print('\nExample: python test_source_integrity.py "D:\\FLAC\\Internal\\Richard Pinhas"')

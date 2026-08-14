@@ -202,7 +202,6 @@ REASON: MP3 192 kbps signature detected
 ANALYSIS:
   ✓ Rule 1: +50 pts - CBR pattern at 192 kbps
   ✓ Rule 2: +15 pts - Cutoff at 19500 Hz
-  ✓ Rule 9: +7 pts - Pre-echo artifacts
 RECOMMENDATION: High confidence transcode. Replace if possible.
 ```
 
@@ -231,7 +230,7 @@ ANALYSIS:
   ✓ Rule 1: +50 pts - MP3 128 kbps signature
   ✓ Rule 2: +30 pts - Cutoff at 16000 Hz
   ✓ Rule 4: +30 pts - Suspicious 24-bit encoding
-  ✓ Rule 9: +15 pts - Multiple compression artifacts
+  ✓ Rule 13: +45 pts - MDCT quantisation grid detected
 RECOMMENDATION: Definitely transcoded. Delete and replace.
 ```
 
@@ -249,7 +248,7 @@ Each rule can add or subtract points:
 - Rule 2: Low Cutoff Frequency (+30)
 - Rule 3: Bitrate Mismatch (+50)
 - Rule 4: Suspicious 24-bit (+30)
-- Rule 9: Compression Artifacts (+15 / +30 / +50, by artifact count)
+- Rule 13: MDCT frame alignment (+22 / +45, by peak ratio)
 - Rule 10: Multi-Segment Consistency (+20)
 
 **Protection Rules** (Subtract points → Protects authentic):

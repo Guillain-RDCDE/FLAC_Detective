@@ -13,12 +13,22 @@ import tempfile
 from pathlib import Path
 from threading import Lock
 
-# Force UTF-8 output on Windows
-if sys.platform == "win32":
+
+def _force_utf8_stdio() -> None:
+    """Re-wrap stdout/stderr as UTF-8 — for STANDALONE runs of this script only.
+
+    Doing this at import time breaks the whole pytest session: the new wrappers
+    close pytest's capture buffers when they are garbage-collected, and every
+    later test dies on "I/O operation on closed file". Under pytest the capture
+    plugin already handles encoding, so this must stay behind the __main__ guard.
+    """
+    if sys.platform != "win32":
+        return
     import io
 
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 
 print_lock = Lock()
 
@@ -38,7 +48,7 @@ def get_file_hash(filepath):
     return sha256.hexdigest()
 
 
-def test_flac_integrity(filepath):
+def check_flac_integrity(filepath):
     """Test FLAC file integrity using flac --test."""
     try:
         result = subprocess.run(
@@ -89,7 +99,7 @@ def copy_and_verify(source_path, copy_num):
             }
 
         # Verify FLAC integrity
-        flac_valid = test_flac_integrity(temp_path)
+        flac_valid = check_flac_integrity(temp_path)
         if not flac_valid:
             return {
                 "copy_num": copy_num,
@@ -178,6 +188,7 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
 
 
 if __name__ == "__main__":
+    _force_utf8_stdio()
     if len(sys.argv) < 2:
         print("Usage: python test_parallel_copy_stress.py <directory>")
         print('\nExample: python test_parallel_copy_stress.py "D:\\FLAC\\Internal\\Richard Pinhas"')

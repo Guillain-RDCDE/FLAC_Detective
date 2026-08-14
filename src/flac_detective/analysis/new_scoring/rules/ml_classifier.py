@@ -300,11 +300,17 @@ def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> Tup
 
     Args:
         filepath: Path to the FLAC file under analysis.
-        heuristic_score: The score accumulated by Rules 1-11 before Rule 12 runs.
-            Used only by the high-confidence WARNING floor (see ``_WARNING_FLOOR_P``)
-            to know whether the file would still read AUTHENTIC after R12's normal
-            contribution. Defaults to 0 (the floor then treats the model as the only
-            signal — the conservative case).
+        heuristic_score: The score accumulated by every other rule before Rule 12
+            runs — Rules 1-11 and, since v1.8, Rule 13. Used only by the
+            high-confidence WARNING floor (see ``_WARNING_FLOOR_P``) to know
+            whether the file would still read AUTHENTIC after R12's normal
+            contribution. Defaults to 0 (the floor then treats the model as the
+            only signal — the conservative case).
+
+            Note that Rule 13 makes the floor fire less often, which is the
+            intended outcome: when the MDCT statistic has already lifted a
+            high-bitrate AAC transcode past WARNING on its own evidence, the CNN
+            no longer needs to carry it there.
 
     Returns:
         Tuple of (score_contribution, reason_strings). Score is normally in [0, 30]:

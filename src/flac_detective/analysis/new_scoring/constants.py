@@ -30,6 +30,13 @@ SCORE_SUSPICIOUS = 55
 SCORE_WARNING = 31
 SCORE_AUTHENTIC = 30
 
+# Rule 11 cassette evidence needed to protect a file (cancel Rule 1, apply -40).
+# Lowered 30 -> 15 in v1.8 when test 11C was removed: 11C awarded a flat +15 to
+# essentially every file (it keyed off Rule 9C, which measured AUC 0.497), so
+# dropping the threshold by the same amount leaves the real tests' weights
+# untouched. See rules/cassette.py.
+CASSETTE_THRESHOLD = 15
+
 # Variance threshold for authenticity (kbps)
 VARIANCE_THRESHOLD = 100
 

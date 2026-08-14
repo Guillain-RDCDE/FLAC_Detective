@@ -13,21 +13,37 @@ from .rules import (
     apply_rule_6_variable_bitrate_protection,
     apply_rule_7_silence_analysis,
     apply_rule_8_nyquist_exception,
-    apply_rule_9_compression_artifacts,
     apply_rule_10_multi_segment_consistency,
     apply_rule_11_cassette_detection,
     apply_rule_12_ml_classifier,
+    apply_rule_13_mdct_alignment,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class ScoringRule(ABC):
-    """Abstract base class for a scoring rule strategy."""
+    """Abstract base class for a scoring rule strategy.
+
+    Subclasses implement ``_apply``; the public ``apply`` is a template method
+    that marks the context so every ``add_score`` call is attributed to this
+    rule (see ``ScoringContext.rule_scores``). Rules that call other rules or
+    that are invoked twice (Rule 8's refinement) accumulate, which is the
+    intended reading: "what this rule contributed to this file, in total".
+    """
 
     @abstractmethod
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply the rule and update the context."""
+
+    def apply(self, context: ScoringContext) -> None:
+        """Run the rule with per-rule score attribution enabled."""
+        previous = context.active_rule
+        context.active_rule = self.name
+        try:
+            self._apply(context)
+        finally:
+            context.active_rule = previous
 
     @property
     def name(self) -> str:
@@ -38,7 +54,7 @@ class ScoringRule(ABC):
 class Rule1MP3Bitrate(ScoringRule):
     """Rule 1 — flag MP3-bitrate spectral signatures (cutoff vs bitrate)."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 1 to ``context``."""
         logger.debug(
             f"Rule 1: real_bitrate={context.bitrate_metrics.real_bitrate:.1f} kbps | "
@@ -59,7 +75,7 @@ class Rule1MP3Bitrate(ScoringRule):
 class Rule2Cutoff(ScoringRule):
     """Rule 2 — flag a low spectral cutoff relative to the sample rate."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 2 to ``context``."""
         score, reasons = apply_rule_2_cutoff(context.cutoff_freq, context.audio_meta.sample_rate)
         context.add_score(score, reasons)
@@ -68,7 +84,7 @@ class Rule2Cutoff(ScoringRule):
 class Rule3SourceVsContainer(ScoringRule):
     """Rule 3 — compare the detected source bitrate against the container."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 3 to ``context``."""
         score, reasons = apply_rule_3_source_vs_container(
             context.mp3_bitrate_detected, context.bitrate_metrics.real_bitrate
@@ -79,7 +95,7 @@ class Rule3SourceVsContainer(ScoringRule):
 class Rule424BitSuspect(ScoringRule):
     """Rule 4 — flag suspicious 24-bit files paired with a low cutoff."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 4 to ``context``."""
         score, reasons = apply_rule_4_24bit_suspect(
             context.audio_meta.bit_depth,
@@ -93,7 +109,7 @@ class Rule424BitSuspect(ScoringRule):
 class Rule5HighVariance(ScoringRule):
     """Rule 5 — flag implausibly high bitrate variance."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 5 to ``context``."""
         score, reasons = apply_rule_5_high_variance(
             context.bitrate_metrics.real_bitrate, context.bitrate_metrics.variance
@@ -104,7 +120,7 @@ class Rule5HighVariance(ScoringRule):
 class Rule6HighQualityProtection(ScoringRule):
     """Rule 6 — protect genuine high-quality / variable-bitrate sources."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 6 to ``context``."""
         score, reasons = apply_rule_6_variable_bitrate_protection(
             context.mp3_bitrate_detected,
@@ -118,7 +134,7 @@ class Rule6HighQualityProtection(ScoringRule):
 class Rule7SilenceAnalysis(ScoringRule):
     """Rule 7 — analyse HF energy in silent passages."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 7 to ``context``."""
         # Check activation condition locally or rely on the inner function
         # The inner function checks 19k-21.5k range
@@ -132,7 +148,7 @@ class Rule7SilenceAnalysis(ScoringRule):
 class Rule8NyquistException(ScoringRule):
     """Rule 8 — Nyquist exception handling for high-cutoff files."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 8 to ``context``."""
         # This rule might be applied multiple times (initial and refined)
         # The context handles score accumulation, so we need to be careful not to double count
@@ -152,32 +168,10 @@ class Rule8NyquistException(ScoringRule):
         context.add_score(score, reasons)
 
 
-class Rule9CompressionArtifacts(ScoringRule):
-    """Rule 9 — detect lossy compression artefacts (pre-echo, aliasing)."""
-
-    def apply(self, context: ScoringContext) -> None:
-        """Apply Rule 9 to ``context``."""
-        # Check activation condition
-        run_rule9 = context.cutoff_freq < 21000 or context.mp3_bitrate_detected is not None
-
-        if run_rule9:
-            score, reasons, details = apply_rule_9_compression_artifacts(
-                str(context.filepath),
-                context.cutoff_freq,
-                context.mp3_bitrate_detected,
-                audio_data=context.audio_data,
-                sample_rate=context.loaded_sample_rate,
-            )
-            context.add_score(score, reasons)
-            context.mp3_pattern_detected = details.get("mp3_noise_pattern", False)
-        else:
-            logger.debug("RULE 9: Skipped (cutoff >= 21000 and no MP3 detected)")
-
-
 class Rule10Consistency(ScoringRule):
     """Rule 10 — check multi-segment score consistency."""
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 10 to ``context``."""
         score, reasons = apply_rule_10_multi_segment_consistency(
             str(context.filepath),
@@ -189,19 +183,26 @@ class Rule10Consistency(ScoringRule):
 
 
 class Rule11CassetteDetection(ScoringRule):
-    """Rule 11 — protect analog cassette transfers from false flags."""
+    """Rule 11 — protect analog cassette transfers from false flags.
 
-    def apply(self, context: ScoringContext) -> None:
-        """Apply Rule 11 to ``context``."""
+    Contributes NOTHING to the transcode score. Its output is evidence that the
+    source is an analog transfer, which the calculator turns into protection.
+    Adding it to the score — as this did until v1.8 — penalises exactly the
+    genuine files it was written to defend (measured AUC 0.321, i.e. inverted).
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 11 to ``context``, recording the signal without scoring it."""
         score, reasons = apply_rule_11_cassette_detection(
             str(context.filepath),
             context.cutoff_freq,
             context.cutoff_std,
-            context.mp3_pattern_detected,
             context.audio_meta.sample_rate,
             audio_data=context.audio_data,
         )
-        context.add_score(score, reasons)
+        context.cassette_score = score
+        # Reasons are kept (they explain the verdict) but carry zero points.
+        context.add_score(0, reasons)
 
 
 class Rule12MLClassifier(ScoringRule):
@@ -211,7 +212,7 @@ class Rule12MLClassifier(ScoringRule):
     ``rules.ml_classifier`` for the scoring logic.
     """
 
-    def apply(self, context: ScoringContext) -> None:
+    def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 12 to ``context``."""
         # Pass the heuristic baseline (R1-R11) so R12 can apply its high-confidence
         # WARNING floor — lifting a confident detection on an otherwise-silent file
@@ -219,3 +220,23 @@ class Rule12MLClassifier(ScoringRule):
         # is exactly the heuristic total here.
         score, reasons = apply_rule_12_ml_classifier(context.filepath, context.current_score)
         context.add_score(score, reasons)
+
+
+class Rule13MDCTAlignment(ScoringRule):
+    """Rule 13 — MDCT frame-alignment detection for high-bitrate transcodes.
+
+    The only rule that does not read the spectral cutoff or the band above it,
+    which is why it is the only one that still works at 256-320 kbps AAC. See
+    ``rules.mdct_alignment``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 13 to ``context``."""
+        score, reasons, details = apply_rule_13_mdct_alignment(
+            str(context.filepath),
+            context.cutoff_freq,
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.mdct_peak_ratio = details.get("mdct_peak_ratio", float("nan"))
