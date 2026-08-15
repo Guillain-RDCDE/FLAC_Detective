@@ -37,7 +37,17 @@ extensions = [
 
 templates_path = ["_templates"]
 # README.md is the docs-folder meta-index (mirrors index.md); don't build it as a page.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
+# Correspondence and measurement records live in docs/ so they sit next to what
+# they describe and render on GitHub, but they are not user documentation and
+# have no place in the site navigation. Sphinx runs with -W, so anything not in
+# a toctree fails the build unless excluded here.
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "README.md",
+    "reply-to-provir-*.md",
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
