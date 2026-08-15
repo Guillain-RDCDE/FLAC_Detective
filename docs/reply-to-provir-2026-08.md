@@ -267,3 +267,94 @@ rather than mine. On my own set the same rule reads AUC 0.993 on ffmpeg AAC and
 ffmpeg detector, and your three non-ffmpeg AAC arms are the cheapest existing
 answer to that question. If the prediction above is wrong on those rows, that
 finding is worth more to me than the rows I get right.
+
+---
+
+# Part 3 — the scorecard, and what it cost me (15 August, evening)
+
+Two predictions wrong out of eight, and they are the two that were worth having.
+
+## "123 stays 123" — no, 173
+
+Right about the mechanism, and it is tighter than the write-up suggests. Checked
+on my own corpus with the finding in hand: **90 files where Rules 12 and 13 both
+score, 54 of them at exactly 85 against an 86-point bar, and 3 already convicted**
+— on the MediaFoundation arm, by the identical mechanism (cutoff under 20 kHz, so
+Rule 8's protection reads 0 and offsets nothing). My "tops out at SUSPICIOUS" was
+true of the rule alone and false of the system, and on my own data it held by a
+single point. I had the numbers and did not look.
+
+**One precise disagreement.** Framing it as the same mechanism as Rules 1+3 is
+not right. Rule 3 reads the bitrate Rule 1 inferred — one measurement counted
+twice. Rule 12 is a CNN on a mid/side mel-spectrogram and Rule 13 is MDCT frame
+alignment: genuinely independent physics. Two independent signals agreeing is
+corroboration, which is what your own gate requires. The defect is not that it
+composes — it is that nobody measured or intended it.
+
+## Shipped as 1.9.0
+
+Conviction moved from a score threshold to a corroboration gate: two independent
+evidence families required, with Rules 1/2/3/4 counting as ONE because 3 and 4
+read 1's inference.
+
+| | v1.8 | v1.9 |
+|---|---|---|
+| fakes convicted | 142 | **177** |
+| genuine convicted (audit corpus) | 3 | **0** |
+| genuine convicted (178 wild files) | 2 | **0** |
+| convictions resting on one family | 142 | **0** |
+| AAC 256k (ffmpeg) convicted | 2.5 % | **58.8 %** |
+| flag rates, both classes | — | unchanged |
+
+The early exits had to go with it: the pipeline stopped as soon as the score
+passed 86, before Rules 12 and 13 ran, so a corroboration gate on top of that
+would have measured the short-circuit rather than the evidence. That is also why
+the MP3 arm barely moved (32.5 % → 31.2 %) instead of collapsing as a naive
+simulation predicted.
+
+## The number that would have gone wrong, and how it was caught
+
+With two families required, what points bar? On the 80 certified-genuine files
+the answer looked free: **zero of them ever reach two families**, so the lowest
+bar caught the most fakes.
+
+Then the same question went to 178 wild Internet Archive recordings.
+**Eighteen reach two families** — audience material with a low rolloff gives
+spectral points, and the CNN fires on the same audio. Scores: 0, 0, 0, 0, 10, 18,
+31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 38, 41.
+
+| corroborated bar | false convictions on 178 wild genuine files |
+|---|---|
+| 31 | **12 (6.7 %)** |
+| 45 | 0 |
+| **55 (shipped)** | **0**, 14 points of margin |
+
+The bar my own certified corpus called free would have convicted one wild file in
+fifteen. That is your "different populations behave very differently", arriving
+with a receipt.
+
+## Your Apple finding, sharpened by a number you don't have
+
+"Open-source-encoder detector" is close but the binary breaks: my corpus has a
+Microsoft MediaFoundation AAC arm, and Rule 13 reads it at **AUC 0.791**, bimodal
+(p25 1.27 / p50 2.66) — partial, not zero. So it orders as
+**ffmpeg ≈ FDK > Microsoft > Apple ≈ nothing**: a gradient in how completely an
+encoder zeroes coefficients, not open versus closed. Apple sits at the far end,
+and my reading is that my statistic counts *holes* while CoreAudio leaves a
+different lattice. Which means the zeros were only ever a symptom — the general
+object is the quantisation grid itself. That is where I am pointing next, and I
+would have pointed at the wrong thing without your two Apple arms.
+
+## Your Musepack question, answered and checkable
+
+Look at the score: **31 exactly.** On my corpus 101 files score exactly 31 and
+all 101 are the same thing — Rule 12's high-confidence floor, which lifts a
+confident CNN detection to precisely the WARNING threshold and never one point
+further. So what fires on s011 is the model, not a heuristic. Musepack was never
+in its training set (mp3/aac/opus/vorbis only), so it is generalisation to an
+unseen subband codec.
+
+Honest caveat: 6/64 is 9.4 %, and I have not established that it is a Musepack
+axis rather than noise landing on transcoded material. It needs measuring before
+anyone calls it an axis, and I will do that before claiming it.
+
