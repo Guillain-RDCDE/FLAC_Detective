@@ -1,10 +1,14 @@
-# Reply to Jamie Dodd (Provir) — 15 August 2026
+# FLAC Detective — reply to Provir, 15 August 2026
 
-Answers both messages: the 13 August head-to-head with the Rule 9A finding, and
-the 15 August rematch. Kept in the repo because everything it claims is reproducible from
-`ml/rule_audit.py`, `ml/mdct_probe.py` and `ml/wild_audit.py`, and because the
-next person to ask "why was Rule 9 deleted" should find the whole exchange in one
-place rather than in a LinkedIn thread.
+Guillain d'Erceville. Answers both of Jamie Dodd's messages: the 13 August
+head-to-head with the Rule 9A finding, and the 15 August rematch.
+
+Every number below is reproducible from `ml/rule_audit.py`, `ml/mdct_probe.py`
+and `ml/wild_audit.py` in the FLAC Detective repository, and this document lives
+there alongside them — so that the next person asking "why was Rule 9 deleted"
+finds the whole exchange in one place instead of a LinkedIn thread. Where I got
+something wrong, including about Jamie's own figures, the correction is left in
+rather than edited out.
 
 ---
 
