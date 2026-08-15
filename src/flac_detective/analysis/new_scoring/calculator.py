@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
@@ -13,6 +13,7 @@ from .bitrate import (
 from .constants import CASSETTE_THRESHOLD
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
+from .rules.mdct_alignment import should_run_rule_13
 from .strategies import (
     Rule1MP3Bitrate,
     Rule2Cutoff,
@@ -28,8 +29,10 @@ from .strategies import (
     Rule424BitSuspect,
     ScoringRule,
 )
-from .rules.mdct_alignment import should_run_rule_13
 from .verdict import determine_verdict
+
+if TYPE_CHECKING:
+    import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +82,8 @@ def _ensure_audio(context: ScoringContext) -> None:
     """
     if context.audio_data is not None:
         return
+    audio_data: Optional["np.ndarray"]
+    sample_rate: Optional[int]
     if context.cache is not None:
         logger.debug("OPTIMIZATION: Using shared AudioCache")
         audio_data, sample_rate = context.cache.get_full_audio()

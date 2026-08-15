@@ -38,7 +38,7 @@ null — for them the existing rules already do the work.
 from __future__ import annotations
 
 import logging
-from typing import Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 from scipy.ndimage import median_filter
@@ -66,7 +66,7 @@ HOLE_DEPTH_DB = 40.0
 # rather than guessing — the same choice Rule 12 makes below a 7 kHz rolloff.
 MIN_BASELINE_HOLE_FRACTION = 0.001
 
-_BASIS_CACHE: dict = {}
+_BASIS_CACHE: Dict[Tuple[int, Tuple[float, float]], np.ndarray] = {}
 
 
 def kbd_window(length: int = WINDOW_LEN, alpha: float = 4.0) -> np.ndarray:
