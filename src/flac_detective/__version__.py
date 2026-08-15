@@ -4,11 +4,11 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.8.0"
+__version__ = "1.9.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-08-14"
+__release_date__ = "2026-08-15"
 __release_name__ = "Easy mode & Advanced mode"
 
 # Metadata

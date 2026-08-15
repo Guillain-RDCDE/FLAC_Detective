@@ -10,7 +10,8 @@ from .bitrate import (
     calculate_bitrate_variance,
     calculate_real_bitrate,
 )
-from .constants import CASSETTE_THRESHOLD
+from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES
+from .evidence import evidence_families
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .rules.mdct_alignment import should_run_rule_13
@@ -29,7 +30,7 @@ from .strategies import (
     Rule424BitSuspect,
     ScoringRule,
 )
-from .verdict import determine_verdict
+from .verdict import determine_verdict, uncorroborated_conviction_blocked
 
 if TYPE_CHECKING:
     import numpy as np
@@ -132,6 +133,15 @@ def _run_rule_13(context: ScoringContext) -> None:
         logger.info(
             "RULE 8: protection withdrawn (%+d) — Rule 13 found direct evidence", -protection
         )
+
+
+def _is_corroborated(context: ScoringContext) -> bool:
+    """True if enough independent evidence families already accuse this file.
+
+    Used to decide whether an early exit is safe. A high score from one family is
+    exactly the case that still needs the remaining rules to run.
+    """
+    return len(evidence_families(context.rule_scores)) >= CONVICTION_MIN_FAMILIES
 
 
 def _apply_scoring_rules(  # noqa: C901
@@ -237,10 +247,15 @@ def _apply_scoring_rules(  # noqa: C901
 
         logger.info(f"OPTIMIZATION: Fast rules + R8 (+R11?) score = {context.current_score}")
 
-        # SHORT-CIRCUIT 1: If already FAKE_CERTAIN (≥86), stop here
-        if context.current_score >= 86:
+        # SHORT-CIRCUIT 1: already convicted — but only if the conviction is
+        # CORROBORATED. Stopping here on a single-family score would be
+        # self-defeating: the rules that could corroborate it (12 and 13) live
+        # further down, so an early exit guarantees the file can never reach two
+        # families, and the corroboration gate would end up measuring this
+        # short-circuit rather than the evidence.
+        if context.current_score >= 86 and _is_corroborated(context):
             logger.info(
-                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (FAKE_CERTAIN)"
+                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (corroborated)"
             )
             context.reasons.append(
                 "⚡ Fast analysis: FAKE_CERTAIN detected without expensive rules"
@@ -324,8 +339,9 @@ def _apply_scoring_rules(  # noqa: C901
             _ensure_audio(context)
             _run_rule_13(context)
 
-        # SHORT-CIRCUIT 3: Check again after R7/R8/R11/R13
-        if context.current_score >= 86:
+        # SHORT-CIRCUIT 3: same rule as above — an uncorroborated score must not
+        # skip Rule 12, which is one of the few rules that can corroborate it.
+        if context.current_score >= 86 and _is_corroborated(context):
             logger.info(
                 f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules"
             )
@@ -448,13 +464,30 @@ def new_calculate_score(
         # ScoringContext.add_score.
         score = max(0, raw_score)
 
-        # Determine verdict and confidence
-        verdict, confidence = determine_verdict(score)
+        # Conviction needs independent sources, not just a big number.
+        families = evidence_families(context.rule_scores)
+        verdict, confidence = determine_verdict(score, families)
+
+        if uncorroborated_conviction_blocked(score, families):
+            only = ", ".join(sorted(families)) or "none"
+            reasons.append(
+                f"⚖ Held below FAKE_CERTAIN: score {score} comes from a single "
+                f"evidence family ({only}); a conviction requires two independent ones"
+            )
+            logger.info(
+                "CONVICTION WITHHELD: score %d but only %d evidence family (%s)",
+                score,
+                len(families),
+                only,
+            )
 
         # Format reasons for output
         reasons_str = " | ".join(reasons) if reasons else "No anomaly detected"
 
-        logger.info(f"Final score: {score}/150 - Verdict: {verdict} - Confidence: {confidence}")
+        logger.info(
+            f"Final score: {score}/150 - Verdict: {verdict} - "
+            f"Evidence families: {sorted(families) or 'none'}"
+        )
         logger.info(f"Reasons: {reasons_str}")
         logger.info(f"{'='*60}\n")
 

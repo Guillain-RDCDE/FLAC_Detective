@@ -136,6 +136,10 @@ def _score_one(job: Tuple[str, int, str, str]) -> Optional[Dict[str, object]]:
         "score": result["score"],
         "verdict": result["verdict"],
         "cutoff_freq": round(float(result.get("cutoff_freq") or 0.0), 1),
+        # Independent evidence families — what a conviction is allowed to be made
+        # of since v1.9. Recorded so the audit can score the corroboration gate
+        # itself, not just the rules feeding it.
+        "families": "+".join(result.get("evidence_families") or []),
     }
     breakdown = result.get("score_breakdown") or {}
     for rule in RULES:
@@ -179,7 +183,7 @@ def cmd_score(args: argparse.Namespace) -> int:
                 if n % 25 == 0:
                     log.info("  %d/%d", n, len(jobs))
 
-    fields = ["slug", "label", "codec", "score", "verdict", "cutoff_freq", *RULES]
+    fields = ["slug", "label", "codec", "score", "verdict", "cutoff_freq", "families", *RULES]
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     with open(args.csv, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)

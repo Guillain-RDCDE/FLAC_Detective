@@ -15,6 +15,7 @@ from .diagnostic_tracker import get_tracker
 from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
+from .new_scoring.evidence import evidence_families
 from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
@@ -208,6 +209,9 @@ class FLACAnalyzer:
                 # Per-rule score attribution — what each rule actually contributed
                 # to this file's score. Feeds ml/rule_audit.py (per-rule AUC).
                 "score_breakdown": score_breakdown,
+                # Independent evidence families accusing this file. A conviction
+                # requires two of them; see analysis/new_scoring/evidence.py.
+                "evidence_families": sorted(evidence_families(score_breakdown)),
             }
 
         except Exception as e:

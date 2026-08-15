@@ -1224,3 +1224,88 @@ So across two independent corpora — 258 genuine files, 80 certified CD rips an
 all five are Rule 1 + Rule 3 contributing +50 each**. That is not a scattering of
 edge cases. It is one mechanism, and it is the only mechanism currently capable of
 falsely convicting anyone.
+
+---
+
+# v1.9 — Conviction needs two independent sources
+
+v1.8's harness measured each rule alone. Jamie Dodd pointed at the layer above:
+**nothing was measuring rule combinations.** A score is a sum, and a sum cannot
+say whether it came from one thing repeated or several things agreeing.
+
+The audit data already contained both cases.
+
+**One thing repeated.** All three false convictions on the 80 certified-genuine
+files, and all 26 convictions on the 320 kbps MP3 arm, were Rules 1 and 3 at +50
+each. Rule 3 compares the bitrate Rule 1 inferred; Rule 4 gates on the same
+inference. One measurement wearing several hats, clearing 86 unaided.
+
+**Several things agreeing, and losing.** 90 files carried agreement between Rule
+12 (learned mel-spectrogram model) and Rule 13 (MDCT frame alignment), and **54
+of them sat at exactly 85** against that same bar.
+
+So conviction moved from a score threshold to a corroboration gate: two
+independent evidence families required (`spectral`, `container`, `silence`,
+`cnn`, `mdct`), with protection rules and the segment-consistency rule excluded
+by construction.
+
+## The trap inside the fix
+
+The pipeline used to stop as soon as the score passed 86 — before Rules 12 and 13
+ran. Under a corroboration gate that is self-defeating: the early exit
+*guarantees* a single family, so the gate would have been measuring the
+short-circuit rather than the evidence. Early exits now require corroboration
+too. That is why the MP3 arm barely moved (32.5 % → 31.2 % convicted) instead of
+collapsing to 2 % as a naive simulation predicted: those files now reach the
+rules that can corroborate them.
+
+## Choosing the corroborated bar — and why the certified corpus would have got it wrong
+
+With two families required, what points bar should a conviction need? Simulated on
+the 80 certified-genuine files, the answer looked obvious: **zero** of them ever
+reached two families, so any bar was safe, and the lowest bar caught the most
+fakes (196 of 720 at a bar of 31).
+
+Then the same question was put to 178 wild Internet Archive recordings.
+
+**Eighteen of them reach two families.** Audience recordings with a low rolloff
+give `spectral` points, and the CNN fires on the same material. Their scores:
+
+```
+  0, 0, 0, 0, 10, 18, 31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 38, 41
+```
+
+| corroborated bar | false convictions, 178 wild genuine files |
+|---|---|
+| 31 | **12 (6.7 %)** |
+| 40 | 1 |
+| 45 | 0 |
+| **55 (shipped)** | **0**, with 14 points of margin |
+
+The bar that the certified corpus called free would have convicted one wild file
+in fifteen. Same lesson the whole exchange keeps returning to: a corpus of one
+provenance cannot price a population of another, and the only defence is to go
+and measure the other one.
+
+## Result
+
+Same 800 files, v1.8 → v1.9:
+
+| | v1.8 | v1.9 |
+|---|---|---|
+| fakes convicted | 142 | **177** |
+| genuine convicted (audit corpus) | 3 | **0** |
+| genuine convicted (wild, 178 files) | 2 | **0** |
+| convictions resting on one family | 142 | **0** |
+| AAC 256k (ffmpeg) convicted | 2.5 % | **58.8 %** |
+| flag rates, both classes | — | unchanged |
+
+Across both corpora, **0 false convictions in 258 genuine files** (Wilson-95
+upper bound 1.47 %), against 5 before. Every surviving conviction carries two
+families: 90 `cnn+spectral`, 82 `cnn+mdct`, 5 all three.
+
+## Cost
+
+Scans are slower. The cheapest fast path in the pipeline — "score is already 86,
+stop" — is gone for uncorroborated files, which is precisely the population that
+needed the expensive rules in order to be judged fairly.

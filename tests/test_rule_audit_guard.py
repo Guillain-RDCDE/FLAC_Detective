@@ -158,3 +158,40 @@ def test_no_rule_taxes_genuine_files():
     assert not offenders, "rules taxing genuine files without discriminating: " + "; ".join(
         offenders
     )
+
+
+def test_no_conviction_rests_on_a_single_evidence_family():
+    """The composition guard — Jamie Dodd's sibling to "no unmeasured rule ships".
+
+    "No unmeasured RULE ships" was not enough. A score is a sum, and a sum cannot
+    say whether it came from one thing repeated or several things agreeing. In the
+    v1.8 audit every false conviction, and every conviction on the 320 kbps MP3
+    arm, was Rules 1 and 3 at +50 each — one bitrate inference counted twice.
+
+    This reads the committed audit and fails if any file was convicted on a single
+    family. It is a property of the shipped corpus, not of a mock, so it also
+    catches the case where a future rule quietly joins an existing family and
+    starts convicting through it.
+    """
+    rows = _load_rows()
+    if "families" not in rows[0]:
+        pytest.skip("audit predates the families column — re-run ml/rule_audit.py score")
+
+    offenders = [
+        r for r in rows if r["verdict"] == "FAKE_CERTAIN" and len(r["families"].split("+")) < 2
+    ]
+    assert not offenders, (
+        f"{len(offenders)} file(s) convicted on a single evidence family, e.g. "
+        f"{offenders[0]['slug']} (families={offenders[0]['families']!r}, "
+        f"score={offenders[0]['score']}). One source cannot corroborate itself."
+    )
+
+
+def test_no_genuine_file_is_convicted():
+    """The number that actually matters, asserted rather than hoped for."""
+    rows = _load_rows()
+    convicted = [r for r in rows if r["label"] == "0" and r["verdict"] == "FAKE_CERTAIN"]
+    assert not convicted, (
+        f"{len(convicted)} certified-genuine file(s) convicted: "
+        f"{[r['slug'] for r in convicted][:3]}"
+    )

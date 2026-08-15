@@ -30,6 +30,22 @@ SCORE_SUSPICIOUS = 55
 SCORE_WARNING = 31
 SCORE_AUTHENTIC = 30
 
+# ========== CONVICTION: CORROBORATION, NOT JUST POINTS (v1.9) ==========
+# A conviction requires this many INDEPENDENT evidence families (see evidence.py),
+# not merely a high total. The audit's finding was unambiguous: all three false
+# convictions on 80 certified-genuine files, and all 26 convictions on the
+# 320 kbps MP3 arm, came from Rules 1 and 3 contributing +50 each — and Rule 3
+# reads the bitrate Rule 1 inferred. One measurement, counted twice, clearing 86
+# unaided. No threshold can separate that from real evidence, because the
+# arithmetic is identical; only counting sources can.
+CONVICTION_MIN_FAMILIES = 2
+
+# With two independent families agreeing, the points bar drops from 86. Set from
+# measurement — see ml/README.md, "Choosing the corroborated bar": the value is
+# chosen against the false-conviction rate on genuine material, not against how
+# many fakes it catches.
+CONVICTION_MIN_SCORE = 55
+
 # Rule 11 cassette evidence needed to protect a file (cancel Rule 1, apply -40).
 # Lowered 30 -> 15 in v1.8 when test 11C was removed: 11C awarded a flat +15 to
 # essentially every file (it keyed off Rule 9C, which measured AUC 0.497), so

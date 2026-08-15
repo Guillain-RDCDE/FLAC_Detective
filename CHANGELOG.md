@@ -1,3 +1,89 @@
+## v1.9.0 (2026-08-15) — A conviction now needs two independent sources
+
+v1.8 built a harness that measures each rule alone, and it immediately found a
+dead rule, an inverted rule and a destroyed protection. Jamie Dodd of Provir then
+pointed at the layer above: **nothing was measuring rule *combinations*.** He was
+right, and the consequence was visible in both directions in the project's own
+audit data.
+
+### The finding, in both directions
+
+A score is a sum, and a sum cannot say whether it came from one thing repeated or
+several things agreeing.
+
+* **One thing repeated.** All three false convictions on 80 certified-genuine
+  files, and all 26 convictions on the 320 kbps MP3 arm, were Rules 1 and 3
+  contributing +50 each — and Rule 3 compares the bitrate Rule 1 inferred. One
+  measurement, counted twice, clearing an 86-point bar unaided.
+* **Several things agreeing, and losing.** 90 files carried agreement between
+  Rule 12 (a learned mel-spectrogram model) and Rule 13 (MDCT frame alignment) —
+  genuinely different physics — and **54 of them sat at exactly 85** against that
+  same bar. Jamie found the same composition from the outside, on a different
+  codec arm, in the same week.
+
+### The change
+
+Conviction moves from a score threshold to a **corroboration gate**: FAKE_CERTAIN
+requires two independent evidence families, and a corroborated file convicts from
+a lower points bar than the old flat 86.
+
+| family | rules | reads |
+|---|---|---|
+| `spectral` | 1, 2, 3, 4 | the cutoff, and the bitrate inferred from it |
+| `container` | 5 | bitrate variance across FLAC blocks |
+| `silence` | 7 | HF energy in silent passages |
+| `cnn` | 12 | learned mid/side classifier |
+| `mdct` | 13 | frame-alignment quantisation structure |
+
+Rules 6, 8 and 11 are protection and can never convict. Rule 10 re-scores
+segments through the same pipeline — consistency, not corroboration.
+
+**The early exits had to go with it.** The pipeline stopped as soon as the score
+passed 86, so a file convicted by Rules 1 + 3 never ran Rules 12 or 13 at all.
+Under a corroboration gate that is self-defeating: the exit guarantees a single
+family, and the gate would measure the short-circuit rather than the evidence.
+Early exits now require corroboration too.
+
+### Measured effect, same 800 files
+
+| | v1.8 | v1.9 |
+|---|---|---|
+| **fakes convicted** | 142 | **177** (+25 %) |
+| **genuine convicted** | 3 | **0** |
+| convictions resting on one family | 142 | **0** |
+| fakes flagged | 76.0 % | 76.0 % |
+| genuine flagged | 3.8 % | 3.8 % |
+| AAC 256k (ffmpeg) convicted | 2.5 % | **58.8 %** |
+| AAC 256k (MediaFoundation) convicted | 13.8 % | **37.5 %** |
+| MP3 320k convicted | 32.5 % | 31.2 % |
+
+Both directions improved, which is unusual and is the point: the convictions that
+disappeared were the ones resting on a doubled inference, and the ones that
+appeared carry two independent sources. MP3 barely moved — because disabling the
+early exit let those files reach the rules that could corroborate them.
+
+Every remaining conviction carries at least two families: 90 `cnn+spectral`,
+82 `cnn+mdct`, 5 all three. The three genuine files still flagged carry
+`spectral` alone and are therefore capped at SUSPICIOUS by construction.
+
+### Guards
+
+- `tests/test_evidence.py` — a new scoring rule must be assigned an evidence
+  family or listed as deliberately excluded. It cannot silently acquire
+  conviction power by existing.
+- `tests/test_rule_audit_guard.py` gains two: no conviction in the committed
+  audit may rest on a single family, and no certified-genuine file may be
+  convicted at all.
+
+### Compatibility and cost
+
+`analyze_file()` gains `evidence_families`; nothing is removed. A withheld
+conviction says so in its reason string rather than looking like a low score.
+
+**Scans are slower.** Files that used to exit early at 86 points now run the
+expensive rules so they can be corroborated — which is the whole point, but it
+removes the cheapest fast path in the pipeline.
+
 ## v1.8.0 (2026-08-14) — Every rule measured; one deleted, one un-inverted, one new that works at 320 kbps
 
 The release started as a courtesy: a competitor, Jamie Dodd of **Provir**, ran a

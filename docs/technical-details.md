@@ -680,6 +680,47 @@ was erased before any later rule could be offset against it, so a file scoring
 a penalty was inert. Protections are the whole basis of "protect authentic files
 first", so they now survive to the end of the calculation.
 
+### Conviction requires corroboration, not just points (v1.9)
+
+The three lower tiers are read off the score. **FAKE_CERTAIN is not.** A
+conviction requires **two independent evidence families**, and a file that has
+them convicts from a lower points bar than the old flat 86.
+
+| family | rules | what it reads |
+|---|---|---|
+| `spectral` | 1, 2, 3, 4 | the cutoff, and the MP3 bitrate inferred *from* the cutoff |
+| `container` | 5 | bitrate variance across FLAC blocks |
+| `silence` | 7 | HF energy in silent passages |
+| `cnn` | 12 | learned mid/side mel-spectrogram classifier |
+| `mdct` | 13 | frame-alignment quantisation structure |
+
+Rules 6, 8 and 11 are **protection** — evidence of innocence, never of guilt.
+Rule 10 re-scores segments through the same pipeline, so it is consistency rather
+than corroboration and cannot be a family.
+
+**Why Rules 1–4 are one family and not four.** Rule 3 compares the bitrate Rule 1
+inferred against the container; Rule 4 gates on that same inference. However many
+of them fire, they are one look at one thing. The v1.8 audit measured the
+consequence exactly: *all three* false convictions on 80 certified-genuine files,
+and *all 26* convictions on the 320 kbps MP3 arm, were Rules 1 + 3 at +50 each.
+One measurement counted twice, clearing an 86-point bar unaided. No threshold can
+separate that from real evidence, because the arithmetic is identical — only
+counting sources can.
+
+**Why the bar drops when two families agree.** The same audit found 90 files where
+Rule 12 and Rule 13 both scored — a learned model and a transform statistic, on
+genuinely different physics — and **54 of them sat at exactly 85** against that
+86-point bar. Two independent measurements agreeing were losing to arithmetic by
+one point.
+
+**A high uncorroborated score no longer skips the corroborating rules.** The
+pipeline used to stop as soon as the score passed 86, which meant a file convicted
+by Rules 1 + 3 never ran Rules 12 or 13 at all. Under a corroboration gate that
+would have been self-defeating: the early exit guarantees a single family, and the
+gate would end up measuring the short-circuit rather than the evidence. Early
+exits now require corroboration too, which costs scan time on exactly the files
+that were previously cheapest.
+
 ### Verdict Mapping
 
 ```

@@ -48,6 +48,20 @@ log = logging.getLogger(__name__)
 
 SEED = 20260814
 
+# Rules recorded per file by ``scan``. Explicit rather than discovered, so a rule
+# that stops running shows up as an empty column rather than vanishing.
+SCAN_RULES = (
+    "Rule1MP3Bitrate",
+    "Rule2Cutoff",
+    "Rule3SourceVsContainer",
+    "Rule424BitSuspect",
+    "Rule5HighVariance",
+    "Rule7SilenceAnalysis",
+    "Rule8NyquistException",
+    "Rule12MLClassifier",
+    "Rule13MDCTAlignment",
+)
+
 
 def wilson(k: int, n: int, z: float = 1.96) -> Tuple[float, float]:
     """Wilson score interval — the honest reading of a clean run."""
@@ -98,13 +112,19 @@ def _scan_one(path: str) -> Optional[Dict[str, object]]:
     if r.get("verdict") == "ERROR":
         return None
     breakdown = r.get("score_breakdown") or {}
-    return {
+    row = {
         "file_id": hashlib.sha1(path.encode("utf-8", "replace")).hexdigest()[:12],
         "score": r["score"],
         "verdict": r["verdict"],
         "cutoff_freq": round(float(r.get("cutoff_freq") or 0.0), 1),
-        "Rule13MDCTAlignment": breakdown.get("Rule13MDCTAlignment", ""),
+        "families": "+".join(r.get("evidence_families") or []),
     }
+    # Full per-rule breakdown, not just Rule 13: choosing the corroborated
+    # conviction bar needs to know which families accuse GENUINE wild files, and
+    # that cannot be read from one rule.
+    for rule in SCAN_RULES:
+        row[rule] = breakdown.get(rule, "")
+    return row
 
 
 def cmd_sample(args: argparse.Namespace) -> int:
@@ -187,7 +207,8 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(
-            fh, fieldnames=["file_id", "score", "verdict", "cutoff_freq", "Rule13MDCTAlignment"]
+            fh,
+            fieldnames=["file_id", "score", "verdict", "cutoff_freq", "families", *SCAN_RULES],
         )
         w.writeheader()
         w.writerows(rows)

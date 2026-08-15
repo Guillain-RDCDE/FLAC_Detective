@@ -150,3 +150,6 @@ docs/reply-to-provir-2026-08.txt
 
 # Answer keys for blind exchange sets — never commit these
 *-LABELS.json
+
+# Stray Sphinx/tooling output
+Temp/

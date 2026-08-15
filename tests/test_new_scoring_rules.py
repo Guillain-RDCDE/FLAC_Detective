@@ -75,8 +75,11 @@ class TestMandatoryValidation:
 
         total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
         assert total_score == 101  # 50 + 1 + 50 + 0 + 0 + 0
-        verdict, _ = determine_verdict(total_score)
-        assert verdict == "FAKE_CERTAIN"
+        # Every rule above is the SPECTRAL family (Rule 3 re-reads Rule 1's
+        # inference), so since v1.9 these points cannot convict on their own.
+        assert determine_verdict(total_score, {"spectral"})[0] == "SUSPICIOUS"
+        # One independent second source is all it takes.
+        assert determine_verdict(total_score, {"spectral", "cnn"})[0] == "FAKE_CERTAIN"
 
     def test_2_mp3_192_low_cutoff(self):
         """TEST 2: MP3 192 kbps cutoff bas - DOIT être FAKE_CERTAIN."""
@@ -138,8 +141,8 @@ class TestMandatoryValidation:
 
         total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
         assert total_score == 112
-        verdict, _ = determine_verdict(total_score)
-        assert verdict == "FAKE_CERTAIN"
+        assert determine_verdict(total_score, {"spectral"})[0] == "SUSPICIOUS"
+        assert determine_verdict(total_score, {"spectral", "mdct"})[0] == "FAKE_CERTAIN"
 
     def test_3_mp3_320_in_24bit(self):
         """TEST 3: MP3 320 kbps en 24-bit - DOIT être FAKE_CERTAIN."""
@@ -355,10 +358,12 @@ class TestRule1NearNyquistWallGate:
         assert score == 50
         assert bitrate == 320
         assert any("Constant MP3 bitrate detected" in r for r in reasons)
-        # R1 + R3 reach FAKE_CERTAIN
+        # R1 + R3 clear the points bar — but they are ONE family, so the verdict
+        # stops at SUSPICIOUS. This pair produced every false conviction the v1.9
+        # audit measured on certified-genuine files.
         score_r3, _ = apply_rule_3_source_vs_container(bitrate, self.CONTAINER)
-        verdict, _ = determine_verdict(score + score_r3)
-        assert verdict == "FAKE_CERTAIN"
+        assert score + score_r3 >= 86
+        assert determine_verdict(score + score_r3, {"spectral"})[0] == "SUSPICIOUS"
 
     def test_keep_deep_digital_floor_scores_fake(self):
         """Floor deep below -55 dB (digital-silence) -> real transcode, +50."""

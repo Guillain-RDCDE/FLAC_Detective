@@ -70,7 +70,18 @@ class TestMandatoryTestCase1:
     - Règle 2: +0 points (cutoff > 20000)
     - Règle 3: +50 points (mp3_bitrate=320 detected and container 851 > 600)
     - Total: 100 points
-    - Expected verdict: FAKE_CERTAIN
+    - Expected verdict: SUSPICIOUS (one evidence family — see note)
+
+    v1.9 note — this case now reads SUSPICIOUS, and that is the intended change.
+    Its whole score comes from Rules 1, 2, 3 (and 4), which are ONE evidence
+    family: Rule 3 compares the bitrate Rule 1 inferred, and Rule 4 gates on the
+    same inference. A conviction now requires two independent families. The audit
+    that forced this measured every false conviction on 80 certified-genuine files
+    coming from exactly this pattern, at scores of 100, 102 and 111.
+
+    The file is still flagged, loudly, and the implied bitrate is still reported.
+    What changed is that "the spectrum says 320k and the container agrees" is no
+    longer allowed to be a conviction on its own.
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
@@ -112,8 +123,13 @@ class TestMandatoryTestCase1:
 
         # Assertions
         assert score == 100, f"Expected score 100, got {score}"
-        assert verdict == "FAKE_CERTAIN", f"Expected FAKE_CERTAIN, got {verdict}"
+        assert (
+            verdict == "SUSPICIOUS"
+        ), f"Expected SUSPICIOUS (single evidence family), got {verdict}"
         assert "320" in reason, "Reason should mention 320 kbps"
+        assert (
+            "single evidence family" in reason
+        ), "a withheld conviction must explain itself, not look like a low score"
 
 
 class TestMandatoryTestCase2:
@@ -129,7 +145,7 @@ class TestMandatoryTestCase2:
     - Règle 3: +50 points (mp3_bitrate=256 detected and container 725 > 600)
     - Règle 4: +30 points (24-bit with mp3_bitrate 256 < 500)
     - Total: 144 points
-    - Expected verdict: FAKE_CERTAIN
+    - Expected verdict: SUSPICIOUS (one evidence family, see Test Case 1)
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
@@ -172,7 +188,11 @@ class TestMandatoryTestCase2:
         # Assertions
         # Score should be >= 100 (capped at max, but internally calculated as 144)
         assert score >= 100, f"Expected score >= 100, got {score}"
-        assert verdict == "FAKE_CERTAIN", f"Expected FAKE_CERTAIN, got {verdict}"
+        # Same v1.9 change as Test Case 1: Rules 1/2/3/4 are one evidence family,
+        # so a very high score from them alone is SUSPICIOUS, not a conviction.
+        assert (
+            verdict == "SUSPICIOUS"
+        ), f"Expected SUSPICIOUS (single evidence family), got {verdict}"
         assert (
             "256" in reason or "24-bit" in reason
         ), "Reason should mention 256 kbps or 24-bit issue"
