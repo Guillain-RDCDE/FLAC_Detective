@@ -83,8 +83,9 @@ def main() -> None:
     # to --max-files total — which is how a 150-file pull quietly became 275.
     got = len(list(args.out.glob("*.flac")))
     if got:
-        print(f"resuming: {got} already present, need {max(0, args.max_files - got)} more",
-              flush=True)
+        print(
+            f"resuming: {got} already present, need {max(0, args.max_files - got)} more", flush=True
+        )
     for ident in ids:
         if got >= args.max_files:
             break

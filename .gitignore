@@ -147,3 +147,6 @@ ml/scoredist.log
 
 # Transport copy of docs/reply-to-provir-2026-08.md (LinkedIn rejects .md)
 docs/reply-to-provir-2026-08.txt
+
+# Answer keys for blind exchange sets — never commit these
+*-LABELS.json

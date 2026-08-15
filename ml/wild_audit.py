@@ -208,8 +208,10 @@ def cmd_scan(args: argparse.Namespace) -> int:
     ran = [r for r in rows if str(r["Rule13MDCTAlignment"]) != ""]
     scored = [r for r in ran if float(r["Rule13MDCTAlignment"] or 0) != 0]
     lo, hi = wilson(len(scored), len(ran)) if ran else (float("nan"), float("nan"))
-    print(f"  Rule 13 ran on {len(ran)}, scored on {len(scored)} "
-          f"({len(scored)}/{len(ran)}, Wilson-95 up to {hi:.1%})")
+    print(
+        f"  Rule 13 ran on {len(ran)}, scored on {len(scored)} "
+        f"({len(scored)}/{len(ran)}, Wilson-95 up to {hi:.1%})"
+    )
     return 0
 
 

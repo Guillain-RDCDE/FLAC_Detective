@@ -183,7 +183,14 @@ def pick_sources(manifest_json: Path, n: int) -> List[Dict]:
 
 
 def make_excerpt(src: Path, dst: Path) -> bool:
-    """Write a 60 s FLAC excerpt from the middle of ``src`` to ``dst``."""
+    """Write a 60 s FLAC excerpt from the middle of ``src`` to ``dst``.
+
+    ``-bitexact`` matters more than it looks. Without it ffmpeg stamps an
+    ``encoder=Lavf…`` tag, while the transcode path (which passes ``-bitexact``)
+    does not — so in a blind set the genuine files would be the only ones
+    carrying a tag, and one ffprobe call would hand over every label. Caught by
+    ml/freeze_exchange_set.py's tag re-check on its first run.
+    """
     dur = _probe_duration(src)
     if dur is None or dur < 20:
         return False
@@ -205,6 +212,7 @@ def make_excerpt(src: Path, dst: Path) -> bool:
             "0:a:0",
             "-map_metadata",
             "-1",
+            "-bitexact",
             "-c:a",
             "flac",
             str(dst),
