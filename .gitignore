@@ -144,3 +144,6 @@ ml/r12*.csv
 ml/score_distribution.csv
 ml/scoredist.err
 ml/scoredist.log
+
+# Transport copy of docs/reply-to-provir-2026-08.md (LinkedIn rejects .md)
+docs/reply-to-provir-2026-08.txt

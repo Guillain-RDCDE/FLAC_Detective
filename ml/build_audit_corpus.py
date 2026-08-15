@@ -121,6 +121,39 @@ def _slug(path: Path, index: int) -> str:
     return f"{index:03d}-{stem}"
 
 
+def pick_sources_from_dir(source_dir: Path, n: int) -> List[Dict]:
+    """Select ``n`` sources from a directory of freely-redistributable FLACs.
+
+    For the exchange corpus. The certified-library path below cannot be used for
+    anything that leaves this machine: those are commercial CD rips, and freezing
+    a corpus in sha256 does not make it distributable. Internet Archive ``etree``
+    material is explicitly licensed for redistribution, so transcodes of it are
+    too — which is what makes a blind cross-scoring exchange with another author
+    legally possible at all.
+
+    One file per archive item, for the same reason as one track per album: two
+    tracks off the same concert share a capture chain and are not two
+    observations.
+    """
+    by_item: Dict[str, List[Path]] = {}
+    for f in sorted(source_dir.glob("*.flac")):
+        # ml/fetch_wild_authentic.py names files "<item-identifier>__<track>.flac".
+        item = f.name.split("__", 1)[0]
+        by_item.setdefault(item, []).append(f)
+
+    rng = random.Random(SEED)
+    items = sorted(by_item)
+    rng.shuffle(items)
+
+    picked: List[Dict] = []
+    for item in items:
+        if len(picked) >= n:
+            break
+        f = rng.choice(by_item[item])
+        picked.append({"path": str(f), "ripper": None, "item": item})
+    return picked
+
+
 def pick_sources(manifest_json: Path, n: int) -> List[Dict]:
     """Select ``n`` certified-authentic sources, at most one per album.
 
@@ -266,20 +299,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--out", required=True, type=Path, help="corpus root (keep it OFF Dropbox)")
     ap.add_argument("--n", type=int, default=80, help="number of source albums")
     ap.add_argument("--authentic-json", type=Path, default=Path("ml/authentic_files.json"))
+    ap.add_argument(
+        "--source-dir",
+        type=Path,
+        default=None,
+        help="build from a directory of freely-redistributable FLACs instead of the "
+        "certified library — required for any corpus that will be sent to someone else",
+    )
     ap.add_argument("--workers", type=int, default=max(1, (mp.cpu_count() or 4) - 2))
     args = ap.parse_args(argv)
 
     out: Path = args.out
     (out / "authentic").mkdir(parents=True, exist_ok=True)
 
-    sources = pick_sources(args.authentic_json, args.n)
-    log.info("Selected %d certified-authentic sources (one per album)", len(sources))
+    if args.source_dir:
+        sources = pick_sources_from_dir(args.source_dir, args.n)
+        log.info("Selected %d redistributable sources (one per archive item)", len(sources))
+    else:
+        sources = pick_sources(args.authentic_json, args.n)
+        log.info("Selected %d certified-authentic sources (one per album)", len(sources))
 
     manifest: Dict[str, object] = {
         "excerpt_sec": EXCERPT_SEC,
         "seed": SEED,
         "codecs": [c.name for c in CODECS],
         "unavailable_encoders": ["libfdk_aac", "qaac", "mpcenc"],
+        "redistributable": bool(args.source_dir),
         "sources": [],
     }
     kept: List[Tuple[Path, Dict]] = []
