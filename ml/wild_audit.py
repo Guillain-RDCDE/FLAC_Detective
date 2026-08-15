@@ -202,8 +202,14 @@ def cmd_scan(args: argparse.Namespace) -> int:
     flagged = n - counts.get("AUTHENTIC", 0)
     lo, hi = wilson(flagged, n)
     print(f"  FALSE POSITIVE RATE: {flagged}/{n} = {flagged/n:.1%} (Wilson-95 {lo:.1%}–{hi:.1%})")
-    r13 = [r for r in rows if r["Rule13MDCTAlignment"] not in ("", "0")]
-    print(f"  of which Rule 13 contributed to: {len(r13)}")
+    # "" means the rule never ran on that file; 0 means it ran and abstained.
+    # Conflating the two once made a clean 0/178 read as "Rule 13 contributed to
+    # 162 files", which is the opposite of what happened.
+    ran = [r for r in rows if str(r["Rule13MDCTAlignment"]) != ""]
+    scored = [r for r in ran if float(r["Rule13MDCTAlignment"] or 0) != 0]
+    lo, hi = wilson(len(scored), len(ran)) if ran else (float("nan"), float("nan"))
+    print(f"  Rule 13 ran on {len(ran)}, scored on {len(scored)} "
+          f"({len(scored)}/{len(ran)}, Wilson-95 up to {hi:.1%})")
     return 0
 
 

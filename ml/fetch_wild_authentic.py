@@ -77,7 +77,14 @@ def main() -> None:
 
     ids = _search(rows=max(60, args.max_files * 2), collection=args.collection, sort=args.sort)
     print(f"found {len(ids)} candidate {args.collection} items", flush=True)
-    got = 0
+
+    # Files already on disk count toward the target. Without this, resuming an
+    # interrupted run downloads --max-files *more* files rather than topping up
+    # to --max-files total — which is how a 150-file pull quietly became 275.
+    got = len(list(args.out.glob("*.flac")))
+    if got:
+        print(f"resuming: {got} already present, need {max(0, args.max_files - got)} more",
+              flush=True)
     for ident in ids:
         if got >= args.max_files:
             break

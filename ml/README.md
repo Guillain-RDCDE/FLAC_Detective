@@ -1159,6 +1159,31 @@ Rule 13 contributed to **0 of the 80 genuine files**. Convictions are flat, whic
 is the intended shape: Rule 13 is calibrated to reach SUSPICIOUS on its own and
 no further.
 
+### The wild check — Rule 13 on material from outside the library
+
+The 880-file calibration set is all my own certified rips. Same mastering
+conventions, same era mix, same ripper. So: 180 FLACs pulled from the Internet
+Archive `etree` collection (74 distinct concerts, taper recordings licensed for
+redistribution), run through the full pipeline. These are *deliberately* hostile —
+audience recordings, room noise, wildly variable capture chains, nothing like a
+CD master.
+
+**Rule 13 scored zero points on all 178 usable files.** It ran on 162 of them and
+abstained or returned below-threshold on every single one; the other 16 didn't
+pass its cutoff gate.
+
+Combined with the certified sweep, that is **0 of 1058 genuine files scored by
+Rule 13 — Wilson-95 upper bound 0.36 %**.
+
+The overall pipeline flagged 20 of 178 (11.2 %, Wilson-95 7.4–16.7 %), against a
+historical 13.3 % on a 45-file pull. None of it is Rule 13's doing.
+
+> A reporting bug is worth recording here, because it nearly buried the result.
+> The first summary read "Rule 13 contributed to 162 files" — the check treated a
+> contribution of integer `0` as "not empty" and counted every file the rule *ran*
+> on. A clean 0/178 printed as its own opposite. Distinguish "did not run" from
+> "ran and abstained", always.
+
 ### The next one, stated with its numbers rather than fixed in a hurry
 
 Three genuine files are still convicted, all with the same signature:
@@ -1184,3 +1209,18 @@ a long day.
 
 Logged here with the numbers so the next person starts from evidence instead of
 from the same temptation.
+
+The wild run then made the case stronger, not weaker. Its two false convictions
+(both tracks of one audience recording, `lf2025-05-28`) have the identical
+signature:
+
+```
+FAKE_CERTAIN  score=106  {Rule1: 50, Rule2: 6, Rule3: 50}
+FAKE_CERTAIN  score=105  {Rule1: 50, Rule2: 5, Rule3: 50}
+```
+
+So across two independent corpora — 258 genuine files, 80 certified CD rips and
+178 wild taper recordings — this tool has produced **five false convictions, and
+all five are Rule 1 + Rule 3 contributing +50 each**. That is not a scattering of
+edge cases. It is one mechanism, and it is the only mechanism currently capable of
+falsely convicting anyone.

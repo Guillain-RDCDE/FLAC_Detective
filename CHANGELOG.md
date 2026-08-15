@@ -129,6 +129,15 @@ with a reason string that says so. When Rule 13 is silent, Rule 8 is untouched.
 Rule 13 contributed to 0 of the 80 genuine files. Convictions are deliberately
 flat: Rule 13 is calibrated to reach SUSPICIOUS alone and no further.
 
+### Validated outside the library
+
+180 FLACs from the Internet Archive `etree` collection (74 distinct concerts,
+taper recordings licensed for redistribution — adversarial by nature) run through
+the full pipeline. **Rule 13 scored zero on all 178 usable files.** Combined with
+the 880-file certified sweep that is **0 of 1058 genuine files, Wilson-95 upper
+bound 0.36 %**. Overall pipeline flagging was 20/178 (11.2 %), against a
+historical 13.3 % on a smaller pull — none of it attributable to the new rule.
+
 ### Known issue, documented rather than rushed
 
 Three genuine files are still convicted, all with the same signature: Rules 1 and
@@ -141,6 +150,11 @@ Discounting Rule 3 when Rule 1 has fired takes genuine convictions from 3/80 to
 pair, and the 86 threshold was implicitly calibrated around the double-count.
 Fixing it means recalibrating the threshold with its own measurement, so it is
 logged with its numbers (`ml/README.md`) rather than patched blind.
+
+The wild run reinforced it: its two false convictions carry the same signature.
+Across 258 genuine files from two independent corpora, this tool has produced
+five false convictions and **all five are Rule 1 + Rule 3 at +50 each**. One
+mechanism, and currently the only one able to convict an innocent file.
 
 ### Performance
 
