@@ -1,7 +1,7 @@
-# Reply to Jamie Dodd (Provir) — draft, 14 August 2026
+# Reply to Jamie Dodd (Provir) — 15 August 2026
 
-Working copy of the response to the head-to-head benchmark and the Rule 9A
-finding. Kept in the repo because everything it claims is reproducible from
+Answers both messages: the 13 August head-to-head with the Rule 9A finding, and
+the 15 August rematch. Kept in the repo because everything it claims is reproducible from
 `ml/rule_audit.py`, `ml/mdct_probe.py` and `ml/wild_audit.py`, and because the
 next person to ask "why was Rule 9 deleted" should find the whole exchange in one
 place rather than in a LinkedIn thread.
@@ -177,3 +177,89 @@ that got me through my own ceiling. The MDCT implementation is in the repo, MIT,
 and the corpus builder with it — take whatever's useful.
 
 Guillain
+
+---
+
+# Part 2 — on the rematch (15 August)
+
+Answering this second because the first half is what I owe you; this half is
+mostly agreement.
+
+**260 of 768 is a real jump and I'm not going to pretend otherwise.** You also
+didn't dress it up: the misses are in the table, the tiers stay separate, the
+Wilson bound is still on the clean row, and you added a wild section rather than
+leaving the constructed-corpus caveat as a footnote. That's the same discipline
+as v1.
+
+Reading the shape rather than the total: all 260 come from five arms at exactly
+52 each, and 64 − 52 = 12 identical misses per arm, which you attribute to the
+same handful of source recordings. That reads as a wall-reader — it fires
+wherever a low-pass edge lands on the ladder and nowhere else, and the 12 are
+sources already band-limited before the encoder touched them. Which is the same
+population my own tool goes blind on, from the other direction. No complaint;
+it's just worth naming that the jump is inside the half of the problem both
+engines could already see.
+
+**One row I can't reconcile, and you asked to be told.** In v1, Provir convicted
+8 on `aac_cvbr128`. In v2 that arm reads 0, while `fdk_vbr5` goes 22 → 52. Your
+v1 total of 30 was exactly those two arms (22 + 8), so those 8 didn't move — they
+went away. Your honesty rows cover mp3_V0 and the vorbis/musepack/high-AAC arms,
+but not this one. If the unmasking fix retired a rung that was mis-firing there,
+that's a *better* engine and worth stating; if it's unintended, it's a regression
+hiding inside a headline improvement. Either way it's the only row in the
+document I couldn't make add up. (For the record, the 57 restored files do
+reconcile: 3 genuine + 54 fakes, 29 + 714 = 743 → 32 + 768 = 800.)
+
+**On the methodology, one thing you did for v1 and didn't for v2.** Your Rule 9A
+finding was checkable, and I checked it. The v2 rung isn't — the definitions are
+held back for a few weeks, which is entirely your right and I'd probably do the
+same. But it means the chain of custody is currently self-attested. Freeze dates
+and shadow ledgers are exactly the right artefacts; they just can't be audited
+from outside yet. Not a criticism, a status.
+
+## The offer: yes — and here is the reciprocal
+
+Blind, hash-keyed, labels withheld, both directions. You score mine, I score
+yours. One-directional removes "it's my corpus" for your numbers only.
+
+Practical constraint on my side, worth stating up front: my audit corpus is built
+from my own CD rips, so I can't lawfully ship it to you however frozen it is. I'm
+rebuilding the exchange set from Internet Archive `etree` material — explicitly
+licensed for redistribution — so the transcodes are distributable too. That takes
+me a few days (my machine's outbound network has been down since yesterday, which
+is its own comedy).
+
+## Before that, something free — and pre-registered
+
+You already re-run FLAC Detective against your corpus. Next time, use **1.8.0**
+rather than 1.7.0: it has a new rule that reads MDCT frame alignment rather than
+the band edge, and your table has four arms where *both* our engines read 0
+(`aac_abr320`, `aac_cvbr256`, `aac_ff256`, `mpc_q10`). That's the half neither of
+us was pricing.
+
+So that this can't be a story told after the fact, here is what I predict **before
+you measure**, written down now:
+
+| your arm | my prediction for FD 1.8.0, review tier | confidence |
+|---|---|---|
+| `aac_ff256` (ffmpeg AAC) | **≥ 90 % flagged** | high — measured 98.8 % on my own ffmpeg-AAC arm |
+| `aac_cvbr256`, `aac_abr320` (Apple/qaac) | **degraded, 30–90 %** | low — deliberately wide |
+| `fdk_vbr5` (Fraunhofer) | **degraded, 30–90 %** | low |
+| `mp3_192/256/320/V0` | **unchanged from 1.7.0** | high — the rule reads at the null on MP3 |
+| `opus_256` | unchanged | high |
+| `vorbis_q8` | small gain, < 15 pp | medium |
+| `mpc_q10` | unchanged (Musepack isn't a 2048-sample MDCT) | medium |
+
+Conviction tier: I predict **no change at all**. The rule is calibrated to reach
+SUSPICIOUS on its own and stop there — one very strong signal earns "look at
+this", not "guilty". So on your conviction column I stay at 123 and you stay
+ahead. That's a design choice and I'm not going to quietly re-tune it to win a
+column.
+
+The interesting row is the qaac/fdk one, and it's the reason I want your corpus
+rather than mine. On my own set the same rule reads AUC 0.993 on ffmpeg AAC and
+0.791 on Microsoft's AAC encoder — same codec, same bitrate, different encoder,
+0.2 of AUC gone. I don't know whether I've built an AAC detector or an
+ffmpeg detector, and your three non-ffmpeg AAC arms are the cheapest existing
+answer to that question. If the prediction above is wrong on those rows, that
+finding is worth more to me than the rows I get right.
