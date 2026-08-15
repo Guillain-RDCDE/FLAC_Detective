@@ -75,13 +75,15 @@ def kbd_window(length: int = WINDOW_LEN, alpha: float = 4.0) -> np.ndarray:
     kaiser = np.kaiser(half + 1, np.pi * alpha)
     cumulative = np.cumsum(kaiser)
     rising = np.sqrt(cumulative[:half] / cumulative[-1])
-    return np.concatenate([rising, rising[::-1]]).astype(np.float32)
+    window: np.ndarray = np.concatenate([rising, rising[::-1]]).astype(np.float32)
+    return window
 
 
 def sine_window(length: int = WINDOW_LEN) -> np.ndarray:
     """Sine window — MPEG's other standard long window."""
     n = np.arange(length)
-    return np.sin(np.pi / length * (n + 0.5)).astype(np.float32)
+    window: np.ndarray = np.sin(np.pi / length * (n + 0.5)).astype(np.float32)
+    return window
 
 
 def mdct_basis(sample_rate: int, band_hz: Tuple[float, float] = BAND_HZ) -> np.ndarray:
@@ -100,7 +102,7 @@ def mdct_basis(sample_rate: int, band_hz: Tuple[float, float] = BAND_HZ) -> np.n
     hi = min(half, int(band_hz[1] / (sample_rate / 2) * half))
     n = np.arange(WINDOW_LEN)[:, None]
     k = np.arange(lo, hi)[None, :]
-    basis = np.cos(np.pi / half * (n + 0.5 + half / 2) * (k + 0.5)).astype(np.float32)
+    basis: np.ndarray = np.cos(np.pi / half * (n + 0.5 + half / 2) * (k + 0.5)).astype(np.float32)
     _BASIS_CACHE[key] = basis
     return basis
 
@@ -128,11 +130,13 @@ def alignment_curve(
     basis = mdct_basis(sample_rate)
     offs = np.asarray(list(range(HOP) if offsets is None else offsets), dtype=np.int64)
     if offs.size == 0:
-        return np.empty(0)
+        no_offsets: np.ndarray = np.empty(0)
+        return no_offsets
 
     usable = len(x) - WINDOW_LEN - int(offs.max())
     if usable <= 0:
-        return np.full(offs.size, np.nan)
+        empty_result: np.ndarray = np.full(offs.size, np.nan)
+        return empty_result
     # Spread the sampled frames over the whole excerpt rather than taking a
     # contiguous run: one loud chorus should not decide the verdict.
     stride = max(HOP, (usable // max(1, n_frames)) // HOP * HOP)
@@ -155,7 +159,8 @@ def alignment_curve(
         used += energetic
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        return np.where(used > 0, hole_count / used, np.nan)
+        curve: np.ndarray = np.where(used > 0, hole_count / used, np.nan)
+        return curve
 
 
 def alignment_stat(
