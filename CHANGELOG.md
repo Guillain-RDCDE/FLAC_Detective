@@ -68,18 +68,27 @@ if any two families co-fire beyond `MAX_INDEPENDENCE_LIFT`.
 | fakes convicted | 177 | 171 |
 | convictions on one family | 0 | 0 |
 
-### On the blind exchange set (240 files re-scored, third-party labels)
+### On the blind exchange set — all 599 files, third-party labels
 
 | arm | n | convicted | flagged |
 |---|---|---|---|
-| **genuine** | 60 | **0** | 2 |
+| **genuine** | 60 | **0** | 2 (3.3 %) |
+| `aac_ff128` | 60 | 19 | 32 (53.3 %) |
 | `aac_ff256` | 60 | 19 | **60 (100 %)** |
-| `vorbis_q8` | 60 | 32 | 42 |
-| `opus_256` | 60 | 5 | 14 |
+| `aac_ff320` | 60 | 10 | **60 (100 %)** |
+| `aacmf_256` | 59 | 20 | 24 (40.7 %) |
+| `mp3_192` | 60 | 23 | 30 (50.0 %) |
+| `mp3_320` | 60 | 15 | 20 (33.3 %) |
+| `mp3_V0` | 60 | 5 | 9 (15.0 %) |
+| `opus_256` | 60 | 5 | 14 (23.3 %) |
+| `vorbis_q8` | 60 | 32 | 42 (70.0 %) |
 
-**Zero false convictions on 60 genuine files, against one in v1.9.** The public
-prediction made to Provir before scoring — "`aac_ff256` ≥ 90 % flagged, high
-confidence" — came in at 100 %.
+**Zero false convictions on 60 genuine files, against one in v1.9.** The two
+predictions published to Provir *before* scoring both land: "`aac_ff256` ≥ 90 %
+flagged, high confidence" came in at **100 %**, and both ffmpeg-AAC arms above
+128 kbps are flagged on every single file — which is the ceiling this whole
+release was aimed at. The Vorbis prediction ("small gain, < 15 pp, medium
+confidence") was too pessimistic; the second window hypothesis is what moved it.
 
 The honest reading of 0/60 is "up to 6 %" (Wilson-95), not "zero".
 

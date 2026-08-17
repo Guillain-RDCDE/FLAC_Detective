@@ -1404,14 +1404,21 @@ Same 800 files, v1.9 -> v1.10:
 | fakes convicted | 177 | 171 |
 | convictions on one family | 0 | 0 |
 
-On the blind exchange set, 240 files re-scored against Jamie's labels:
+On the blind exchange set, all 599 files re-scored against Jamie's labels
+(`ml/fd110_on_exchange.csv`; hashes in `ml/exchange/MANIFEST.sha256`):
 
 | arm | n | convicted | flagged |
 |---|---|---|---|
-| genuine | 60 | **0** (v1.9: 1) | 2 |
-| aac_ff256 | 60 | 19 | **60 (100 %)** |
-| vorbis_q8 | 60 | 32 | 42 |
-| opus_256 | 60 | 5 | 14 |
+| **genuine** | 60 | **0** | 2 (3.3 %) |
+| `aac_ff128` | 60 | 19 | 32 (53.3 %) |
+| `aac_ff256` | 60 | 19 | **60 (100 %)** |
+| `aac_ff320` | 60 | 10 | **60 (100 %)** |
+| `aacmf_256` | 59 | 20 | 24 (40.7 %) |
+| `mp3_192` | 60 | 23 | 30 (50.0 %) |
+| `mp3_320` | 60 | 15 | 20 (33.3 %) |
+| `mp3_V0` | 60 | 5 | 9 (15.0 %) |
+| `opus_256` | 60 | 5 | 14 (23.3 %) |
+| `vorbis_q8` | 60 | 32 | 42 (70.0 %) |
 
 The prediction published to Provir *before* scoring — "aac_ff256 >= 90 %
 flagged, high confidence" — landed at 100 %. The Vorbis prediction — "small
@@ -1419,3 +1426,39 @@ gain, < 15 pp, medium confidence" — was too pessimistic; the second window
 hypothesis is what moved it.
 
 0/60 reads as "up to 6 %" at Wilson-95, not "zero".
+
+
+## A fifth lesson, learned from the other side of the exchange
+
+On 2026-08-17 Jamie found that his arm-2 spec no longer matched the SHA-256 he
+had published with it. He could not show what had changed, because the pre-edit
+file had never been committed — the copy we were holding was briefly the only
+authoritative version of the thing he had sealed. He then found his own sent
+attachment still in the thread, and the diff turned out to be one token:
+
+```
+- ... the PROJECT ffmpeg (D:\Projects\VerifID\ffmpeg.exe, sha256 already in ...
++ ... the PROJECT ffmpeg (D:\Projects\Provir\ffmpeg.exe,  sha256 already in ...
+```
+
+A project-wide rename had gone through 377 files and reached the sealed spec.
+Nothing scoreable moved; the changed token is a directory name inside a
+parenthetical describing a binary that the same sentence identifies by hash.
+
+Two failure modes worth stealing, because this project had both:
+
+* **A bulk rename is a content edit to every sealed document it touches.** A
+  find-replace does not know which of its targets were evidence.
+* **Publishing a hash is worth nothing if you don't commit the bytes in the same
+  action.** His chain survived on a retention policy, not a provenance chain.
+
+Checked here immediately, and the second one applied: `MANIFEST.sha256` for our
+own 599-file exchange side was sitting in the **gitignored** `Temp/` directory
+next to the 3 GB of audio it describes. Any cleanup would have destroyed the only
+record of what we sealed. Full re-verification against the frozen audio came back
+**599 checked, 0 missing, 0 divergent**, and the manifest is now committed at
+`ml/exchange/MANIFEST.sha256` with its own self-hash recorded next to it.
+
+The answer key stays out, as it always has (`*-LABELS.json` in `.gitignore`).
+The manifest is precisely the artefact that lets the other side verify integrity
+*without* the key.
