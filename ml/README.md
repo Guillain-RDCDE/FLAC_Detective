@@ -1462,3 +1462,61 @@ record of what we sealed. Full re-verification against the frozen audio came bac
 The answer key stays out, as it always has (`*-LABELS.json` in `.gitignore`).
 The manifest is precisely the artefact that lets the other side verify integrity
 *without* the key.
+
+
+---
+
+# Eligibility, not the observed rate — and what it says about our own corpora
+
+Jamie Dodd's second lesson from Provir's corroboration bug, and the best
+methodological idea to come out of the exchange:
+
+> You have one false conviction because you ran one corpus. I stopped counting
+> the convictions I'd made and started counting the files that were *eligible* to
+> receive one.
+
+Measured here over the same 258 genuine files the "0 false convictions" claim was
+made across — 80 certified CD rips plus 178 wild taper recordings
+(`ml/eligibility_258.csv`).
+
+## The exposure
+
+| | count |
+|---|---|
+| genuine files analysed | 258 |
+| **convicted** (the observed rate) | **0** |
+| clear the 55-point bar with one qualifying family | **2** (0.78 %) |
+| ...of those, second family already partly formed | **0** — both need a whole family |
+| carry *any* second positive family | **18** (7.0 %) |
+| ...of those 18, second family below the 20-point floor | **18, all of them** |
+| strongest runner-up family on any genuine file | **12 points** (floor is 20) |
+
+So the tightest margin measured anywhere on 258 genuine files is **8 points**, and
+nothing is sitting at 19. The two files that clear the points bar need an entire
+second evidence family, not a nudge.
+
+## The uncomfortable part
+
+Re-running both gates over the same corpus:
+
+| rule | genuine convicted, n=258 |
+|---|---|
+| v1.9 (any positive family counts) | **0** |
+| v1.10 (family must contribute ≥ 20) | **0** |
+
+**Our own corpora could not have found the bug.** The false conviction that
+produced `MIN_FAMILY_CONTRIBUTION` is invisible here — under the *old* rule these
+258 files still convict nobody. 18 of them carried the two-family pattern that
+licensed it, and not one of those 18 also cleared 55 points. The engine was not
+safer on this material; the material simply never lined up.
+
+That is Jamie's point stated as a measurement rather than as advice. An observed
+false-conviction count is a property of the corpus you happen to own, and no
+amount of re-running it will surface what it cannot contain. The 8-point margin
+above is worth more than the two zeros in that table, because it is the only one
+of the three numbers that describes the *engine* rather than the record
+collection.
+
+It is also the argument for blind exchange, made against our own interest: the
+defect was found by material we did not choose, could not have chosen, and did
+not see the labels for.

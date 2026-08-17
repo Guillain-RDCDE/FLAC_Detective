@@ -1,0 +1,261 @@
+source,path_hash,verdict,score,families_json,runner_up_gap
+audit,00508828f1dd9d61,AUTHENTIC,0,{},0
+audit,062dd53e2c282a63,AUTHENTIC,0,{},0
+audit,091ea291b4e7ab98,AUTHENTIC,0,{},0
+audit,0e064a78cba5fd71,AUTHENTIC,0,{},0
+audit,129baafc8011cb61,AUTHENTIC,0,{},0
+audit,139d9aa76f1d9b41,AUTHENTIC,0,{},0
+audit,14ab7d72ce37b504,AUTHENTIC,0,{},0
+audit,1a522b75086d46ac,AUTHENTIC,0,{},0
+audit,2032ebbad45feb68,AUTHENTIC,0,{},0
+audit,23191580ce29f26c,AUTHENTIC,0,{},0
+audit,23d7a03ecb74c802,WARNING,52,"{""spectral"": 52}",0
+audit,266891b513113fdd,AUTHENTIC,0,{},0
+audit,354f4aa6da6dde11,AUTHENTIC,0,{},0
+audit,3a3235ff0ffcd598,AUTHENTIC,0,{},0
+audit,3adad2a54f0ad061,AUTHENTIC,0,{},0
+audit,3bbf76077766f965,AUTHENTIC,0,{},0
+audit,421226cc385cfaf7,AUTHENTIC,0,{},0
+audit,44ae8529784185d2,AUTHENTIC,0,{},0
+audit,493503408306ac67,AUTHENTIC,0,{},0
+audit,55bec302e66752c4,AUTHENTIC,0,{},0
+audit,56dd2c18ac769875,AUTHENTIC,0,{},0
+audit,5d4f1c9fe4926d2d,AUTHENTIC,0,{},0
+audit,60a7534efd44bae8,AUTHENTIC,0,{},0
+audit,63f778f4d1af2397,AUTHENTIC,0,{},0
+audit,647d0d07bcead48f,AUTHENTIC,5,"{""spectral"": 5}",0
+audit,746b828a580a4bbd,AUTHENTIC,0,{},0
+audit,747c9666c3a442ec,AUTHENTIC,0,{},0
+audit,770b346866984b78,AUTHENTIC,0,{},0
+audit,7afceafccbf327fc,AUTHENTIC,0,{},0
+audit,7be6eb0c67aa4c91,AUTHENTIC,2,"{""spectral"": 2}",0
+audit,7c46c81e832f43aa,AUTHENTIC,0,{},0
+audit,805bebf946f3dbcf,AUTHENTIC,0,{},0
+audit,86caf44607f32b7d,AUTHENTIC,0,{},0
+audit,87b3176b24b91395,AUTHENTIC,0,{},0
+audit,893d3eb23bbe05cd,AUTHENTIC,0,{},0
+audit,8a9c0751858be861,AUTHENTIC,0,{},0
+audit,8ba2a4250610ac8f,AUTHENTIC,0,{},0
+audit,8cb63a18b7aeb08c,AUTHENTIC,0,{},0
+audit,8fdae00df03d441d,AUTHENTIC,0,{},0
+audit,9276647a97a4754b,SUSPICIOUS,61,"{""spectral"": 61}",0
+audit,941cd869e847c93b,AUTHENTIC,0,{},0
+audit,984430100655907c,AUTHENTIC,0,{},0
+audit,99e8f0a0d8827132,AUTHENTIC,0,{},0
+audit,9b062a71204103a9,AUTHENTIC,0,{},0
+audit,9d61d27e03889649,AUTHENTIC,0,{},0
+audit,9da72a31c0d63cff,AUTHENTIC,18,"{""spectral"": 18}",0
+audit,9e73b66332e3c73d,AUTHENTIC,0,{},0
+audit,a1afad8a78c7f915,AUTHENTIC,0,{},0
+audit,a499b3d008347fc4,AUTHENTIC,0,{},0
+audit,a5d0956ac1c06a2d,AUTHENTIC,0,{},0
+audit,a74b71322b34f689,AUTHENTIC,0,{},0
+audit,a92227acadecfc59,AUTHENTIC,0,{},0
+audit,aa4188db080b1ee5,AUTHENTIC,0,{},0
+audit,aa679d4030bf0022,AUTHENTIC,0,{},0
+audit,ad23ae5c27b806ec,AUTHENTIC,0,{},0
+audit,b354d867e7c824d8,AUTHENTIC,0,{},0
+audit,b53e905243709cad,AUTHENTIC,0,{},0
+audit,b69dbb70abaf016f,AUTHENTIC,0,{},0
+audit,bffaa1324b4d99e1,AUTHENTIC,0,{},0
+audit,c5667be437e7395d,AUTHENTIC,0,{},0
+audit,c63e6c9eda1d657a,AUTHENTIC,0,{},0
+audit,c891de873107678c,AUTHENTIC,0,{},0
+audit,cc36191e82988d64,AUTHENTIC,0,{},0
+audit,cc6b902dfa6e8bd9,AUTHENTIC,0,{},0
+audit,d1e8f7a22cad28fa,AUTHENTIC,11,"{""spectral"": 11}",0
+audit,d5507372eb2bc72c,AUTHENTIC,0,{},0
+audit,d8d977d3e6a33dc6,AUTHENTIC,0,{},0
+audit,dd86a8c14820ecad,AUTHENTIC,0,{},0
+audit,dea2c70c4ebdc5aa,WARNING,50,"{""spectral"": 50}",0
+audit,e52d243d42563f3e,AUTHENTIC,0,{},0
+audit,e689ad76ddeed246,AUTHENTIC,0,{},0
+audit,e89a55772114e7fe,AUTHENTIC,0,{},0
+audit,e933929c76f84176,AUTHENTIC,0,{},0
+audit,eb1e160d052ab5fd,AUTHENTIC,0,{},0
+audit,eb44004430c3d5f3,AUTHENTIC,0,{},0
+audit,ec64f0d8eea8d5e7,AUTHENTIC,0,{},0
+audit,ed7064443d9fd39c,AUTHENTIC,0,{},0
+audit,f5433c9618082761,AUTHENTIC,0,{},0
+audit,fb94831b78b43177,AUTHENTIC,0,{},0
+audit,fd62f2714c586182,AUTHENTIC,0,{},0
+wild,005b8722b7ba1776,AUTHENTIC,0,{},0
+wild,01441e125ed88453,AUTHENTIC,0,{},0
+wild,01bfe25c8a586292,AUTHENTIC,0,{},0
+wild,0316a1c98a94f287,AUTHENTIC,0,{},0
+wild,036e8f81e408dac2,AUTHENTIC,0,{},0
+wild,05108534a2020a77,AUTHENTIC,0,{},0
+wild,06406032b9d3abbb,AUTHENTIC,2,"{""spectral"": 2}",0
+wild,064973787ba187c7,AUTHENTIC,0,{},0
+wild,06bd26a18aad8a20,AUTHENTIC,3,"{""spectral"": 3}",0
+wild,0740f70f630200eb,AUTHENTIC,0,"{""spectral"": 11}",0
+wild,0d0900cf9759e1e6,AUTHENTIC,0,{},0
+wild,0d82ba62a34c6eda,AUTHENTIC,0,{},0
+wild,0dc35b2426e02db1,AUTHENTIC,0,{},0
+wild,0f3535b25d18cbad,AUTHENTIC,0,{},0
+wild,0f81c1b80bbee71e,AUTHENTIC,0,{},0
+wild,10efa80dd9bd28ce,AUTHENTIC,0,{},0
+wild,14915f90be4d17a8,AUTHENTIC,0,{},0
+wild,14d4a4668281876d,AUTHENTIC,0,{},0
+wild,1526c8c041fca151,AUTHENTIC,0,{},0
+wild,1589c37cf292facc,AUTHENTIC,0,{},0
+wild,1608f6ae1aa2f2c2,AUTHENTIC,0,{},0
+wild,1cdd362419d439c1,AUTHENTIC,0,{},0
+wild,1cf67f820c4217a6,AUTHENTIC,0,{},0
+wild,1eb34b8dfd567b44,SUSPICIOUS,56,"{""spectral"": 56}",0
+wild,1f45b20616fb5d54,AUTHENTIC,0,{},0
+wild,21a965f50e7474db,AUTHENTIC,2,"{""spectral"": 2}",0
+wild,224344a78ef18846,AUTHENTIC,0,{},0
+wild,23be2e4c61690c0c,WARNING,31,"{""cnn"": 31}",0
+wild,2541c485d94bf65b,AUTHENTIC,0,{},0
+wild,2780979b74d58152,AUTHENTIC,0,{},0
+wild,2db203dffcf4e955,AUTHENTIC,0,{},0
+wild,2e61752e2ccb8ead,AUTHENTIC,1,"{""spectral"": 1}",0
+wild,2eabfb68d9c466b5,AUTHENTIC,0,{},0
+wild,2f389595f156fd20,AUTHENTIC,0,{},0
+wild,2fd5e653c482b8f1,AUTHENTIC,0,{},0
+wild,30605d4548e96591,AUTHENTIC,0,{},0
+wild,30d1695d3ec23cb0,AUTHENTIC,0,{},0
+wild,33275f4259bede74,AUTHENTIC,0,{},0
+wild,3483206da20dede7,AUTHENTIC,0,{},0
+wild,3528c9105af76ff7,AUTHENTIC,0,{},0
+wild,353832b112ac98f7,AUTHENTIC,0,{},0
+wild,3655a39ae88bff26,AUTHENTIC,0,{},0
+wild,3711b37b1d41cf78,WARNING,32,"{""cnn"": 30, ""spectral"": 2}",2
+wild,373a4a2c16bd5f22,AUTHENTIC,0,{},0
+wild,3797d1e744e989a6,AUTHENTIC,0,{},0
+wild,37f2cb10db7fb83f,AUTHENTIC,0,{},0
+wild,39a218d94f2f5313,AUTHENTIC,0,"{""cnn"": 9, ""spectral"": 11}",9
+wild,3c2b9d2f504bed63,AUTHENTIC,0,{},0
+wild,3d18c29074670f6d,AUTHENTIC,0,{},0
+wild,3dfc7913417ac9a7,AUTHENTIC,0,{},0
+wild,40edc6f660b0ef3b,AUTHENTIC,0,{},0
+wild,4368d08c90046f80,WARNING,32,"{""cnn"": 30, ""spectral"": 2}",2
+wild,440041a1d7234e9e,AUTHENTIC,0,{},0
+wild,44b64985a8858b55,AUTHENTIC,19,"{""cnn"": 19}",0
+wild,4529359c96a02ca1,AUTHENTIC,0,{},0
+wild,4563e6d1cea50906,WARNING,38,"{""cnn"": 8, ""spectral"": 30}",8
+wild,45fa06601e0106ef,AUTHENTIC,0,{},0
+wild,47783d4f139e9be4,AUTHENTIC,0,{},0
+wild,47fee66e45f2fa4e,AUTHENTIC,0,{},0
+wild,49858da9894991b5,AUTHENTIC,0,{},0
+wild,4bc3638418817e15,AUTHENTIC,0,{},0
+wild,4cdabaa6968a3a14,AUTHENTIC,0,{},0
+wild,4ef1aa7944ed778a,AUTHENTIC,0,{},0
+wild,4f11239ba29349e3,AUTHENTIC,0,"{""cnn"": 13, ""spectral"": 12}",12
+wild,4f4fa082cfee2e73,AUTHENTIC,0,{},0
+wild,4fa225f57edb7b19,AUTHENTIC,0,{},0
+wild,5132581932e6cc2b,AUTHENTIC,0,{},0
+wild,51eb1f142e7ad872,AUTHENTIC,0,{},0
+wild,53c07422f41b62d0,AUTHENTIC,0,"{""cnn"": 16, ""spectral"": 12}",12
+wild,54c5e058e46a30c4,AUTHENTIC,0,{},0
+wild,5569b0d2f313164a,AUTHENTIC,0,{},0
+wild,55a7e64a16b1615d,AUTHENTIC,0,{},0
+wild,5b91d879055cef43,AUTHENTIC,0,{},0
+wild,5e21f3a4dbeb2a79,AUTHENTIC,0,{},0
+wild,5f6087d25d808b1a,AUTHENTIC,0,{},0
+wild,60e78de87bc23208,AUTHENTIC,0,{},0
+wild,666cb95720b67bcc,WARNING,31,"{""cnn"": 31}",0
+wild,667ada524a2f03a2,AUTHENTIC,0,{},0
+wild,668af6c166b06e0f,AUTHENTIC,0,{},0
+wild,67db3dd2d12ea998,AUTHENTIC,0,{},0
+wild,699bafc049c73569,WARNING,31,"{""cnn"": 31}",0
+wild,6b20af6301e5f0e4,AUTHENTIC,0,"{""cnn"": 9, ""spectral"": 11}",9
+wild,6c5617be0f5db387,AUTHENTIC,0,{},0
+wild,6d63261389259d89,AUTHENTIC,0,"{""cnn"": 18}",0
+wild,6e0a7937b4b0a7d7,AUTHENTIC,0,{},0
+wild,72127fe876051b6f,AUTHENTIC,0,{},0
+wild,758735c9b884270e,AUTHENTIC,0,{},0
+wild,75f86bdaa7a5d6a2,AUTHENTIC,0,{},0
+wild,76d02ec6826ec949,AUTHENTIC,0,{},0
+wild,77ca97ce5a7a0352,AUTHENTIC,0,{},0
+wild,792fd27cae3f6b11,AUTHENTIC,2,"{""cnn"": 2}",0
+wild,7a0549cac45d4880,AUTHENTIC,14,"{""cnn"": 14}",0
+wild,7a624938fe0386bd,AUTHENTIC,0,{},0
+wild,7aa15b941368d624,AUTHENTIC,13,"{""cnn"": 13}",0
+wild,7ab0dab88bae0406,AUTHENTIC,18,"{""cnn"": 17, ""spectral"": 1}",1
+wild,7d6b2713e4da7eaa,AUTHENTIC,0,{},0
+wild,83359887a39d66a6,AUTHENTIC,0,{},0
+wild,837163dbec797dd0,AUTHENTIC,0,{},0
+wild,8becdb6e018cb5bc,AUTHENTIC,10,"{""cnn"": 7, ""spectral"": 3}",3
+wild,8d7b5a242f9804bc,AUTHENTIC,0,{},0
+wild,8dac9653bf9332b8,WARNING,32,"{""cnn"": 30, ""spectral"": 2}",2
+wild,8dbd002982963fa2,AUTHENTIC,0,{},0
+wild,9040bdfa694261ab,WARNING,31,"{""cnn"": 81}",0
+wild,92747e18ee77218b,AUTHENTIC,0,{},0
+wild,93719c4814579ad1,AUTHENTIC,0,{},0
+wild,93bc709e09ee8137,AUTHENTIC,0,{},0
+wild,96a528811f39759c,AUTHENTIC,0,{},0
+wild,979a346009ba477c,AUTHENTIC,0,{},0
+wild,982c42431589eb92,AUTHENTIC,0,{},0
+wild,98550f90e5e71896,AUTHENTIC,0,{},0
+wild,99629241e27ab3c2,AUTHENTIC,0,{},0
+wild,99771562367fa3dd,AUTHENTIC,17,"{""cnn"": 17}",0
+wild,99e021647147aba1,AUTHENTIC,0,{},0
+wild,9a6c909b67b80b5f,WARNING,31,"{""cnn"": 65, ""spectral"": 6}",6
+wild,9bd0ed4cab22d7fb,AUTHENTIC,0,{},0
+wild,9cfc3bd62ea19ade,AUTHENTIC,0,{},0
+wild,9e195f8a9e6b5e40,AUTHENTIC,0,{},0
+wild,a227c92aec151f90,AUTHENTIC,0,{},0
+wild,a24dd3c76de2936a,WARNING,33,"{""cnn"": 27, ""spectral"": 6}",6
+wild,a2e28a5d323ff3b7,AUTHENTIC,0,{},0
+wild,a38fde58919093b2,AUTHENTIC,0,{},0
+wild,a39e7f7d03103bd0,AUTHENTIC,0,{},0
+wild,a44889687bcdf4d8,WARNING,31,"{""cnn"": 60, ""spectral"": 11}",11
+wild,a535633e1af4c058,WARNING,31,"{""cnn"": 31}",0
+wild,a9900ec0eedf48b3,AUTHENTIC,0,{},0
+wild,ab2637cf38deace5,AUTHENTIC,0,{},0
+wild,ac254db870c23a5e,AUTHENTIC,0,{},0
+wild,ac6d3da8c0c47ec3,AUTHENTIC,0,{},0
+wild,b3466d15eda275ed,AUTHENTIC,0,{},0
+wild,b46bb4e43a862f55,AUTHENTIC,0,{},0
+wild,b4dae239c84dffb7,AUTHENTIC,0,{},0
+wild,b5c055508c6ae13d,AUTHENTIC,0,{},0
+wild,b62f3bf5ef59d255,AUTHENTIC,0,{},0
+wild,b9aab41608771a9b,WARNING,35,"{""spectral"": 55}",0
+wild,bb0492f305b05187,WARNING,31,"{""cnn"": 31}",0
+wild,be7f6a1bd076a3bc,AUTHENTIC,0,{},0
+wild,c06b54ec72c54563,AUTHENTIC,0,"{""spectral"": 12}",0
+wild,c0f4c500c14c8d0b,AUTHENTIC,0,{},0
+wild,c3563c90c2cee026,AUTHENTIC,0,{},0
+wild,c6eb9881e744e479,AUTHENTIC,0,{},0
+wild,c6ed6dfa492deaad,AUTHENTIC,0,{},0
+wild,c6f7f20fa50e753f,AUTHENTIC,0,{},0
+wild,c88cf3c66659302e,AUTHENTIC,0,{},0
+wild,c891d50c5792884c,AUTHENTIC,0,"{""spectral"": 6}",0
+wild,cb4f93a15e2c9efd,AUTHENTIC,0,{},0
+wild,cd3b7d1a63803095,AUTHENTIC,0,{},0
+wild,d01154ab4bd11589,AUTHENTIC,25,"{""cnn"": 25}",0
+wild,d1d084487f4a0561,WARNING,41,"{""cnn"": 30, ""spectral"": 11}",11
+wild,d41301cfc02ce939,AUTHENTIC,0,{},0
+wild,d51e2f5ea71570f3,AUTHENTIC,0,{},0
+wild,d521972513cbd552,AUTHENTIC,0,{},0
+wild,d6b35e21ee4554ec,AUTHENTIC,0,{},0
+wild,d8401fb313c5d225,AUTHENTIC,0,{},0
+wild,dcc991017f5c0445,AUTHENTIC,0,{},0
+wild,dd9b91b83821dbd6,ERROR,0,{},0
+wild,ddffc8737a3fac71,AUTHENTIC,0,{},0
+wild,de91eeed65ae88fa,AUTHENTIC,30,"{""spectral"": 30}",0
+wild,e1a72319294f311a,AUTHENTIC,0,{},0
+wild,e4056312482e25f3,AUTHENTIC,0,{},0
+wild,e4093e9d0c0c5a64,AUTHENTIC,5,"{""spectral"": 5}",0
+wild,e446ea225724cb44,AUTHENTIC,0,{},0
+wild,e4e06db6b323ee35,AUTHENTIC,0,{},0
+wild,e9caffd6a362d4ab,AUTHENTIC,0,{},0
+wild,eb864505118564f9,ERROR,0,{},0
+wild,efe1ac01720b17ec,AUTHENTIC,0,{},0
+wild,f2f5499aafc10b13,AUTHENTIC,0,{},0
+wild,f3138cc2ecfdc04a,AUTHENTIC,0,{},0
+wild,f48e1082949b1094,WARNING,33,"{""cnn"": 30, ""spectral"": 3}",3
+wild,f4debbf8f94a730c,WARNING,31,"{""cnn"": 64, ""spectral"": 7}",7
+wild,f564d79f51e265e0,AUTHENTIC,0,{},0
+wild,f5e6cce2fc12b48f,AUTHENTIC,0,{},0
+wild,f696a851ca72899c,AUTHENTIC,0,{},0
+wild,f8d55f82bc79cb87,WARNING,32,"{""cnn"": 30, ""spectral"": 2}",2
+wild,f94481e671eace63,AUTHENTIC,0,{},0
+wild,f997c7e94c63c1d5,AUTHENTIC,0,{},0
+wild,fb62f2c1a779251b,AUTHENTIC,0,"{""cnn"": 20}",0
+wild,fc734a8ef5e10ae9,AUTHENTIC,0,"{""spectral"": 15}",0
+wild,fce860b0946436a3,WARNING,31,"{""cnn"": 64, ""spectral"": 7}",7
+wild,fdcc4607134ca24b,AUTHENTIC,0,{},0
+wild,ff6080f352998267,AUTHENTIC,0,"{""spectral"": 11}",0
