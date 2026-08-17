@@ -222,9 +222,48 @@ HYPOTHESES = (("kbd", kbd_window), ("vorbis", vorbis_window))
 # baseline* is. The test failure is the reminder.
 CERTIFIED_HYPOTHESIS_COUNT = 2
 
-# Genuine baseline measured under exactly that configuration (ml/mdct_probe_v110.csv,
-# 80 certified-genuine files, stop_at disabled so the true statistic is recorded).
-CERTIFIED_GENUINE_MAX = 1.427
+# ========== THE RE-CERTIFICATION, AND WHAT IT OVERTURNED ==========
+#
+# Measured on 877 certified-genuine files under exactly the shipped configuration
+# — both hypotheses, no early stop, per-hypothesis values recorded rather than
+# only the winner (ml/recert_880.csv).
+#
+#     median 1.269   p99 1.449   p99.9 1.614   MAX 2.418
+#
+# Two things came out of it, and neither was the thing being looked for.
+#
+# 1. The creep Jamie predicted is real in principle and measures EXACTLY ZERO
+#    here. The single highest genuine file tops out under KBD alone (2.418
+#    against its own Vorbis reading of 1.869), so taking the maximum over
+#    hypotheses added nothing to the ceiling. The 33/47 split of which hypothesis
+#    wins is real, but it happens in the body of the distribution, not the tail.
+#
+# 2. The previously published calibration was WRONG, and by more than the creep
+#    would have been. It claimed "not one genuine file in 880 reached 1.5" and a
+#    review bar "34 % clear of the highest genuine file ever measured". Measured
+#    properly: 2 files in 877 exceed 1.5 and one reaches 2.418. The old figure
+#    (1.494) was a lucky draw of the 800-file library sample, not a property of
+#    the population — the exact error Provir's "price eligibility, not the
+#    observed rate" lesson describes, applied to a calibration instead of a
+#    conviction.
+#
+# So the bars are calibrated against a QUANTILE now, not a sample maximum. A max
+# over a finite sample is a lower bound on the population max and cannot be
+# extrapolated; a high quantile can. This is what Jamie proposed, arrived at from
+# his own permutation nulls walking as N grew.
+CERTIFIED_GENUINE_P999 = 1.614
+CERTIFIED_GENUINE_MAX = 2.418
+
+# Measured exceedance of RATIO_REVIEW on that corpus: 1/877 = 0.11 %
+# (Wilson-95 upper bound 0.64 %). Stated rather than hidden, because the honest
+# claim is "one genuine file in a thousand draws a review", not "none ever do".
+#
+# Why that is acceptable rather than a defect: a lone Rule 13 review contributes
+# SCORE_REVIEW (25), which is BELOW SCORE_WARNING (31). A genuine outlier at the
+# review bar therefore cannot flag its own file — something independent has to
+# fire too, and a conviction needs a second evidence family on top of that. The
+# safety argument rests on that arithmetic, not on the tail being empty.
+CERTIFIED_REVIEW_EXCEEDANCE = 0.0064
 
 
 def alignment_stat(

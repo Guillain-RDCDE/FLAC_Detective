@@ -31,32 +31,40 @@ from ..mdct import best_alignment_stat
 
 logger = logging.getLogger(__name__)
 
-# Calibration — measured, not guessed.
+# Calibration — measured, re-measured, and corrected.
 #
-# Single hypothesis (KBD only, v1.9), 880 certified-genuine files (EAC/XLD/
-# Audiochecker ripper log present): the audit corpus's 80 plus an 800-file sweep
-# over the rest of the library (ml/wild_audit.py sample).
+# RE-CERTIFIED over 877 certified-genuine files (EAC/XLD/Audiochecker ripper log
+# present) under exactly the shipped configuration: both hypotheses, no early
+# stop, per-hypothesis values recorded. See ml/recert_880.csv and ``..mdct``.
 #
-#     genuine  median 1.24   p99 1.41   p99.9 1.48   MAX 1.494   (n = 880)
+#     genuine    median 1.269   p99 1.449   p99.9 1.614   MAX 2.418   (n = 877)
+#     vorbis q8  median 3.61    AUC 0.955
+#     opus 256k  median 1.30    AUC 0.575   <- the null; see the module docstring
+#     AAC — the encoder matters more than the bitrate:
+#       ffmpeg (128/256/320)       median 13.6 – 21.5   fires ~always
+#       MediaFoundation 256k       median  2.66         AUC 0.791
+#       Apple CoreAudio 128/256/320  1.50 / 1.30 / 1.30   fires 13 % / 2 % / 0 %
 #
-# Two hypotheses (KBD + Vorbis, v1.10). Taking a max over two windows can only
-# push the genuine baseline UP, so it was re-measured rather than assumed. On the
-# audit corpus's 80 certified-genuine files (ml/probe, stop_at disabled):
+# WHAT THE RE-CERTIFICATION OVERTURNED. The previous comment here claimed "not one
+# genuine file in 880 reached 1.5" and a review bar "34 % clear of the highest
+# genuine file ever measured". Both were wrong: 2 files in 877 exceed 1.5 and one
+# reaches 2.418. The old 1.494 was a lucky draw of the library sample rather than
+# a property of the population.
 #
-#     genuine    median 1.28   p95 1.39   MAX 1.427   (n = 80)
-#     vorbis q8  median 3.61   AUC 0.955
-#     opus 256k  median 1.30   AUC 0.575   <- the null; see the module docstring
-#     AAC (ffmpeg, 128/256/320 kbps)   median 13.6 – 21.5
+# It was NOT the max-over-hypotheses creep that broke it. That was the suspected
+# cause — a maximum over draws does not converge — and it measures exactly zero
+# here: the highest genuine file tops out under KBD alone (2.418 against its own
+# Vorbis reading of 1.869).
 #
-# The second hypothesis cost 0.04 on the median and nothing at the maximum, which
-# is the point: genuine audio has no preferred alignment under EITHER window.
+# So the bars are set against the genuine p99.9 (1.614), not a sample maximum:
+# 2.0 is 24 % clear of it, and 3.0 is 86 % clear. A maximum over a finite sample
+# is a lower bound on the population max and cannot be extrapolated.
 #
-# Both thresholds therefore sit in empty space rather than being squeezed against
-# a tail: 2.0 is 40 % clear of the highest genuine file measured under the
-# two-hypothesis search, 3.0 is more than double it.
-#
-# The honest reading of 0/880 is "up to 0.44 %" (Wilson-95), NOT "zero" — the
-# same caveat Provir's benchmark attaches to its own clean rows.
+# MEASURED EXCEEDANCE, stated rather than hidden: 1/877 genuine files reach
+# RATIO_REVIEW = 0.11 %, Wilson-95 upper bound 0.64 %. That is tolerable because
+# SCORE_REVIEW (25) sits BELOW the WARNING threshold (31), so a lone genuine
+# outlier at the review bar cannot flag its own file — something independent must
+# fire too. The safety argument is that arithmetic, not an empty tail.
 RATIO_HARD = 3.0
 RATIO_REVIEW = 2.0
 
