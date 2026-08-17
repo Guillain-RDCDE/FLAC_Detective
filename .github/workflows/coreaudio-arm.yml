@@ -1,0 +1,100 @@
+name: CoreAudio Arm
+
+# The one encoder we cannot run locally.
+#
+# Rule 13 reads MDCT quantisation holes. It is excellent on ffmpeg-family AAC
+# (AUC 0.99) and adequate on Microsoft MediaFoundation (0.791). Jamie Dodd of
+# Provir measured it against Apple CoreAudio and reported a clean zero. That hole
+# stayed open because "we have no Mac" was treated as the end of the sentence.
+#
+# It is not: this repository is public, and GitHub gives public repositories free
+# unlimited standard macOS runners. `afconvert` ships with macOS and drives the
+# same CoreAudio encoder that `qaac` wraps on Windows. So the arm we could not
+# build is a CI job.
+#
+# Manual by design — it downloads from archive.org, so it should run when someone
+# asks for it, not on every push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "Number of genuine source files to fetch"
+        required: false
+        default: "24"
+      bitrates:
+        description: "Space-separated AAC bitrates in bits/sec"
+        required: false
+        default: "128000 256000 320000"
+
+permissions:
+  contents: read
+
+jobs:
+  coreaudio:
+    name: Build and measure the Apple CoreAudio arm
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Confirm the CoreAudio toolchain is present
+        run: |
+          set -e
+          echo "runner: $(sw_vers -productName) $(sw_vers -productVersion) $(uname -m)"
+          which afconvert
+          # afconvert has no --version; listing encoders proves it drives CoreAudio
+          # and tells us in the log which AAC variants this image actually offers.
+          afconvert -hf 2>&1 | grep -iE "aac|m4af" | head -20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # No torch: this job measures Rule 13's transform statistic, which is
+          # pure numpy/scipy. The CNN plays no part in the question being asked.
+          pip install -e .
+          pip install soundfile numpy
+
+      - name: Fetch genuine sources (archive.org Live Music Archive)
+        run: |
+          python ml/fetch_wild_authentic.py \
+            --out coreaudio_sources \
+            --max-files "${{ github.event.inputs.files || 24 }}" \
+            --max-per-item 2 \
+            --max-mb 60
+          ls -1 coreaudio_sources | head -5
+          echo "fetched: $(ls -1 coreaudio_sources/*.flac 2>/dev/null | wc -l)"
+
+      - name: Build the arm and measure Rule 13
+        run: |
+          python ml/coreaudio_arm.py \
+            --src coreaudio_sources \
+            --out coreaudio_arm.csv \
+            --bitrates ${{ github.event.inputs.bitrates || '128000 256000 320000' }} \
+            | tee coreaudio_arm.log
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f coreaudio_arm.log ]; then
+            {
+              echo '## Apple CoreAudio — what Rule 13 reads'
+              echo '```'
+              sed -n '/^=\{10,\}$/,$p' coreaudio_arm.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coreaudio-arm
+          path: |
+            coreaudio_arm.csv
+            coreaudio_arm.log
+          if-no-files-found: warn
