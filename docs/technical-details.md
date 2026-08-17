@@ -587,6 +587,34 @@ peak ratio 1.42 -> 3.61) while moving the genuine maximum only from 1.42 to
 nothing in false alarms because genuine audio has no alignment to find under
 *either* window.
 
+**The encoder gradient, measured rather than assumed.** "AAC" is not one thing;
+which AAC encoder produced the file matters more than the bitrate does.
+
+| encoder | median peak ratio | Rule 13 fires (≥2.0) |
+|---|---|---|
+| ffmpeg (128–320 kbps) | 13.6–21.5 | ~always |
+| Microsoft MediaFoundation 256k | 2.66 | often (AUC 0.791) |
+| **Apple CoreAudio 128k** | 1.50 | **13 %** |
+| **Apple CoreAudio 256k** | 1.30 | **2 %** |
+| **Apple CoreAudio 320k** | 1.30 | **0 %** |
+| genuine | 1.28 | 0 % |
+
+The Apple rows come from `.github/workflows/coreaudio-arm.yml`, which builds the
+arm on a free macOS runner with `afconvert` — the same CoreAudio encoder `qaac`
+wraps — and measures it paired, each source with and without the round-trip
+(`ml/coreaudio_arm.py`, n=100). Jamie Dodd of Provir reported this encoder as a
+clean zero for the rule. Operationally he is right at 320 kbps and nearly right
+at 256; Rule 13 never hard-convicts CoreAudio at any bitrate. But the material is
+not evidence-free — at 128 kbps the statistic still separates — which says the
+zeros are the wrong observable for this encoder rather than that there is nothing
+to find. Provir's residual-against-the-reconstructed-transform reads the same
+material far better (54/64 at cvbr128 against our 13/100).
+
+That run also produced an independent check on the calibration nobody asked for:
+the genuine ceiling across its 100 wild archive.org taper recordings is **1.420**,
+against **1.427** measured on 80 certified CD rips. Two corpora of entirely
+different provenance, the same ceiling.
+
 **Opus is out of reach by construction, and this was measured.** CELT transforms
 at 48 kHz whatever you feed it, so a 44.1 kHz source is resampled in and back
 out, and resampling destroys the sample-exact alignment the statistic depends

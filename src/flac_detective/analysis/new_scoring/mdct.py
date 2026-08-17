@@ -200,6 +200,32 @@ def alignment_curve(
 # geometry — the null. That gap is physics, not a missing hypothesis.
 HYPOTHESES = (("kbd", kbd_window), ("vorbis", vorbis_window))
 
+# ========== WHY THIS COUNT IS A CONSTANT AND NOT JUST len(HYPOTHESES) ==========
+#
+# ``best_alignment_stat`` returns the strongest reading across hypotheses, which
+# makes the shipped statistic a MAXIMUM OVER DRAWS. A maximum does not converge as
+# draws are added — it creeps upward forever. Jamie Dodd of Provir spotted this in
+# v1.10's own release numbers, in the digit nobody was looking at: the genuine
+# ceiling moved 1.42 -> 1.427 when the second hypothesis landed. That is not noise,
+# it is the mechanism, and the measurement confirms it — across 80 certified-genuine
+# files the two hypotheses split the maximum 33/47, so they compete for it on
+# essentially every file.
+#
+# The consequence that matters: RATIO_REVIEW (2.0) and RATIO_HARD (3.0) in
+# rules/mdct_alignment.py were calibrated against a genuine population measured
+# under a specific number of hypotheses. Adding a third would raise the genuine
+# ceiling again, toward bars that were set when there were fewer draws — silently,
+# and in the one direction that costs authentic files.
+#
+# So the count is pinned here and asserted in tests/test_mdct.py. Adding a
+# hypothesis is not forbidden; adding one *without re-certifying the genuine
+# baseline* is. The test failure is the reminder.
+CERTIFIED_HYPOTHESIS_COUNT = 2
+
+# Genuine baseline measured under exactly that configuration (ml/mdct_probe_v110.csv,
+# 80 certified-genuine files, stop_at disabled so the true statistic is recorded).
+CERTIFIED_GENUINE_MAX = 1.427
+
 
 def alignment_stat(
     x: np.ndarray,

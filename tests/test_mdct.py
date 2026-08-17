@@ -262,3 +262,60 @@ class TestScoreClamping:
         ), "clamping here is what made every early protection rule inert before v1.8"
         context.add_score(45, ["penalty second"])
         assert context.current_score == -5
+
+
+class TestHypothesisCountIsCertified:
+    """The shipped statistic is a maximum over draws, so the draw count is calibration.
+
+    ``best_alignment_stat`` takes the strongest reading across ``HYPOTHESES``. A
+    maximum does not converge as draws are added — it creeps upward. Jamie Dodd of
+    Provir found this in v1.10's own release numbers: the genuine ceiling moved
+    1.42 -> 1.427 exactly when the second hypothesis landed, and across 80
+    certified-genuine files the two hypotheses split the maximum 33/47, so they
+    compete for it on nearly every file.
+
+    Rule 13's bars (2.0 review, 3.0 hard) sit above a genuine population measured
+    under a fixed number of draws. A third hypothesis would lift that population
+    toward bars set when there were two — silently, and only ever against
+    authentic files. These tests do not forbid adding one; they forbid adding one
+    without re-certifying.
+    """
+
+    def test_hypothesis_count_matches_the_certified_calibration(self) -> None:
+        """Adding or removing a hypothesis invalidates the genuine baseline."""
+        from flac_detective.analysis.new_scoring.mdct import (
+            CERTIFIED_HYPOTHESIS_COUNT,
+            HYPOTHESES,
+        )
+
+        assert len(HYPOTHESES) == CERTIFIED_HYPOTHESIS_COUNT, (
+            f"HYPOTHESES now has {len(HYPOTHESES)} entries but the genuine baseline was "
+            f"certified against {CERTIFIED_HYPOTHESIS_COUNT}. The statistic is a maximum "
+            "over draws, so more draws raise the genuine ceiling toward thresholds that "
+            "were calibrated for fewer. Re-run ml/mdct_probe_v110-style calibration over "
+            "the certified-genuine corpus, update CERTIFIED_GENUINE_MAX and this count, "
+            "then confirm RATIO_REVIEW still clears the new ceiling."
+        )
+
+    def test_review_bar_still_clears_the_certified_genuine_ceiling(self) -> None:
+        """The margin that makes the bars safe, stated as a test rather than a comment."""
+        from flac_detective.analysis.new_scoring.mdct import CERTIFIED_GENUINE_MAX
+        from flac_detective.analysis.new_scoring.rules.mdct_alignment import (
+            RATIO_HARD,
+            RATIO_REVIEW,
+        )
+
+        assert RATIO_REVIEW > CERTIFIED_GENUINE_MAX, (
+            f"the review bar ({RATIO_REVIEW}) no longer clears the highest genuine file "
+            f"ever measured ({CERTIFIED_GENUINE_MAX}). Rule 13 would start flagging "
+            "authentic audio."
+        )
+        assert RATIO_HARD > RATIO_REVIEW, "the hard bar must sit above the review bar"
+
+        # Not a squeeze against the tail: the margin is the whole reason 0/880 held.
+        margin = (RATIO_REVIEW - CERTIFIED_GENUINE_MAX) / CERTIFIED_GENUINE_MAX
+        assert margin > 0.25, (
+            f"the review bar is only {margin:.1%} above the certified genuine ceiling. "
+            "Rule 13's calibration was chosen to sit in empty space rather than against "
+            "a tail; below ~25% it is no longer doing that."
+        )
