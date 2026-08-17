@@ -29,10 +29,19 @@ Two details decide whether this reads anything at all:
 * **The alignment search must be sample-exact.** Encoder priming delay is
   arbitrary, so the correct offset is unknown and all 1024 must be searched.
 
-Scope, stated plainly: this reads AAC-family transcodes, whose long block is a
-2048-sample MDCT. MP3 (hybrid polyphase + 18-point MDCT), Opus/CELT (480/960) and
-Vorbis (different window shape) do not match this hypothesis and score at the
-null — for them the existing rules already do the work.
+Scope, stated plainly, and measured rather than assumed:
+
+* **AAC and Vorbis are read**, both via the 2048-sample long block. They differ only
+  in window shape, so the module tries both (see ``HYPOTHESES``). Reading Vorbis with
+  AAC's window measures AUC 0.806; reading it with its own measures 0.984.
+* **MP3 is not** — a hybrid polyphase filterbank plus an 18-point MDCT matches none
+  of this geometry. The cutoff rules already convict there.
+* **Opus is not, and cannot be.** CELT transforms at 48 kHz regardless of input, so
+  a 44.1 kHz source is resampled up, encoded, decoded and resampled back down.
+  Resampling destroys the sample-exact alignment the whole statistic rests on.
+  Measured at Opus's own 960-sample geometry: 1.26 against a genuine baseline of
+  1.29 — the null. This gap is physics, not a missing hypothesis, and no window
+  choice will close it.
 """
 
 from __future__ import annotations
@@ -83,6 +92,23 @@ def sine_window(length: int = WINDOW_LEN) -> np.ndarray:
     """Sine window — MPEG's other standard long window."""
     n = np.arange(length)
     window: np.ndarray = np.sin(np.pi / length * (n + 0.5)).astype(np.float32)
+    return window
+
+
+def vorbis_window(length: int = WINDOW_LEN) -> np.ndarray:
+    """Vorbis window: sin(pi/2 · sin²(pi/N · (n + 0.5))).
+
+    Vorbis uses the same 2048-sample long block as AAC but a different window, and
+    it transforms at the file's native rate — nothing resamples. So the alignment
+    survives and only the window was wrong: measured on the exchange corpus, the
+    statistic reads Vorbis at AUC 0.806 with the KBD window and **0.984** with this
+    one. It also happens to read ffmpeg AAC at 0.971, so the two hypotheses overlap
+    rather than partition.
+    """
+    n = np.arange(length)
+    window: np.ndarray = np.sin(np.pi / 2 * np.sin(np.pi / length * (n + 0.5)) ** 2).astype(
+        np.float32
+    )
     return window
 
 
@@ -163,6 +189,18 @@ def alignment_curve(
         return curve
 
 
+# Transform hypotheses tried, in order. Each is (name, window factory).
+#
+# Only the window differs: AAC and Vorbis share the 2048-sample long block, so one
+# basis serves both. Opus is deliberately absent and that is a measurement, not an
+# omission — CELT transforms at 48 kHz whatever you feed it, so a 44.1 kHz source is
+# resampled up, encoded, decoded and resampled back. Resampling destroys the
+# sample-exact alignment this statistic depends on, and no window can recover it.
+# Measured: Opus reads 1.26 against a genuine baseline of 1.29 at its own 960-sample
+# geometry — the null. That gap is physics, not a missing hypothesis.
+HYPOTHESES = (("kbd", kbd_window), ("vorbis", vorbis_window))
+
+
 def alignment_stat(
     x: np.ndarray,
     sample_rate: int,
@@ -188,7 +226,8 @@ def alignment_stat(
     letting the peak contribute to its own denominator would flatten the
     statistic on exactly the files this is meant to catch.
     """
-    window = kbd_window() if window_kind == "kbd" else sine_window()
+    factory = {"kbd": kbd_window, "sine": sine_window, "vorbis": vorbis_window}[window_kind]
+    window = factory()
 
     coarse = alignment_curve(x, sample_rate, window, n_frames=coarse_frames, ref_size=9)
     if not np.isfinite(coarse).any():
@@ -227,3 +266,31 @@ def alignment_stat(
         return (float("nan"), -1)
 
     return (peak / median_base, candidates[best_idx])
+
+
+def best_alignment_stat(
+    x: np.ndarray,
+    sample_rate: int,
+    stop_at: float = 3.0,
+) -> Tuple[float, int, str]:
+    """Try each transform hypothesis and return the strongest reading.
+
+    Returns ``(peak_ratio, best_offset, hypothesis_name)``.
+
+    Encoders do not share a window. Reading a Vorbis transcode with AAC's KBD window
+    measures it at AUC 0.806; reading it with its own window measures 0.984. Since a
+    file's provenance is exactly what is unknown, the honest move is to try both and
+    keep the strongest — the genuine null is the same under either window (max 1.51
+    across 60 genuine files), so trying more hypotheses costs specificity nothing.
+
+    ``stop_at`` short-circuits once a hypothesis is already conclusive, which keeps
+    the common AAC case at its old cost instead of doubling it.
+    """
+    best = (float("nan"), -1, "none")
+    for name, _ in HYPOTHESES:
+        ratio, offset = alignment_stat(x, sample_rate, window_kind=name)
+        if np.isfinite(ratio) and (not np.isfinite(best[0]) or ratio > best[0]):
+            best = (ratio, offset, name)
+        if np.isfinite(ratio) and ratio >= stop_at:
+            break
+    return best

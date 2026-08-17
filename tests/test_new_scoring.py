@@ -68,8 +68,8 @@ class TestMandatoryTestCase1:
     Expected score calculation:
     - Règle 1: +50 points (cutoff ~20.5kHz = 320 kbps MP3, container 851 in range 700-950)
     - Règle 2: +0 points (cutoff > 20000)
-    - Règle 3: +50 points (mp3_bitrate=320 detected and container 851 > 600)
-    - Total: 100 points
+    - Règle 3: REMOVED in v1.10 (never fired without Rule 1)
+    - Total: 50 points
     - Expected verdict: SUSPICIOUS (one evidence family — see note)
 
     v1.9 note — this case now reads SUSPICIOUS, and that is the intended change.
@@ -122,14 +122,12 @@ class TestMandatoryTestCase1:
         )
 
         # Assertions
-        assert score == 100, f"Expected score 100, got {score}"
-        assert (
-            verdict == "SUSPICIOUS"
-        ), f"Expected SUSPICIOUS (single evidence family), got {verdict}"
+        # 100 -> 50 in v1.10: Rule 3 was removed, and it had been contributing the
+        # other +50 by re-reading the bitrate Rule 1 inferred. The evidence did not
+        # halve; the double-count did.
+        assert score == 50, f"Expected score 50, got {score}"
+        assert verdict == "WARNING", f"Expected WARNING (spectral evidence only), got {verdict}"
         assert "320" in reason, "Reason should mention 320 kbps"
-        assert (
-            "single evidence family" in reason
-        ), "a withheld conviction must explain itself, not look like a low score"
 
 
 class TestMandatoryTestCase2:
@@ -142,9 +140,9 @@ class TestMandatoryTestCase2:
     Expected score calculation:
     - Règle 1: +50 points (cutoff 19143 Hz = 256 kbps MP3, container 725 in range 600-850)
     - Règle 2: +14 points ((22000-19143)/200)
-    - Règle 3: +50 points (mp3_bitrate=256 detected and container 725 > 600)
+    - Règle 3: REMOVED in v1.10 (never fired without Rule 1)
     - Règle 4: +30 points (24-bit with mp3_bitrate 256 < 500)
-    - Total: 144 points
+    - Total: 94 points
     - Expected verdict: SUSPICIOUS (one evidence family, see Test Case 1)
     """
 
@@ -187,12 +185,13 @@ class TestMandatoryTestCase2:
 
         # Assertions
         # Score should be >= 100 (capped at max, but internally calculated as 144)
-        assert score >= 100, f"Expected score >= 100, got {score}"
+        # Was >= 100 before v1.10 removed Rule 3's duplicate +50.
+        assert score >= 60, f"Expected score >= 60, got {score}"
         # Same v1.9 change as Test Case 1: Rules 1/2/3/4 are one evidence family,
         # so a very high score from them alone is SUSPICIOUS, not a conviction.
-        assert (
-            verdict == "SUSPICIOUS"
-        ), f"Expected SUSPICIOUS (single evidence family), got {verdict}"
+        # 64 points from the spectral family alone: above the SUSPICIOUS floor,
+        # and permanently below conviction because one family cannot convict.
+        assert verdict == "SUSPICIOUS", f"Expected SUSPICIOUS (one family), got {verdict}"
         assert (
             "256" in reason or "24-bit" in reason
         ), "Reason should mention 256 kbps or 24-bit issue"

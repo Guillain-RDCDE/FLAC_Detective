@@ -195,3 +195,57 @@ def test_no_genuine_file_is_convicted():
         f"{len(convicted)} certified-genuine file(s) convicted: "
         f"{[r['slug'] for r in convicted][:3]}"
     )
+
+
+# Independence is the assumption the corroboration gate rests on, and it is the one
+# thing v1.9 asserted without measuring. Two families that share a cause are one
+# witness with two mouths — exactly the Rules 1+3 defect, one level up.
+#
+# Threshold: a pair may co-fire on genuine files somewhat more than chance (real
+# material is correlated), but a large lift means they are reading the same thing.
+# Measured on 178 wild genuine recordings, cnn+spectral lifted 3.2x — and that pair
+# produced the only false conviction in Provir's blind return.
+MAX_INDEPENDENCE_LIFT = 2.0
+
+
+def _family_sets(rows, label):
+    return [set(r["families"].split("+")) - {""} for r in rows if r["label"] == label]
+
+
+def test_evidence_families_are_independent_on_genuine_material():
+    """No pair of families may co-fire far above chance on genuine files.
+
+    This is the guard that v1.9 needed and did not have. Two "independent" families
+    that both react to a low rolloff are not corroboration, and a gate built on them
+    convicts innocent audience recordings — which is precisely what happened.
+
+    Measured on genuine rows only: on fakes, families SHOULD agree, because the file
+    really is a transcode. Correlation is evidence there and confounding here.
+    """
+    rows = _load_rows()
+    if "families" not in rows[0]:
+        pytest.skip("audit predates the families column")
+
+    sets = _family_sets(rows, "0")
+    n = len(sets)
+    if n < 30:
+        pytest.skip("too few genuine rows to estimate co-firing")
+
+    names = sorted({f for s in sets for f in s})
+    offenders = []
+    for i, a in enumerate(names):
+        for b in names[i + 1 :]:
+            pa = sum(1 for s in sets if a in s) / n
+            pb = sum(1 for s in sets if b in s) / n
+            pab = sum(1 for s in sets if a in s and b in s) / n
+            if pa * pb == 0 or pab == 0:
+                continue
+            lift = pab / (pa * pb)
+            if lift > MAX_INDEPENDENCE_LIFT:
+                offenders.append(f"{a}+{b} co-fire {lift:.1f}x above chance on genuine files")
+    assert not offenders, (
+        "evidence families that are not independent: "
+        + "; ".join(offenders)
+        + ". A pair sharing a cause cannot corroborate — re-examine the grouping in "
+        "evidence.py rather than the thresholds."
+    )

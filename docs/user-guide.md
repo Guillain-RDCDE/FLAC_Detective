@@ -246,10 +246,12 @@ Each rule can add or subtract points:
 **Positive Rules** (Add points → Indicates fake):
 - Rule 1: MP3 Spectral Signature (+50)
 - Rule 2: Low Cutoff Frequency (+30)
-- Rule 3: Bitrate Mismatch (+50)
 - Rule 4: Suspicious 24-bit (+30)
-- Rule 13: MDCT frame alignment (+22 / +45, by peak ratio)
+- Rule 13: MDCT frame alignment (+25 / +55, by peak ratio)
 - Rule 10: Multi-Segment Consistency (+20)
+
+(Rule 3, "Bitrate Mismatch", was removed in v1.10: it compared the bitrate Rule 1
+had *inferred*, and across 978 measured files it never once fired without Rule 1.)
 
 **Protection Rules** (Subtract points → Protects authentic):
 - Rule 5: High Variance Protection (-40)

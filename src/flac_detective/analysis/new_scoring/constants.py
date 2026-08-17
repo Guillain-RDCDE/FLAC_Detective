@@ -46,6 +46,14 @@ CONVICTION_MIN_FAMILIES = 2
 # many fakes it catches.
 CONVICTION_MIN_SCORE = 55
 
+# A family must CONTRIBUTE this much to count as a witness (v1.10).
+#
+# v1.9 counted any family with a single positive point. That let a 16-point CNN
+# reading legitimise 112 points of doubled spectral evidence and convict a genuine
+# 2003 audience recording — the one false conviction in Provir's blind return.
+# A witness that mumbles is not a second witness.
+MIN_FAMILY_CONTRIBUTION = 20
+
 # Rule 11 cassette evidence needed to protect a file (cancel Rule 1, apply -40).
 # Lowered 30 -> 15 in v1.8 when test 11C was removed: 11C awarded a flat +15 to
 # essentially every file (it keyed off Rule 9C, which measured AUC 0.497), so
@@ -64,9 +72,6 @@ COHERENT_BITRATE_THRESHOLD = 800
 
 # Coherence tolerance (kbps)
 COHERENCE_TOLERANCE = 100
-
-# Apparent bitrate threshold for Rule 3 (kbps)
-SEUIL_BITRATE_APPARENT_ELEVE = 600
 
 # Default number of segments for variance calculation
 DEFAULT_VARIANCE_SEGMENTS = 10

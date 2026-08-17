@@ -2,7 +2,6 @@ from flac_detective.analysis.new_scoring import estimate_mp3_bitrate
 from flac_detective.analysis.new_scoring.rules import (
     apply_rule_1_mp3_bitrate,
     apply_rule_2_cutoff,
-    apply_rule_3_source_vs_container,
     apply_rule_4_24bit_suspect,
     apply_rule_5_high_variance,
     apply_rule_6_variable_bitrate_protection,
@@ -53,9 +52,6 @@ class TestMandatoryValidation:
         # Let's assume the container bitrate is high for this test case to simulate a fake FLAC.
         container_bitrate = 849
 
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate)
-        assert score_r3 == 50, "Rule 3 should trigger (MP3 detected and container > 600)"
-
         # Rule 4
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
         assert score_r4 == 0, "Rule 4 should be 0 (16-bit)"
@@ -73,13 +69,19 @@ class TestMandatoryValidation:
         )
         assert score_r6 == 0, "Rule 6 should be 0 (MP3 detected)"
 
-        total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
-        assert total_score == 101  # 50 + 1 + 50 + 0 + 0 + 0
-        # Every rule above is the SPECTRAL family (Rule 3 re-reads Rule 1's
-        # inference), so since v1.9 these points cannot convict on their own.
-        assert determine_verdict(total_score, {"spectral"})[0] == "SUSPICIOUS"
-        # One independent second source is all it takes.
-        assert determine_verdict(total_score, {"spectral", "cnn"})[0] == "FAKE_CERTAIN"
+        total_score = score_r1 + score_r2 + score_r4 + score_r5 + score_r6
+        # 101 -> 51 in v1.10: Rule 3's duplicate +50 is gone.
+        assert total_score == 51
+        # Every rule above is the SPECTRAL family, so since v1.9 these points cannot
+        # convict on their own — and since v1.10 removed Rule 3's duplicate +50 they
+        # no longer even clear the 55-point SUSPICIOUS floor.
+        assert determine_verdict(total_score, {"spectral"})[0] == "WARNING"
+        # The point that matters: no amount of spectral evidence alone convicts.
+        assert determine_verdict(200, {"spectral"})[0] != "FAKE_CERTAIN"
+        # A second family is necessary but no longer sufficient on its own: since
+        # Rule 3's removal these 51 points sit under the 55-point corroborated bar.
+        assert determine_verdict(total_score, {"spectral", "cnn"})[0] == "WARNING"
+        assert determine_verdict(90, {"spectral", "cnn"})[0] == "FAKE_CERTAIN"
 
     def test_2_mp3_192_low_cutoff(self):
         """TEST 2: MP3 192 kbps cutoff bas - DOIT être FAKE_CERTAIN."""
@@ -122,8 +124,6 @@ class TestMandatoryValidation:
         # Uses container_bitrate. Let's use the high one (844) to trigger Rule 3?
         # But in a real file, it's one bitrate.
         # If bitrate is 700, Rule 3 (threshold 600) triggers.
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate_r1)
-        assert score_r3 == 50  # 700 > 600
 
         # Rule 4
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
@@ -139,9 +139,15 @@ class TestMandatoryValidation:
         )
         assert score_r6 == 0
 
-        total_score = score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6
-        assert total_score == 112
+        total_score = score_r1 + score_r2 + score_r4 + score_r5 + score_r6
+        # 112 -> 62 in v1.10: Rule 3's duplicate +50 is gone.
+        assert total_score == 62
+        # 62 points from one family: SUSPICIOUS, never a conviction.
         assert determine_verdict(total_score, {"spectral"})[0] == "SUSPICIOUS"
+        # The point that matters: no amount of spectral evidence alone convicts.
+        assert determine_verdict(200, {"spectral"})[0] != "FAKE_CERTAIN"
+        # 62 points clears the corroborated bar of 55, so a genuinely independent
+        # second family convicts here.
         assert determine_verdict(total_score, {"spectral", "mdct"})[0] == "FAKE_CERTAIN"
 
     def test_3_mp3_320_in_24bit(self):
@@ -191,8 +197,6 @@ class TestMandatoryValidation:
 
         # Rule 3
         # Needs mp3_bitrate_detected. If None, score is 0.
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate)
-        assert score_r3 == 0
 
         # Rule 4
         # Needs mp3_bitrate_detected. If None, score is 0.
@@ -216,9 +220,6 @@ class TestMandatoryValidation:
         )
         assert score_r1 == 50
         assert estimated_bitrate == 224
-
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate_fake)
-        assert score_r3 == 50  # 700 > 600
 
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
         # 24-bit, 224 < 500, cutoff 18321 < 19000.
@@ -250,8 +251,6 @@ class TestMandatoryValidation:
         assert score_r2 == 0
 
         # Rule 3
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate)
-        assert score_r3 == 0
 
         # Rule 4
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
@@ -269,7 +268,7 @@ class TestMandatoryValidation:
         )
         assert score_r6 == -30
 
-        total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)
+        total_score = max(0, score_r1 + score_r2 + score_r4 + score_r5 + score_r6)
         assert total_score == 0
         verdict, _ = determine_verdict(total_score)
         assert verdict == "AUTHENTIC"
@@ -294,8 +293,6 @@ class TestMandatoryValidation:
         assert score_r2 == 0
 
         # Rule 3
-        score_r3, _ = apply_rule_3_source_vs_container(estimated_bitrate, container_bitrate)
-        assert score_r3 == 0
 
         # Rule 4
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
@@ -313,7 +310,7 @@ class TestMandatoryValidation:
         )
         assert score_r6 == -30
 
-        total_score = max(0, score_r1 + score_r2 + score_r3 + score_r4 + score_r5 + score_r6)
+        total_score = max(0, score_r1 + score_r2 + score_r4 + score_r5 + score_r6)
         assert total_score == 0
         verdict, _ = determine_verdict(total_score)
         assert verdict == "AUTHENTIC"
@@ -361,9 +358,10 @@ class TestRule1NearNyquistWallGate:
         # R1 + R3 clear the points bar — but they are ONE family, so the verdict
         # stops at SUSPICIOUS. This pair produced every false conviction the v1.9
         # audit measured on certified-genuine files.
-        score_r3, _ = apply_rule_3_source_vs_container(bitrate, self.CONTAINER)
-        assert score + score_r3 >= 86
-        assert determine_verdict(score + score_r3, {"spectral"})[0] == "SUSPICIOUS"
+        # Rule 3 was removed in v1.10: measured across 978 files it never once fired
+        # without Rule 1, so it doubled the points rather than adding evidence. What
+        # remains is Rule 1 alone — one family, therefore never a conviction.
+        assert determine_verdict(score, {"spectral"})[0] != "FAKE_CERTAIN"
 
     def test_keep_deep_digital_floor_scores_fake(self):
         """Floor deep below -55 dB (digital-silence) -> real transcode, +50."""

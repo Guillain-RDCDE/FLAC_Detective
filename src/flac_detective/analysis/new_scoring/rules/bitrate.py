@@ -5,48 +5,30 @@ from typing import List, Optional, Tuple
 
 from ..constants import (
     HIGH_BITRATE_THRESHOLD,
-    SEUIL_BITRATE_APPARENT_ELEVE,
     VARIANCE_THRESHOLD,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def apply_rule_3_source_vs_container(
-    mp3_bitrate_detected: Optional[int], bitrate_conteneur: float
-) -> Tuple[int, List[str]]:
-    """Apply Rule 3: Source Bitrate vs Container Bitrate.
-
-    Detects files where the detected MP3 source bitrate is much lower than
-    the FLAC container bitrate, proving it's a converted MP3.
-
-    Scoring:
-        +50 points if mp3_bitrate_detected exists AND bitrate_conteneur > 600 kbps
-
-    Args:
-        mp3_bitrate_detected: Detected MP3 bitrate from spectral analysis (or None)
-        bitrate_conteneur: Physical bitrate of the FLAC file in kbps
-
-    Returns:
-        Tuple of (score_delta, list_of_reasons)
-    """
-    score = 0
-    reasons: list[str] = []
-
-    # Container bitrate threshold
-    # Using the constant defined in constants.py
-    CONTAINER_THRESHOLD = SEUIL_BITRATE_APPARENT_ELEVE
-
-    if mp3_bitrate_detected is not None and bitrate_conteneur > CONTAINER_THRESHOLD:
-        score += 50
-        reasons.append(
-            f"R3: Source {mp3_bitrate_detected} kbps vs container {bitrate_conteneur:.0f} kbps"
-        )
-        logger.info(
-            f"RULE 3: +50 points (source {mp3_bitrate_detected} kbps vs container {bitrate_conteneur:.0f} kbps)"
-        )
-
-    return score, reasons
+# Rule 3 (source bitrate vs container) — REMOVED in v1.10.
+#
+# It awarded +50 whenever ``mp3_bitrate_detected`` was set and the container
+# exceeded 600 kbps. But ``mp3_bitrate_detected`` is set on exactly one code path:
+# Rule 1 scoring +50. So Rule 3 could not fire unless Rule 1 already had, and its
+# container test was strictly weaker than Rule 1's own. It was not a second
+# opinion, it was an echo.
+#
+# Measured before removal, across 978 files (800-file audit corpus + 178 wild
+# genuine recordings):
+#
+#     Rule 3 fires with Rule 1 : 143
+#     Rule 3 fires ALONE       :   0
+#
+# Zero. The doubling is what let a genuine 2003 audience recording reach 128 points
+# and be convicted in Provir's blind return — 112 of those points were this pair.
+# Simulated cost of removal on the audit corpus: 152 -> 148 convictions, i.e. four
+# files that were only ever over the line because one inference was counted twice.
 
 
 def apply_rule_4_24bit_suspect(

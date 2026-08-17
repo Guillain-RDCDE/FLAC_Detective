@@ -18,7 +18,6 @@ from .rules.mdct_alignment import should_run_rule_13
 from .strategies import (
     Rule1MP3Bitrate,
     Rule2Cutoff,
-    Rule3SourceVsContainer,
     Rule5HighVariance,
     Rule6HighQualityProtection,
     Rule7SilenceAnalysis,
@@ -215,7 +214,6 @@ def _apply_scoring_rules(  # noqa: C901
             # Skip Rule 1
             fast_rules = [
                 Rule2Cutoff(),
-                Rule3SourceVsContainer(),
                 Rule424BitSuspect(),
                 Rule5HighVariance(),
                 Rule6HighQualityProtection(),
@@ -236,7 +234,6 @@ def _apply_scoring_rules(  # noqa: C901
             fast_rules = [
                 Rule1MP3Bitrate(),
                 Rule2Cutoff(),
-                Rule3SourceVsContainer(),
                 Rule424BitSuspect(),
                 Rule5HighVariance(),
                 Rule6HighQualityProtection(),

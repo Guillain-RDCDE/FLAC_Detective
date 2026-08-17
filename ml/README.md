@@ -1309,3 +1309,113 @@ families: 90 `cnn+spectral`, 82 `cnn+mdct`, 5 all three.
 Scans are slower. The cheapest fast path in the pipeline — "score is already 86,
 stop" — is gone for uncorroborated files, which is precisely the population that
 needed the expensive rules in order to be judged fairly.
+
+
+---
+
+# v1.10 — What the blind exchange found, and what Rule 3 had been doing all along
+
+v1.9 shipped with "0 false convictions in 258 genuine files". Jamie Dodd then
+built a **599-file hash-keyed exchange set** — his sources, his labels, scored by
+both tools without either seeing the other's answers — and the very first
+genuine file it disagreed on broke that record.
+
+## 1. The gate counted a witness that was barely speaking
+
+A genuine 2003 audience recording, convicted FAKE_CERTAIN:
+
+```
+score=128  {spectral: 112, cnn: 16}   ->  two families  ->  FAKE_CERTAIN
+```
+
+The gate asked "how many families?" and got "two". It never asked how much the
+second one actually said. 16 points of CNN — a reading the CNN itself would not
+have acted on — was legitimising 112 points of doubled spectral evidence.
+
+`MIN_FAMILY_CONTRIBUTION = 20` fixes it. The same file now reads:
+
+```
+score=78   {spectral: 78}             ->  one family   ->  SUSPICIOUS
+```
+
+The threshold is not tuned to this file. It is set just above the band where a
+family's contribution is a single low-confidence rule firing at its floor.
+
+## 2. Rule 3 never once fired alone — measured, across 978 files
+
+The v1.8 audit flagged Rules 1 and 3 as redundant and the v1.9 gate neutralised
+them as a *pair*. What nobody had checked is whether Rule 3 ever contributed
+anything on its own. Counted across the 800-file audit corpus plus the 178-file
+wild scan:
+
+| | count |
+|---|---|
+| Rule 3 fired | 143 |
+| ...alongside Rule 1 | **143** |
+| ...alone | **0** |
+
+Not "mostly redundant". Redundant, every single time, in 978 files. Deleted in
+v1.10 along with its constant and its tests.
+
+Removing it costs six convictions across 800 files (177 -> 171) and improves the
+flag rate (76.0 % -> 78.8 %). The convictions it cost were ones where its echo of
+Rule 1 was carrying a weak family over the corroborated bar.
+
+## 3. Rule 13 tries two windows now
+
+ffmpeg AAC uses a KBD (alpha = 4) window; Vorbis uses
+`sin(pi/2 * sin^2(pi/N * (n+0.5)))`. Same 2048-sample long block, different
+shape. v1.9 tested only the first, which is why the Vorbis arm read AUC 0.806
+while the AAC arms read 0.99. v1.10 tries both and takes the stronger reading.
+
+| arm | v1.9 AUC (KBD only) | v1.10 AUC (KBD + Vorbis) |
+|---|---|---|
+| vorbis_q8 | 0.806 | **0.955** |
+
+The cost is one number: across the same 80 certified-genuine files the maximum
+moved from 1.42 to **1.427** (median 1.25 -> 1.28, p95 1.37 -> 1.39), against a
+review bar of 2.0. Genuine audio has no preferred alignment under
+*either* window, so a second hypothesis is close to free — which is exactly what
+makes the statistic worth having.
+
+**Opus stays out of reach, and this is physics, not a missing feature.** CELT
+transforms at 48 kHz whatever the input, so a 44.1 kHz source is resampled in and
+back out, and resampling destroys the sample-exact alignment. Measured on the
+opus_256 arm: **1.26, against a genuine baseline of 1.29.** There is no threshold
+between those two numbers. Recorded here so nobody spends a week looking for one.
+
+## 4. The lesson, for the third time: independence must be measured
+
+Rules 1 + 3 were assumed independent. The `cnn` and `spectral` families were
+assumed independent. Both assumptions were wrong, and both were only found by
+counting co-fires. `tests/test_rule_audit_guard.py` now fails the build when any
+two families co-fire beyond `MAX_INDEPENDENCE_LIFT`, so the fourth instance gets
+caught by CI rather than by a competitor.
+
+## Result
+
+Same 800 files, v1.9 -> v1.10:
+
+| | v1.9 | v1.10 |
+|---|---|---|
+| fakes flagged | 76.0 % | **78.8 %** |
+| genuine flagged | 3.8 % | 3.8 % |
+| genuine convicted | 0 | **0** |
+| fakes convicted | 177 | 171 |
+| convictions on one family | 0 | 0 |
+
+On the blind exchange set, 240 files re-scored against Jamie's labels:
+
+| arm | n | convicted | flagged |
+|---|---|---|---|
+| genuine | 60 | **0** (v1.9: 1) | 2 |
+| aac_ff256 | 60 | 19 | **60 (100 %)** |
+| vorbis_q8 | 60 | 32 | 42 |
+| opus_256 | 60 | 5 | 14 |
+
+The prediction published to Provir *before* scoring — "aac_ff256 >= 90 %
+flagged, high confidence" — landed at 100 %. The Vorbis prediction — "small
+gain, < 15 pp, medium confidence" — was too pessimistic; the second window
+hypothesis is what moved it.
+
+0/60 reads as "up to 6 %" at Wilson-95, not "zero".

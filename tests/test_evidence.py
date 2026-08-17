@@ -16,28 +16,25 @@ from flac_detective.analysis.new_scoring.strategies import ScoringRule
 class TestGrouping:
     """Which rules count as the same source of evidence."""
 
-    def test_rules_1_2_3_4_are_one_family(self):
+    def test_rules_1_2_4_are_one_family(self):
         """They all read the cutoff, or the bitrate inferred from it.
 
-        Rule 3 compares Rule 1's inferred bitrate against the container; Rule 4
-        gates on that same inference. However many fire, it is one look at one
-        thing — and that pattern produced every false conviction measured.
+        Rule 4 gates on Rule 1's inference. However many fire, it is one look at one
+        thing — and that pattern produced every false conviction measured. (Rule 3
+        was here too until v1.10, when it was removed for never firing alone.)
         """
         assert (
             len(
                 {
                     RULE_FAMILY["Rule1MP3Bitrate"],
                     RULE_FAMILY["Rule2Cutoff"],
-                    RULE_FAMILY["Rule3SourceVsContainer"],
                     RULE_FAMILY["Rule424BitSuspect"],
                 }
             )
             == 1
         )
-        families = evidence_families(
-            {"Rule1MP3Bitrate": 50, "Rule2Cutoff": 11, "Rule3SourceVsContainer": 50}
-        )
-        assert families == {"spectral"}
+        assert "Rule3SourceVsContainer" not in RULE_FAMILY, "Rule 3 was removed in v1.10"
+        assert evidence_families({"Rule1MP3Bitrate": 50, "Rule2Cutoff": 11}) == {"spectral"}
 
     def test_cnn_and_mdct_are_independent(self):
         """A mel-spectrogram model and a frame-alignment statistic are not the same look."""
@@ -111,11 +108,50 @@ def test_every_scoring_rule_is_classified_or_deliberately_excluded():
     "scores,expected_count",
     [
         ({}, 0),
-        ({"Rule2Cutoff": 5}, 1),
-        ({"Rule2Cutoff": 5, "Rule1MP3Bitrate": 50}, 1),
-        ({"Rule2Cutoff": 5, "Rule12MLClassifier": 30}, 2),
-        ({"Rule5HighVariance": 10, "Rule7SilenceAnalysis": 20, "Rule13MDCTAlignment": 55}, 3),
+        ({"Rule2Cutoff": 5}, 0),  # below MIN_FAMILY_CONTRIBUTION: a mumble, not a witness
+        ({"Rule2Cutoff": 25}, 1),
+        ({"Rule2Cutoff": 5, "Rule1MP3Bitrate": 50}, 1),  # same family, points add up
+        ({"Rule2Cutoff": 25, "Rule12MLClassifier": 30}, 2),
+        ({"Rule5HighVariance": 25, "Rule7SilenceAnalysis": 20, "Rule13MDCTAlignment": 55}, 3),
     ],
 )
 def test_family_counts(scores, expected_count):
     assert len(evidence_families(scores)) == expected_count
+
+
+class TestMinimumContribution:
+    """A family must say something substantial to count as a second witness.
+
+    Found by the blind exchange with Provir: a genuine 2003 audience recording
+    scored 128 and was convicted, of which 112 points were Rules 1+3 (one inference,
+    doubled) and 16 were a hesitant CNN. Under v1.9 that 16 counted as a full
+    independent witness and unlocked the conviction. Provir, whose gate requires two
+    substantive legs, cleared the same file.
+    """
+
+    def test_a_mumbling_family_is_not_a_witness(self):
+        from flac_detective.analysis.new_scoring.constants import MIN_FAMILY_CONTRIBUTION
+
+        scores = {
+            "Rule1MP3Bitrate": 50,
+            "Rule2Cutoff": 12,
+            "Rule12MLClassifier": MIN_FAMILY_CONTRIBUTION - 1,
+        }
+        assert evidence_families(scores) == {"spectral"}
+
+    def test_a_confident_family_is(self):
+        from flac_detective.analysis.new_scoring.constants import MIN_FAMILY_CONTRIBUTION
+
+        scores = {"Rule1MP3Bitrate": 50, "Rule12MLClassifier": MIN_FAMILY_CONTRIBUTION}
+        assert evidence_families(scores) == {"spectral", "cnn"}
+
+    def test_points_accumulate_within_a_family(self):
+        """Three small spectral contributions are still one witness, but a loud one."""
+        assert evidence_families(
+            {"Rule1MP3Bitrate": 8, "Rule2Cutoff": 8, "Rule424BitSuspect": 8}
+        ) == {"spectral"}
+
+    def test_the_v19_reading_is_still_available_for_measurement(self):
+        """The audit harness needs to compare against the old behaviour."""
+        scores = {"Rule1MP3Bitrate": 50, "Rule12MLClassifier": 16}
+        assert evidence_families(scores, min_contribution=0) == {"spectral", "cnn"}

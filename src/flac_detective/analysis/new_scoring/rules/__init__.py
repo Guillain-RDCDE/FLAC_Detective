@@ -1,7 +1,6 @@
 """Rules package exporting all scoring rules."""
 
 from .bitrate import (
-    apply_rule_3_source_vs_container,
     apply_rule_4_24bit_suspect,
     apply_rule_5_high_variance,
     apply_rule_6_variable_bitrate_protection,
@@ -20,7 +19,6 @@ from .spectral import (
 __all__ = [
     "apply_rule_1_mp3_bitrate",
     "apply_rule_2_cutoff",
-    "apply_rule_3_source_vs_container",
     "apply_rule_4_24bit_suspect",
     "apply_rule_5_high_variance",
     "apply_rule_6_variable_bitrate_protection",

@@ -1,3 +1,97 @@
+## v1.10.0 (2026-08-17) — A witness that mumbles is not a second witness
+
+v1.9 made conviction depend on two independent evidence families. Jamie Dodd of
+Provir then ran a **blind, hash-keyed exchange set** — 599 files he built and
+labelled, scored without either of us seeing the other's answers — and it found
+the gap in that gate on the first try. This release closes it, deletes a rule
+that had never once contributed an independent detection, and doubles Rule 13's
+reach.
+
+### 1. A family now has to say something to count
+
+The gate counted any family with a single positive point as a witness. On the
+exchange set, a genuine 2003 audience recording drew **112 points of doubled
+spectral evidence plus a 16-point CNN reading** — and that 16-point murmur was
+enough to make the spectral pile "corroborated". FAKE_CERTAIN, on a real
+recording.
+
+`MIN_FAMILY_CONTRIBUTION = 20`: a family must contribute at least 20 points to
+be counted as a witness. That file now reads SUSPICIOUS on one family.
+
+### 2. Rule 3 deleted — it was never a second opinion
+
+Rule 3 compared the source bitrate Rule 1 had *inferred from the cutoff* against
+the container bitrate, and awarded up to +50. Measured across **978 files** (the
+800-file audit corpus plus the 178-file wild scan):
+
+> Rule 3 fired **143 times, always alongside Rule 1, and never once alone.**
+
+It was Rule 1's own answer echoed back at full weight. v1.9's gate stopped that
+echo from convicting by itself, but the inflated total still helped drag weak
+third families over the line. Deleted.
+
+### 3. Rule 13 now tries two transforms, and catches Vorbis
+
+Rule 13 tested one hypothesis: AAC's KBD (α=4) window. It now tries **Vorbis's
+window too** — `sin(π/2·sin²(π/N·(n+0.5)))`, same 2048-sample long block,
+different shape — and takes the stronger reading.
+
+| | v1.9 (KBD only) | v1.10 (KBD + Vorbis) |
+|---|---|---|
+| Vorbis q8 AUC | 0.806 | **0.955** |
+| Vorbis q8 flagged, audit corpus | — | **60.0 %** |
+| genuine max ratio | 1.42 | 1.43 |
+
+The second hypothesis is nearly free in false alarms, because genuine audio has
+no preferred alignment under *either* window: across the same 80 certified-genuine
+files the maximum moved from 1.42 to **1.427**, against a review bar of 2.0.
+
+**Opus is out of reach, and that is now documented as physics rather than a
+to-do.** CELT transforms at 48 kHz whatever you feed it, so a 44.1 kHz source is
+resampled in and back out, and resampling destroys the sample-exact alignment
+the statistic depends on. Measured: **1.26, against a 1.29 genuine baseline.**
+No threshold fixes that.
+
+### 4. Family independence is now a CI guard
+
+Three times now the same mistake: independence asserted, not measured — Rules
+1+3, then `cnn`+`spectral`. `tests/test_rule_audit_guard.py` now fails the build
+if any two families co-fire beyond `MAX_INDEPENDENCE_LIFT`.
+
+### Measured effect, same 800-file audit corpus
+
+| | v1.9 | v1.10 |
+|---|---|---|
+| **fakes flagged** | 76.0 % | **78.8 %** |
+| **genuine flagged** | 3.8 % | 3.8 % |
+| **genuine convicted** | 0 | **0** |
+| fakes convicted | 177 | 171 |
+| convictions on one family | 0 | 0 |
+
+### On the blind exchange set (240 files re-scored, third-party labels)
+
+| arm | n | convicted | flagged |
+|---|---|---|---|
+| **genuine** | 60 | **0** | 2 |
+| `aac_ff256` | 60 | 19 | **60 (100 %)** |
+| `vorbis_q8` | 60 | 32 | 42 |
+| `opus_256` | 60 | 5 | 14 |
+
+**Zero false convictions on 60 genuine files, against one in v1.9.** The public
+prediction made to Provir before scoring — "`aac_ff256` ≥ 90 % flagged, high
+confidence" — came in at 100 %.
+
+The honest reading of 0/60 is "up to 6 %" (Wilson-95), not "zero".
+
+### The trade, stated plainly
+
+v1.10 convicts **six fewer fakes** across 800 files and flags **2.8 pp more**, at
+identical cost to genuine material. That is the intended direction: the six lost
+convictions were resting on Rule 3's echo or on a mumbling second family, and
+this project ranks protecting authentic files above conviction count.
+
+---
+
 ## v1.9.0 (2026-08-15) — A conviction now needs two independent sources
 
 v1.8 built a harness that measures each rule alone, and it immediately found a

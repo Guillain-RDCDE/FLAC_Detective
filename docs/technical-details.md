@@ -191,9 +191,9 @@ The real codec is probed with `ffprobe` — the extension is never trusted. A `.
 turns out to hold **lossy AAC** is not analysed; it's reported as a non-lossless file to
 replace, exactly like an `.mp3`. ffmpeg is a hard dependency **only** for ALAC/APE; a
 FLAC/WAV-only workflow never invokes it. For lossless-*compressed* sources decoded to a
-temporary WAV (ALAC/APE), the "real bitrate" used by Rules 1 & 3 is sized from the
+temporary WAV (ALAC/APE), the "real bitrate" used by Rule 1 is sized from the
 **original compressed file**, not the decoded WAV — otherwise the file would look
-uncompressed and those rules would wrongly switch off.
+uncompressed and the rule would wrongly switch off.
 
 ## Repair: lossless reconstruction, only when needed
 
@@ -369,26 +369,24 @@ Cutoff at 19000 Hz, threshold 22000 Hz:
 
 ---
 
-### Rule 3: Source vs Container Bitrate
+### Rule 3: Source vs Container Bitrate — removed in v1.10
 
-**Purpose**: Detect "inflated" files (low-quality source in heavy container)
+Rule 3 compared the source bitrate that Rule 1 had *inferred from the cutoff*
+against the FLAC container bitrate, and awarded up to +50 on a mismatch. It was
+deleted because it never contributed a single independent detection.
 
-**Detection method**:
-- Calculate effective source bitrate from spectral analysis
-- Compare with FLAC container bitrate
-- Large mismatch indicates upsampling
+Measured across 978 files (the 800-file audit corpus plus the 178-file wild
+scan): Rule 3 fired **143 times, always alongside Rule 1, and never once alone**.
+It was not a second opinion — it was Rule 1's own answer, echoed back at full
+weight. Under the v1.9 corroboration gate that echo could no longer convict by
+itself, but it still inflated totals enough to drag a weak third family over the
+line. Removing it costs nothing measurable in recall and removes a systematic
+bias toward conviction.
 
-**Scoring**:
-- MP3 source + container > 600 kbps: **+50 points**
-- Moderate mismatch: **+20-30 points**
-- No mismatch: **0 points**
-
-**Example**:
-```
-MP3 128 kbps source → FLAC 900 kbps container
-→ Inflation ratio: 7x
-→ +50 points (suspicious)
-```
+The lesson generalises past this one rule: **independence has to be measured, not
+asserted.** The same audit pass that killed Rule 3 also showed the `cnn` and
+`spectral` families are not fully independent, which is now a CI guard
+(`tests/test_rule_audit_guard.py`).
 
 ---
 
@@ -567,19 +565,38 @@ curve is flat and the ratio sits near 1.0. All 1024 offsets are searched, in two
 stages so the cost stays around 4 s per file.
 
 **Scoring**:
-- peak ratio ≥ 6.0: **+45 points**
-- peak ratio ≥ 3.5: **+22 points**
+- peak ratio ≥ 3.0: **+55 points** (SUSPICIOUS alone, never FAKE_CERTAIN alone)
+- peak ratio ≥ 2.0: **+25 points**
 - below: **0 points**
+
+Calibrated against 880 certified-genuine files: median 1.24, maximum ever
+measured 1.494. The review bar sits 34 % clear of that maximum, the hard bar at
+double it. ffmpeg AAC sits at 13.6–21.5 — an order of magnitude away, not a
+squeezed tail.
 
 **Gate**: cutoff ≥ 18 kHz and the file not already at FAKE_CERTAIN — below that
 the cheap spectral rules already have plenty to work with.
 
-**Scope, stated plainly**: this tests the AAC-family hypothesis (2048-sample long
-block). MP3, Opus/CELT and Vorbis use different framing and score at the null.
-That is not a gap — the existing rules convict on those — but it does mean Rule 13
-is an *AAC* answer, not a universal one. It also loses the signal above roughly
-60 % zeroed coefficients, i.e. at very low bitrates, where the spectral cliff is
-obvious anyway. Both limits have tests pinning them (`tests/test_mdct.py`).
+**Scope, stated plainly**: two transform hypotheses are tried per file, AAC's
+KBD (α=4) window and **Vorbis's** `sin(π/2·sin²(π/N·(n+0.5)))` window, and the
+stronger reading wins. They share the 2048-sample long block and differ only in
+window shape, which is why one code path covers both. Adding the Vorbis
+hypothesis in v1.10 took Vorbis q8 detection from **AUC 0.806 to 0.955** (median
+peak ratio 1.42 -> 3.61) while moving the genuine maximum only from 1.42 to
+**1.427** — the second hypothesis costs essentially
+nothing in false alarms because genuine audio has no alignment to find under
+*either* window.
+
+**Opus is out of reach by construction, and this was measured.** CELT transforms
+at 48 kHz whatever you feed it, so a 44.1 kHz source is resampled in and back
+out, and resampling destroys the sample-exact alignment the statistic depends
+on. Measured reading on Opus 256k under both hypotheses: **median 1.30, against a
+1.28 genuine median — AUC 0.575.** Indistinguishable, and no threshold fixes it. MP3 has different framing
+entirely, and the cutoff rules already convict there.
+
+Rule 13 also loses the signal above roughly 60 % zeroed coefficients, i.e. at
+very low bitrates, where the spectral cliff is obvious anyway. All of these
+limits have tests pinning them (`tests/test_mdct.py`).
 
 ---
 
@@ -698,14 +715,24 @@ Rules 6, 8 and 11 are **protection** — evidence of innocence, never of guilt.
 Rule 10 re-scores segments through the same pipeline, so it is consistency rather
 than corroboration and cannot be a family.
 
-**Why Rules 1–4 are one family and not four.** Rule 3 compares the bitrate Rule 1
+**Why Rules 1–4 are one family and not four.** Rule 3 compared the bitrate Rule 1
 inferred against the container; Rule 4 gates on that same inference. However many
 of them fire, they are one look at one thing. The v1.8 audit measured the
 consequence exactly: *all three* false convictions on 80 certified-genuine files,
 and *all 26* convictions on the 320 kbps MP3 arm, were Rules 1 + 3 at +50 each.
 One measurement counted twice, clearing an 86-point bar unaided. No threshold can
 separate that from real evidence, because the arithmetic is identical — only
-counting sources can.
+counting sources can. Rule 3 was deleted outright in v1.10 once the audit showed
+it had never fired without Rule 1 in 978 files.
+
+**Why a family has to say something to count (v1.10).** The gate as shipped in
+v1.9 counted any family with a single positive point as a witness. A blind
+exchange with Provir found the failure mode on the first try: a genuine 2003
+audience recording drew 112 points of doubled spectral evidence and a 16-point
+CNN reading, and the CNN's murmur was enough to make the spectral pile
+"corroborated". A family must now contribute `MIN_FAMILY_CONTRIBUTION` (20) to
+be counted. That file now reads SUSPICIOUS on one family instead of
+FAKE_CERTAIN on two.
 
 **Why the bar drops when two families agree.** The same audit found 90 files where
 Rule 12 and Rule 13 both scored — a learned model and a transform statistic, on

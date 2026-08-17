@@ -7,7 +7,6 @@ from .models import ScoringContext
 from .rules import (
     apply_rule_1_mp3_bitrate,
     apply_rule_2_cutoff,
-    apply_rule_3_source_vs_container,
     apply_rule_4_24bit_suspect,
     apply_rule_5_high_variance,
     apply_rule_6_variable_bitrate_protection,
@@ -78,17 +77,6 @@ class Rule2Cutoff(ScoringRule):
     def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 2 to ``context``."""
         score, reasons = apply_rule_2_cutoff(context.cutoff_freq, context.audio_meta.sample_rate)
-        context.add_score(score, reasons)
-
-
-class Rule3SourceVsContainer(ScoringRule):
-    """Rule 3 — compare the detected source bitrate against the container."""
-
-    def _apply(self, context: ScoringContext) -> None:
-        """Apply Rule 3 to ``context``."""
-        score, reasons = apply_rule_3_source_vs_container(
-            context.mp3_bitrate_detected, context.bitrate_metrics.real_bitrate
-        )
         context.add_score(score, reasons)
 
 

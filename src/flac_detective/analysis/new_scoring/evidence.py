@@ -22,10 +22,11 @@ different question: **how many independent ways do we know this?**
 Grouping rationale, rule by rule:
 
 ``spectral``
-    Rules 1, 2, 3 and 4. All of them read the spectral cutoff or the MP3 bitrate
-    inferred *from* that cutoff — Rule 3 compares Rule 1's inference against the
-    container, and Rule 4 gates on the same inference. However many of them fire,
-    they are one look at one thing.
+    Rules 1, 2 and 4. All read the spectral cutoff or the MP3 bitrate inferred
+    *from* that cutoff — Rule 4 gates on Rule 1's inference. However many fire, they
+    are one look at one thing. (Rule 3 belonged here too and was removed outright in
+    v1.10: it could not fire unless Rule 1 already had, so it only ever doubled the
+    points.)
 ``container``
     Rule 5, bitrate variance across the file. Measured from FLAC block sizes
     rather than from the spectrum, so it stands on its own.
@@ -51,13 +52,14 @@ from __future__ import annotations
 
 from typing import Dict, Mapping, Set
 
+from .constants import MIN_FAMILY_CONTRIBUTION
+
 # Rule class name -> evidence family. A rule absent from this map contributes no
 # family, which is the safe default: a new rule cannot silently earn conviction
 # power just by existing.
 RULE_FAMILY: Dict[str, str] = {
     "Rule1MP3Bitrate": "spectral",
     "Rule2Cutoff": "spectral",
-    "Rule3SourceVsContainer": "spectral",
     "Rule424BitSuspect": "spectral",
     "Rule5HighVariance": "container",
     "Rule7SilenceAnalysis": "silence",
@@ -66,11 +68,33 @@ RULE_FAMILY: Dict[str, str] = {
 }
 
 
-def evidence_families(rule_scores: Mapping[str, int]) -> Set[str]:
-    """Return the set of independent evidence families that accuse this file.
+def family_totals(rule_scores: Mapping[str, int]) -> Dict[str, int]:
+    """Total positive points each family contributed.
 
-    Only *positive* contributions count. A protection rule handing out negative
-    points is not evidence of guilt, and a rule that ran and found nothing has
-    said nothing.
+    Negative contributions are dropped rather than netted: a protection rule
+    arguing for innocence must not reduce an accuser's weight, and vice versa.
     """
-    return {family for rule, family in RULE_FAMILY.items() if rule_scores.get(rule, 0) > 0}
+    totals: Dict[str, int] = {}
+    for rule, family in RULE_FAMILY.items():
+        points = rule_scores.get(rule, 0)
+        if points > 0:
+            totals[family] = totals.get(family, 0) + points
+    return totals
+
+
+def evidence_families(
+    rule_scores: Mapping[str, int], min_contribution: int = MIN_FAMILY_CONTRIBUTION
+) -> Set[str]:
+    """Return the independent evidence families that meaningfully accuse this file.
+
+    A family counts as a witness only if it contributes at least
+    ``min_contribution`` points. v1.9 accepted any positive contribution, and the
+    blind exchange with Provir found what that costs: a genuine 2003 audience
+    recording convicted at 128 points, of which 112 were Rules 1+3 (one inference,
+    doubled) and 16 were a hesitant CNN. The CNN was doing the work of a second
+    witness while barely speaking.
+
+    Pass ``min_contribution=0`` to recover the v1.9 reading — used by the audit
+    harness to measure what the threshold changed.
+    """
+    return {f for f, total in family_totals(rule_scores).items() if total >= min_contribution}
