@@ -242,15 +242,38 @@ def _probe_duration(path: Path) -> Optional[float]:
         return None
 
 
+def source_rate(path: Path) -> Optional[int]:
+    """Sample rate of ``path``, or None if it cannot be read."""
+    try:
+        import soundfile
+
+        return int(soundfile.info(str(path)).samplerate)
+    except Exception:
+        return None
+
+
 def transcode(args: Tuple[Path, Path, Codec]) -> Optional[Tuple[str, str, str]]:
     """Round-trip one excerpt through one codec back into FLAC.
 
     Metadata is stripped on the way out (``-map_metadata -1``) so no encoder tag
     survives into the FLAC — a detector must read the audio, not a ``Lavf`` string.
+
+    The decode leg forces the SOURCE sample rate back. Without it the 2026-08
+    exchange set shipped its Opus arm at 48 kHz on 100 % of files while the genuine
+    arm was 78 % at 44.1 kHz, because Opus/CELT works at 48 kHz whatever it is fed
+    — so every Opus file was identifiable from its container, without decoding a
+    sample. Provir's return duly carried an AI_SR_48000 flag on all of them. The
+    same leg fixes a milder case: MP3 tops out at 48 kHz, so 96 kHz sources came
+    back downsampled and "48 kHz with no 96 kHz counterpart" became a partial tell.
+
+    Forcing the rate back is also the more realistic round-trip, not a concession:
+    someone passing a transcode off as lossless delivers it at the rate the album
+    is supposed to have.
     """
     src, dst, codec = args
     if dst.exists():
         return (codec.name, dst.name, sha256(dst))
+    rate = source_rate(src)
     dst.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         lossy = Path(tmp) / f"x.{codec.ext}"
@@ -293,6 +316,7 @@ def transcode(args: Tuple[Path, Path, Codec]) -> Optional[Tuple[str, str, str]]:
                 "flac",
                 "-sample_fmt",
                 "s16",
+                *(("-ar", str(rate)) if rate else ()),
                 str(dst),
             ]
         )

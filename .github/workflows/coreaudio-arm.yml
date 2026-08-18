@@ -55,10 +55,10 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          # No torch: this job measures Rule 13's transform statistic, which is
-          # pure numpy/scipy. The CNN plays no part in the question being asked.
+          # No torch: this job measures the transform statistics (holes and lattice),
+          # which are pure numpy/scipy. The CNN plays no part in the question asked.
           pip install -e .
-          pip install soundfile numpy
+          pip install soundfile numpy scipy
 
       - name: Fetch genuine sources (archive.org Live Music Archive)
         run: |

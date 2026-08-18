@@ -51,6 +51,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from flac_detective.analysis.new_scoring.mdct import best_alignment_stat  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lattice_residual_probe import lattice_stat  # noqa: E402
+
 # Bitrates worth testing. 256k is the arm Jamie measured and the one that matters:
 # below ~192k the spectral rules convict on their own, so a transform statistic
 # that only worked there would be redundant.
@@ -152,7 +155,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     rows: List[dict] = []
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["source", "arm", "ratio", "offset", "hypothesis"])
+        writer = csv.DictWriter(
+            fh, fieldnames=["source", "arm", "ratio", "offset", "hypothesis", "lattice"]
+        )
         writer.writeheader()
         for index, src in enumerate(sources, 1):
             with tempfile.TemporaryDirectory() as tmp:
@@ -180,10 +185,23 @@ def main(argv: Optional[List[str]] = None) -> int:
 
                 for arm, path in measurements:
                     ratio, offset, hypothesis = statistic(path)
+                    # The lattice is read at the alignment the scan just found, so
+                    # the second observable costs no second search. It is the one
+                    # that might reach CoreAudio, where holes measure ~nothing.
+                    try:
+                        data, rate = read_excerpt(path)
+                        mono = data if data.ndim == 1 else np.mean(data, axis=1)
+                        lattice = lattice_stat(
+                            np.ascontiguousarray(mono, dtype=np.float32), rate,
+                            offset=max(0, offset),
+                        )
+                    except Exception:
+                        lattice = float("nan")
                     row = {"source": src.name, "arm": arm, "ratio": f"{ratio:.4f}",
-                           "offset": offset, "hypothesis": hypothesis}
+                           "offset": offset, "hypothesis": hypothesis,
+                           "lattice": f"{lattice:.4f}"}
                     writer.writerow(row)
-                    rows.append({**row, "ratio": ratio})
+                    rows.append({**row, "ratio": ratio, "lattice": lattice})
                 fh.flush()
             print(f"  [{index}/{len(sources)}] {src.name}", flush=True)
 
@@ -200,9 +218,14 @@ def report(rows: List[dict]) -> None:
     print("\n" + "=" * 64)
     print("Apple CoreAudio AAC — what Rule 13 reads")
     print("=" * 64)
+    lat_gen_all = np.array([r["lattice"] for r in rows if r["arm"] == "genuine"],
+                           dtype=np.float64)
+    lat_gen_all = lat_gen_all[np.isfinite(lat_gen_all)]
     if genuine.size:
-        print(f"genuine baseline  n={genuine.size:3d}  median={np.median(genuine):6.3f}  "
-              f"max={genuine.max():6.3f}")
+        extra = (f"  |  lattice median={np.median(lat_gen_all):5.3f}"
+                 if lat_gen_all.size else "")
+        print(f"genuine baseline  n={genuine.size:3d}  holes median="
+              f"{np.median(genuine):6.3f}  max={genuine.max():6.3f}{extra}")
     for arm in arms:
         if arm == "genuine":
             continue
@@ -211,8 +234,15 @@ def report(rows: List[dict]) -> None:
         if not values.size:
             continue
         # Paired: the same music with and without the round-trip.
-        print(f"{arm:17} n={values.size:3d}  median={np.median(values):6.3f}  "
-              f"max={values.max():6.3f}  AUC={auc(values, genuine):.3f}")
+        lat = np.array([r["lattice"] for r in rows if r["arm"] == arm], dtype=np.float64)
+        lat = lat[np.isfinite(lat)]
+        lat_gen = np.array([r["lattice"] for r in rows if r["arm"] == "genuine"],
+                           dtype=np.float64)
+        lat_gen = lat_gen[np.isfinite(lat_gen)]
+        lat_txt = (f"  |  lattice median={np.median(lat):5.3f} "
+                   f"AUC={auc(lat, lat_gen):.3f}") if lat.size and lat_gen.size else ""
+        print(f"{arm:17} n={values.size:3d}  holes median={np.median(values):6.3f}  "
+              f"AUC={auc(values, genuine):.3f}{lat_txt}")
     print(
         "\nReference points from the audit corpus, same statistic:\n"
         "  ffmpeg AAC      median 13.6-21.5   AUC 0.99\n"
