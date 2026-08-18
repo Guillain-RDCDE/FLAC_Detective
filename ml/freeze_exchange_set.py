@@ -47,6 +47,8 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import soundfile
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -144,6 +146,7 @@ def audit_own_output(
     by_digest: Dict[str, List[str]],
     labels: Dict[str, Dict[str, str]],
     log: logging.Logger,
+    sample_rates: Optional[Dict[str, int]] = None,
 ) -> bool:
     """Check the frozen set against ITSELF. Returns False if it must not ship.
 
@@ -193,6 +196,74 @@ def audit_own_output(
                 expected,
                 ", ".join(f"{k}={v}" for k, v in sorted(short.items())[:5]),
             )
+
+    if sample_rates:
+        if not _audit_sample_rates(labels, sample_rates, log):
+            return False
+    return True
+
+
+def _audit_sample_rates(
+    labels: Dict[str, Dict[str, str]],
+    sample_rates: Dict[str, int],
+    log: logging.Logger,
+) -> bool:
+    """Refuse a set where an arm is identifiable from its sample rate alone.
+
+    The 2026-08 set shipped with its Opus arm at 48 kHz on 100 % of files while
+    every other arm and the genuine files kept the source rate (78 % at 44.1 kHz).
+    Opus/CELT works at 48 kHz whatever you feed it, and the round-trip never came
+    back to the source rate — so every Opus file was identifiable *without decoding
+    a sample*. Provir's return duly carried an AI_SR_48000 flag on 100 % of them.
+
+    Third instance of one species: the encoder tags that leaked first, the repeated
+    digests that leaked second, and now a container property. Each time the freeze
+    checked what it had thought of and not what it had produced. So the rule here is
+    the general one — no arm may have a sample-rate distribution that the genuine
+    arm does not also have — rather than a special case for Opus.
+
+    Note the milder version this also catches: an encoder with a rate ceiling (MP3
+    tops out at 48 kHz) silently downsamples 96 kHz sources, so "48 kHz with no
+    96 kHz counterpart" becomes a partial tell for that arm too.
+    """
+    per_arm: Dict[str, Dict[int, int]] = {}
+    for file_id, entry in labels.items():
+        rate = sample_rates.get(file_id)
+        if rate is None:
+            continue
+        per_arm.setdefault(entry["label"], {}).setdefault(rate, 0)
+        per_arm[entry["label"]][rate] += 1
+
+    genuine = per_arm.get("genuine")
+    if not genuine:
+        log.warning("no genuine arm found; skipping the sample-rate leak audit")
+        return True
+
+    genuine_total = sum(genuine.values())
+    leaked = False
+    for arm, rates in sorted(per_arm.items()):
+        if arm == "genuine":
+            continue
+        total = sum(rates.values())
+        for rate, count in sorted(rates.items()):
+            share = count / total
+            genuine_share = genuine.get(rate, 0) / genuine_total
+            # A rate carrying most of an arm while being rare among genuine files
+            # is a label, not a property of the music.
+            if share >= 0.9 and genuine_share <= 0.5:
+                log.error(
+                    "  arm %s is %.0f%% at %d Hz, but only %.0f%% of genuine files are "
+                    "— identifiable without decoding a sample",
+                    arm, 100 * share, rate, 100 * genuine_share,
+                )
+                leaked = True
+
+    if leaked:
+        log.error(
+            "A blind set cannot ship with an arm identifiable from its container. "
+            "Resample the round-trip back to the source rate, or drop the arm."
+        )
+        return False
     return True
 
 
@@ -282,6 +353,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Every digest computed below, so the set can be checked against ITSELF before
     # it ships. See the audit at the end of this function.
     by_digest: Dict[str, List[str]] = {}
+    # Container properties leak too — see _audit_sample_rates.
+    sample_rates: Dict[str, int] = {}
 
     for index, (src, label, slug) in enumerate(items, 1):
         file_id = f"{args.name}-{index:04d}"
@@ -291,6 +364,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 1
         digest = sha256(dst)
         by_digest.setdefault(digest, []).append(file_id)
+        try:
+            sample_rates[file_id] = int(soundfile.info(str(dst)).samplerate)
+        except Exception:  # an unreadable rate must not abort the freeze
+            pass
         manifest_lines.append(f"{digest}  audio/{file_id}.flac  {dst.stat().st_size}")
         labels[file_id] = {"label": label, "source_slug": slug}
         if not args.skip_tag_check and has_tags(dst):
@@ -307,7 +384,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
         return 1
 
-    if not audit_own_output(by_digest, labels, log):
+    if not audit_own_output(by_digest, labels, log, sample_rates):
         return 1
 
     (args.out / "MANIFEST.sha256").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")

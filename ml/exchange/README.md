@@ -85,3 +85,36 @@ leak, and no check at all on what it had just produced. `audit_own_output()` now
 refuses to ship a set whose digests repeat, and warns when a source contributes
 fewer arms than its peers. `tests/test_exchange_set_integrity.py` pins the shipped
 counts so this defect cannot be quietly widened.
+
+
+## Second known defect: the Opus arm leaks its sample rate
+
+Found 2026-08-18 while scoring Provir's return, in his own evidence column.
+
+`opus_256` is **100 % at 48 000 Hz**. Every other arm and the genuine files keep
+the source rate — 78 % at 44 100 Hz. Opus/CELT works at 48 kHz whatever it is fed,
+and the round-trip never resampled back, so **every Opus file in this set is
+identifiable without decoding a single sample.** Provir's return carries an
+`AI_SR_48000` flag on 100 % of them.
+
+There is a milder second case in the same column. MP3 tops out at 48 kHz, so the
+five 96 kHz sources were silently downsampled: the MP3 arms hold 22 % at 48 kHz
+and 0 % at 96 kHz, against genuine's 13 % and 8 %. "48 kHz with no 96 kHz
+counterpart" is therefore a partial tell on those arms too.
+
+**What it invalidates, measured rather than assumed.** Not as much as it might.
+FLAC Detective's own Opus numbers are unaffected: on the 8 sources that were
+already 48 kHz — where nothing changed — it flags 50.0 %, against 48.1 % on the 52
+that were resampled. Flat, so the engine is not reading the container. Provir's
+Opus result survives too, and for a better reason: all 60 Opus files carry
+non-trivial evidence independent of the rate flag (`HF_SEAM` at 100 %, his MP3
+conjunction at 98 %), so his 100 % there is real detection rather than a metadata
+shortcut.
+
+**The class, for the third time.** Encoder tags leaked first, repeated digests
+second, a container property third. Each time the freeze checked what someone had
+thought of, and not what it had just produced. `_audit_sample_rates()` now refuses
+any set where an arm's sample-rate distribution is one the genuine arm does not
+share — stated as a general rule rather than as a special case for Opus, since the
+special cases are exactly what keeps being missed. Verified against this set: it
+rejects it.
