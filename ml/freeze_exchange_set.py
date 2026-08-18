@@ -140,6 +140,62 @@ def collect(corpus: Path) -> List[Tuple[Path, str, str]]:
     return items
 
 
+def audit_own_output(
+    by_digest: Dict[str, List[str]],
+    labels: Dict[str, Dict[str, str]],
+    log: logging.Logger,
+) -> bool:
+    """Check the frozen set against ITSELF. Returns False if it must not ship.
+
+    The 2026-08 set shipped with ten byte-identical pairs — one entire source
+    group, all ten of its arms, present twice under two sets of names. Two
+    archive.org items held the same taper's same track (…-matrix-… and
+    …-matrix2-…), and the corpus dedup keyed on the item identifier rather than on
+    the audio, so both passed as independent recordings.
+
+    The freeze had already COMPUTED the evidence: it hashes every file on the way
+    out. It wrote those hashes to the manifest and never compared them to each
+    other. The tag check looks outward, at what might leak; nothing looked inward,
+    at what had just been produced. Jamie Dodd of Provir found the pairs by sorting
+    the shipped manifest, which is all it ever took.
+
+    Two costs, both mild and both real: per-arm denominators say 60 when one
+    recording is counted twice, and the repeated hashes leak by themselves —
+    sorting the manifest reveals that those twenty files carry only ten distinct
+    labels, without touching the audio.
+    """
+    duplicates = {d: ids for d, ids in by_digest.items() if len(ids) > 1}
+    if duplicates:
+        for digest, ids in sorted(duplicates.items(), key=lambda kv: kv[1]):
+            log.error("  byte-identical: %s  (%s…)", " == ".join(ids), digest[:16])
+        log.error(
+            "%d digests appear more than once. A blind set cannot ship with duplicate "
+            "audio: the denominators are wrong and the repeated hashes are visible in "
+            "the manifest. Deduplicate the CORPUS by content, not by source "
+            "identifier, and re-freeze.",
+            len(duplicates),
+        )
+        return False
+
+    # A source contributing fewer arms than its peers skews that arm's denominator
+    # the same way, and is just as invisible once the ids are shuffled.
+    per_slug: Dict[str, int] = {}
+    for entry in labels.values():
+        per_slug[entry["source_slug"]] = per_slug.get(entry["source_slug"], 0) + 1
+    if per_slug:
+        expected = max(per_slug.values())
+        short = {slug: n for slug, n in per_slug.items() if n != expected}
+        if short:
+            log.warning(
+                "%d source(s) contributed fewer than %d arms: %s. Not fatal, but every "
+                "arm they are missing from has a smaller denominator than the others.",
+                len(short),
+                expected,
+                ", ".join(f"{k}={v}" for k, v in sorted(short.items())[:5]),
+            )
+    return True
+
+
 README_TEMPLATE = """# {name} — blind exchange set
 
 {n_files} lossless FLAC files, {seconds:g}-second excerpts, 16-bit.
@@ -223,6 +279,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     manifest_lines: List[str] = []
     labels: Dict[str, Dict[str, str]] = {}
     tagged: List[str] = []
+    # Every digest computed below, so the set can be checked against ITSELF before
+    # it ships. See the audit at the end of this function.
+    by_digest: Dict[str, List[str]] = {}
 
     for index, (src, label, slug) in enumerate(items, 1):
         file_id = f"{args.name}-{index:04d}"
@@ -231,6 +290,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             log.error("could not normalise %s", src)
             return 1
         digest = sha256(dst)
+        by_digest.setdefault(digest, []).append(file_id)
         manifest_lines.append(f"{digest}  audio/{file_id}.flac  {dst.stat().st_size}")
         labels[file_id] = {"label": label, "source_slug": slug}
         if not args.skip_tag_check and has_tags(dst):
@@ -245,6 +305,9 @@ def main(argv: Optional[List[str]] = None) -> int:
             len(tagged),
             ", ".join(tagged[:3]),
         )
+        return 1
+
+    if not audit_own_output(by_digest, labels, log):
         return 1
 
     (args.out / "MANIFEST.sha256").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")

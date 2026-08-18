@@ -72,16 +72,27 @@ if any two families co-fire beyond `MAX_INDEPENDENCE_LIFT`.
 
 | arm | n | convicted | flagged |
 |---|---|---|---|
-| **genuine** | 60 | **0** | 2 (3.3 %) |
-| `aac_ff128` | 60 | 19 | 32 (53.3 %) |
-| `aac_ff256` | 60 | 19 | **60 (100 %)** |
-| `aac_ff320` | 60 | 10 | **60 (100 %)** |
-| `aacmf_256` | 59 | 20 | 24 (40.7 %) |
-| `mp3_192` | 60 | 23 | 30 (50.0 %) |
-| `mp3_320` | 60 | 15 | 20 (33.3 %) |
-| `mp3_V0` | 60 | 5 | 9 (15.0 %) |
-| `opus_256` | 60 | 5 | 14 (23.3 %) |
-| `vorbis_q8` | 60 | 32 | 42 (70.0 %) |
+| **genuine** | 59 | **0** | 2 (3.4 %) |
+| `aac_ff128` | 59 | 18 | 31 (52.5 %) |
+| `aac_ff256` | 59 | 18 | **59 (100 %)** |
+| `aac_ff320` | 59 | 10 | **59 (100 %)** |
+| `aacmf_256` | 58 | 20 | 24 (41.4 %) |
+| `mp3_192` | 59 | 22 | 29 (49.2 %) |
+| `mp3_320` | 59 | 15 | 20 (33.9 %) |
+| `mp3_V0` | 59 | 4 | 8 (13.6 %) |
+| `opus_256` | 59 | 5 | 14 (23.7 %) |
+| `vorbis_q8` | 59 | 32 | 42 (71.2 %) |
+
+*Corrected 2026-08-18. The set's 599 files are **589 distinct files**: ten
+byte-identical pairs, which are one entire source group — all ten arms — present
+twice under two names. Two archive.org items held the same taper's same track
+(`…-matrix-…` and `…-matrix2-…`) and the corpus dedup keyed on the item
+identifier rather than on the audio. Rates above are over distinct content; the
+originally published table used n=60 per arm and double-counted that recording in
+every arm, including genuine. Nothing material moved — the largest shift is
+`mp3_V0` convictions, 8.3 % → 6.8 % — and 0/59 genuine reads as "up to 6.1 %"
+(Wilson-95) against the 6.0 % published on n=60. Found by Jamie Dodd, by sorting
+our own shipped manifest.*
 
 **Zero false convictions on 60 genuine files, against one in v1.9.** The two
 predictions published to Provir *before* scoring both land: "`aac_ff256` ≥ 90 %
