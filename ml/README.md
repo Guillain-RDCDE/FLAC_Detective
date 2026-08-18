@@ -1980,3 +1980,61 @@ engine's AST and fails if `FAKE_CERTAIN` is produced anywhere outside
 `determine_verdict`, plus a second test that the gate still consults the families
 at all. Verified to bite: adding a decoy producer elsewhere in the package fails
 the test by name and line.
+
+
+---
+
+# Reachability: the second half of the uncalled-function lesson
+
+`tests/test_verdict_reachability.py` began as one test — is there a second origin
+for a conviction? — because Jamie Dodd's eighth corroboration bug was a repair that
+went into a predicate the convicting path never called. That is the first half.
+
+The second half he stated separately and it is the one that generalises:
+
+> Reachability is by enclosing function, not by line order.
+
+Gating his inline conviction site handed the gate five fresh non-witnesses that had
+been appended between the old call sites and the new one, including a rung's own
+"I applied and declined to fire" telemetry sitting two lines above a predicate that
+then read it as evidence. And he nearly barred four flags of the same apparent
+species that turned out to be emitted by a function running *after* every gate,
+where an exclusion is what he calls dressing.
+
+This engine has the identical shape. `_apply_scoring_rules` evaluates the
+corroboration gate twice, and each evaluation sees a different set of families
+because the rules that could corroborate run further down:
+
+| gate | families that can have contributed |
+|---|---|
+| short-circuit 1 | `spectral`, `container` |
+| short-circuit 3 | `spectral`, `container`, `silence`, `mdct` |
+
+`cnn` can never corroborate at either. That is deliberate — and it is exactly why
+the early exits had to start requiring corroboration in v1.9, or they would have
+been measuring themselves. What is not acceptable is for it to change silently:
+moving one rule above a gate, or one gate below a rule, alters which families can
+corroborate without a single edit to the gate's own code.
+
+## The test reproduced the bug three times before catching it
+
+Writing it was the useful part, because each attempt failed in the exact shape he
+warned about, and none of the three would have been visible in a table of inputs:
+
+1. **A helper written above its call site.** `Rule13MDCTAlignment` is instantiated
+   at line 118 inside `_run_rule_13`, which is called at line 337. A line-order
+   scan put `mdct` before short-circuit 1, where it cannot possibly have run.
+2. **A terminal branch written above a gate it returns before reaching.** The
+   "heuristics silent" path runs Rules 12 and 13 and then returns; by line number
+   those sit above short-circuit 3, by execution they never arrive there.
+3. **That branch nested one level deeper than the fix looked.** The whole pipeline
+   body lives inside a `try/finally`, so a walker that did not descend into `Try`
+   collected the function wholesale — terminal branches included — and reported
+   `cnn` as reachable at a gate it cannot reach.
+
+The final version resolves rules to the line where their *enclosing function is
+called*, and refuses to descend into any branch ending in `return` or `raise`. Both
+tests were verified to bite: declaring a family that is not reachable fails by
+line, and declaring a family in `evidence.py` that no reachable rule produces fails
+as its mirror — because a family that can never arrive inflates the apparent
+independence of the gate while contributing nothing.

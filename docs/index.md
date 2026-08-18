@@ -2,7 +2,7 @@
 
 FLAC Detective is a command-line tool that detects **fake lossless** audio files — MP3s
 (and other lossy codecs) re-saved as FLAC, ALAC, APE or WAV so they *look* lossless when
-the quality was already thrown away. It scores each file with an 11-rule spectral engine
+the quality was already thrown away. It scores each file with a multi-rule engine
 (plus an optional 12th CNN rule) and gives a clear, four-level verdict, while protecting
 genuine vinyl rips, cassette transfers and quiet recordings from false alarms.
 
@@ -29,7 +29,7 @@ Pick the row that sounds like you — each leads straight to the right page.
 | 🟢 **New to all this** — just want to check your music | **[Start Here](start-here.md)** | A 5-minute, jargon-free walkthrough: what it does, install, scan, read results. *No command-line experience needed.* |
 | 🎧 **A user** ready to scan a real library | **[Getting Started](getting-started.md)** → **[User Guide](user-guide.md)** | Install options (ffmpeg, Docker, ML extra), every flag, real examples, `--deep`, CSV/HTML reports. |
 | 🐍 **A developer** integrating it in Python | **[API Reference](api-reference.md)** | The public API, the result dict, and integration examples. |
-| 🔬 **Curious how it works** under the hood | **[Technical Details](technical-details.md)** | All 11 rules + the optional ML Rule 12, the scoring, the protection layers. |
+| 🔬 **Curious how it works** under the hood | **[Technical Details](technical-details.md)** | Every rule, the three evidence families, the corroboration gate, the protection layers. |
 | 🧪 **Here for the deep dives** | **[ML case study](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** · **[Formats roadmap](roadmap-formats.md)** | How Rule 12's CNN was built (the false-positive audit, the dead-ends, the mono→stereo breakthrough), and why multi-format support is an *input* problem. |
 
 > **New here and not sure?** Start with **[Start Here](start-here.md)** — it's enough for

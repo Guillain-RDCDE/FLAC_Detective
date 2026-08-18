@@ -129,3 +129,210 @@ def test_the_gate_actually_consults_corroboration() -> None:
         "allowed to convict, so if it has stopped consulting corroboration then "
         "nothing else is going to."
     )
+
+
+# ===================== reachability, Provir's second lesson ===================
+#
+# The AST test above answers "is there a second origin?". This one answers a
+# different question that Jamie Dodd paid for separately:
+#
+#     Reachability is by enclosing function, not by line order.
+#
+# Gating an inline conviction site handed his gate five fresh non-witnesses that
+# had been appended between the old call sites and the new one — including a
+# rung's own "I applied and declined to fire" telemetry, two lines above a
+# predicate that then read it as evidence. Without barring those the gate was
+# nearly inert. And he nearly barred four flags of the same apparent species that
+# turned out to be emitted by a function running AFTER every gate — where an
+# exclusion is pure dressing.
+#
+# This engine has the same shape. `calculate_score` evaluates the corroboration
+# gate at three points, and each sees a DIFFERENT set of families, because the
+# rules that could corroborate run further down. Short-circuit 1 fires before
+# Rules 7, 12 and 13 exist at all, so no amount of correctness in the gate makes
+# `cnn` or `mdct` available there.
+#
+# That is intended. What is not acceptable is for it to change silently — moving
+# one rule above a gate, or one gate below a rule, alters which families can
+# corroborate without touching the gate's own code.
+
+GATE_CALL = "_is_corroborated"
+SCORER = "new_scoring/calculator.py"
+PIPELINE_FUNCTION = "_apply_scoring_rules"
+
+# Families whose rules may have run before each gate, in source order.
+# An UPPER BOUND: a rule above a gate might still be skipped by a condition, but a
+# rule below it definitely has not run. That asymmetry is what makes the bound
+# sound and the test meaningful.
+EXPECTED_REACHABLE = [
+    # Short-circuit 1: the fast rules only. Rules 7, 12 and 13 have not run, so
+    # `silence`, `cnn` and `mdct` cannot corroborate here however correct the gate
+    # is. That is deliberate — and it is exactly why the early exit had to start
+    # requiring corroboration in v1.9, or it would have measured itself.
+    {"spectral", "container"},
+    # Short-circuit 3: after Rule 7 and Rule 13, before Rule 12.
+    {"spectral", "container", "silence", "mdct"},
+]
+
+
+def _rules_by_function(tree: ast.AST) -> dict:
+    """Rule classes instantiated inside each function, by function name."""
+    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+
+    inside: dict = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        names = {
+            child.func.id
+            for child in ast.walk(node)
+            if isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id in RULE_FAMILY
+        }
+        if names:
+            inside[node.name] = names
+    return inside
+
+
+def _terminal(body: List[ast.stmt]) -> bool:
+    """Does this block end by leaving the function?"""
+    return bool(body) and isinstance(body[-1], (ast.Return, ast.Raise))
+
+
+def _collect(node: ast.AST, inside: dict, entry: str, out: List[Tuple[int, str]]) -> None:
+    """Record rule positions in one statement, without descending into branches."""
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call) or not isinstance(child.func, ast.Name):
+            continue
+        name = child.func.id
+        if name in inside.get(entry, set()):
+            out.append((child.lineno, name))
+        elif name in inside and name != entry:
+            for rule in sorted(inside[name]):
+                out.append((child.lineno, rule))
+
+
+def _walk_reachable(
+    body: List[ast.stmt], inside: dict, entry: str, out: List[Tuple[int, str]]
+) -> None:
+    """Collect rule positions along paths that can still reach later statements.
+
+    A branch ending in ``return`` cannot flow to a gate further down the function,
+    so the rules it runs are not reachable *there* even though they are written
+    above it. Recursing past those blocks — rather than collecting and subtracting —
+    is the difference between a loose upper bound and a statement about execution.
+
+    This is Jamie Dodd's warning applied three times, and it caught this test three
+    times: a helper written above its call site; a terminal branch written above a
+    gate it exits before reaching; and then that same branch nested one level
+    deeper than the first attempt looked. Each looked "earlier" by line number and
+    none was earlier in execution.
+    """
+    for stmt in body:
+        if isinstance(stmt, ast.If):
+            # The test itself is part of the straight-line path.
+            _collect(stmt.test, inside, entry, out)
+            for branch in (stmt.body, stmt.orelse):
+                if not _terminal(branch):
+                    _walk_reachable(branch, inside, entry, out)
+        elif isinstance(stmt, ast.Try):
+            # The scoring pipeline's whole body lives inside a try/finally, so
+            # failing to descend here collected the function wholesale — terminal
+            # branches included — which is how the third version of this test still
+            # reported cnn as reachable at a gate the branch returns before.
+            for block in (stmt.body, stmt.orelse, stmt.finalbody):
+                _walk_reachable(block, inside, entry, out)
+            for handler in stmt.handlers:
+                _walk_reachable(handler.body, inside, entry, out)
+        elif isinstance(stmt, (ast.For, ast.While)):
+            _collect(stmt.iter if isinstance(stmt, ast.For) else stmt.test, inside, entry, out)
+            _walk_reachable(stmt.body, inside, entry, out)
+            _walk_reachable(stmt.orelse, inside, entry, out)
+        elif isinstance(stmt, ast.With):
+            _walk_reachable(stmt.body, inside, entry, out)
+        else:
+            _collect(stmt, inside, entry, out)
+
+
+def _rule_positions(tree: ast.AST, entry: str) -> List[Tuple[int, str]]:
+    """(execution position, rule class) for every rule that can reach later code.
+
+    Position is the line at which the rule can first have run, which is NOT the
+    line where it is written: a rule instantiated inside a helper runs where the
+    HELPER IS CALLED, and helpers are defined above their callers.
+    """
+    inside = _rules_by_function(tree)
+    scorer = next(
+        (n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == entry),
+        None,
+    )
+    assert scorer is not None, f"{entry} not found"
+    out: List[Tuple[int, str]] = []
+    _walk_reachable(scorer.body, inside, entry, out)
+    return sorted(set(out))
+
+
+def test_families_reachable_at_each_gate_are_declared() -> None:
+    """Moving a rule across a gate must break a declared fact, not pass quietly.
+
+    The two in-pipeline gates live in ``_apply_scoring_rules``; the final verdict is
+    computed in ``new_calculate_score`` once that function has returned, so by then
+    every rule has had its chance and all five families are reachable.
+    """
+    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+
+    path = SCORING / "new_scoring" / "calculator.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+
+    scorer = next(
+        n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == PIPELINE_FUNCTION
+    )
+    rules = _rule_positions(tree, PIPELINE_FUNCTION)
+    gates = sorted(
+        node.lineno
+        for node in ast.walk(scorer)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == GATE_CALL
+    )
+
+    assert len(gates) == len(EXPECTED_REACHABLE), (
+        f"{SCORER} now evaluates corroboration at {len(gates)} points inside "
+        f"{PIPELINE_FUNCTION}, not {len(EXPECTED_REACHABLE)}. Every evaluation point "
+        "sees its own family set; declare what a new one can reach rather than "
+        "assuming it matches another."
+    )
+
+    for gate, expected in zip(gates, EXPECTED_REACHABLE):
+        reachable = {RULE_FAMILY[name] for line, name in rules if line < gate}
+        assert reachable == expected, (
+            f"at line {gate} the reachable families are {sorted(reachable)}, "
+            f"declared {sorted(expected)}. A rule moved across a corroboration gate "
+            "changes which families can corroborate there without any edit to the "
+            "gate itself — Provir's gate was left nearly inert exactly this way. "
+            "Update the declaration deliberately, or move the rule back."
+        )
+
+
+def test_the_final_verdict_sees_every_family() -> None:
+    """Nothing may be structurally unable to reach the verdict that matters.
+
+    The mirror of the gate test. An exclusion for a flag that can never arrive is
+    dressing, in Jamie Dodd's phrase, and a family that can never arrive is worse:
+    it inflates the apparent independence of the gate while contributing nothing.
+    """
+    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+
+    path = SCORING / "new_scoring" / "calculator.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    reachable = {RULE_FAMILY[name] for _line, name in _rule_positions(tree, PIPELINE_FUNCTION)}
+
+    declared = set(RULE_FAMILY.values())
+    missing = declared - reachable
+    assert not missing, (
+        f"families {sorted(missing)} are declared in evidence.py but no rule "
+        f"producing them is reachable from {PIPELINE_FUNCTION}. They can never "
+        "corroborate anything, so counting them as independent witnesses overstates "
+        "how many sources a conviction actually has."
+    )
