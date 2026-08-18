@@ -1749,3 +1749,100 @@ into a dead end.
 `AAC_LATTICE` is the other one worth noting: 78 % on `aacmf_256` and `aac_ff320`,
 **0 % everywhere else**. Clean and specific, and it is the residual-against-the-
 reconstructed-transform he offered to explain.
+
+
+---
+
+# Four chantiers, 2026-08-18: one win, one honest failure, two foundations
+
+## 1. The HF seam — FAILED its pre-registered bar, twice
+
+Provir's `HF_SEAM` fires on 100 % of the Opus arm and 97 % of `mp3_320` against 8 %
+of genuine files — precisely where this engine is weakest. The bar was set before
+measuring: beat our current rates on those two arms at under 10 % genuine fire.
+
+**Hypothesis 1 — a step in the time-averaged spectral envelope, below the cutoff.**
+`ml/hf_seam_probe.py`. Both controls pass: an imposed 6 dB seam reads 41.2 against
+5.97 for smooth noise and is located to within 12 Hz, and band-limited material
+reads 5.3–5.6, i.e. the statistic ignores the cliff and is not Rule 2 in disguise.
+On real transcodes it is flat: **AUC 0.47–0.50 on every arm**, fire rates identical
+to genuine.
+
+**Hypothesis 2 — the band edge jitters frame to frame.** Better, still short:
+`mp3_V0` AUC 0.80, `aacmf_256` 0.73 — our two weakest arms after Opus — but only
+13 % fire on Opus and 3 % on `mp3_320`. Nowhere near the bar.
+
+**Conclusion, stated plainly: we do not know what `HF_SEAM` measures, and guessing
+is not converging.** The instrument works — its controls say so — so these are
+nulls about our hypotheses, not about the probe. Asking is one message and he has
+never refused. Recorded rather than quietly dropped, because the band-edge jitter
+result is a real lead on `mp3_V0`, the arm where paired discrimination is worst.
+
+## 2. The lattice — WORKS, and beats holes where holes are weakest
+
+`ml/lattice_residual_probe.py`. Read the grid rather than its zeros: AAC quantises
+in a companded domain, so surviving coefficients cluster near multiples of a step
+even when nothing was zeroed. Measured as a Rayleigh periodicity statistic per
+(frame, band), normalised by the analytic null.
+
+| arm | median | AUC | fires (bar = genuine p90) |
+|---|---|---|---|
+| genuine | 1.035 | — | 13 % |
+| `aac_ff256` | 2.067 | **0.98** | 93 % |
+| `aacmf_256` | 1.295 | **0.83** | 73 % |
+| `opus_256` | 1.032 | 0.48 | 20 % |
+
+**0.83 on MediaFoundation against the hole statistic's 0.791** — a different
+observable doing better on the encoder where holes are weak. And it needs no zeros,
+which is why it is the candidate for CoreAudio.
+
+**Two things had to be right, and both were wrong first.** The control caught both:
+
+* **Group before measuring.** AAC carries a scalefactor per band per frame, so each
+  (frame, band) sits on its own grid; pooling a file's coefficients superimposes
+  dozens of spacings and erases every one. Pooled, the control read 1.7 on audio
+  quantised onto an exact lattice.
+* **Align before reading — and this is a finding, not a detail.** On a known grid,
+  read at the imposing offset the statistic goes 1.03 → 1.61 → 2.62 → 2.85 as the
+  grid coarsens; read 511 samples off it stays at **1.03 for every one of them**.
+
+So a lattice reader needs alignment exactly as a hole counter does: both recover
+coefficient *values*, and values only exist at the encoder's offset. **The lattice
+family therefore cannot rescue Opus either** — resampling destroys the alignment —
+which the corpus confirms at AUC 0.48, and which Provir's own `AAC_LATTICE` confirms
+from the other side by firing on 0 % of the Opus arm.
+
+That closes a question rather than leaving it open: Opus is not a gap in *this*
+family of observables, it is outside the family altogether.
+
+## 3. Exchange set v2 — the leak is fixed at the source
+
+`ml/build_audit_corpus.py` now forces the **source sample rate** back on the decode
+leg. Verified: a 44.1 kHz source round-tripped through Opus returns at 44.1 kHz,
+where it previously returned at 48 kHz and gave the arm away without decoding a
+sample. The same leg fixes the milder MP3-from-96 kHz case.
+
+It is also the more realistic round-trip rather than a concession: someone passing
+a transcode off as lossless delivers it at the rate the album is supposed to have.
+
+With the three freeze guards already in place — duplicate digests, sample-rate
+distribution, short arms — a v2 set can be built clean. It is not rebuilt here:
+that is a decision for when there is something to send, and the 2026-08 set must
+stay as shipped because verdicts have been exchanged against its exact ids.
+
+## 4. Wild fakes — the ledger, not the corpus
+
+`ml/wild_fake_ledger.py`. The hard part was never collection, it is **ground
+truth**, so the tool does not try to decide it. It records, keyed by content hash:
+where a file came from, every verdict this engine has produced for it and at which
+version, and the human adjudication with **the basis it rests on** — tracker staff,
+provenance pair, uploader admission, or listening. Those are not the same evidence,
+and a corpus that cannot say which one it had cannot be audited later.
+
+Two refusals are built in. A `fake` label without a basis is rejected. And the
+engine's own verdict is recorded but can never become the label — a corpus labelled
+by the detector under test measures only its own self-consistency.
+
+`status` reports performance **over adjudicated files only**, and says so when the
+count is too small to quote. This is the chantier that decides whether any of the
+rest matters, and it is the one that needs a human with a tracker account and ears.
