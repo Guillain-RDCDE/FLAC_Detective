@@ -1531,3 +1531,64 @@ collection.
 It is also the argument for blind exchange, made against our own interest: the
 defect was found by material we did not choose, could not have chosen, and did
 not see the labels for.
+
+
+---
+
+# Paired discrimination: does a transcode beat the file it came from?
+
+Every AUC in this README pools all fakes against all genuine files. That answers
+"can the engine separate this population from that one", which is not the question
+a user has. A statistic tracking *material* rather than *processing* — loud versus
+quiet, dense versus sparse — could post a fine pooled AUC while being unable to
+tell one recording from its own transcode. Nothing here had ever checked.
+
+The test arrived sideways, from Jamie Dodd using the corpus's cluster structure for
+something else. He derived bounds on his own accuracy without an answer key from
+"exactly one file in ten is genuine": a cluster cannot hold two genuine files, so
+two clear verdicts in one cluster means a transcode was called clean. The audit
+corpus has the identical shape — 80 sources times 10 arms — and the same grouping
+supports a stricter test than the bounds he needed it for.
+
+`ml/paired_discrimination.py`, run on the v1.10 audit scores:
+
+| arm | beats its own genuine | tied | loses | win rate |
+|---|---|---|---|---|
+| `aac_ff256` | 79 | 1 | 0 | **98.8 %** |
+| `aac_ff128` | 78 | 0 | 2 | 97.5 % |
+| `aac_ff320` | 78 | 2 | 0 | 97.5 % |
+| `vorbis_q8` | 74 | 6 | 0 | 92.5 % |
+| `aacmf_256` | 73 | 5 | 2 | 91.2 % |
+| `opus_256` | 73 | 5 | 2 | 91.2 % |
+| `mp3_192` | 72 | 6 | 2 | 90.0 % |
+| `mp3_320` | 58 | 22 | 0 | 72.5 % |
+| `mp3_V0` | 49 | 29 | 2 | 61.3 % |
+
+**The discrimination is real, not a material effect.** Every arm's paired win rate
+tracks its pooled AUC, and ranking *failures* — a genuine recording scoring above
+its own transcode — never exceed 2 files in 80 on any arm. That is the reassuring
+result, and it had been assumed rather than measured for the life of the project.
+
+**The failures and the silences are different things, and only pooling hid it.**
+`mp3_V0` reads 0.788 pooled and 61.3 % paired, which looks like a collapse until
+the columns are separated: 29 of its 80 are *ties*, not losses. A tie is the engine
+scoring a transcode and its source identically — almost always zero and zero. That
+is a blind spot, not an error, and it points somewhere specific: V0 and 320 kbps
+MP3 are where the engine most often has nothing to say about either file, rather
+than where it says the wrong thing. Rule 13 does not fit MP3 geometry and the
+cutoff rules find nothing at those rates, so both files come back silent.
+
+Worth running against any future rule before its pooled AUC is believed.
+
+## Also checked, and clean
+
+The exchange set's duplicate-source defect raised the obvious question about our
+own corpora, since the calibration corpus is sampled from the same library and the
+same identifier-based dedup habits. Checked: **0 byte-identical pairs among the 877
+re-certification files**, and 80 distinct sources in the audit corpus.
+
+The check is cheap and has no false negatives — identical audio produces identical
+statistics, so any duplicate pair must appear as a repeated `(ratio_kbd,
+ratio_vorbis)` signature. Seven signature collisions turned up; hashing all
+fourteen files showed every one to be a coincidence of a statistic that takes
+discrete values, not duplicated content. The published calibration stands.
