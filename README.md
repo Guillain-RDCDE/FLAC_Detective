@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/social-preview.jpg" width="100%" alt="FLAC Detective — catch lossy files masquerading as FLAC">
+  <img src="docs/social-preview.jpg" width="100%" alt="FLAC Detective — lossy transcodes hiding inside lossless files: MP3, AAC, Vorbis, Opus">
 </p>
 
 # 🎵 FLAC Detective
