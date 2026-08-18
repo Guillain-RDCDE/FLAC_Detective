@@ -1815,6 +1815,26 @@ from the other side by firing on 0 % of the Opus arm.
 That closes a question rather than leaving it open: Opus is not a gap in *this*
 family of observables, it is outside the family altogether.
 
+### And on CoreAudio, the encoder it was built for
+
+Measured on the free macOS runner, n=60, both observables read at one alignment:
+
+| arm | holes AUC | lattice AUC |
+|---|---|---|
+| CoreAudio 128k | 0.782 | **0.829** |
+| CoreAudio 256k | 0.650 | **0.662** |
+| CoreAudio 320k | 0.562 | **0.586** |
+
+The lattice beats holes at every bitrate, and that is the honest end of the good
+news. The medians barely move — 1.033 genuine against 1.035–1.046 CoreAudio — so
+this is separation in AUC without a usable operating point: no threshold catches
+CoreAudio 256/320 without taking genuine files with it.
+
+**Where the lattice actually pays is MediaFoundation**, at AUC 0.83 and a 73 % fire
+rate against a 13 % genuine cost. Provir's own `AAC_LATTICE` fires on 78 % of that
+same arm, so this puts us at rough parity on the encoder where we were behind.
+CoreAudio at high bitrate remains open for both families.
+
 ## 3. Exchange set v2 — the leak is fixed at the source
 
 `ml/build_audit_corpus.py` now forces the **source sample rate** back on the decode
