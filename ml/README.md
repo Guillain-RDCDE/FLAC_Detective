@@ -1866,3 +1866,117 @@ by the detector under test measures only its own self-consistency.
 `status` reports performance **over adjudicated files only**, and says so when the
 count is too small to quote. This is the chantier that decides whether any of the
 rest matters, and it is the one that needs a human with a tracker account and ears.
+
+
+---
+
+# The third family, found. And a run-length idea that was not there.
+
+## HF_SEAM, implemented to Provir's specification — and it works
+
+Jamie Dodd gave the algorithm after both of our guesses failed, and the reason
+they failed is the interesting part: **the seam is not in the level, it is in the
+temporal variability of each bin.**
+
+    v[i]  = std over TIME of log1p(magnitude) in bin i,  10 kHz .. 22.05 kHz
+    drop  = (mean(v[i-4:i]) - mean(v[i:i+4])) / mean(v[i-4:i])   for i above 12 kHz
+    score = the largest drop                                      (bounded 0..1)
+
+Genuine high frequencies are *restless* — cymbals, sibilants, bow noise, room. A
+regenerated or noise-filled band is stationary: it sits at a level and stays
+there. The seam is the frequency where restlessness stops. A time-averaged
+envelope integrates precisely that away, which is why our first attempt read the
+null, and the collapse happens across a band rather than at a boundary, which is
+why watching the edge position missed it too.
+
+Measured here, 40 files per arm:
+
+| arm | median | AUC | fires at genuine p90 |
+|---|---|---|---|
+| genuine | 0.416 | — | 10 % |
+| `mp3_320` | 0.635 | **0.89** | 70 % |
+| `opus_256` | 0.569 | **0.84** | 40 % |
+| `mp3_V0` | 0.582 | 0.81 | 38 % |
+| `aacmf_256` | 0.456 | 0.61 | 22 % |
+| `vorbis_q8` | 0.432 | 0.58 | 20 % |
+| `aac_ff320` | 0.400 | 0.47 | 10 % |
+
+**AUC 0.84 on Opus and 0.89 on mp3_320** — the two arms where the hole family and
+the lattice family were both measured dead. That is the third family, confirmed on
+our own corpus: it never asks *where* the energy is, only whether it stops moving,
+which is why it survives a codec whose entire high band is parametric and why it
+is deaf to grid alignment.
+
+**It is a measurement, not a rule, and it is not shipped as one.** Three reasons,
+all his:
+
+* It has been measurement-only in Provir since 2026-07-21 — no penalty, no verdict.
+* It has a *named* false-positive mode: **production**. Heavy HF limiting, dense
+  synthetic pads and some mastering chains flatten temporal variance with no codec
+  involved. An early attempt to let it corroborate sent a verified-genuine 2006
+  record to UPSCALE at 0.81.
+* So "100 % on Opus" is recall on a measurement. It says where to look. It cannot
+  convict, and our 10 % on genuine is that same production population.
+
+Note also `aac_ff320` at 0.47: the arm Rule 13 reads at AUC 0.99 is invisible here.
+The families are complementary rather than ranked, which is the argument for having
+both.
+
+## Dead-run structure — a clean negative, in two domains
+
+From the flag values in the guard file Jamie sent — `DEAD_STRUCTURE_MAXRUN_233`,
+`MEANRUN_10.49` — the mechanism looked inferable: not how many bins are dead but
+how many die *consecutively*. Against his blind return that flag fires on 70 % of
+`mp3_V0`, 69 % of `aacmf_256` and 65 % of `mp3_320` at **2 % on genuine**, which is
+exactly our weakest three arms.
+
+`ml/dead_run_probe.py`. The control passes decisively — the same number of dead
+bins arranged as 8 long runs reads max-run 160, and as 240 short notches reads 4 —
+so the instrument distinguishes arrangement from count, which is the whole claim.
+
+On real material it finds nothing:
+
+* **STFT domain, 2–16 kHz:** every arm at max-run 0.000, AUC 0.49–0.60. The depth
+  distributions of genuine and transcoded material are identical to the first
+  decimal.
+* **MDCT domain at the encoder's own alignment**, where Rule 13's actual zeros
+  live: max-run 1.0 on every arm, AUC 0.50–0.54. Holes are isolated bins, never
+  runs.
+
+Our high-bitrate transcodes simply do not abandon bands between 2 and 16 kHz —
+they abandon *above* the cutoff, which is the cliff Rule 2 already owns and which
+this deliberately excludes.
+
+**One finding worth keeping regardless**, because it explains why this is a
+distinct observable rather than density repackaged: Rule 13's 33-bin local median
+reference is *structurally blind* to a dead band wider than its own window — the
+window falls inside the hole, the reference collapses to the dead level, and every
+bin inside reads as alive. Detecting runs needs a wide window and a high
+percentile; detecting density needs a narrow median. The two want incompatible
+references, so neither can be recovered from the other.
+
+## Independence, re-examined after Provir ran our guard on their bench
+
+`MAX_INDEPENDENCE_LIFT` rediscovered three of their aliases unprompted, one at
+lift 19.6. It also taught us something back, at the cost of an hour of Jamie's
+time: **lift fires on two different things and only one is a bug.** Six of his nine
+flagged pairs were real aliases; three were legitimate audio correlation — early
+mono recordings are also band-limited, so a mono detector and a rolloff detector
+co-fire at 3.1–3.3 on the same 78rpm-era material. Two real physics looking at the
+same records, which is what corroboration is *for*.
+
+Our own bench, measured over the 800-file audit corpus: `cnn+spectral` 1.19,
+`cnn+mdct` 0.72, `mdct+spectral` 0.25. Nothing near his 19.6, and `mdct` is
+anti-correlated with both — it fires on material the others miss, which is the
+shape an independent family should have. The guard's failure message now states
+the two readings and refuses to pick one for you.
+
+## A structural test, because input tables cannot see uncalled code
+
+Provir's eighth corroboration bug survived its own repair: the fix went into a
+predicate that the convicting path never called, and twenty-five green unit cases
+sat over it the whole time. `tests/test_verdict_reachability.py` reads this
+engine's AST and fails if `FAKE_CERTAIN` is produced anywhere outside
+`determine_verdict`, plus a second test that the gate still consults the families
+at all. Verified to bite: adding a decoy producer elsewhere in the package fails
+the test by name and line.

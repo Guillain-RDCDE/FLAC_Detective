@@ -156,6 +156,84 @@ def seam_stat(x: np.ndarray, sample_rate: int) -> Tuple[float, float, float]:
     return float(drops[best] / scale), float(freqs[lo_idx + best]), cutoff
 
 
+# ===================== the real HF_SEAM, per Provir's spec ====================
+
+# Jamie Dodd gave the algorithm after both guesses below failed, and the reason
+# they failed is instructive: the seam is not in the LEVEL, it is in the temporal
+# VARIABILITY of each bin.
+#
+#     v[i] = std over time of log1p(magnitude) in bin i
+#     drop = (mean(v[i-4:i]) - mean(v[i:i+4])) / mean(v[i-4:i])   for i above 12 kHz
+#     score = the largest drop
+#
+# The physical idea is the good part. Genuine high frequencies are RESTLESS —
+# cymbals, sibilants, bow noise, room. A regenerated or noise-filled band is
+# stationary: it sits at a level and stays there. The seam is the frequency where
+# restlessness stops. A time-averaged envelope integrates exactly that away, which
+# is why hypothesis 1 read the null, and the collapse happens across a band rather
+# than at a boundary, which is why watching the edge position missed it too.
+#
+# Bounded 0..1 by construction, which matches the 0.74 / 0.80 values in his return.
+#
+# THREE WARNINGS, in his words and worth repeating because the number flatters:
+#   * It is MEASUREMENT-ONLY in Provir and has been since 2026-07-21 — no penalty,
+#     no verdict — retired in the same sweep as their brickwall rule.
+#   * It has a named false-positive mode: PRODUCTION. Heavy HF limiting, dense
+#     synthetic pads and some mastering chains flatten temporal variance with no
+#     codec involved. An early attempt to let it corroborate sent a verified
+#     genuine 2006 record to UPSCALE at HF_SEAM_0.81.
+#   * So "100 % on Opus" is recall on a MEASUREMENT, not on a detector. It says
+#     where to look. It cannot convict, and it is not shipped as a rule here.
+SEAM_LO_ANALYSIS_HZ = 10000.0
+SEAM_SEARCH_FROM_HZ = 12000.0
+SEAM_HALF_WIDTH = 4
+
+
+def temporal_seam_stat(x: np.ndarray, sample_rate: int) -> Tuple[float, float]:
+    """Return ``(seam_score, seam_hz)`` — the largest collapse in temporal variance."""
+    window = np.hanning(FFT_SIZE).astype(np.float32)
+    hop = FFT_SIZE // 2
+    frames = []
+    for start in range(0, len(x) - FFT_SIZE, hop):
+        block = x[start : start + FFT_SIZE] * window
+        if float(np.abs(block).mean()) < 1e-6:
+            continue
+        frames.append(np.abs(np.fft.rfft(block)))
+    if len(frames) < 32:
+        return float("nan"), float("nan")
+
+    spec = np.asarray(frames)
+    freqs = np.fft.rfftfreq(FFT_SIZE, 1.0 / sample_rate)
+    top = min(freqs[-1], 22050.0)
+    band = np.where((freqs >= SEAM_LO_ANALYSIS_HZ) & (freqs <= top))[0]
+    if band.size < 4 * SEAM_HALF_WIDTH + 2:
+        return float("nan"), float("nan")
+
+    # Per-bin temporal variability. log1p, not log: it is defined at zero, so a
+    # silent bin contributes a real value rather than -inf.
+    variability = np.std(np.log1p(spec[:, band]), axis=0)
+    band_freqs = freqs[band]
+
+    search = np.where(band_freqs >= SEAM_SEARCH_FROM_HZ)[0]
+    search = search[(search >= SEAM_HALF_WIDTH) &
+                    (search + SEAM_HALF_WIDTH <= variability.size)]
+    if search.size == 0:
+        return float("nan"), float("nan")
+
+    best_drop, best_hz = float("-inf"), float("nan")
+    for i in search:
+        before = float(variability[i - SEAM_HALF_WIDTH : i].mean())
+        after = float(variability[i : i + SEAM_HALF_WIDTH].mean())
+        if before <= 0:
+            continue
+        drop = (before - after) / before
+        if drop > best_drop:
+            best_drop, best_hz = drop, float(band_freqs[i])
+    if not np.isfinite(best_drop):
+        return float("nan"), float("nan")
+    return max(0.0, best_drop), best_hz
+
+
 # ================================ controls ==================================
 
 
@@ -225,20 +303,25 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
     rows: List[dict] = []
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["arm", "file", "seam", "seam_hz", "cutoff_hz"])
+        writer = csv.DictWriter(fh, fieldnames=[
+            "arm", "file", "seam", "seam_hz", "cutoff_hz", "tseam", "tseam_hz"
+        ])
         writer.writeheader()
         for arm, paths in groups.items():
             for index, path in enumerate(paths, 1):
                 try:
                     audio, rate = read_excerpt(path)
                     score, where, cutoff = seam_stat(audio, rate)
+                    tscore, twhere = temporal_seam_stat(audio, rate)
                 except Exception as exc:
                     print(f"  skip {path.name}: {exc}", flush=True)
                     continue
                 row = {"arm": arm, "file": path.name, "seam": f"{score:.4f}",
-                       "seam_hz": f"{where:.0f}", "cutoff_hz": f"{cutoff:.0f}"}
+                       "seam_hz": f"{where:.0f}", "cutoff_hz": f"{cutoff:.0f}",
+                       "tseam": f"{tscore:.4f}", "tseam_hz": f"{twhere:.0f}"}
                 writer.writerow(row)
-                rows.append({**row, "seam": score, "cutoff_hz": cutoff})
+                rows.append({**row, "seam": score, "cutoff_hz": cutoff,
+                             "tseam": tscore})
                 if index % 10 == 0:
                     print(f"  {arm} [{index}/{len(paths)}]", flush=True)
             fh.flush()
@@ -303,6 +386,28 @@ def report(rows: List[dict]) -> None:
         corr = float(np.corrcoef(seam, cutoff)[0, 1])
         print(f"\nindependence — corr(seam, cutoff) = {corr:+.2f}  "
               f"({'OK' if abs(corr) < 0.4 else 'TOO HIGH: this may be Rule 2 again'})")
+
+    # And the one that matters: Provir's own algorithm, temporal rather than level.
+    tgen = np.array([r["tseam"] for r in by_arm["genuine"]], dtype=np.float64)
+    tgen = tgen[np.isfinite(tgen)]
+    if tgen.size:
+        tbar = float(np.quantile(tgen, 0.90))
+        print("\n" + "=" * 70)
+        print("HF_SEAM (temporal variance, Provir's spec) — bar = genuine p90 "
+              f"= {tbar:.3f}")
+        print("=" * 70)
+        print(f"{'arm':14}{'n':>5}{'median':>9}{'AUC':>7}{'fires':>9}")
+        for arm in ["genuine"] + sorted(set(by_arm) - {"genuine"}):
+            values = np.array([r["tseam"] for r in by_arm[arm]], dtype=np.float64)
+            values = values[np.isfinite(values)]
+            if not values.size:
+                continue
+            area = "-" if arm == "genuine" else f"{auc(values, tgen):.2f}"
+            print(f"{arm:14}{values.size:>5}{np.median(values):>9.3f}{area:>7}"
+                  f"{100 * (values >= tbar).mean():>8.0f}%")
+        print("\nMeasurement only, never a rule. Its named false-positive mode is "
+              "production:\nheavy HF limiting and dense synthetic pads flatten "
+              "temporal variance with no codec.")
 
 
 def main(argv: Optional[List[str]] = None) -> int:

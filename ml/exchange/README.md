@@ -118,3 +118,58 @@ any set where an arm's sample-rate distribution is one the genuine arm does not
 share — stated as a general rule rather than as a special case for Opus, since the
 special cases are exactly what keeps being missed. Verified against this set: it
 rejects it.
+
+
+---
+
+# Protocol for the next blind exchange
+
+Agreed after three leaks in one set. Jamie Dodd's observation is the reason for
+the change, and it is the whole argument:
+
+> All three were container-side, and none was findable by the party who built the
+> corpus.
+
+Encoder tags. Repeated digests. Sample rate. Each time the freeze verified what
+someone had thought of, and each time the other side found it in minutes by
+looking at a column. The builder cannot audit their own blind set, because the
+things that leak are the things they did not think to check.
+
+## The rule
+
+**Swap evidence columns before either side scores anything.**
+
+Not verdicts — evidence. Each side runs its detector over the set and sends the
+per-file evidence column *only*: flags, measured quantities, sample rate, whatever
+the engine records. No verdicts, no labels, no scores.
+
+This costs nothing and closes the channel all three leaks used, because a flag
+firing on 100 % of one arm is visible in an evidence column long before anyone
+knows which arm it is. `AI_SR_48000` on 60 files would have been obvious on day
+one; instead it surfaced after the blind was already spent.
+
+## Why it does not spoil the blind
+
+Neither side learns a label from the other's evidence column. What they learn is
+whether some flag partitions the set suspiciously cleanly — which is exactly the
+signature of a leak and carries no information about *which* partition is genuine.
+
+If a leak is found, the affected arm is disclosed and excluded before scoring,
+rather than discovered afterwards and argued about.
+
+## Builder's checklist, before sending
+
+`ml/freeze_exchange_set.py` enforces the first three automatically:
+
+1. **No repeated digests** — `audit_own_output()` refuses to ship, naming the pairs.
+2. **No arm identifiable by sample rate** — `_audit_sample_rates()`, stated as a
+   general rule rather than a special case for Opus, since special cases are what
+   keeps being missed.
+3. **No short arms** — a source contributing fewer arms than its peers skews that
+   arm's denominator, and is invisible once the ids are shuffled.
+4. **No metadata tags** — the original leak, checked since the first set.
+5. **Round-trips return to the source sample rate** — `build_audit_corpus.py`
+   forces `-ar` on the decode leg. Also the more realistic round-trip: a transcode
+   passed off as lossless arrives at the rate the album should have.
+
+None of these existed before the set that taught us each one.

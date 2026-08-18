@@ -207,6 +207,33 @@ def test_no_genuine_file_is_convicted():
 # produced the only false conviction in Provir's blind return.
 MAX_INDEPENDENCE_LIFT = 2.0
 
+# ========== LIFT IS A SIGNAL TO INVESTIGATE, NOT A VERDICT ==========
+#
+# Jamie Dodd ran this guard on Provir's bench and it rediscovered three of their
+# corroboration aliases unprompted, including one they had repaired by hand hours
+# earlier, at lift 19.6. It also cost him an hour, and the reason is the correction
+# that belongs here:
+#
+#     Lift fires on two different things and only one of them is a bug.
+#
+# Six of his nine flagged pairs were real aliases — one measurement wearing two
+# names. Three were **legitimate audio correlation**: early mono recordings are
+# also band-limited, so a rolloff detector and a mono detector co-fire at lift
+# 3.1-3.3 on the same 78rpm-era material. Two genuine physics looking at the same
+# records, which is exactly what corroboration is FOR. Had he treated lift as a
+# verdict he would have "fixed" three things that were working.
+#
+# So when this test fails, the question is not "which grouping do I change" but
+# "is this one cause seen twice, or two causes that happen to co-occur on this
+# material?". The first is a defect in evidence.py. The second is the system
+# behaving correctly on a correlated corpus, and the right response is to widen
+# the corpus rather than to merge the families.
+#
+# Measured here on 2026-08-18 over the 800-file audit corpus: cnn+spectral lifts
+# 1.19, cnn+mdct 0.72, mdct+spectral 0.25. Nothing near his 19.6, and mdct is
+# anti-correlated with both — it fires on material the others miss, which is the
+# shape a genuinely independent family should have.
+
 
 def _family_sets(rows, label):
     return [set(r["families"].split("+")) - {""} for r in rows if r["label"] == label]
@@ -244,8 +271,16 @@ def test_evidence_families_are_independent_on_genuine_material():
             if lift > MAX_INDEPENDENCE_LIFT:
                 offenders.append(f"{a}+{b} co-fire {lift:.1f}x above chance on genuine files")
     assert not offenders, (
-        "evidence families that are not independent: "
+        "evidence families co-firing above chance on genuine material: "
         + "; ".join(offenders)
-        + ". A pair sharing a cause cannot corroborate — re-examine the grouping in "
-        "evidence.py rather than the thresholds."
+        + ".\n\nThis is a signal to investigate, not a verdict. Two readings are "
+        "possible and only one is a defect:\n"
+        "  (a) ONE MEASUREMENT UNDER TWO NAMES — a real alias. Fix the grouping in "
+        "evidence.py.\n"
+        "  (b) TWO REAL CAUSES that co-occur on this corpus — e.g. early mono "
+        "recordings are also band-limited, so a mono detector and a rolloff "
+        "detector agree at lift ~3 without either being wrong. That is "
+        "corroboration working, and merging the families would destroy it.\n\n"
+        "Provir hit (b) three times out of nine and nearly 'fixed' three working "
+        "detectors. Decide which one this is before changing anything."
     )
