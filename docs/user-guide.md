@@ -423,6 +423,16 @@ docker run --rm \
   -v /path/to/reports:/reports \
   ghcr.io/guillain-rdcde/flac_detective:latest \
   /data --output /reports/report.txt
+
+# Read-only music mount: keep progress.json (resume state), the report and the
+# log in a writable volume with --work-dir. (Without it the scan still completes
+# — flac-detective falls back to /tmp inside the container — but everything it
+# wrote is gone when the container exits.)
+docker run --rm \
+  -v /path/to/music:/data:ro \
+  -v /path/to/reports:/reports \
+  ghcr.io/guillain-rdcde/flac_detective:latest \
+  /data --work-dir /reports
 ```
 
 ### Docker Compose

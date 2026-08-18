@@ -1,3 +1,43 @@
+## v1.10.1 (2026-08-18) — Read-only libraries, and a comment that finally tells the truth
+
+A user running flac-detective in a container, with the music mounted read-only,
+reported that `progress.json` insisted on being written next to the audio
+([#5](https://github.com/Guillain-RDCDE/FLAC_Detective/issues/5), thanks
+@SLUCHABLUB).
+They were right, and it was worse than it looked: the code comment promised
+"current directory if it's a file" — a fallback that never existed — and on a
+read-only scan directory `progress.json` failed quietly on *every file* (so
+resume was lost) while the auto-named report could fail hard at the very end,
+after all the analysis work was done. The console log had been taught to fall
+back a while ago; progress and report never got the same treatment.
+
+### Fixed
+
+- **Read-only scan directory no longer breaks the run.** The work directory —
+  where `progress.json`, the auto-named report and the console log go — is now
+  resolved once, up front, by actually probing for writability (`os.access` lies
+  on read-only mounts, network shares and Windows ACLs): the scan directory if
+  writable (unchanged default, so re-running `flac-detective /same/dir` still
+  resumes), otherwise the **current working directory** (what the comment always
+  said), otherwise the system temp directory. Any fallback is announced with the
+  path and how to resume.
+- The `Ctrl-C` message now names where `progress.json` actually is instead of
+  assuming the scan directory.
+
+### Added
+
+- **`--work-dir DIR`** — choose the location of `progress.json`, the auto-named
+  report and the log explicitly (created if missing; fails early with a clear
+  message if it can't be written). This is the clean answer for containers and
+  CI: `docker run … -v /music:/data:ro -v ./out:/reports … /data --work-dir /reports`.
+  Note the container's working directory is `/data` itself, so with a `:ro`
+  mount and no `--work-dir` the scan still completes but its files land in the
+  container's `/tmp` and vanish with it.
+
+Tests: `tests/test_work_dir.py` (probe, policy, CLI wiring, plus a real
+`chmod 555` scenario on POSIX runners). Docs: getting-started option table,
+user-guide Docker section.
+
 ## v1.10.0 (2026-08-17) — A witness that mumbles is not a second witness
 
 v1.9 made conviction depend on two independent evidence families. Jamie Dodd of

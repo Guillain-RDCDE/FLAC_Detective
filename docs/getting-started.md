@@ -274,7 +274,8 @@ flac-detective "/staging/my-album"
 | `-V`, `--version`          | Print `flac-detective <version>` and exit                                |
 | `-v`, `--verbose`          | Set log level to DEBUG; surface per-rule scoring details                 |
 | `--sample-duration SECS`   | Audio sample duration (default 30, range 5–120; lower = faster)          |
-| `--output PATH`            | Write the report to this path (default: auto-named in scan directory)    |
+| `--output PATH`            | Write the report to this path (default: auto-named in the work directory) |
+| `--work-dir DIR`           | Where `progress.json` (resume state), the auto-named report and the console log go. Default: the scan directory; if that is read-only (external drive, container `:ro` mount) the current directory is used instead. Created if missing |
 | `--format {text,json,csv}` | Report format (default `text`; `json` = scan metadata + results; `csv` = one row per file, ranked most-suspicious first) |
 
 Examples:
@@ -298,6 +299,11 @@ flac-detective /path/to/music --sample-duration 15
 
 # Combine: verbose + JSON to a custom path with a 60-second sample
 flac-detective -v --sample-duration 60 --format json --output report.json /music
+
+# Read-only library (external drive, container ':ro' mount): keep progress and
+# reports somewhere writable. Without --work-dir the current directory is used
+# automatically when the scan directory can't be written to.
+flac-detective /mnt/archive --work-dir ~/flac-detective-state
 ```
 
 > Auto-repair of corrupted files is enabled by default — no flag is needed.
