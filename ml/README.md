@@ -1671,3 +1671,81 @@ With the window fixed per geometry, the same control material reads
 the MP3 nulls become interpretable, because the instrument has now reproduced an
 answer the project already knew. That check is wired into the probe's own output
 (`CONTROL_MIN_AUC`), so a future run refuses to be read if it cannot reproduce it.
+
+
+---
+
+# Scoring Provir's blind return, and what its evidence column gave away
+
+Jamie Dodd's 599 verdicts, frozen and hash-published before our labels existed
+(`ml/exchange/provir_return_2026-08.csv`, 103 convicted / 450 flagged / 46 clear).
+
+## His pre-registered bounds, scored
+
+He derived these from the corpus's counting structure alone — exactly one file in
+ten is genuine, so a cluster cannot hold two genuine files nor ten transcodes —
+without any answer key, and published them before asking to be scored.
+
+| bound | claimed | actual | |
+|---|---|---|---|
+| false convictions | 0 – 9 | **0** | holds |
+| genuine cleared | ≤ 43 / 60 | **43** | holds, exactly |
+| genuine not cleared | ≥ 17 | **17** | holds, exactly |
+| transcodes called clean | ≥ 3 | **3** | holds, exactly |
+| transcodes flagged or convicted | 91.5 – 99.4 % | **99.443 %** | holds, exactly |
+
+Every bound holds, and four of the five sit precisely on their limit. That is not
+luck: it means the counting constraint was **tight**, and that every one of his 46
+clear verdicts that *could* have been a genuine file, was one. The argument
+extracted essentially all the information available without the key.
+
+Zero false convictions among 103. His own null model — an engine with no
+within-cluster discrimination at all — expected 2.8.
+
+## Head to head, 589 distinct files
+
+| | Provir | FLAC Detective v1.10 |
+|---|---|---|
+| genuine cleared | 43/59 (73 %) | **52/59 (88 %)** |
+| **false convictions** | **0** | **0** |
+| transcodes not cleared | **527/530 (99.4 %)** | 432/530 (81.5 %) |
+| transcodes convicted | 103/530 (19.4 %) | **144/530 (27.2 %)** |
+
+Neither dominates, and the shape of the difference is the interesting part. He
+detects far more broadly and pays for it on genuine material; we clear real
+recordings more often and convict harder when we do commit. Per arm, he is at
+97–100 % everywhere. We match him at 100 % on `aac_ff256` and `aac_ff320` and fall
+behind on `opus_256` (49 %), `aacmf_256` (74 %), `mp3_320` (75 %), `mp3_V0` (78 %).
+
+## Opus is not a hole in the map, and his own return says so
+
+He proposed last week that Opus is a cell where both families fail for independent
+reasons — his edge tell fires on only 6 of 64 Opus files, ours dies to resampling —
+and offered it as a genuinely open hole.
+
+His return contradicts him. He does not merely flag 100 % of the Opus arm; he does
+it on evidence that has nothing to do with the flag he was looking at, and nothing
+to do with the sample-rate leak documented in `ml/exchange/README.md`:
+
+| his flag, on `opus_256` | fires | on genuine |
+|---|---|---|
+| `HF_SEAM` | **100 %** | 8 % |
+| his MP3 conjunction | 98 % | 0 % |
+| `STEREO_AAC_DOUBT` | 95 % | 13 % |
+| `OPUS_EDGE_FIRE` (the one he was watching) | 30 % | 0 % |
+
+Not one of the 60 rests on the weak flags alone. So Opus is readable, decisively,
+by an observable neither of us was discussing — and our own "Opus is out of reach"
+remains true only of *Rule 13's alignment statistic*, not of the problem.
+
+## What that says to build next
+
+`HF_SEAM` fires on 100 % of Opus and 97 % of `mp3_320` against 8 % of genuine —
+the two arms where our engine is weakest, from a statistic that does not depend on
+frame alignment at all and therefore survives resampling. That is a far better
+evidenced next step than the MP3 filterbank, which this project has just measured
+into a dead end.
+
+`AAC_LATTICE` is the other one worth noting: 78 % on `aacmf_256` and `aac_ff320`,
+**0 % everywhere else**. Clean and specific, and it is the residual-against-the-
+reconstructed-transform he offered to explain.
