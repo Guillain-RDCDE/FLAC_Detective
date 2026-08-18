@@ -1592,3 +1592,82 @@ statistics, so any duplicate pair must appear as a repeated `(ratio_kbd,
 ratio_vorbis)` signature. Seven signature collisions turned up; hashing all
 fourteen files showed every one to be a coincidence of a statistic that takes
 discrete values, not duplicated content. The published calibration stands.
+
+
+---
+
+# MP3 geometry: a negative result, and what it cost to make it a real one
+
+The paired-discrimination table localised a blind spot rather than an error: on
+`mp3_V0`, 29 of 80 transcodes score *identically* to the file they came from, and
+on `mp3_320`, 22 of 80. Tied at zero and zero. The documented reason for never
+pursuing MP3 with Rule 13 — "the cutoff rules already convict there" — is
+measurably false at those bitrates.
+
+And unlike Opus there is no physical barrier. Opus is unreachable because CELT
+transforms at 48 kHz whatever you feed it, so the sample-exact alignment dies in
+resampling. **MP3 does not resample.** The alignment survives; it lives at a
+different period — a 576-sample granule and a 1152-sample frame, not 2048.
+
+So: is Rule 13 simply looking on the wrong grid? `ml/mp3_geometry_probe.py`.
+
+## The answer is no, and it is now unambiguous
+
+| arm | mp3_frame_1152 | mp3_granule_576 | aac_2048 |
+|---|---|---|---|
+| genuine (median) | 1.696 | 1.917 | 1.524 |
+| `aac_ff256` | 1.680 (AUC 0.52) | 1.917 (0.45) | **18.29 (1.00)** |
+| `mp3_192` | 1.750 (0.79) | 2.000 (0.51) | 1.535 (0.52) |
+| `mp3_320` | 1.667 (0.54) | 1.917 (0.42) | 1.524 (0.57) |
+| `mp3_V0` | 1.708 (0.61) | 1.917 (0.50) | 1.533 (0.50) |
+
+A plain MDCT at MP3's own period reads MP3 at the null. The `mp3_192` cell at 0.79
+was the one thing that might have been signal, so it was chased down with a
+bitrate gradient on a single material set (`--gradient`): encode the same ten
+sources at 64 / 96 / 128 / 192 / 320 kbps and read all five at 1152/576.
+
+```
+ bitrate    median     AUC
+     64k     1.676    0.41
+     96k     1.702    0.57
+    128k     1.745    0.62
+    192k     1.735    0.67
+    320k     1.717    0.58
+```
+
+Flat. At 64 kbps MP3 zeroes a large fraction of the spectrum, and the basis still
+reads 0.41. There is no gradient, so the 0.79 was sampling noise on n=25, and the
+conclusion is not "too few zeros to see" but **the plain-MDCT basis cannot see MP3
+quantisation at all**, however much of it there is.
+
+That is a stronger and more useful negative than the one the corpus run alone
+would have supported. MP3's zeros live in a hybrid domain — a 32-band polyphase
+filterbank *followed* by an 18-point MDCT — and the synthesis bank smears them
+across 512 taps on the way out. A plain time-domain MDCT at the same period does
+not project onto that, and matching only the period is not enough.
+
+**What is left open, and why it is not being built.** The real MPEG-1 Layer III
+analysis filterbank remains the only way in, and this result does not rule it out
+— it rules out the cheap approximation of it. But the case for spending a week on
+the filterbank is now purely theoretical: nothing measured says the structure is
+recoverable, only that it must exist somewhere. This project's own rule is not to
+spend a week on a hunch, so it is recorded here instead, the way Opus was.
+
+## Two controls, and only one of them was enough
+
+The probe carries a synthetic control — audio with holes imposed on a known grid —
+and it passed cleanly, firing 40x at the matching geometry and 1.4x at the others.
+
+It passed while the probe was still wrong. The first corpus run read `aac_ff256`
+at **AUC 0.52** where this project's shipped rule reads 0.99, because the probe
+analysed everything with a sine window and ffmpeg's AAC uses KBD (α=4) — the exact
+trap that cost Jamie Dodd a day and that produced Rule 13 in the first place. The
+synthetic control could not catch it: holes imposed with a sine window are of
+course found with a sine window. **A probe that only validates against material it
+made itself validates its own assumptions.**
+
+With the window fixed per geometry, the same control material reads
+`aac_ff256` at median 18.29 and AUC 1.00 against a documented 21.5 and 0.99 — and
+the MP3 nulls become interpretable, because the instrument has now reproduced an
+answer the project already knew. That check is wired into the probe's own output
+(`CONTROL_MIN_AUC`), so a future run refuses to be read if it cannot reproduce it.

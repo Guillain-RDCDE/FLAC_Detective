@@ -622,6 +622,19 @@ on. Measured reading on Opus 256k under both hypotheses: **median 1.30, against 
 1.28 genuine median — AUC 0.575.** Indistinguishable, and no threshold fixes it. MP3 has different framing
 entirely, and the cutoff rules already convict there.
 
+**MP3 is out of reach too, for a different reason, and this was also measured.**
+MP3 does not resample, so unlike Opus its alignment survives — it simply lives at
+a 576-sample granule and a 1152-sample frame rather than 2048. Scanning at MP3's
+own period with a plain MDCT nonetheless reads the null: AUC 0.54 on `mp3_320`
+and 0.61 on `mp3_V0`, against 1.00 for ffmpeg AAC at its own geometry in the same
+run. A bitrate gradient settles it — at 64 kbps, where MP3 zeroes a large part of
+the spectrum, the reading is still 0.41. So it is not that there are too few
+zeros to find: MP3 quantises in a hybrid domain (a 32-band polyphase filterbank
+followed by an 18-point MDCT) whose synthesis smears those zeros across 512 taps,
+and matching only the period does not reach them. Implementing the real Layer III
+filterbank is the only remaining route and is not currently justified by anything
+measured. See `ml/mp3_geometry_probe.py`.
+
 Rule 13 also loses the signal above roughly 60 % zeroed coefficients, i.e. at
 very low bitrates, where the spectral cliff is obvious anyway. All of these
 limits have tests pinning them (`tests/test_mdct.py`).
