@@ -32,12 +32,28 @@ not a refinement; without it the statistic is dangerous. The threshold sits in a
 7000x gap (their n=360: mono maxes at 2.9e-8, real stereo bottoms at 2.1e-4), so
 its placement is not delicate, but its existence is not optional.
 
-**The threshold is absolute, so the reading moves with level.** Provir measured
-identical audio at 0 / -12 / -24 / -36 dB reading 16 / 54 / 137 / 283, with six
-files out of six changing verdict on gain alone. Plain peak normalisation re-scores
-everything the constants were fitted on and cost them 68.9 % -> 59.4 % for no
-false-positive benefit. What works, and what is used here, is a floor-guarded
-restore: rescale only files below 0.75 of full scale.
+**The threshold is absolute, so the reading moves with level**, and the fix is to
+normalise EVERY file — never to guard the normalisation behind a peak threshold.
+
+That correction came from Provir after this shipped, and it is worth recording in
+full because the guarded form is not merely a different choice: it is broken at its
+own boundary. A guard makes the statistic peak-relative below the threshold and
+absolute at or above it — two different statistics with a discontinuity between
+them. Measured here on our own files, scaled in memory so nothing but the level
+changed:
+
+    peak 0.7501 -> 2.00      peak 0.7499 -> 16.04
+    peak 0.7501 -> 1.67      peak 0.7499 -> 15.29   (verdict flip)
+
+An inaudible 0.002 dB difference moved the reading eightfold across the decision
+bar. And the rescaled side is the well-behaved one: 16.04 / 14.28 / 17.85 for peaks
+0.7499 / 0.70 / 0.60, against 2.00 for the same audio one ten-thousandth louder.
+The guard was applying the good statistic only to quiet files.
+
+Provir measured the same seam from the other side at their own boundary — 235
+against 83 — and replaced the guard with unconditional normalisation on
+2026-07-28. This engine inherited the broken form from their earlier description
+and carried it into v1.11.0.
 """
 
 from __future__ import annotations
@@ -62,17 +78,24 @@ UNION_DEAD = 3e-4
 # No stereo image below this side/mid energy ratio.
 MONO_GATE = 1e-5
 
-# Only quiet files are rescaled, so the constants keep meaning what they meant.
-RESTORE_BELOW_PEAK = 0.75
+# EVERY file is normalised to full scale. Not a threshold — a statement that there
+# is no threshold, kept as a named constant so the next person cannot reintroduce
+# one without editing this line and reading the docstring above it.
+NORM_GUARD = 1.0
 
 MAX_FRAMES = 200
 MIN_FRAMES = 16
 
 
 def _restore(signal: np.ndarray) -> np.ndarray:
-    """Floor-guarded gain restore."""
+    """Normalise to full scale, unconditionally.
+
+    Unconditional is the whole point. Any guard splits this into two statistics
+    with a seam at the guard, and a file one ten-thousandth either side of it gets
+    a different verdict — see the module docstring for the measurement.
+    """
     peak = float(np.abs(signal).max())
-    if 0 < peak < RESTORE_BELOW_PEAK:
+    if 0 < peak < NORM_GUARD:
         return (signal / peak).astype(np.float32)
     return signal
 

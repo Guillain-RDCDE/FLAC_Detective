@@ -176,3 +176,51 @@ class TestLevelInvariance:
             f"{quiet:.2f} at {gain_db:.0f} dB. The floor-guarded restore is there "
             "precisely so an absolute threshold does not become a level meter."
         )
+
+    def test_there_is_no_seam_at_the_old_guard_boundary(self) -> None:
+        """The bug this file shipped with in v1.11.0, pinned so it cannot return.
+
+        v1.11.0 normalised only files whose peak was below 0.75, on Provir's earlier
+        description of their own code. They corrected it afterwards: the shipped
+        constant is 1.0, and the guarded form is not merely different but broken at
+        its own boundary. A guard makes the statistic peak-relative below it and
+        absolute at or above it — two statistics with a discontinuity between them.
+
+        Measured on our own files before the fix, scaled in memory so nothing but
+        the level changed:
+
+            peak 0.7501 -> 2.00      peak 0.7499 -> 16.04
+            peak 0.7501 -> 1.67      peak 0.7499 -> 15.29   (verdict flip)
+
+        An inaudible 0.002 dB difference moved the reading eightfold across the
+        decision bar. This asserts the two sides of that boundary now agree.
+        """
+        audio = _coupled_above(12000.0, 18000.0)
+        normalised = audio / (np.abs(audio).max() + 1e-12)
+        above, _ = side_dead_run((normalised * 0.7501).astype(np.float32), RATE)
+        below, _ = side_dead_run((normalised * 0.7499).astype(np.float32), RATE)
+        assert np.isfinite(above) and np.isfinite(below)
+        assert abs(above - below) < 0.5, (
+            f"a seam at peak 0.75: {above:.2f} just above against {below:.2f} just "
+            "below. Some threshold has been reintroduced into the normalisation, "
+            "which splits this into two statistics with a discontinuity between them."
+        )
+
+    def test_the_reading_is_flat_across_the_whole_range(self) -> None:
+        """Not just at one boundary — flat everywhere, which is what unconditional buys."""
+        audio = _coupled_above(12000.0, 18000.0)
+        normalised = audio / (np.abs(audio).max() + 1e-12)
+        readings = [
+            side_dead_run((normalised * peak).astype(np.float32), RATE)[0]
+            for peak in (1.0, 0.9, 0.75, 0.5, 0.25, 0.1)
+        ]
+        assert all(np.isfinite(r) for r in readings)
+        # RELATIVE, not absolute: this fixture reads ~240 because its side band is
+        # fully zeroed, while real material reads 5-30. An absolute tolerance would
+        # be vacuous on one and impossible on the other.
+        spread = (max(readings) - min(readings)) / max(1e-9, float(np.mean(readings)))
+        assert spread < 0.05, (
+            f"readings spread {spread:.1%} across peaks 1.0 down to 0.1: {readings}. "
+            "Unconditional normalisation should make the statistic peak-relative for "
+            "every file, so anything beyond rounding is a threshold creeping back in."
+        )

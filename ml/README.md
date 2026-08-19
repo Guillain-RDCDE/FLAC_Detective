@@ -1910,7 +1910,11 @@ is deaf to grid alignment.
 **It is a measurement, not a rule, and it is not shipped as one.** Three reasons,
 all his:
 
-* It has been measurement-only in Provir since 2026-07-21 — no penalty, no verdict.
+* It has been measurement-only in Provir for longer than they can evidence — no
+  penalty, no verdict. (They originally dated this 2026-07-21 and then withdrew
+  the date: the comment is present in their initial commit, which is a `git init`
+  over an already-substantial project, so the true date predates their version
+  control. Corrected here because a borrowed date is still a claim.)
 * It has a *named* false-positive mode: **production**. Heavy HF limiting, dense
   synthetic pads and some mastering chains flatten temporal variance with no codec
   involved. An early attempt to let it corroborate sent a verified-genuine 2006
@@ -2330,3 +2334,69 @@ reader or a variance reader can see.
 **320 kbps stays shut**, for all four, at 0.50-0.58. That is now the sharpest
 remaining hole in the map and it is shared: neither engine has an observable that
 reads a CoreAudio transcode at 320 kbps.
+
+
+---
+
+# v1.11.1 — the guard was the bug
+
+Rule 15 shipped with a floor-guarded normalisation: rescale only files whose peak
+is below 0.75. That came from Provir's description of their own code. They
+corrected it within the hour, and the correction is worth more than the constant.
+
+**The shipped Provir constant is 1.0 — normalise every file, unconditionally.** The
+0.75 form is what they replaced on 2026-07-28, and it is not merely a different
+choice. A guard makes the statistic peak-relative below the threshold and absolute
+at or above it: two different statistics with a discontinuity between them.
+
+Reproduced on our own files before fixing, scaled in memory so nothing but the
+level changed:
+
+| file | peak 0.7501 | peak 0.7499 |
+|---|---|---|
+| `003-01-Thor` | **2.00** | **16.04** |
+| `004-01-Thiossane` | **1.67** | **15.29** |
+
+An inaudible 0.002 dB difference moved the reading eightfold, and the second file
+crossed the decision bar on it. And the rescaled side is the well-behaved one —
+16.04 / 14.28 / 17.85 for peaks 0.7499 / 0.70 / 0.60 — so the guard was applying
+the good statistic only to quiet files.
+
+After the fix the same file reads 17.94 / 17.94 / 17.85 / 17.85 / 17.85 across
+peaks 1.0 down to 0.3.
+
+## What it cost, and what it did not
+
+The calibration survives. Re-measured on the same 238 genuine files: median 1.00
+(unchanged), p95 1.72 against 1.86, max 6.58 against 7.45. `RUN_BAR` at 2.0 still
+sits just above p95, and new false convictions remain **0 at every bar tried**.
+
+The detection survives too — witness rates before and after the fix:
+
+| arm | before | after |
+|---|---|---|
+| `opus_256` | 92 % | 88 % |
+| `vorbis_q8` | 92 % | 89 % |
+| `mp3_320` | 89 % | 88 % |
+| `mp3_V0` | 78 % | 81 % |
+| `aacmf_256` | 72 % | 73 % |
+| `aac_ff320` | 19 % | 19 % |
+
+Differences within sampling noise on a smaller n. So the seam was costing
+consistency without buying accuracy, which is the worst kind of bug: invisible in
+aggregate, decisive on individual files.
+
+Two tests now pin it — the two sides of the old boundary must agree, and the
+reading must be flat across the whole peak range. The second uses a **relative**
+tolerance, because the synthetic fixture reads ~240 where real material reads
+5–30, and an absolute one would be vacuous on the first and impossible on the
+second.
+
+## And a date withdrawn
+
+Provir also retracted "measurement-only since 2026-07-21" for `HF_SEAM`: the
+comment is present in their initial commit, which is a `git init` over an
+already-substantial project, so the true date predates their version control. We
+had quoted the date. It is corrected in both places, because a borrowed date is
+still a claim — the same species as the hash-pinned prose whose two numbers were
+the wrong way round.

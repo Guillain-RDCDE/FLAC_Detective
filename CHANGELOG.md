@@ -1,3 +1,46 @@
+## v1.11.1 (2026-08-19) — the guard was the bug
+
+Rule 15 shipped hours earlier with a floor-guarded normalisation: rescale only
+files whose peak is below 0.75. That came from Provir's description of their own
+code, and Jamie Dodd corrected it within the hour — their shipped constant is
+**1.0, normalise unconditionally**, and the 0.75 form is what they replaced in July.
+
+The correction matters more than the value. **A guard is not a milder version of
+normalisation; it is a discontinuity.** Below the threshold the statistic is
+peak-relative, at or above it absolute — two different statistics with a seam
+between them. Reproduced here before fixing, on our own files, scaled in memory so
+nothing but the level changed:
+
+| file | peak 0.7501 | peak 0.7499 |
+|---|---|---|
+| `003-01-Thor` | **2.00** | **16.04** |
+| `004-01-Thiossane` | **1.67** | **15.29** |
+
+An inaudible 0.002 dB difference moved the reading eightfold, and one file crossed
+the decision bar on it. After the fix, that file reads 17.94 / 17.94 / 17.85 /
+17.85 / 17.85 across peaks 1.0 down to 0.3.
+
+### The fix costs nothing measurable
+
+Calibration, on the same 238 genuine files: median 1.00 unchanged, p95 1.72 against
+1.86. `RUN_BAR` still sits just above p95 and new false convictions remain **0**.
+
+Detection, witness rate per arm: `opus_256` 92 → 88 %, `vorbis_q8` 92 → 89 %,
+`mp3_320` 89 → 88 %, `mp3_V0` 78 → 81 %, `aacmf_256` 72 → 73 %, `aac_ff320`
+19 → 19 %. Within sampling noise on a smaller n.
+
+So the seam was costing consistency without buying accuracy — invisible in
+aggregate, decisive on individual files. Two tests now pin it: the two sides of the
+old boundary must agree, and the reading must be flat across the whole peak range.
+
+### A date withdrawn
+
+Provir also retracted "measurement-only since 2026-07-21" for the temporal seam:
+the comment predates their version control, so the date cannot be evidenced. We had
+quoted it. Corrected in both places — a borrowed date is still a claim.
+
+---
+
 ## v1.11.0 (2026-08-19) — two new evidence families, and neither of them scores
 
 v1.10 made conviction depend on two independent evidence families. This release
