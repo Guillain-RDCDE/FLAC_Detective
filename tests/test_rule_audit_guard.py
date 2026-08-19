@@ -106,10 +106,23 @@ def test_every_rule_is_measured():
     This is the whole point of the file. A rule that no one has measured is a
     rule no one can defend, and the project has already paid for that once.
     """
+    from flac_detective.analysis.new_scoring.evidence import POINTLESS_WITNESS_RULES
+
     rows = _load_rows()
     measured = {name for name in rows[0] if name.startswith("Rule")}
     in_code = _code_rule_names()
-    unmeasured = in_code - measured
+
+    # A rule that deliberately scores zero is INVISIBLE to this harness, which
+    # computes a per-rule AUC from the points that rule contributed. Rule 14 would
+    # read as a textbook dead rule — AUC 0.5, fires equally on both classes — for
+    # the same reason Rule 9 genuinely was one, and the two situations could not be
+    # told apart from this CSV. So they are exempted here and measured elsewhere,
+    # by witness rate per arm rather than by points (ml/hf_seam_probe.py).
+    #
+    # The exemption is narrow on purpose: it applies only to rules declared in
+    # POINTLESS_WITNESS_RULES, so it cannot be used to smuggle a scoring rule past
+    # the measurement requirement.
+    unmeasured = in_code - measured - set(POINTLESS_WITNESS_RULES)
     assert not unmeasured, (
         f"these rules exist in the code but not in the committed audit: "
         f"{sorted(unmeasured)}. Re-run ml/rule_audit.py before shipping them."

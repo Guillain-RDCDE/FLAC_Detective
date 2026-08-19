@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Set
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
@@ -26,6 +26,7 @@ from .strategies import (
     Rule11CassetteDetection,
     Rule12MLClassifier,
     Rule13MDCTAlignment,
+    Rule14TemporalSeam,
     Rule424BitSuspect,
     ScoringRule,
 )
@@ -140,7 +141,10 @@ def _is_corroborated(context: ScoringContext) -> bool:
     Used to decide whether an early exit is safe. A high score from one family is
     exactly the case that still needs the remaining rules to run.
     """
-    return len(evidence_families(context.rule_scores)) >= CONVICTION_MIN_FAMILIES
+    return (
+        len(evidence_families(context.rule_scores, witnesses=context.witness_families))
+        >= CONVICTION_MIN_FAMILIES
+    )
 
 
 def _apply_scoring_rules(  # noqa: C901
@@ -283,6 +287,16 @@ def _apply_scoring_rules(  # noqa: C901
             if should_run_rule_13(context.cutoff_freq, context.current_score):
                 _ensure_audio(context)
                 _run_rule_13(context)
+            # Rule 14 must run on THIS path too. It is the branch for files whose
+            # heuristics found nothing — high-bitrate AAC, Vorbis, and every Opus
+            # transcode in the corpus — which is precisely the population the
+            # temporal witness exists for. Wiring it only into the main path left
+            # it unreachable for its own target, exactly the failure this
+            # repository has a test for (test_verdict_reachability): a witness
+            # that arrives after the branch it was meant to inform.
+            if context.cutoff_freq >= 15000.0:
+                _ensure_audio(context)
+                Rule14TemporalSeam().apply(context)
             Rule12MLClassifier().apply(context)
             return context.current_score, context.reasons
 
@@ -336,6 +350,14 @@ def _apply_scoring_rules(  # noqa: C901
             _ensure_audio(context)
             _run_rule_13(context)
 
+        # Rule 14: the temporal seam. Runs beside Rule 13 because the audio is
+        # already in hand, and BEFORE short-circuit 3 so its witness is available
+        # to the same gate — a witness that arrives after the gate it should have
+        # informed is what Provir calls dressing.
+        if context.cutoff_freq >= 15000.0:
+            _ensure_audio(context)
+            Rule14TemporalSeam().apply(context)
+
         # SHORT-CIRCUIT 3: same rule as above — an uncorroborated score must not
         # skip Rule 12, which is one of the few rules that can corroborate it.
         if context.current_score >= 86 and _is_corroborated(context):
@@ -383,6 +405,7 @@ def new_calculate_score(
     deep: bool = False,
     residual_floor_db: float = float("nan"),
     breakdown_out: Optional[Dict[str, int]] = None,
+    witnesses_out: Optional[Set[str]] = None,
 ) -> Tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
@@ -400,6 +423,11 @@ def new_calculate_score(
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
         residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
             Drives Rule 1's near-Nyquist 320 kbps wall-hardness gate.
+        witnesses_out: Optional set, updated in place with the families that
+            testify WITHOUT scoring (Rule 14). A points breakdown cannot carry
+            them — that is the whole reason they exist — so callers that need to
+            reconstruct the evidence set must be handed them separately, or they
+            will silently recompute a smaller one.
         breakdown_out: Optional dict, updated in place with the per-rule score
             attribution for this file (``{"Rule2Cutoff": 25, …}``). Used by
             ml/rule_audit.py to measure each rule's discriminative power in
@@ -454,6 +482,8 @@ def new_calculate_score(
 
         if breakdown_out is not None:
             breakdown_out.update(context.rule_scores)
+        if witnesses_out is not None:
+            witnesses_out.update(context.witness_families)
 
         # Clamp ONCE, here, on the final total. Clamping inside add_score (the
         # pre-v1.8 behaviour) destroyed every protection that ran before a
@@ -462,7 +492,7 @@ def new_calculate_score(
         score = max(0, raw_score)
 
         # Conviction needs independent sources, not just a big number.
-        families = evidence_families(context.rule_scores)
+        families = evidence_families(context.rule_scores, witnesses=context.witness_families)
         verdict, confidence = determine_verdict(score, families)
 
         if uncorroborated_conviction_blocked(score, families):

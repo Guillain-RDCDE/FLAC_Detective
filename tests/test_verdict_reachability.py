@@ -170,14 +170,32 @@ EXPECTED_REACHABLE = [
     # is. That is deliberate — and it is exactly why the early exit had to start
     # requiring corroboration in v1.9, or it would have measured itself.
     {"spectral", "container"},
-    # Short-circuit 3: after Rule 7 and Rule 13, before Rule 12.
-    {"spectral", "container", "silence", "mdct"},
+    # Short-circuit 3: after Rules 7, 13 and 14, before Rule 12. The temporal
+    # witness must be here — it is the family that reaches Opus, and a witness
+    # arriving after the gate it should inform is what Provir calls dressing.
+    {"spectral", "container", "silence", "mdct", "temporal"},
 ]
+
+
+def _all_families() -> dict:
+    """Every rule that produces a family — by points OR as a pointless witness.
+
+    Both maps, deliberately. Reading only the points map made this guard blind to
+    Rule 14 the moment it was added, which is the same defect it exists to catch:
+    a family whose reachability nothing checks. A guard that cannot see a rule
+    cannot notice it arriving after the gate it was meant to inform.
+    """
+    from flac_detective.analysis.new_scoring.evidence import (
+        POINTLESS_WITNESS_RULES,
+        RULE_FAMILY,
+    )
+
+    return {**RULE_FAMILY, **POINTLESS_WITNESS_RULES}
 
 
 def _rules_by_function(tree: ast.AST) -> dict:
     """Rule classes instantiated inside each function, by function name."""
-    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+    RULE_FAMILY = _all_families()
 
     inside: dict = {}
     for node in ast.walk(tree):
@@ -280,7 +298,7 @@ def test_families_reachable_at_each_gate_are_declared() -> None:
     computed in ``new_calculate_score`` once that function has returned, so by then
     every rule has had its chance and all five families are reachable.
     """
-    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+    RULE_FAMILY = _all_families()
 
     path = SCORING / "new_scoring" / "calculator.py"
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -322,7 +340,7 @@ def test_the_final_verdict_sees_every_family() -> None:
     dressing, in Jamie Dodd's phrase, and a family that can never arrive is worse:
     it inflates the apparent independence of the gate while contributing nothing.
     """
-    from flac_detective.analysis.new_scoring.evidence import RULE_FAMILY
+    RULE_FAMILY = _all_families()
 
     path = SCORING / "new_scoring" / "calculator.py"
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

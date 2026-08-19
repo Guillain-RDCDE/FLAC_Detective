@@ -16,6 +16,7 @@ from .rules import (
     apply_rule_11_cassette_detection,
     apply_rule_12_ml_classifier,
     apply_rule_13_mdct_alignment,
+    apply_rule_14_temporal_seam,
 )
 
 logger = logging.getLogger(__name__)
@@ -228,3 +229,28 @@ class Rule13MDCTAlignment(ScoringRule):
         )
         context.add_score(score, reasons)
         context.mdct_peak_ratio = details.get("mdct_peak_ratio", float("nan"))
+
+
+class Rule14TemporalSeam(ScoringRule):
+    """Rule 14 — the temporal seam, a witness that testifies without scoring.
+
+    The only rule in the engine that declares an evidence family while adding zero
+    points. Its statistic reads AUC 0.84 on Opus, where the hole family and the
+    lattice family are both dead, and it also fires on ~8 % of real music. Awarding
+    it points to make it count was measured first and produced three new false
+    convictions on 258 genuine files; awarding none produces zero. See
+    ``rules.temporal_seam``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 14 to ``context``."""
+        score, reasons, details = apply_rule_14_temporal_seam(
+            str(context.filepath),
+            context.cutoff_freq,
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.temporal_seam = details.get("temporal_seam", float("nan"))
+        if details.get("temporal_witness"):
+            context.witness_families.add("temporal")

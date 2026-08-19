@@ -7,7 +7,7 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Set, Union
 
 from .audio_cache import AudioCache
 from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
@@ -121,6 +121,9 @@ class FLACAnalyzer:
             # the on-disk compressed file, not the decoded WAV — otherwise an ALAC/APE
             # source looks uncompressed and Rules 1 & 3 wrongly switch off.
             score_breakdown: Dict[str, int] = {}
+            # Families that testify without scoring cannot appear in a points
+            # breakdown, so they travel on their own channel.
+            witness_families: Set[str] = set()
             score, verdict, confidence, reason = new_calculate_score(
                 cutoff_freq,
                 metadata,
@@ -133,6 +136,7 @@ class FLACAnalyzer:
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
                 breakdown_out=score_breakdown,
+                witnesses_out=witness_families,
             )
 
             # Add note if analysis was partial
@@ -211,7 +215,9 @@ class FLACAnalyzer:
                 "score_breakdown": score_breakdown,
                 # Independent evidence families accusing this file. A conviction
                 # requires two of them; see analysis/new_scoring/evidence.py.
-                "evidence_families": sorted(evidence_families(score_breakdown)),
+                "evidence_families": sorted(
+                    evidence_families(score_breakdown, witnesses=witness_families)
+                ),
             }
 
         except Exception as e:

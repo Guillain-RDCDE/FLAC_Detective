@@ -15,6 +15,7 @@ from .spectral import (
     apply_rule_2_cutoff,
     apply_rule_8_nyquist_exception,
 )
+from .temporal_seam import apply_rule_14_temporal_seam
 
 __all__ = [
     "apply_rule_1_mp3_bitrate",
@@ -28,5 +29,6 @@ __all__ = [
     "apply_rule_11_cassette_detection",
     "apply_rule_12_ml_classifier",
     "apply_rule_13_mdct_alignment",
+    "apply_rule_14_temporal_seam",
     "should_run_rule_13",
 ]

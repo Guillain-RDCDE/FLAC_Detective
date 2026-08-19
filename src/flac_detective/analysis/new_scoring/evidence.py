@@ -50,7 +50,7 @@ Deliberately absent:
 
 from __future__ import annotations
 
-from typing import Dict, Mapping, Set
+from typing import Dict, Mapping, Optional, Set
 
 from .constants import MIN_FAMILY_CONTRIBUTION
 
@@ -65,6 +65,26 @@ RULE_FAMILY: Dict[str, str] = {
     "Rule7SilenceAnalysis": "silence",
     "Rule12MLClassifier": "cnn",
     "Rule13MDCTAlignment": "mdct",
+    # Rule 14 contributes no points, so it can never appear here — a points map
+    # cannot express a witness that does not score. See ``witnesses`` below.
+}
+
+# Families that qualify as a source WITHOUT contributing points.
+#
+# Until v1.11 a family existed only if some rule had added score to it, which
+# silently welded two different questions together: how much does this file look
+# like a transcode, and how many independent things say so. MIN_FAMILY_CONTRIBUTION
+# was a patch on that confusion — it filtered witnesses by their point total
+# because point total was the only handle available.
+#
+# Rule 14 forces them apart. Its statistic reads AUC 0.84 on Opus, where every
+# other family is dead, and it also fires on ~8 % of real music (heavy HF limiting,
+# dense synthetic pads). Giving it points to make it count as a witness was tried
+# and measured: three new false convictions on 258 genuine files, because the
+# points pushed mid-scoring real recordings past CONVICTION_MIN_SCORE and then
+# corroborated them. Awarding zero and declaring the witness separately measures 0.
+POINTLESS_WITNESS_RULES: Dict[str, str] = {
+    "Rule14TemporalSeam": "temporal",
 }
 
 
@@ -83,7 +103,9 @@ def family_totals(rule_scores: Mapping[str, int]) -> Dict[str, int]:
 
 
 def evidence_families(
-    rule_scores: Mapping[str, int], min_contribution: int = MIN_FAMILY_CONTRIBUTION
+    rule_scores: Mapping[str, int],
+    min_contribution: int = MIN_FAMILY_CONTRIBUTION,
+    witnesses: Optional[Set[str]] = None,
 ) -> Set[str]:
     """Return the independent evidence families that meaningfully accuse this file.
 
@@ -94,7 +116,14 @@ def evidence_families(
     doubled) and 16 were a hesitant CNN. The CNN was doing the work of a second
     witness while barely speaking.
 
+    ``witnesses`` carries families that qualify without scoring (see
+    ``POINTLESS_WITNESS_RULES``). They are unioned in rather than filtered by
+    ``min_contribution``, because that threshold answers "did this family say
+    enough to count?" using points, and a family with no points is not saying
+    nothing — it is saying something the score deliberately does not encode.
+
     Pass ``min_contribution=0`` to recover the v1.9 reading — used by the audit
     harness to measure what the threshold changed.
     """
-    return {f for f, total in family_totals(rule_scores).items() if total >= min_contribution}
+    scored = {f for f, total in family_totals(rule_scores).items() if total >= min_contribution}
+    return scored | (witnesses or set())

@@ -2038,3 +2038,98 @@ tests were verified to bite: declaring a family that is not reachable fails by
 line, and declaring a family in `evidence.py` that no reachable rule produces fails
 as its mirror — because a family that can never arrive inflates the apparent
 independence of the gate while contributing nothing.
+
+
+---
+
+# v1.11 — the temporal family ships, and testifies without scoring
+
+`HF_SEAM` measured AUC 0.84 on Opus and 0.89 on `mp3_320` — the two arms where the
+hole family and the lattice family are both dead. Provir keeps the same statistic
+**measurement-only**, and for a good reason: it has a named false-positive mode,
+production, and an early attempt there to let it corroborate convicted a
+verified-genuine 2006 record at 0.81.
+
+That reason does not transfer, and the difference is architectural rather than
+statistical. This engine separates *how many points* from *how many sources*.
+Provir's does not, so a noisy flag there goes straight to a verdict. Here it can be
+held as a source while contributing nothing to the total — which is exactly what a
+corroboration gate is for.
+
+## The obvious wiring was wrong, and it was measured before it was written
+
+Give the family 25 points, just enough to clear `MIN_FAMILY_CONTRIBUTION` and count
+as a witness. Result on our own 258 genuine files: **three new false convictions**,
+at every threshold from 0.55 to 0.708. Real recordings sitting at 52, 38 and 31
+spectral points were pushed past `CONVICTION_MIN_SCORE` by the appended points and
+then convicted by their own new second family.
+
+That is the v1.10 mechanism — a weak second witness legitimising a spectral pile —
+reappearing one level up, in the points rather than in the witness count.
+
+## So the family testifies and adds nothing
+
+`POINTLESS_WITNESS_RULES` in `evidence.py`, and `witness_families` on the scoring
+context. A points map cannot express a witness that does not score, which is
+precisely why the two had to be separated:
+
+* it can complete a corroboration for a file other evidence has **already** carried
+  past the points bar;
+* it cannot move any file toward that bar.
+
+Measured with that wiring: **0 new false convictions** across the 258, at every
+threshold tried, including the two genuine files already sitting past 55 points on
+a single family — they read 0.415 and 0.323, far below the bar.
+
+## Live on the corpus, 40 files per arm
+
+| arm | convictions v1.10 | with Rule 14 | delta | witness rate |
+|---|---|---|---|---|
+| **genuine** | 0 | **0** | +0 | 12 % |
+| **wild genuine** | — | **0** | — | 3 % |
+| `aac_ff128` | 3 | 11 | **+8** | 100 % |
+| `opus_256` | 6 | 10 | **+4** | 40 % |
+| `aac_ff320` | 5 | 7 | +2 | 8 % |
+| `aacmf_256` | 13 | 15 | +2 | 20 % |
+| `vorbis_q8` | 10 | 11 | +1 | 20 % |
+| `aac_ff256` | 20 | 20 | +0 | 8 % |
+| `mp3_192` | 12 | 12 | +0 | 68 % |
+| `mp3_320` | 13 | 13 | +0 | **72 %** |
+| `mp3_V0` | 3 | 3 | +0 | 45 % |
+
+**+17 convictions on 360 fakes, 0 on 78 genuine files.**
+
+The `mp3_320` row is the one worth reading twice. The witness fires on 72 % of that
+arm and delivers **nothing** — because those files never reach the points bar, and
+a zero-point family cannot carry them there. That is the safety property behaving
+exactly as designed rather than as hoped: high recall on a measurement, converted
+into a verdict only where independent evidence had already done the work.
+
+## Calibration
+
+Set on the genuine arm alone, never against the fakes. 258 files — 80 certified CD
+rips and 178 wild taper recordings — median 0.374, p90 0.573, p95 0.651, p99 0.797,
+max 0.913. `SEAM_BAR = 0.60` sits between p90 and p95. The two populations agree
+closely, unlike Rule 13's, where a heavier wild tail made a published calibration
+wrong.
+
+## What the guards had to learn
+
+Adding the first zero-point rule broke two existing guards, both correctly:
+
+* `test_every_rule_is_measured` flagged it as unmeasured, because the audit harness
+  computes a per-rule AUC **from points**. A rule that scores zero by design reads
+  as a textbook dead rule — AUC 0.5, fires on both classes — indistinguishable from
+  the genuine Rule 9 failure. Exempted narrowly, and measured elsewhere by witness
+  rate per arm.
+* `test_every_scoring_rule_is_classified` flagged it as unclassified, because it is
+  not in `RULE_FAMILY`. Classification now reads both maps.
+
+And the reachability guard could not see it at all — it only knew the points map —
+which is the same defect it exists to catch. It reads both maps now, and Rule 14 is
+declared reachable at short-circuit 3.
+
+The wiring itself walked into that trap once: Rule 14 was first placed only on the
+main path, leaving it unreachable for the "heuristics silent" branch that returns
+early — which is the exact population it exists for, every Opus transcode in the
+corpus included.

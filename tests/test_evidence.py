@@ -95,7 +95,13 @@ def test_every_scoring_rule_is_classified_or_deliberately_excluded():
         for cls in ScoringRule.__subclasses__()
         if not getattr(cls, "__abstractmethods__", None)
     }
-    unclassified = concrete - set(RULE_FAMILY) - DELIBERATELY_EXCLUDED
+    # Rules that testify without scoring are classified too — just not by points.
+    # A points map cannot express them, which is exactly why they have their own.
+    from flac_detective.analysis.new_scoring.evidence import POINTLESS_WITNESS_RULES
+
+    unclassified = (
+        concrete - set(RULE_FAMILY) - set(POINTLESS_WITNESS_RULES) - DELIBERATELY_EXCLUDED
+    )
     assert not unclassified, (
         f"these scoring rules are neither assigned an evidence family nor listed as "
         f"deliberately excluded: {sorted(unclassified)}. Decide before shipping — an "

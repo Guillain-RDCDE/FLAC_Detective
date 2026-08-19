@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Dict, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, ClassVar, Dict, List, NamedTuple, Optional, Set
 
 if TYPE_CHECKING:
     import numpy as np
@@ -49,6 +49,12 @@ class ScoringContext:
     cassette_score: int = 0
     # Rule 13's statistic, kept for reporting (NaN = the rule did not run).
     mdct_peak_ratio: float = float("nan")
+    # Rule 14's statistic, and the families it declares as witnesses without
+    # scoring. Kept separate from rule_scores on purpose: a family that adds no
+    # points cannot be expressed in a points map, and conflating the two is what
+    # MIN_FAMILY_CONTRIBUTION had to paper over. See evidence.POINTLESS_WITNESS_RULES.
+    temporal_seam: float = float("nan")
+    witness_families: Set[str] = field(default_factory=set)
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)
 
