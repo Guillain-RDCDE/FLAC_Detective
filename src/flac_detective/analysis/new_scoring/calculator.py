@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Set
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
@@ -27,6 +27,7 @@ from .strategies import (
     Rule12MLClassifier,
     Rule13MDCTAlignment,
     Rule14TemporalSeam,
+    Rule15StereoSeam,
     Rule424BitSuspect,
     ScoringRule,
 )
@@ -297,6 +298,9 @@ def _apply_scoring_rules(  # noqa: C901
             if context.cutoff_freq >= 15000.0:
                 _ensure_audio(context)
                 Rule14TemporalSeam().apply(context)
+            if context.cutoff_freq >= 12000.0:
+                _ensure_audio(context)
+                Rule15StereoSeam().apply(context)
             Rule12MLClassifier().apply(context)
             return context.current_score, context.reasons
 
@@ -357,6 +361,13 @@ def _apply_scoring_rules(  # noqa: C901
         if context.cutoff_freq >= 15000.0:
             _ensure_audio(context)
             Rule14TemporalSeam().apply(context)
+
+        # Rule 15: the stereo image. Same placement reasoning as Rule 14 — before
+        # the gate it should inform, and on BOTH paths, since the early-return
+        # branch carries the silent-heuristic files this family reads best.
+        if context.cutoff_freq >= 12000.0:
+            _ensure_audio(context)
+            Rule15StereoSeam().apply(context)
 
         # SHORT-CIRCUIT 3: same rule as above — an uncorroborated score must not
         # skip Rule 12, which is one of the few rules that can corroborate it.

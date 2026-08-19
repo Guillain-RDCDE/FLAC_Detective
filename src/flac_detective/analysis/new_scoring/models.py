@@ -54,6 +54,7 @@ class ScoringContext:
     # points cannot be expressed in a points map, and conflating the two is what
     # MIN_FAMILY_CONTRIBUTION had to paper over. See evidence.POINTLESS_WITNESS_RULES.
     temporal_seam: float = float("nan")
+    stereo_dead_run: float = float("nan")
     witness_families: Set[str] = field(default_factory=set)
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)

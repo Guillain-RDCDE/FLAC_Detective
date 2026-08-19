@@ -173,7 +173,7 @@ EXPECTED_REACHABLE = [
     # Short-circuit 3: after Rules 7, 13 and 14, before Rule 12. The temporal
     # witness must be here — it is the family that reaches Opus, and a witness
     # arriving after the gate it should inform is what Provir calls dressing.
-    {"spectral", "container", "silence", "mdct", "temporal"},
+    {"spectral", "container", "silence", "mdct", "temporal", "stereo"},
 ]
 
 

@@ -85,6 +85,11 @@ RULE_FAMILY: Dict[str, str] = {
 # corroborated them. Awarding zero and declaring the witness separately measures 0.
 POINTLESS_WITNESS_RULES: Dict[str, str] = {
     "Rule14TemporalSeam": "temporal",
+    # Rule 15 reads the STEREO IMAGE — joint-stereo coupling kills the side channel
+    # above ~10 kHz while the mid stays alive. Independent of spectral geometry, of
+    # frame alignment and of temporal variance, which is what makes it a fifth
+    # family rather than a variant of any of them.
+    "Rule15StereoSeam": "stereo",
 }
 
 

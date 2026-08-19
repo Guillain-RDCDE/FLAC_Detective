@@ -17,6 +17,7 @@ from .rules import (
     apply_rule_12_ml_classifier,
     apply_rule_13_mdct_alignment,
     apply_rule_14_temporal_seam,
+    apply_rule_15_stereo_seam,
 )
 
 logger = logging.getLogger(__name__)
@@ -254,3 +255,27 @@ class Rule14TemporalSeam(ScoringRule):
         context.temporal_seam = details.get("temporal_seam", float("nan"))
         if details.get("temporal_witness"):
             context.witness_families.add("temporal")
+
+
+class Rule15StereoSeam(ScoringRule):
+    """Rule 15 — joint-stereo dead runs, a witness that testifies without scoring.
+
+    The strongest independent observable this engine holds: AUC 0.96 on Opus,
+    Vorbis and mp3_320, against a genuine fire rate of 11 %. Zero points, for the
+    same measured reason as Rule 14 — and it declines to testify entirely on mono
+    material, where the absence of a side channel would otherwise manufacture a
+    maximal reading. See ``rules.stereo_seam``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 15 to ``context``."""
+        score, reasons, details = apply_rule_15_stereo_seam(
+            str(context.filepath),
+            context.cutoff_freq,
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.stereo_dead_run = details.get("stereo_dead_run", float("nan"))
+        if details.get("stereo_witness"):
+            context.witness_families.add("stereo")

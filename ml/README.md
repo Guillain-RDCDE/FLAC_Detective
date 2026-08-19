@@ -2133,3 +2133,96 @@ The wiring itself walked into that trap once: Rule 14 was first placed only on t
 main path, leaving it unreachable for the "heuristics silent" branch that returns
 early — which is the exact population it exists for, every Opus transcode in the
 corpus included.
+
+
+---
+
+# Rule 15 — the stereo image, and the channel we were never forming
+
+`ml/dead_run_probe.py` measured a clean null in two domains and the conclusion
+looked safe: our high-bitrate transcodes simply do not abandon bands. Jamie Dodd
+then supplied the mechanism, and the null had nothing to do with bitrate.
+
+**It is not the spectrum. It is the side channel.**
+
+    mid  = |STFT((L+R)/2)|, bins from 10 kHz up
+    side = |STFT(L-R)|,     bins from 10 kHz up
+    mask = (mid < 3e-4) OR (side < 3e-4)
+    statistic = median over frames of the mean INTERIOR run length
+
+Joint and intensity stereo quantise the side channel toward zero above the
+coupling frequency and leave long contiguous holes there, while the mid stays
+perfectly alive. Every family in this engine — cliff, holes, lattice, temporal —
+reads a mono sum. None of them can see it by construction, and our probe was
+looking at `(L+R)/2` like all the rest.
+
+That also disposed of the remaining hypothesis without spending a day on it: his
+corpus is not reaching lower in bitrate than ours. The bands are not dying in the
+mid at any bitrate. They die in a channel we were not forming.
+
+## Measured, 36-38 files per arm
+
+| arm | median run | AUC | fires |
+|---|---|---|---|
+| `opus_256` | 17.3 | **0.96** | 92 % |
+| `vorbis_q8` | 10.5 | **0.96** | 92 % |
+| `mp3_320` | 9.3 | **0.96** | 89 % |
+| `mp3_V0` | 4.2 | 0.91 | 78 % |
+| `aacmf_256` | 5.5 | 0.86 | 72 % |
+| `aac_ff320` | 1.0 | 0.68 | 19 % |
+| **genuine** | **0.0** | — | 11 % |
+
+The strongest independent observable this engine holds — and still complementary
+rather than superior. `aac_ff320` reads 0.68 here against Rule 13's 0.99, so the
+alignment family remains the only one that properly reaches ffmpeg AAC.
+
+## Shipped as a second pointless witness
+
+Same wiring as Rule 14 and the same measurement first: as a zero-point witness it
+adds **0 new false convictions** across 258 genuine files, at every bar from 1.87
+to 8.0. Calibrated on the genuine arm alone — 238 measured, median 1.00, p90 1.42,
+p95 1.86, p99 4.88 — with `RUN_BAR` at 2.0, just above p95.
+
+## The gate that is not a refinement
+
+**Mono material manufactures this statistic out of nothing.** No stereo image means
+no side channel means every high bin is trivially dead. Provir measured their own
+mono CDs at L−R correlation 1.000000 and side/mid energy 3e-8, producing a reading
+within a few units of their solo conviction floor — that is convicting a legitimate
+master for the absence of a stereo image.
+
+`MONO_GATE` returns NaN below a side/mid ratio of 1e-5, and the rule then declines
+to testify. **Silence, not a low score**, because a low score is still an opinion
+about a file the statistic cannot see. Twenty of our own 258 genuine files are
+mono-gated, so the case is not hypothetical.
+
+His second warning is handled too: the threshold is absolute, so the reading moves
+with level. He measured identical audio at 0 / −12 / −24 / −36 dB reading 16 / 54 /
+137 / 283, with six files out of six changing verdict on gain alone. A
+floor-guarded restore — rescale only files below 0.75 of full scale — keeps the
+constants meaning what they meant, and a parametrised test pins that no gain change
+flips the witness.
+
+## Both families live, 40 files per arm
+
+| arm | v1.10 | v1.11 | delta | temporal | stereo |
+|---|---|---|---|---|---|
+| **genuine** | 0 | **0** | +0 | 12 % | 8 % |
+| **wild genuine** | — | **0** | — | 3 % | 11 % |
+| `vorbis_q8` | 10 | 24 | **+14** | 20 % | 85 % |
+| `aac_ff128` | 3 | 11 | **+8** | 100 % | 82 % |
+| `opus_256` | 6 | 13 | **+7** | 40 % | 82 % |
+| `aac_ff256` | 20 | 26 | +6 | 8 % | 30 % |
+| `aac_ff320` | 5 | 11 | +6 | 8 % | 15 % |
+| `aacmf_256` | 13 | 16 | +3 | 20 % | 68 % |
+| `mp3_192` | 12 | 12 | +0 | 68 % | 80 % |
+| `mp3_320` | 13 | 13 | +0 | 72 % | 82 % |
+| `mp3_V0` | 3 | 3 | +0 | 45 % | 72 % |
+
+**85 → 129 convictions on 360 fakes, +52 %, and 0 on 78 genuine files.**
+
+The three MP3 rows are the safety property in plain sight. Both witnesses fire
+heavily there — stereo on 72-82 %, temporal on 45-72 % — and deliver **nothing**,
+because those files never reach the points bar and a zero-point family cannot carry
+them there. High recall on a measurement, converted into a verdict only where
+independent evidence had already done the work.

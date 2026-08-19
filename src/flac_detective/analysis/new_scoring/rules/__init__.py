@@ -15,6 +15,7 @@ from .spectral import (
     apply_rule_2_cutoff,
     apply_rule_8_nyquist_exception,
 )
+from .stereo_seam import apply_rule_15_stereo_seam
 from .temporal_seam import apply_rule_14_temporal_seam
 
 __all__ = [
@@ -30,5 +31,6 @@ __all__ = [
     "apply_rule_12_ml_classifier",
     "apply_rule_13_mdct_alignment",
     "apply_rule_14_temporal_seam",
+    "apply_rule_15_stereo_seam",
     "should_run_rule_13",
 ]
