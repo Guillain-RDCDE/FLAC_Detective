@@ -204,3 +204,39 @@ def test_the_bar_sits_where_it_was_calibrated() -> None:
     # nothing, so this is belt and braces — but if someone ever gives it points,
     # this is the line that should stop them.
     assert SCORE_WARNING > 0
+
+
+class TestLevelInvariance:
+    """Gain must not change the reading — Provir's warning, applied here.
+
+    Jamie Dodd's dead-run statistic compares magnitudes against ABSOLUTE
+    thresholds, and he measured what that costs: identical audio at 0 / -12 / -24 /
+    -36 dB read 16 / 54 / 137 / 283, and six files out of six changed verdict on
+    gain alone. A statistic that moves when someone normalises a file is not
+    measuring the encoder.
+
+    Rule 14 should be immune by construction — it reports a RELATIVE drop,
+    ``(before - after) / before``, so a constant factor cancels. Should be is not
+    the same as is: ``log1p`` is not scale-free, behaving linearly on small values
+    and logarithmically on large ones, so the variance it measures does change
+    character at very low levels. Measured drift across 36 dB is under 0.09 with no
+    verdict flips, and that is what this pins.
+    """
+
+    @pytest.mark.parametrize("gain_db", [-12.0, -24.0, -36.0])
+    def test_the_reading_survives_a_gain_change(self, gain_db: float) -> None:
+        """The same audio, quieter, must read the same side of the bar."""
+        audio = _stationary_above(15000.0)
+        loud, _ = temporal_seam(audio, 44100)
+        quiet, _ = temporal_seam((audio * 10 ** (gain_db / 20.0)).astype(np.float32), 44100)
+        assert np.isfinite(loud) and np.isfinite(quiet)
+        assert (loud >= SEAM_BAR) == (quiet >= SEAM_BAR), (
+            f"the verdict flipped on gain alone: {loud:.3f} at 0 dB against "
+            f"{quiet:.3f} at {gain_db:.0f} dB. A statistic that moves when someone "
+            "normalises a file is measuring the file's level, not the encoder."
+        )
+        assert abs(loud - quiet) < 0.15, (
+            f"drift of {abs(loud - quiet):.3f} across {abs(gain_db):.0f} dB. Measured "
+            "drift on real material is under 0.09; anything much larger means the "
+            "relative formulation has stopped cancelling the scale."
+        )
