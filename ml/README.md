@@ -2300,3 +2300,33 @@ that its master had itself been through a lossy chain, which for a reissue of 19
 Guinean percussion is entirely ordinary. That is not the statistic being wrong; it
 is the statistic being right about a provenance question nobody asked it to judge,
 and it is the same population that costs the temporal family its 8 %.
+
+
+---
+
+# CoreAudio, revisited with four families — the stereo one gets in
+
+Apple CoreAudio was the arm that defeated everything. Jamie Dodd reported it as a
+clean zero for his hole-based path; measured here, holes read AUC 0.782 / 0.650 /
+0.562 at 128 / 256 / 320 kbps, and the lattice beat that at every bitrate but with
+no usable operating point — separation without a threshold.
+
+Rules 14 and 15 do not depend on frame alignment at all, so whether either reaches
+this encoder was an open question with a free answer: the arm runs on a GitHub
+macOS runner. n=60, all four statistics at one alignment.
+
+| bitrate | holes | lattice | temporal | **stereo** |
+|---|---|---|---|---|
+| CoreAudio 128k | 0.77 | 0.82 | 0.88 | **0.94** |
+| CoreAudio 256k | 0.65 | 0.65 | 0.62 | **0.80** |
+| CoreAudio 320k | 0.57 | 0.58 | 0.50 | 0.54 |
+
+**The stereo family gets in.** CoreAudio 256k moves from 0.65 — the best any
+previous family managed — to 0.80, and 128k from 0.77 to 0.94. The reason is the
+same one that made it the strongest family everywhere else: Apple's encoder still
+uses joint stereo, and coupling the side channel is not something an alignment
+reader or a variance reader can see.
+
+**320 kbps stays shut**, for all four, at 0.50-0.58. That is now the sharpest
+remaining hole in the map and it is shared: neither engine has an observable that
+reads a CoreAudio transcode at 320 kbps.
