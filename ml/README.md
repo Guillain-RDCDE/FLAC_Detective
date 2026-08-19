@@ -2226,3 +2226,77 @@ heavily there — stereo on 72-82 %, temporal on 45-72 % — and deliver **nothi
 because those files never reach the points bar and a zero-point family cannot carry
 them there. High recall on a measurement, converted into a verdict only where
 independent evidence had already done the work.
+
+
+---
+
+# Idempotence — it works, and it is not independent
+
+Provir's `MP3_IDEM`, implemented to their specification. Encode, decode, measure how
+far the file moved (`d1`); repeat from the result (`d2`); `R = 20*log10(d1/d2)`,
+firing below 2.0 dB. A lossless source is far from the codec's fixed point so the
+first pass does real damage and the second much less; content already through the
+codec is at the fixed point and both passes move it about equally.
+
+## The trap is real, and reproducing it was worth more than reading about it
+
+Every encode must go to a seekable temp file, never a pipe. Without the finalised
+Xing/LAME info frame the decoder loses the encoder delay, the second pass lands on a
+different MDCT grid, and the reading collapses. Jamie measured 2.56 → 0.04 dB. The
+same file here reads **0.65 dB written properly and −0.33 dB through a pipe**.
+
+His warning was that the tell does not weaken, it *vanishes*, and that a vanished
+tell looks exactly like an idea that was never there. `--pipe` exists in the probe
+solely to demonstrate that on demand.
+
+## The corpus run read a flat null, and the null was ours
+
+Ten files per arm, re-encoding at 192 kbps:
+
+| arm | median R | fires |
+|---|---|---|
+| genuine | 4.11 | 10 % |
+| `aac_ff256` | 3.93 | 10 % |
+| `mp3_320` | 3.85 | 10 % |
+| `opus_256` | 3.89 | 10 % |
+
+Nothing separates. But the control had separated cleanly — genuine 0.65 / 4.13 /
+4.36 against `mp3_192` at 0.32 / 0.42 / 0.44 — and the difference is that the
+control's fake arm was **mp3_192**, re-encoded at 192 kbps. A matched rung, by
+accident.
+
+His specification says "at the **matched LAME rung**", and that turns out to carry
+the entire result:
+
+| | re-encoded @192k | re-encoded @320k |
+|---|---|---|
+| genuine | 0.65 · 4.13 · 4.36 · 4.10 | 0.80 · 3.26 · 3.57 · 3.31 |
+| `mp3_320` | 1.33 · 4.15 · 3.90 · 3.70 | **−0.43 · 0.70 · 1.07 · −0.07** |
+
+At the matched rung, 4 of 4 fakes fire and 3 of 4 genuine files do not. At the wrong
+rung, nothing separates at all.
+
+## Why it is not being shipped as a sixth family
+
+**It needs the source bitrate before it can measure anything** — and inferring the
+source bitrate is Rule 1's job, from the spectral cutoff.
+
+So its input is another family's output. Corroboration between Rule 1 and a rule
+whose parameters Rule 1 chose is not two independent sources; it is one measurement
+consulted twice, which is precisely the Rule 1 + Rule 3 defect this project deleted
+in v1.10, arriving in a new costume. The engine's own independence guard would flag
+the pair, and it would be right to.
+
+That does not make it useless. It makes it a **confirmation step** rather than a
+witness: something to run once another family has already named a bitrate, to ask
+"is this file at that codec's fixed point?". Recorded here so the next person
+starts from the constraint rather than from the appeal of the idea.
+
+## And one file worth naming
+
+`000-03-Balla-et-ses-Balladins` reads 0.65 at 192k and 0.80 at 320k — low at both,
+i.e. already at the fixed point. It is a genuine file. The most likely reading is
+that its master had itself been through a lossy chain, which for a reissue of 1960s
+Guinean percussion is entirely ordinary. That is not the statistic being wrong; it
+is the statistic being right about a provenance question nobody asked it to judge,
+and it is the same population that costs the temporal family its 8 %.

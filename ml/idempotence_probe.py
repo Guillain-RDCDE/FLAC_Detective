@@ -285,10 +285,11 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if args.control:
         return run_control(args.corpus)
-    status = run_control(args.corpus)
-    if status != 0:
-        print("\nAborting: the statistic failed its own control.")
-        return status
+    if not args.skip_control:
+        status = run_control(args.corpus)
+        if status != 0:
+            print("\nAborting: the statistic failed its own control.")
+            return status
     return run_corpus(args.corpus, args.out, args.limit, args.arms)
 
 
