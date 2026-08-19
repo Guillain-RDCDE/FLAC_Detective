@@ -2,21 +2,24 @@
 
 The strongest independent observable this engine holds
 ------------------------------------------------------
-Measured on 36-38 files per arm, against a genuine population whose median is
-1.00 and whose 95th percentile is 1.86:
+Re-measured in v1.11.2 against a genuine population of 228 files whose 95th
+percentile is 1.74, at the shipped bar of 2.0:
 
-    opus_256    median 17.3   AUC 0.96   fires 92 %
-    vorbis_q8   median 10.5   AUC 0.96   fires 92 %
-    mp3_320     median  9.3   AUC 0.96   fires 89 %
-    mp3_V0      median  4.2   AUC 0.91   fires 78 %
-    aacmf_256   median  5.5   AUC 0.86   fires 72 %
-    aac_ff320   median  1.0   AUC 0.68   fires 19 %
-    genuine     median  0.0      —       fires 11 %
+    opus_256    fires 92 %
+    vorbis_q8   fires 93 %
+    mp3_320     fires 92 %
+    mp3_V0      fires 81 %
+    aacmf_256   fires 73 %
+    aac_ff320   fires 19 %
+    genuine     fires  5 %   (by construction — the bar is p95)
 
 Better than the temporal family on every arm, and better than anything else this
 engine has on Opus, Vorbis and high-bitrate MP3. And still complementary rather
-than superior: `aac_ff320` reads 0.68 here against Rule 13's 0.99, so the alignment
-family remains the only one that reaches ffmpeg AAC properly.
+than superior: `aac_ff320` is the one arm it barely reaches, against Rule 13's
+0.99 there, so the alignment family remains the only one that reads ffmpeg AAC.
+That division of labour is why the max-over-frames variant was rejected in
+v1.11.2 — it bought aac_ff320 recall that Rule 13 already owns, with Opus and
+Vorbis recall that nothing else in this engine can replace.
 
 Why it also contributes ZERO points
 ------------------------------------
@@ -50,12 +53,16 @@ from ..stereo_image import side_dead_run
 
 logger = logging.getLogger(__name__)
 
-# Calibrated on the genuine arm ALONE. 238 measured genuine files (20 more were
-# mono-gated): median 1.00, p90 1.42, p95 1.86, p99 4.88, max 7.45.
+# Calibrated on the genuine arm ALONE, and RE-confirmed in v1.11.2 on 228 measured
+# genuine files (20 more mono-gated): p95 = 1.74. The bar sits just above it, where
+# ~5 % of real music testifies and has nothing to corroborate.
 #
-# The bar sits just above p95, where ~4 % of real music testifies and has nothing
-# to corroborate. Measured new false convictions at this bar and at 3.0, 5.0 and
-# 8.0: zero in every case.
+# Measured new false convictions at this bar and at p90, p99 and above the maximum:
+# zero in every case.
+#
+# v1.11.2 also re-derived this against a max-over-frames variant of the statistic,
+# whose own p95 is 27.6. That variant was rejected — a bar fitted to one aggregate
+# is meaningless against another, and the two must move together or not at all.
 RUN_BAR = 2.0
 
 # Below this cutoff the file is band-limited and the 10 kHz band is empty anyway.

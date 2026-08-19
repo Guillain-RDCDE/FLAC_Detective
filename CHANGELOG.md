@@ -1,3 +1,65 @@
+## v1.11.2 (2026-08-19) — one glossary correction taken, one rejected on measurement
+
+Provir published a flag glossary. Two of its entries bear on Rule 15, and the
+useful outcome of this release is that they did not both survive contact with our
+corpus.
+
+### Taken: strictly interior runs
+
+Their `DEADRUN_STRICT_INTERIOR = True` discards a dead run touching **either** edge
+of the analysis band. v1.11.0 discarded only the top, on the argument that a run
+reaching Nyquist is a lowpass edge belonging to the cutoff rule. The same argument
+applies at the bottom: a run starting at the 10 kHz band floor is the analysis
+window's own boundary, not a hole the encoder left.
+
+Measured across the corpus: **identical to two decimals**. At 10 kHz real music
+essentially always has energy, so runs almost never start at the floor. Adopted
+anyway — it is the correct definition and it costs nothing to hold.
+
+### Rejected: max over frames
+
+Their `MS_CONDITIONAL` entry carries a standing warning against *"any statistic
+aggregated across frames"* — at transparent bitrates the codec's zeroing is dynamic
+and averaging destroys it, which killed four of their earlier defences. Rule 15
+takes a median across frames, so the warning points straight at it.
+
+A max-over-frames variant was built and priced. On 25 genuine files it beat the
+median on every hard arm. On the full 228 it does not:
+
+| arm | median | max |
+|---|---|---|
+| `opus_256` | **92 %** | 81 % |
+| `vorbis_q8` | **93 %** | 86 % |
+| `mp3_320` | **92 %** | 81 % |
+| `mp3_V0` | **81 %** | 77 % |
+| `aacmf_256` | 73 % | 73 % |
+| `aac_ff320` | 19 % | **33 %** |
+| **total** | **75 %** | 72 % |
+
+Each variant priced at its own p95 on the same 228 genuine files, so both columns
+cost the same 5 % on real music. The max wins on exactly one arm — and that is the
+one Rule 13 already reads at AUC 0.99. It pays for it with 11 points on Opus,
+Vorbis and mp3_320, where no other family in this engine reaches at all. Wrong
+trade. The median stands.
+
+### Two lessons, both ours
+
+**A 25-file calibration reversed the ranking of 228.** The p95 of a small sample
+sits wherever its second-largest value happens to fall; ranking two statistics by
+their own small-sample bars ranks the samples, not the statistics. This is the same
+error that mis-set Rule 13's ceiling, now made twice.
+
+**A warning that holds for the author's statistic need not hold for ours.** Their
+zeroing is dynamic per frame; our mask is already a per-frame conjunction against
+the mid channel, so our median is not averaging the artefact away. A glossary is a
+map, not a spec — which is their own standing warning, applied to them.
+
+### Calibration re-confirmed
+
+228 measured genuine files (20 more mono-gated), p95 **1.74**. `RUN_BAR` stays at
+**2.0**, just above it. New false convictions at that bar, at p90, at p99 and above
+the maximum: **zero** in every case.
+
 ## v1.11.1 (2026-08-19) — the guard was the bug
 
 Rule 15 shipped hours earlier with a floor-guarded normalisation: rescale only

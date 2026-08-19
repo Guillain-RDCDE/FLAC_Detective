@@ -4,12 +4,12 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.11.1"
+__version__ = "1.11.2"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-08-15"
-__release_name__ = "Easy mode & Advanced mode"
+__release_date__ = "2026-08-19"
+__release_name__ = "One glossary correction taken, one rejected"
 
 # Metadata
 __author__ = "Guillain d'Erceville"

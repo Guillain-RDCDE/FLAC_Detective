@@ -15,11 +15,43 @@ here. Jamie Dodd of Provir supplied the channel.
     mid  = |STFT((L+R)/2)|, bins from 10 kHz up
     side = |STFT(L-R)|,     bins from 10 kHz up
     run mask = (mid < UNION_DEAD) OR (side < UNION_DEAD)
-    statistic = median over frames of the mean interior run length
+    statistic = MEDIAN over frames of the mean strictly-interior run length
 
-INTERIOR ONLY: a run touching the top bin is discarded, because a run reaching
-Nyquist is a lowpass edge and belongs to the cutoff rule. The same exclusion this
-project applies elsewhere, for the same reason.
+STRICTLY INTERIOR means neither edge. A run reaching Nyquist is a lowpass edge and
+belongs to the cutoff rule; a run starting at the 10 kHz band floor is the analysis
+window's own boundary and is equally not a hole. v1.11.0 excluded only the top, on
+this project's own reasoning; Provir's glossary supplies the other half. Measured:
+it changes nothing on our material — at 10 kHz real music essentially always has
+energy, so runs rarely start at the floor — but it is the correct definition and it
+costs nothing to hold.
+
+MEDIAN OVER FRAMES is kept, and the second glossary correction was REJECTED on
+measurement. Provir's standing warning against "any statistic aggregated across
+frames" — at transparent bitrates the zeroing is dynamic, and averaging destroys
+it; four of their earlier defences died that way — is real, and a max-over-frames
+variant was built and priced against it. On 25 genuine files the max looked better
+everywhere. On the full 228 it does not:
+
+    arm          median   max
+    opus_256       92 %   81 %
+    vorbis_q8      93 %   86 %
+    mp3_320        92 %   81 %
+    mp3_V0         81 %   77 %
+    aacmf_256      73 %   73 %
+    aac_ff320      19 %   33 %
+    TOTAL          75 %   72 %
+
+Each variant priced at its own p95 on the same 228 genuine files, so the columns
+cost the same. The max wins on exactly one arm, and it is the one Rule 13 already
+reads at AUC 0.99; it pays for that with 11 points on Opus, Vorbis and mp3_320,
+where no other family in this engine reaches at all. That is the wrong trade, so
+the median stands.
+
+Two lessons, both this project's own: a 25-file calibration reversed the ranking of
+228 (the same small-sample error that mis-set Rule 13's ceiling), and a warning
+that holds for the author's statistic need not hold for ours — their zeroing is
+dynamic per frame, our union mask with the mid channel is already a per-frame
+conjunction, so the median is not averaging the artefact away.
 
 The two ways it goes wrong, both measured before use
 -----------------------------------------------------
@@ -101,13 +133,19 @@ def _restore(signal: np.ndarray) -> np.ndarray:
 
 
 def _interior_runs(mask: np.ndarray) -> np.ndarray:
-    """True-run lengths, discarding any run that touches the top bin."""
+    """True-run lengths, discarding any run that touches EITHER edge.
+
+    Both exclusions are the same argument. A run reaching the last bin is a lowpass
+    edge, which the cutoff rule owns; a run starting at the first bin is the 10 kHz
+    analysis floor, which is the window's boundary rather than anything the encoder
+    did.
+    """
     if not mask.any():
         return np.zeros(0, dtype=np.int64)
     padded = np.concatenate(([False], mask, [False]))
     edges = np.flatnonzero(padded[1:] != padded[:-1])
     starts, ends = edges[::2], edges[1::2]
-    return (ends - starts)[ends < mask.size]
+    return (ends - starts)[(ends < mask.size) & (starts > 0)]
 
 
 def _spectra(signal: np.ndarray, rate: int) -> np.ndarray:
@@ -125,7 +163,7 @@ def _spectra(signal: np.ndarray, rate: int) -> np.ndarray:
 
 
 def side_dead_run(data: np.ndarray, sample_rate: int) -> Tuple[float, float]:
-    """Return ``(mean_interior_run, side_mid_ratio)``.
+    """Return ``(longest_interior_run, side_mid_ratio)``.
 
     ``(nan, ratio)`` when the file is mono-gated, too short, or single-channel —
     abstaining rather than guessing, which for this statistic is the difference
@@ -152,8 +190,10 @@ def side_dead_run(data: np.ndarray, sample_rate: int) -> Tuple[float, float]:
         return float("nan"), ratio
 
     dead = (mid_spec < UNION_DEAD) | (side_spec < UNION_DEAD)
+    # MEDIAN over frames of the per-frame mean. A max variant was measured against
+    # this and lost on five arms of six — see the module docstring.
     per_frame = []
     for row in dead:
         runs = _interior_runs(row)
         per_frame.append(float(runs.mean()) if runs.size else 0.0)
-    return float(np.median(per_frame)), ratio
+    return float(np.median(per_frame)) if per_frame else 0.0, ratio

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "1.11.1"
+version = "1.11.2"
 description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -204,7 +204,7 @@ disable = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "1.11.1"
+version = "1.11.2"
 tag_format = "v$version"
 update_changelog_on_bump = false
 version_files = [
