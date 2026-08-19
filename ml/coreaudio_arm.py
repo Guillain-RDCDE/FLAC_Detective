@@ -54,6 +54,11 @@ from flac_detective.analysis.new_scoring.mdct import best_alignment_stat  # noqa
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lattice_residual_probe import lattice_stat  # noqa: E402
 
+from flac_detective.analysis.new_scoring.stereo_image import (  # noqa: E402
+    side_dead_run,
+)
+from flac_detective.analysis.new_scoring.temporal import temporal_seam  # noqa: E402
+
 # Bitrates worth testing. 256k is the arm Jamie measured and the one that matters:
 # below ~192k the spectral rules convict on their own, so a transform statistic
 # that only worked there would be redundant.
@@ -156,7 +161,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
-            fh, fieldnames=["source", "arm", "ratio", "offset", "hypothesis", "lattice"]
+            fh,
+            fieldnames=[
+                "source", "arm", "ratio", "offset", "hypothesis", "lattice",
+                "temporal", "stereo",
+            ],
         )
         writer.writeheader()
         for index, src in enumerate(sources, 1):
@@ -197,11 +206,27 @@ def main(argv: Optional[List[str]] = None) -> int:
                         )
                     except Exception:
                         lattice = float("nan")
+                    # The two families added in v1.11. CoreAudio is the arm every
+                    # alignment-dependent observable failed on, so the question this
+                    # answers is whether either of the new ones reaches it.
+                    try:
+                        data, rate = read_excerpt(path)
+                        mono = data if data.ndim == 1 else np.mean(data, axis=1)
+                        temporal, _hz = temporal_seam(
+                            np.ascontiguousarray(mono, dtype=np.float32), rate
+                        )
+                        stereo, _ratio = side_dead_run(
+                            data if data.ndim > 1 else data[:, None], rate
+                        )
+                    except Exception:
+                        temporal = stereo = float("nan")
                     row = {"source": src.name, "arm": arm, "ratio": f"{ratio:.4f}",
                            "offset": offset, "hypothesis": hypothesis,
-                           "lattice": f"{lattice:.4f}"}
+                           "lattice": f"{lattice:.4f}", "temporal": f"{temporal:.4f}",
+                           "stereo": f"{stereo:.4f}"}
                     writer.writerow(row)
-                    rows.append({**row, "ratio": ratio, "lattice": lattice})
+                    rows.append({**row, "ratio": ratio, "lattice": lattice,
+                                 "temporal": temporal, "stereo": stereo})
                 fh.flush()
             print(f"  [{index}/{len(sources)}] {src.name}", flush=True)
 
@@ -239,10 +264,16 @@ def report(rows: List[dict]) -> None:
         lat_gen = np.array([r["lattice"] for r in rows if r["arm"] == "genuine"],
                            dtype=np.float64)
         lat_gen = lat_gen[np.isfinite(lat_gen)]
-        lat_txt = (f"  |  lattice median={np.median(lat):5.3f} "
-                   f"AUC={auc(lat, lat_gen):.3f}") if lat.size and lat_gen.size else ""
-        print(f"{arm:17} n={values.size:3d}  holes median={np.median(values):6.3f}  "
-              f"AUC={auc(values, genuine):.3f}{lat_txt}")
+        lat_txt = (f"  lattice={auc(lat, lat_gen):.2f}") if lat.size and lat_gen.size else ""
+
+        def _auc_of(field: str) -> str:
+            fake = np.array([r[field] for r in rows if r["arm"] == arm], dtype=np.float64)
+            gen = np.array([r[field] for r in rows if r["arm"] == "genuine"], dtype=np.float64)
+            fake, gen = fake[np.isfinite(fake)], gen[np.isfinite(gen)]
+            return f"  {field[:4]}={auc(fake, gen):.2f}" if fake.size and gen.size else ""
+
+        print(f"{arm:17} n={values.size:3d}  holes={auc(values, genuine):.2f}"
+              f"{lat_txt}{_auc_of('temporal')}{_auc_of('stereo')}")
     print(
         "\nReference points from the audit corpus, same statistic:\n"
         "  ffmpeg AAC      median 13.6-21.5   AUC 0.99\n"
