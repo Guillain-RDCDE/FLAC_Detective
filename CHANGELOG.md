@@ -1,3 +1,89 @@
+## v1.11.0 (2026-08-19) — two new evidence families, and neither of them scores
+
+v1.10 made conviction depend on two independent evidence families. This release
+adds two more sources without adding a single point, and the "without" is the
+whole design.
+
+### The problem with a good but noisy observable
+
+Jamie Dodd of Provir gave us the algorithm behind his `HF_SEAM` flag, and then the
+mechanism behind `DEAD_STRUCTURE`. Both are excellent where this engine was blind.
+Both are also kept **measurement-only** in his engine, for a reason he stated
+plainly: they fire on real music too, and his pipeline sends a flag straight to a
+verdict.
+
+Ours does not have to. This engine separates *how many points* from *how many
+sources*, so an independent-but-noisy observable can be held as a **witness** while
+contributing nothing to the total.
+
+The obvious wiring was measured before it was written, and it was wrong. Awarding a
+new family 25 points — just enough to clear `MIN_FAMILY_CONTRIBUTION` — produced
+**three new false convictions on 258 genuine files**: real recordings sitting at
+52, 38 and 31 spectral points were pushed past `CONVICTION_MIN_SCORE` by the
+appended points, then convicted by their own new second family. That is v1.10's
+defect one level up, in the points rather than in the witness count.
+
+So `POINTLESS_WITNESS_RULES` exists. A witness family can **complete** a
+corroboration for a file other evidence has already carried past the bar. It cannot
+move any file toward that bar.
+
+### Rule 14 — the temporal seam
+
+Not the level, the **temporal variability of each bin**. Genuine high frequencies
+are restless — cymbals, sibilants, bow noise, room. A regenerated or noise-filled
+band is stationary. The seam is the frequency where restlessness stops.
+
+AUC 0.89 on `mp3_320` and **0.84 on `opus_256`**, the arms where the hole family and
+the lattice family are both dead. And 0.47 on `aac_ff320`, which Rule 13 reads at
+0.99 — complementary, not better.
+
+### Rule 15 — the stereo image
+
+Not the spectrum, the **side channel**. Joint and intensity stereo quantise `L−R`
+toward zero above the coupling frequency and leave long contiguous holes there while
+the mid stays alive. Every other family in this engine reads a mono sum, so none of
+them can see it.
+
+**AUC 0.96 on Opus, Vorbis and `mp3_320`** — the strongest independent observable
+here, and it also gets into Apple CoreAudio, which had defeated everything: 128 kbps
+moves from 0.77 to **0.94** and 256 kbps from 0.65 to **0.80**.
+
+A mono file has no side channel, so every high bin is trivially dead and the
+statistic would be manufactured out of nothing. `MONO_GATE` returns silence — not a
+low score, because a low score is still an opinion — and **20 of our own 258 genuine
+files are mono-gated**.
+
+### Measured effect, same 800-file audit corpus
+
+| | v1.10 | v1.11 |
+|---|---|---|
+| **fakes convicted** | 171 | **267** (+56 %) |
+| **genuine convicted** | 0 | **0** |
+| fakes flagged | 49.3 % | 49.3 % |
+| genuine flagged | 1.2 % | 1.2 % |
+| `vorbis_q8` convicted | 21 | **46** |
+| `opus_256` convicted | 9 | **24** |
+| `aac_ff128` convicted | 9 | **24** |
+| `aac_ff320` convicted | 12 | **27** |
+| `mp3_320` / `mp3_V0` | 24 / 5 | 24 / 5 |
+
+The flag rates do not move, and that is the design rather than a disappointment: a
+zero-point witness cannot flag anything new. It only promotes files that independent
+evidence had already carried to the points bar and left stranded for want of a
+second source.
+
+The unchanged MP3 rows say the same thing from the other side. Both witnesses fire
+heavily there — stereo on 72–82 %, temporal on 45–72 % — and deliver nothing,
+because those files never reach the bar and no zero-point family can carry them
+there.
+
+### Still shut
+
+`mp3_320`, `mp3_V0` and CoreAudio at 320 kbps. All four observables read 0.50–0.58
+on the last of those; neither engine in this exchange has anything for it.
+
+---
+
 ## v1.10.1 (2026-08-18) — Read-only libraries, and a comment that finally tells the truth
 
 A user running flac-detective in a container, with the music mounted read-only,
