@@ -67,7 +67,45 @@ is exactly what the wild ledger's `basis` field exists for.
 
 Results are appended below this line AFTER the corpus run, never above it.
 --------------------------------------------------------------------------------
-(not yet run)
+MEASURED 2026-08-20, n = 354 (114 genuine + 40 per arm; 6 genuine skipped on
+sample rate). The predictions split, and the split is the finding:
+
+    arm         med R    AUC(-R)   fires at 5 % genuine cost
+    genuine      2.73       —                —
+    mp3_320      0.89      0.99         97.5 %   <- P3 HELD, spectacularly
+    mp3_V0       2.09      0.75         37.5 %
+    aac_ff320    3.10      0.43         10.0 %
+    aacmf_256    3.25      0.42          7.5 %
+    opus_256     3.15      0.40          2.5 %   <- P2 FAILED, below chance
+    vorbis_q8    2.93      0.46          7.5 %
+    (P4 held: zero abstention anywhere. P1 failed: three arms read ABOVE genuine.)
+
+    P2  FAILED — the reason the family was wanted is dead on this corpus: Opus
+        transcodes read FARTHER from the MP3 fixed point than genuine files do,
+        and so do AAC and Vorbis. The mechanism reading: the statistic measures
+        distance to the fixed point OF THE RE-ENCODING CODEC, not "lossy-ness".
+        Material already smoothed by a DIFFERENT codec is not near MP3's fixed
+        point — if anything it re-encodes less stably. The family is
+        CODEC-PAIRED, not universal.
+    P3  HELD at 0.99 — and 97.5 % of mp3_320 at 5 % genuine cost is the
+        strongest single-family figure this project has ever measured on that
+        arm (stereo 92 %, temporal 70 %). A per-codec battery (one roundtrip per
+        suspected codec) is the natural generalisation and is NOT built here.
+
+    DIVERGENCE TO REPORT: Provir quoted 67 % on Opus at 0 % genuine for their
+    MP3_IDEM. Ours reads 2.5 % on opus_256 at 5 % genuine cost, AUC below
+    chance. Different instrument (their dist, their bitrate ladder, their
+    corpus) — per the standing rule the numbers are not comparable until each
+    names its instrument, and this one now has: theirs is the open question.
+
+    NOT WIRED INTO THE ENGINE, deliberately, despite P3: (a) the family costs
+    two ffmpeg roundtrips per file (~15-20 s) and would make the shipped
+    package depend on a system ffmpeg binary it has never required; (b) the
+    conviction pipeline already reads mp3_320 through two independent witness
+    families, and the marginal catch has not been priced against that runtime
+    and dependency cost. It stays a measured instrument, like HF_SEAM was for
+    a month before it earned Rule 14's slot — candidacy is re-examined when the
+    per-codec battery question is settled.
 
 Usage::
 

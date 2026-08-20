@@ -120,6 +120,24 @@ safe.
 > the argued worst case; review-bar exceedance 1/855 = 0.12 %, hard bar 0 on both.
 > Both quantiles now ship in `mdct.py` (`CERTIFIED_GENUINE_ADMITTED_P999`).
 
+### MP3_IDEM measured: the Opus candidate dies, and an MP3-320 monster appears
+
+`ml/mp3_idem_probe.py`, from the fixed-point spec Provir supplied on 2026-08-19,
+predictions committed before the run (354 files, both instruments' traps
+honored: file-based encodes only, FFT correlation after the O(n²) direct method
+was caught by a hanging selftest). The predictions split: **P2 failed — the
+reason the family was wanted is dead here.** Opus transcodes read *farther* from
+the MP3 fixed point than genuine files (AUC 0.40, below chance), and AAC/Vorbis
+behave the same: the statistic measures distance to the fixed point *of the
+re-encoding codec*, so the family is codec-paired, not universal. **P3 held at
+AUC 0.99** — 97.5 % of mp3_320 at 5 % genuine cost, the strongest single-family
+figure ever measured on that arm. Reported to Provir as a divergence: their
+MP3_IDEM quotes 67 % on Opus, ours reads 2.5 % — instruments differ and are now
+both named. Not wired into the engine: two ffmpeg roundtrips per file and a new
+system-binary dependency have not been priced against a marginal catch on an arm
+two witness families already read. It stays a measured instrument, like HF_SEAM
+did before it earned Rule 14's slot.
+
 ### The claims harness: distrust stated practice, run before every release
 
 `ml/claims_audit.py` + `ml/claims_register.json` — Provir's automated
