@@ -1,0 +1,105 @@
+name: Musepack Arm
+
+# The axis this project claimed in its first exchange with Provir and never earned.
+#
+# What it had was 6/64 on a Musepack arm, which is the CNN's WARNING floor rather
+# than evidence of anything. Claiming an axis from a floor reads as a measurement
+# and is not one.
+#
+# It stayed unmeasured because mpcenc is not in winget, not in scoop, and not an
+# ffmpeg encoder — ffmpeg decodes Musepack SV7/SV8 and encodes neither. Getting it
+# on Windows means downloading a binary from a download page and running it, which
+# is a poor way to settle a measurement question.
+#
+# It is a Debian package. `musepack-tools` ships mpcenc and mpcdec, so this is the
+# same move as the CoreAudio arm: the encoder we cannot run locally becomes a job
+# on a free runner, installed from a distribution archive.
+#
+# Manual by design — it downloads sources from archive.org, so it runs when someone
+# asks for it, not on every push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "Number of genuine source files to fetch"
+        required: false
+        default: "24"
+      profiles:
+        description: "Space-separated mpcenc profiles"
+        required: false
+        default: "radio standard insane"
+
+permissions:
+  contents: read
+
+jobs:
+  musepack:
+    name: Build and measure the Musepack arm
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Musepack toolchain
+        run: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y musepack-tools
+          # No --version flag on either tool; the banner is what identifies the
+          # build, and it belongs in the log so a result can be tied to an encoder.
+          mpcenc 2>&1 | head -4 || true
+          mpcdec 2>&1 | head -4 || true
+          which mpcenc mpcdec
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # No torch: this job measures transform and stereo statistics, which are
+          # pure numpy/scipy. The CNN is what produced the 6/64 floor this arm
+          # exists to replace, so it plays no part in the question asked.
+          pip install -e .
+          pip install soundfile numpy scipy
+
+      - name: Fetch genuine sources (archive.org Live Music Archive)
+        run: |
+          python ml/fetch_wild_authentic.py \
+            --out musepack_sources \
+            --max-files "${{ github.event.inputs.files || 24 }}" \
+            --max-per-item 2 \
+            --max-mb 60
+          echo "fetched: $(ls -1 musepack_sources/*.flac 2>/dev/null | wc -l)"
+
+      - name: Build the arm and measure every family
+        run: |
+          python ml/musepack_arm.py \
+            --src musepack_sources \
+            --out musepack_arm.csv \
+            --profiles ${{ github.event.inputs.profiles || 'radio standard insane' }} \
+            | tee musepack_arm.log
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f musepack_arm.log ]; then
+            {
+              echo '## Musepack — what each family reads'
+              echo '```'
+              sed -n '/^=\{10,\}$/,$p' musepack_arm.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: musepack-arm
+          path: |
+            musepack_arm.csv
+            musepack_arm.log
+          if-no-files-found: warn
