@@ -25,12 +25,20 @@ not create a duplicate entry, holding:
 * where it came from, in the submitter's words;
 * every verdict this tool has ever produced for it, with the version that produced
   it — so a corpus built today still means something after the engine changes;
-* the human adjudication, its basis, and who made it.
+* the human adjudication, its basis, HOW THE FILE WAS SELECTED, and who made it.
 
 ``basis`` is the field that matters and the one worth being strict about. "It
 sounds bad" and "the tracker's staff trumped it as a transcode" are not the same
 evidence, and a corpus that does not record which one it had cannot be audited
 later. The accepted values are deliberately few.
+
+``selection`` is the field this ledger nearly failed to have, and it answers a
+different question: not how the file was *settled* but how it was *chosen*. Provir
+convicts 88 % of the fakes their author picked out by eye and 0 % of the ones he
+had to listen for. Those are not two scores, they are one instrument measured
+against the sense that chose its problem — and no basis field can reveal it,
+because the labels on both groups may be equally sound. Only the cross-tabulation
+shows it, so ``status`` prints it unasked.
 
 Deliberately NOT automated
 --------------------------
@@ -67,7 +75,39 @@ BASES = {
     "tracker_staff": "a private tracker's staff adjudicated it a transcode",
     "provenance_pair": "a verified-lossless copy of the same master exists and differs",
     "uploader_admission": "the uploader or distributor acknowledged the source",
+    "byte_identity": "byte-identical to a known lossy source",
     "listening": "adjudicated by ear, by someone who does this competently",
+    "spectrogram": "adjudicated by looking at a spectrogram",
+}
+
+# The bases that do NOT come from a human's eyes or ears. Only these are ground
+# truth for a spectral axis; the rest are circular against one by construction.
+#
+# `spectrogram` is listed at all because refusing to name it does not stop anyone
+# using it — it only forces them to mislabel it as `listening`, which is the same
+# corpus with the evidence hidden. Provir's ledger records 16 of 34 fakes settled
+# this way and 9 more by ear, leaving 6 referee-grade rows out of 34.
+REFEREE_BASES = frozenset({"tracker_staff", "provenance_pair", "uploader_admission",
+                           "byte_identity"})
+
+# How the file ENTERED the candidate pool — a different question from how it was
+# settled, and the one this ledger nearly failed to ask.
+#
+# Jamie Dodd's measurement is the reason it is here. On his corpus his engine
+# convicts 14 of 16 files he had picked out by eye (88 %) and 0 of 9 he had to
+# listen to (0 %). Those are not two performance figures: they are one instrument
+# scored against the sense that selected its problem. A label settled by provenance
+# is not circular — but if a human eye chose which files got a provenance check,
+# every statistic computed over the survivors still inherits that eye.
+#
+# A basis field alone cannot show this. Only the cross-tabulation can, which is why
+# `status` prints it whether or not anyone asks.
+SELECTIONS = {
+    "systematic": "every file in a defined set was submitted, with no human triage",
+    "reported": "someone else flagged it — tracker report, forum thread, complaint",
+    "detector": "this tool flagged it (records the loop; never a label)",
+    "human_eye": "a human picked it out of a larger pool by looking",
+    "human_ear": "a human picked it out of a larger pool by listening",
 }
 
 LABELS = ("fake", "genuine", "undecided")
@@ -124,6 +164,7 @@ def cmd_add(args: argparse.Namespace) -> int:
                 "source": args.source,
                 "added": _now(),
                 "adjudication": {"label": "undecided", "basis": None,
+                                 "selection": None, "referee": False,
                                  "by": None, "at": None, "note": None},
                 "verdicts": [],
             }
@@ -170,10 +211,22 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
     if args.basis and args.basis not in BASES:
         print(f"unknown basis {args.basis!r}. Accepted: {', '.join(BASES)}")
         return 1
+    # Selection is required for every decided label, not just 'fake'. A genuine
+    # label chosen by eye biases a spectral axis exactly as hard, in the other
+    # direction, and the ledger is empty so there is no legacy row to grandfather.
+    if args.label in ("fake", "genuine") and args.selection is None:
+        print("a decided label needs --selection: how did this file enter the pool?\n  "
+              + "\n  ".join(f"{k}: {v}" for k, v in SELECTIONS.items())
+              + "\n\nThis is not the same question as --basis. Basis says how it was "
+                "settled;\nselection says how it was chosen, and the choosing is what "
+                "biases any\nstatistic computed over the survivors.")
+        return 1
 
     records[key]["adjudication"] = {
         "label": args.label,
         "basis": args.basis,
+        "selection": args.selection,
+        "referee": args.basis in REFEREE_BASES,
         "by": args.by or getpass.getuser(),
         "at": _now(),
         "note": args.note,
@@ -182,6 +235,39 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
     print(f"{records[key]['filename']} -> {args.label}"
           + (f" ({args.basis})" if args.basis else ""))
     return 0
+
+
+def _print_selection_breakdown(fakes: List[dict], rate) -> None:
+    """The split that gets printed whether or not anyone asks for it.
+
+    A single headline conviction rate averages the population a human eye picked out
+    with the population it could not, and the average is meaningless. That is
+    Provir's 88 % / 0 % measurement, and their headline number carried exactly this
+    defect until they broke it out. A number nobody breaks out is a number nobody can
+    see is wrong — so this is not an option or a verbose flag.
+    """
+    if not fakes:
+        return
+    referee = [r for r in fakes if r["adjudication"].get("referee")]
+    eyeball = [r for r in fakes
+               if r["adjudication"].get("selection") in ("human_eye", "human_ear")]
+
+    print("\n  BROKEN OUT — the headline above averages these and means little:")
+    print(f"    referee-grade labels only  {rate(referee, lambda v: v == 'FAKE_CERTAIN')}"
+          "   <- the only rows valid for a spectral axis")
+    for selection in sorted(SELECTIONS):
+        rows = [r for r in fakes if r["adjudication"].get("selection") == selection]
+        if rows:
+            print(f"    selected by {selection:12} "
+                  f"{rate(rows, lambda v: v == 'FAKE_CERTAIN')}")
+
+    if len(eyeball) == len(fakes):
+        print("\n  WARNING: every fake here was chosen by a human's eyes or ears. Any")
+        print("  band-edge measure scored on this corpus is scored against the sense")
+        print("  that selected it, and will read better than it is.")
+    if not referee:
+        print("\n  WARNING: no referee-grade label in the corpus. Nothing here is ground")
+        print("  truth for a spectral axis yet.")
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -223,9 +309,13 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(f"  wild fakes convicted   {rate(fakes, lambda v: v == 'FAKE_CERTAIN')}")
     print(f"  genuine wrongly convicted "
           f"{rate(genuine, lambda v: v == 'FAKE_CERTAIN')}")
+
+    _print_selection_breakdown(fakes, rate)
+
     if len(fakes) < 30:
         print(f"\n  n={len(fakes)} fakes is too few to quote publicly. Provir's wild "
-              "row is 53.")
+              "row is 53 — of which only 6 are referee-grade, so the honest target is "
+              "referee rows, not files.")
     return 0
 
 
@@ -236,7 +326,8 @@ def cmd_export(args: argparse.Namespace) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=[
-            "sha256", "label", "basis", "verdict", "score", "families", "version"])
+            "sha256", "label", "basis", "referee", "selection",
+            "verdict", "score", "families", "version"])
         writer.writeheader()
         for record in sorted(rows, key=lambda r: r["sha256"]):
             last = record["verdicts"][-1] if record["verdicts"] else {}
@@ -244,6 +335,8 @@ def cmd_export(args: argparse.Namespace) -> int:
                 "sha256": record["sha256"],
                 "label": record["adjudication"]["label"],
                 "basis": record["adjudication"]["basis"] or "",
+                "referee": int(bool(record["adjudication"].get("referee"))),
+                "selection": record["adjudication"].get("selection") or "",
                 "verdict": last.get("verdict", ""),
                 "score": last.get("score", ""),
                 "families": "+".join(last.get("families", [])),
@@ -269,6 +362,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     adj.add_argument("sha", help="sha256 prefix")
     adj.add_argument("--label", required=True, choices=LABELS)
     adj.add_argument("--basis", choices=sorted(BASES))
+    adj.add_argument("--selection", choices=sorted(SELECTIONS),
+                     help="how the file entered the pool — NOT how it was settled")
     adj.add_argument("--by")
     adj.add_argument("--note")
     adj.set_defaults(func=cmd_adjudicate)
