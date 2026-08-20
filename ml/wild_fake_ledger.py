@@ -46,6 +46,36 @@ The engine's own verdict is recorded but never becomes the label. A corpus label
 by the detector under test measures nothing except its own self-consistency, which
 is the oldest way to produce a confident wrong number.
 
+First stress-test: Provir's wild53 ledger (2026-08-20), and the three gaps it found
+------------------------------------------------------------------------------------
+Jamie Dodd sent his 53 wild files as a feature ledger — labels, bases, dates, no
+audio (archived in ``ml/exchange/``). He framed it as "a test of your taxonomy,
+never a shared benchmark", and the schema failed it three ways before a single
+row was entered:
+
+1. **No basis could express his strongest tier.** 34 of 53 are "owner-knowledge":
+   the physical owner of the release attests its source — no instrument, no eyes,
+   no ears. That is referee-grade for a spectral axis and this file had no name
+   for it. Added: ``owner_attestation``.
+2. **No way to record a ruling made by extension.** His CD3 tier examined 5 tracks
+   and ruled 19 — the panel covered the hardest cases and the ruling was extended
+   to the disc. An adjudication's SCOPE (this file vs a group it belongs to) is a
+   separate fact from its basis, and a corpus that cannot record it will silently
+   present 19 rulings as 19 examinations. Added: ``--scope group`` requiring a
+   note that says what was actually examined.
+3. **Selection is a pipeline, not a value.** His CD3 files were chosen by a metric
+   and settled by an eye — ``detector`` then ``human_eye``. A single-valued field
+   forces a lie either way (the earlier lesson "bases must be a set, not a single
+   value", arriving on the other field). Accepted now: ``+``-chained selections,
+   each link validated, and the cross-tabulation treats a chain as tainted by its
+   most sensory link.
+
+And one thing the failure was RIGHT about, kept deliberately: the ledger is keyed
+by the audio's sha256, so **a file whose bytes we do not hold cannot enter it**.
+His ledger ships with empty hash fields and he names that as its real gap — a
+ledger without byte identity cannot prove two parties measured the same thing.
+The 53 stay archived as HIS ledger in ``ml/exchange/``, not imported as rows here.
+
 Usage::
 
     python ml/wild_fake_ledger.py add <path>... --source "c411, 2026-08, 'lossless' rip"
@@ -76,6 +106,8 @@ BASES = {
     "provenance_pair": "a verified-lossless copy of the same master exists and differs",
     "uploader_admission": "the uploader or distributor acknowledged the source",
     "byte_identity": "byte-identical to a known lossy source",
+    "owner_attestation": "the release's physical owner attests its source from "
+                         "knowledge and ownership, no instrument involved",
     "listening": "adjudicated by ear, by someone who does this competently",
     "spectrogram": "adjudicated by looking at a spectrogram",
 }
@@ -88,7 +120,7 @@ BASES = {
 # corpus with the evidence hidden. Provir's ledger records 16 of 34 fakes settled
 # this way and 9 more by ear, leaving 6 referee-grade rows out of 34.
 REFEREE_BASES = frozenset({"tracker_staff", "provenance_pair", "uploader_admission",
-                           "byte_identity"})
+                           "byte_identity", "owner_attestation"})
 
 # How the file ENTERED the candidate pool — a different question from how it was
 # settled, and the one this ledger nearly failed to ask.
@@ -219,13 +251,32 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
               + "\n  ".join(f"{k}: {v}" for k, v in SELECTIONS.items())
               + "\n\nThis is not the same question as --basis. Basis says how it was "
                 "settled;\nselection says how it was chosen, and the choosing is what "
-                "biases any\nstatistic computed over the survivors.")
+                "biases any\nstatistic computed over the survivors.\n\nA pipeline is "
+                "written with '+': a metric shortlisted and an eye ruled is\n"
+                "'detector+human_eye' (Provir's CD3 tier).")
+        return 1
+    # A selection may be a pipeline — validate every link, not the joined string.
+    if args.selection is not None:
+        links = args.selection.split("+")
+        bad = [link for link in links if link not in SELECTIONS]
+        if bad:
+            print(f"unknown selection link(s) {bad}. Accepted links: "
+                  f"{', '.join(sorted(SELECTIONS))}, chained with '+'.")
+            return 1
+    # Scope: was THIS file examined, or does its ruling extend from a group?
+    # Provir's CD3 examined 5 tracks and ruled 19; a ledger that cannot say so
+    # presents 19 rulings as 19 examinations.
+    if args.scope == "group" and not args.note:
+        print("a group-scope ruling needs --note saying what was actually examined "
+              "and how far the ruling was extended (e.g. '5 of 19 tracks examined, "
+              "one master per disc').")
         return 1
 
     records[key]["adjudication"] = {
         "label": args.label,
         "basis": args.basis,
         "selection": args.selection,
+        "scope": args.scope,
         "referee": args.basis in REFEREE_BASES,
         "by": args.by or getpass.getuser(),
         "at": _now(),
@@ -248,15 +299,20 @@ def _print_selection_breakdown(fakes: List[dict], rate) -> None:
     """
     if not fakes:
         return
+
+    def links(row: dict) -> frozenset:
+        """A selection chain's links — a chain is tainted by its most sensory link."""
+        raw = row["adjudication"].get("selection") or ""
+        return frozenset(raw.split("+")) if raw else frozenset()
+
     referee = [r for r in fakes if r["adjudication"].get("referee")]
-    eyeball = [r for r in fakes
-               if r["adjudication"].get("selection") in ("human_eye", "human_ear")]
+    eyeball = [r for r in fakes if links(r) & {"human_eye", "human_ear"}]
 
     print("\n  BROKEN OUT — the headline above averages these and means little:")
     print(f"    referee-grade labels only  {rate(referee, lambda v: v == 'FAKE_CERTAIN')}"
           "   <- the only rows valid for a spectral axis")
     for selection in sorted(SELECTIONS):
-        rows = [r for r in fakes if r["adjudication"].get("selection") == selection]
+        rows = [r for r in fakes if selection in links(r)]
         if rows:
             print(f"    selected by {selection:12} "
                   f"{rate(rows, lambda v: v == 'FAKE_CERTAIN')}")
@@ -326,7 +382,7 @@ def cmd_export(args: argparse.Namespace) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=[
-            "sha256", "label", "basis", "referee", "selection",
+            "sha256", "label", "basis", "referee", "selection", "scope",
             "verdict", "score", "families", "version"])
         writer.writeheader()
         for record in sorted(rows, key=lambda r: r["sha256"]):
@@ -337,6 +393,7 @@ def cmd_export(args: argparse.Namespace) -> int:
                 "basis": record["adjudication"]["basis"] or "",
                 "referee": int(bool(record["adjudication"].get("referee"))),
                 "selection": record["adjudication"].get("selection") or "",
+                "scope": record["adjudication"].get("scope") or "file",
                 "verdict": last.get("verdict", ""),
                 "score": last.get("score", ""),
                 "families": "+".join(last.get("families", [])),
@@ -362,8 +419,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     adj.add_argument("sha", help="sha256 prefix")
     adj.add_argument("--label", required=True, choices=LABELS)
     adj.add_argument("--basis", choices=sorted(BASES))
-    adj.add_argument("--selection", choices=sorted(SELECTIONS),
-                     help="how the file entered the pool — NOT how it was settled")
+    adj.add_argument("--selection",
+                     help="how the file entered the pool — NOT how it was settled. "
+                          "A pipeline chains with '+', e.g. detector+human_eye")
+    adj.add_argument("--scope", choices=("file", "group"), default="file",
+                     help="was THIS file examined, or does the ruling extend from "
+                          "a group? group requires --note")
     adj.add_argument("--by")
     adj.add_argument("--note")
     adj.set_defaults(func=cmd_adjudicate)

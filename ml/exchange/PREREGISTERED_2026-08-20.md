@@ -188,3 +188,45 @@ the whole exercise.
 
 *Still no result section. Its absence remains the evidence that this document
 precedes the data.*
+
+---
+
+# AMENDMENT 2 — 2026-08-20, after a delivery that is not the pre-registered population
+
+Appended, not edited. The 53 arrived — as `provir-wild53-feature-ledger.csv` and
+`provir-wild53-note.txt` in this directory (receipt sha256 `2345a7baac8e666d…` and
+`a19f0bdf51a24048…`) — and **this pre-registration cannot be scored against them.**
+Recording why, before anyone is tempted to score it against something adjacent.
+
+## What was delivered vs what was registered
+
+The delivery is a **feature ledger, no audio, no byte-binding** (every sha field
+empty — his own note names that gap). Scoring protocol step 1 ("hash every file on
+arrival") cannot run, and neither can the engine.
+
+The delivered basis taxonomy is **not the one this document predicted on**: 53
+tracks of one commercial compilation (three DJ-mix discs, one master per disc),
+split `owner-knowledge` 34 (CD1+CD2) + `eye` 19 (CD3). The tiers P1–P4 and P6 are
+written against — `ear+eye` (9), `owner-eye` (16), the 6 referee-grade rows — do
+not appear in the delivered ledger at all, and every row is ruled lossy, so P5's
+population (referee-grade *genuine* rows) does not exist here either. Whether the
+earlier 34-file taxonomy is a different cut of these same discs or a different set
+entirely is not decidable from what we hold, and has been asked.
+
+## Status: unspent, not scored, not voided
+
+P1–P6 remain registered and unscored. They spend only when (a) audio arrives with
+hashes, and (b) rows exist carrying the tiers they name. A prediction scored
+against an adjacent population is worse than one never scored.
+
+## What the delivery DID test — the thing he said it would
+
+"A test of your taxonomy, never a shared benchmark." The schema failed three ways
+before a single row was entered, all three now repaired and pinned by
+`tests/test_wild_fake_ledger.py`: no basis for an owner's attestation
+(`owner_attestation` added, referee-grade), no way to record a ruling made **by
+extension** (CD3: 5 tracks examined, 19 ruled — `scope=group` added, note
+required), and no way to record a selection **pipeline** (CD3: a metric shortlisted
+and an eye ruled — `+`-chained selections added, a chain tainted by its most
+sensory link). His CD3 circularity warning is honored as written: the 19 eye rows
+are selection evidence for any band-edge statistic, never ground truth.

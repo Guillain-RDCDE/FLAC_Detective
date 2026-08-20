@@ -143,6 +143,26 @@ forbids, bounded by his two-group corroboration to a review flag. The measured
 flip rate on the whole fire predicate DID NOT ARRIVE: his message shipped with
 the result placeholder unfilled, and the number is still owed.
 
+ARRIVED 2026-08-20, hours later, with the scaffolding acknowledged. The fire
+decision is stable under each file's own anchor uncertainty on 15 of 16
+admissible recordings; the single exception fires in 99 % of resamples — a
+file that fires almost always, not a coin flip. So our "probably" holds. The
+flat +-160 Hz sweep reads 11/16 unstable, and the gap between the two lines is
+the real lesson: 160 is the ADMISSION LIMIT on the spread of per-chunk edges,
+while the anchor is their MEDIAN, whose uncertainty is far tighter — he had
+been quoting the admission limit as though it were the error bar. En route he
+caught two near-misses, both this week's species: 37 rows were 22 recordings
+(~40 % duplication, same audio under different filenames — the
+599-that-were-589 arriving by a THIRD route in three days), and his own
+remeasurement refused 6 of the 22 the source CSV had admitted, one of them by
+5.2 Hz against the window boundary ("at the margin a file's admissibility is
+decided by a quantity that itself moves with the window you measure it in").
+His volunteered limits: it is a within-window result (head 90 s vs the
+engine's spliced head+tail draw — 8 rows changed regime entirely between
+windows, his next fix), most of the surviving n is quarantined drive material
+so it does not bound lawful false positives, and the two lawful masters at
+700/723 Hz remain open. Bounded is still not absent.
+
 Usage::
 
     python ml/edge_width_selfanchored_probe.py --selftest   # synthetic knowns

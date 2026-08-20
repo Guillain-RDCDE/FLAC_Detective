@@ -72,6 +72,18 @@ against the anchor; two lawful masters at 700/723 Hz within reach of being pushe
 *into* firing — the direction his first rule forbids, bounded by his two-group
 corroboration to a review flag). The number is still owed and has been asked for.
 
+> **Arrived hours later.** Fire decision stable under each file's own anchor
+> uncertainty on **15 of 16** admissible recordings; the exception fires in 99 %
+> of resamples. The flat ±160 Hz sweep reads 11/16 — and the gap is the lesson:
+> 160 is the admission limit on the *spread* of per-chunk edges, the anchor is
+> their *median*, and he had been quoting the admission limit as the error bar.
+> En route, two near-misses of this week's species, caught by him: 37 rows were
+> 22 recordings (~40 % filename duplication — the 599-that-were-589 by a third
+> route), and his own remeasurement refused 6 of the 22 the source CSV admitted,
+> one by 5.2 Hz against the window boundary. His volunteered limits: within-window
+> result (8 rows change regime between his two windows — his next fix), n mostly
+> quarantined drive material, and the 700/723 pair stays open.
+
 His LAME register, hashed the same afternoon, joins with our r495-vs-r475 into
 one rule: **banner, source revision and build date are three independent axes,
 and a version string pins none of them** — eleven binaries, nine distinct

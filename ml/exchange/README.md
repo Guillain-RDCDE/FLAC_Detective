@@ -214,3 +214,25 @@ With this, the recreation leg of the exhibit is reproducible by anyone holding a
 binary matching that hash. Joint rule this produced, from his register plus our
 r495-vs-r475 Musepack finding: banner, source revision and build date are three
 independent axes, and a version string pins none of them.
+
+## The wild53 feature ledger — received 2026-08-20 (late)
+
+His 53 wild files, as a per-file feature ledger with labels, bases and dates — no
+audio, and every sha field empty (his note names that as the ledger's real gap).
+One commercial compilation (Original Hardcore: The Nu Breed, 2004), three DJ-mix
+discs, owner ruling lossy on all 53; bases owner-knowledge 34 / eye 19; his engine
+41 GENUINE / 12 SUSPECT, 0 convictable in every configuration, with the CNN column
+included precisely because it shows a 77 % dependency on a component he bars from
+published claims. The note also carries his withdrawal of the 634 lawful
+denominator (no ledger, no producing script - only withdrawable) - checked on our
+side: nothing in this repository ever cited 634 or the 0.16 % figure.
+
+```
+2345a7baac8e666d...  provir-wild53-feature-ledger.csv
+a19f0bdf51a24048...  provir-wild53-note.txt
+```
+
+What it changed here: three schema repairs in ml/wild_fake_ledger.py (see its
+docstring and tests/test_wild_fake_ledger.py) and AMENDMENT 2 of
+PREREGISTERED_2026-08-20.md - the pre-registration stays unspent, because this
+delivery does not carry the population it names.

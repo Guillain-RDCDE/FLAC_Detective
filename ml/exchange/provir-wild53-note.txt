@@ -1,0 +1,85 @@
+Guillain —
+
+The 53, as a feature ledger. CSV attached: per-file metrics, our labels, adjudication basis and date, no audio. Three things in it need saying out loud before you score anything against it, and one of them runs against us.
+
+What they are. 53 tracks, one commercial compilation — Original Hardcore: The Nu Breed (2004) — across three discs: CD1 Darren Styles (17), CD2 Dougal (17), CD3 Dougal and Styles (19). Owner ruling on all 53 is lossy, 320 kb/s MP3 sourced. They are continuous DJ mix CDs, one master per disc, which is why a disc-level source ruling is coherent here in a way it would not be for a multi-artist compilation.
+
+The basis taxonomy, which is the part you wanted to test. Two tiers, and they are not equal:
+
+    owner-knowledge   34 files   CD1 + CD2   ruled 2026-08-03, reaffirmed 2026-08-13
+    eye               19 files   CD3         ruled 2026-08-13
+
+The 34 are the owner's knowledge of the release plus physical ownership of the disc — "I own the CD, that is 320kb/s mp3 sourced". No detector was involved at any point. This is the project's only owner-attested wild 320 kb/s source.
+
+The 19 are the eye, deliberately and with the reason recorded: CD1+CD2 are the positive class that scores detectors, so a metric-driven relabel of CD3 would have made every future score on the enlarged class self-referential. A metric chose which tracks to look at — the five CD3 tracks least like the 320 set, i.e. the hardest cases — and the owner ruled on the picture.
+
+⛔ Two limits on that second tier, both of which weaken it. First, five tracks were examined and nineteen were ruled: the panel covered CD3's hardest cases and the ruling was extended to the disc. Second, and more important for you: what the panel showed was a hard ~20 kHz edge. So any band-edge statistic scored against those 19 is circular by construction — the edge is what put them in the class.
+
+⭐ And here is the part that runs against us, which is why the ledger is worth having. If that circularity were inflating our agreement, the engine should do best on the eye-ruled disc. It does the opposite:
+
+    SUSPECT on the shipped engine, by basis    owner-knowledge  11 of 34   (32%)
+                                               eye               1 of 19   (5%)
+
+We agree least where the labels were set by the axis we measure. CD3 is early-90s old-skool material that carries less HF to begin with — lower sharpness, 36-43 dB against 48-49 on the ruled 320s — and it sits in a sparse/quiet class our detector is independently weak on. So the circularity risk is real in principle and does not appear to be paying us anything in practice. Test it yourself; the column is there for exactly that.
+
+Our labels. On the shipped engine: 41 GENUINE, 12 SUSPECT, 0 convictable.
+
+The CSV carries four verdict columns and you should know why before you use them:
+
+    verdict_shipped        41 GENUINE / 12 SUSPECT     <- the one to score
+    verdict_nocnn          41 GENUINE / 12 SUSPECT
+    verdict_cnn             0 GENUINE / 53 SUSPECT     <- EXCLUDED, see below
+    verdict_latticeless    identical to shipped on all 53
+
+⛔ Do not use verdict_cnn, and I am giving it to you rather than hiding it. With the CNN live all 53 read SUSPECT; 41 of 53 flip when it is removed, every flip in the same direction. So 77% of that headline is one component — and it is a component we bar from published claims, because its training set was 51% a single unverified group and it carries a 14.5% out-of-distribution doubt on the genuine class. A number that is three-quarters produced by a barred component is not a result. The column is in the CSV so you can see the size of the dependency, not so it can be scored.
+
+⭐ What survives that, and it is the half worth having: 0 convictable holds in every reading. CNN or no CNN, lattice or no lattice, no file in the 53 reaches a conviction verdict. That claim was never CNN-dependent.
+
+⚠ verdict_latticeless is identical to verdict_shipped on all 53, so the AAC lattice contributes nothing on this population and the 53 are not evidence about it in either direction.
+
+The flags column is busier than it looks and most of it is not evidence. All 53 carry at least one flag while only 12 read SUSPECT, which will look strange unless you know the families:
+
+    AI_FALLBACK              53   not a detection — it records that the CNN was absent
+    DEADRUN_UNCORROBORATED   22   telemetry: a rung that applied and explicitly DECLINED to fire
+    BRICKWALL_20K            12   retired from the evidence path 2026-07-21
+    DEAD_STRUCTURE           10
+    HF_SEAM                   6   retired from the evidence path 2026-07-21
+    LOSSY_SRC                 2
+    FAKE_STEREO               1
+
+BRICKWALL and HF_SEAM were retired for 46 false positives and zero unique catches, on the rule that a flag which cannot convict on its own must never be the corroboration that licenses a conviction. They are emitted and not counted. If you score against the flag column without that, you will be scoring three families we deliberately do not use.
+
+⚠ What the ledger cannot give you: none of the 53 carry a byte-binding. The sha256 and pcm_sha256 fields are empty for all of them, so you cannot verify you hold the same audio I measured. That is a real gap in a ledger whose whole purpose is that it carries no audio, and I would rather state it than let you discover it.
+
+Withdrawal: the 634 lawful denominator
+
+This belongs here rather than in its own message, and it is owed on the same terms I asked you to check your own ledger by.
+
+The lawful denominator in the head-to-head documents is 634. I cannot reproduce it. Not "it moved" — I cannot produce it at all. A row-count search over every .jsonl and .csv in the project for {631, 634, 646, 623, 868, 1657} returns exactly one file, and it has 623 rows. Nothing anywhere has 634 and no script emits it. It was computed in a session and survives only as prose, in a document I sent you.
+
+That is a different failure from the one I would have expected. Another denominator of ours moved from 656 to 646 last week and closed cleanly: it had a ledger, it had a producing script, and the ten-file difference turned out to be ten owner rulings made after the number was written — stale, arithmetic exact, repairable. This one has no ledger and no script, so it cannot be shown stale, corrected or defended. Only withdrawn.
+
+Withdrawn, therefore, from both documents:
+
+    10 fires in 634 (1.6%)      detection tier, lawful side
+    1 confirmed false positive  0.16%
+    0 in 634                    conviction tier, lawful side
+
+And the 0.16% was wrong in a second, independent way that matters more. Eight of those ten fires were never adjudicated. So the confirmed-false-positive count is bounded between 1 and 9, not 1 — up to 1.42% rather than 0.16%. Read as written, that sentence understates our own false-positive exposure by up to a factor of nine, in our favour. v2.1 at least quoted the 10 alongside; v2 gave you the 0.16% almost bare, which is precisely the asymmetry I later told you never to permit.
+
+What is not withdrawn, and the boundary matters. Making the accounting symmetric — pairing recall with the lawful-side cost — was the right correction and remains our position. What failed is the denominator that correction reached for, not the reason for reaching. The recall figure, 50/53, stands: its population reproduces in four independent ledgers. But it must not be quoted on its own, because alone it is exactly the asymmetry the symmetric version was written to fix.
+
+How it was found, since the method is more useful than the correction. I set an automated pass over my own repository to extract the discipline behind our claims, and told it to distrust stated practice on principle rather than on suspicion. It came back with a contradiction list and the figures I had sent you were on it. Nobody was checking that number, because nobody had reason to doubt it.
+
+Two others from the same pass, both about us:
+
+- Our public page opened by claiming every published number is re-derived by an automated harness.
+It asserts 14 field values across 5 claim groups; the page carries 33 bolded figures. Corrected.
+- The page described your replication row as "hash-pinned, and the harness reports it that way".
+Our harness has no group for it — it is your measurement on your corpus with your labels, which is what makes it worth showing and why we cannot re-derive it. Claiming a verification status over your work was the wrong kind of error for us to make, and it is fixed.
+
+If you have already scored anything against the 634 figures, that scoring is void on our side, not yours. Say what you need re-derived and it will come with the ledger it came out of, or it will not come.
+
+And the caveat you gave us, restated in our words because it should not only be yours: a scoring set supplied by one party to a comparison is not evidence that the comparison was fair. All 53 are one release and one encoder chain. Whatever you get from this is a test of your taxonomy, never a shared benchmark.
+
+— Jamie
