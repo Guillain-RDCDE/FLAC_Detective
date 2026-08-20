@@ -251,7 +251,20 @@ CERTIFIED_HYPOTHESIS_COUNT = 2
 # over a finite sample is a lower bound on the population max and cannot be
 # extrapolated; a high quantile can. This is what Jamie proposed, arrived at from
 # his own permutation nulls walking as N grew.
+#
+# ADMISSION PASS 2026-08-20 (ml/recert_admission_pass.py, ml/recert_admission.csv):
+# the 877 above were measured with no cutoff filter, while should_run_rule_13
+# refuses anything under 18 kHz — the week's species, "a statistic computed
+# across a population the rule cannot read". Measured rather than argued:
+# 22/877 certified files (2.5 %) sit under the floor, and the ADMITTED
+# population reads median 1.269 · p99 1.447 · p99.9 1.634 · max 2.418. The
+# review bar keeps 22 % clearance over the admitted p99.9 (was quoted as 24 %
+# over the all-certified one); measured exceedance 1/855 = 0.12 %
+# (all-certified: 1/877 = 0.11 %); hard-bar exceedance zero on both. No
+# constant moves — but the next recalibration starts from the admitted
+# population, and quotes both.
 CERTIFIED_GENUINE_P999 = 1.614
+CERTIFIED_GENUINE_ADMITTED_P999 = 1.634
 CERTIFIED_GENUINE_MAX = 2.418
 
 # Measured exceedance of RATIO_REVIEW on that corpus: 1/877 = 0.11 %

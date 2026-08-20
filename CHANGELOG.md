@@ -113,6 +113,38 @@ both quantiles. Standing rule adopted: a calibration is computed under the
 admission conditions of the rule that consumes it, or states why the superset is
 safe.
 
+> **Measured the same day** (`ml/recert_admission_pass.py` + committed
+> `ml/recert_admission.csv`, hashes only): 22/877 certified files (2.5 %) sit
+> under the 18 kHz floor — the library is less band-limited than the wild corpus.
+> Admitted-only p99.9 = **1.634** vs the published all-certified 1.614, inside
+> the argued worst case; review-bar exceedance 1/855 = 0.12 %, hard bar 0 on both.
+> Both quantiles now ship in `mdct.py` (`CERTIFIED_GENUINE_ADMITTED_P999`).
+
+### The claims harness: distrust stated practice, run before every release
+
+`ml/claims_audit.py` + `ml/claims_register.json` — Provir's automated
+self-distrust pass, rebuilt here: it inventories every bolded numeric claim in
+the public pages (README + docs site), verifies each registered claim's pattern
+still exists in its stated file, and checks its evidence (committed artifact,
+machine-checked JSON count, or a rule-count check that greps
+`def apply_rule_N`). First run, first contradictions, both fixed: **README said
+"10 heuristic rules" and technical-details said "11" while the code defines 12**
+(plus the optional CNN), and `docs/index.md` still announced **"Version: 1.4.0 |
+Last Updated: June 2026"** — an unvalidated field beside validated ones, the
+`__release_date__` class of defect; the line is deleted rather than hand-fixed.
+7 claims registered and machine-verified, 51 inventoried as unverifiable
+backlog — a report, not a failure; the register grows toward the prose release
+by release.
+
+### Content-level dedup where exchange sources are picked
+
+The 599-that-were-589 repair, at the site of the original defect:
+`pick_sources_from_dir` now fingerprints 30 s of decoded PCM (mono s16le,
+container-invariant) and refuses a second item carrying the same audio —
+`audit_own_output` only catches byte-identical twins after the fact.
+`tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
+track under two etree item names) and pins that it collapses.
+
 ### The Musepack arm, re-run with provenance and an off-grid edge
 
 Provir's BUILD.md lesson applied to our own fixture generator: the workflow now

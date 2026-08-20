@@ -148,6 +148,7 @@ ml/score_distribution.csv
 ml/nearnyq_residual.csv
 ml/edge_width.csv
 ml/edge_width_selfanchored.csv
+ml/mp3_idem.csv
 ml/scoredist.err
 ml/scoredist.log
 

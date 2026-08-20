@@ -84,5 +84,4 @@ FLAC Detective is released under the MIT License.
 
 ---
 
-**Version**: 1.4.0 | **Last Updated**: June 2026
 </content>

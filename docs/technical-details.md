@@ -51,7 +51,7 @@ Deep dive into FLAC Detective's architecture, detection algorithms, and rule sys
                                    ▼
  ┌──────────────────────────────────────────────────────────────┐
  │  Scoring engine     (new_scoring/calculator.py)              │
- │  11 heuristic rules + optional CNN (Rule 12) → 0–150 pts     │
+ │  12 heuristic rules + optional CNN (Rule 12) → 0–150 pts     │
  │  phased execution with gates & short-circuits — see below    │
  └────────────────────────────────┬─────────────────────────────┘
                                    ▼
@@ -123,7 +123,7 @@ cutoff_freq = detect_cutoff(magnitude, frequencies)
 
 #### 5. Scoring Engine (`flac_detective/analysis/new_scoring/`)
 
-Strategy pattern implementation with 11 heuristic rules plus an optional 12th (the CNN).
+Strategy pattern implementation with 12 heuristic rules plus an optional CNN (Rule 12).
 
 **Structure**:
 ```
@@ -253,8 +253,8 @@ There are two entry points to the same lossless machinery:
 
 ## Detection Rules
 
-FLAC Detective uses **11 heuristic rules** with **additive scoring** (0–150 points), plus
-an **optional 12th rule** (a CNN, enabled with the `[ml]` extra — see Rule 12 below).
+FLAC Detective uses **12 heuristic rules** with **additive scoring** (0–150 points), plus
+an **optional CNN rule** (Rule 12, enabled with the `[ml]` extra — see below).
 
 ### Scoring engine flow
 

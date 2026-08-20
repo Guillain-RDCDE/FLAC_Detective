@@ -61,7 +61,7 @@ lossy codec — and that leaves fingerprints. The clearest is the **spectral cli
 discards everything above a bitrate-dependent frequency, so the spectrum falls off a wall
 where a real recording keeps going.
 
-FLAC Detective scores each file with **10 heuristic rules** built around that idea (cutoff
+FLAC Detective scores each file with **12 heuristic rules** built around that idea (cutoff
 frequency, MP3-bitrate signatures, silent-passage energy) plus *protection* rules so genuine
 vinyl rips, cassette transfers and naturally quiet recordings aren't flagged. An optional
 **CNN** sharpens borderline verdicts, and a **frame-alignment rule** reads the fingerprint MDCT

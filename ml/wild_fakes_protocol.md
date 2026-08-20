@@ -58,3 +58,59 @@ It does not close the wild-fakes gap. This project still has **zero** files it
 adjudicated itself, and a scoring set obtained from the other party to a
 comparison cannot be the evidence that the comparison was fair. The gap closes
 when someone here rules on material this project found.
+
+---
+
+## STAMPED 2026-08-20 — the 53 arrived, and the test above ran on paper
+
+The delivery was a **feature ledger with no audio and no byte-binding**
+(archived in `ml/exchange/`), so step 1 of the procedure above could not run at
+all — and the taxonomy test happened anyway, at the schema level. Three defects
+found and repaired, pinned by `tests/test_wild_fake_ledger.py`: no
+`owner_attestation` basis (his strongest tier had no name here), no way to
+record a ruling made **by extension** (his CD3: 5 examined, 19 ruled →
+`--scope group` + mandatory note), and no way to record a selection **pipeline**
+(metric-shortlisted then eye-ruled → `+`-chained selections). The prediction in
+this document — "the taxonomy may need bases to be a set" — was directionally
+right and landed on the *selection* field first.
+
+The wild-fakes gap is exactly as open as before, which is why the section below
+now exists.
+
+## The c411 pipeline — closing the gap with rows we rule on ourselves
+
+The target is **30 referee-grade rows**, not 30 files, per the ledger's own
+warning. The source is the private tracker where this project holds an account,
+because its moderation produces exactly the evidence class we lack:
+staff-adjudicated transcode reports (`tracker_staff`, referee-grade), attached
+to files that were really distributed as lossless.
+
+Per file, manual by design (no scraping — collection is a person reading a
+moderation thread, and the tracker's terms stay respected):
+
+1. Find a staff adjudication: a "trumped for transcode" verdict or a moderation
+   thread ruling a torrent lossy-sourced. **The thread found us, or a systematic
+   sweep of the moderation log found it — never a spectrogram browse.** Record
+   which, honestly: `--selection reported` (someone else flagged it) or
+   `--selection systematic` (every entry of a defined moderation-log window).
+2. Save the adjudication evidence — permalink plus a screenshot of the staff
+   verdict — under `Temp/wild_evidence/<sha-prefix>/` (gitignored: the evidence
+   contains usernames and tracker identifiers that are not ours to publish; the
+   committed ledger carries the hash and the basis, never the screenshot).
+3. Register and adjudicate:
+
+       python ml/wild_fake_ledger.py add <file> --source "c411 <permalink> <date>"
+       python ml/wild_fake_ledger.py adjudicate <sha> --label fake \
+           --basis tracker_staff --selection reported --scope file \
+           --note "<permalink>"
+
+4. Wild GENUINE controls enter by the same door, from the same place: rips with
+   clean ripper logs and AccurateRip verification on the same tracker,
+   `--label genuine --basis provenance_pair --selection systematic`. A wild row
+   without wild controls prices recall and hides the false-alarm side, which is
+   the asymmetry Provir just withdrew a number over.
+5. `status` before quoting anything: it prints the referee/selection
+   cross-tabulation unasked, and under 30 fakes it says so.
+
+What the engine says about these files is recorded by `add` and never becomes
+the label — the oldest way to produce a confident wrong number stays closed.

@@ -121,8 +121,32 @@ def _slug(path: Path, index: int) -> str:
     return f"{index:03d}-{stem}"
 
 
+def pcm_digest(path: Path) -> Optional[str]:
+    """Container-invariant audio fingerprint: sha256 of 30 s decoded PCM.
+
+    Mono s16le at 44.1 kHz, so two archive items carrying the SAME recording
+    hash identically even when their FLAC bytes differ (re-encode, tags,
+    padding). The 2026-08 exchange set shipped 599 files that were 589 because
+    its dedup keyed on the item identifier — two etree items held the same
+    taper's same track — and ``audit_own_output`` only catches byte-identical
+    twins after the fact. This key is the repair, applied where the files are
+    PICKED rather than where they are shipped.
+    """
+    try:
+        r = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path),
+             "-t", "30", "-map", "0:a:0", "-ac", "1", "-ar", "44100",
+             "-f", "s16le", "-"],
+            capture_output=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if r.returncode != 0 or not r.stdout:
+        return None
+    return hashlib.sha256(r.stdout).hexdigest()
+
+
 def pick_sources_from_dir(source_dir: Path, n: int) -> List[Dict]:
-    """Select ``n`` sources from a directory of freely-redistributable FLACs.
+    """Select ``n`` CONTENT-distinct sources from redistributable FLACs.
 
     For the exchange corpus. The certified-library path below cannot be used for
     anything that leaves this machine: those are commercial CD rips, and freezing
@@ -133,7 +157,8 @@ def pick_sources_from_dir(source_dir: Path, n: int) -> List[Dict]:
 
     One file per archive item, for the same reason as one track per album: two
     tracks off the same concert share a capture chain and are not two
-    observations.
+    observations. And one file per decoded-PCM fingerprint, because one item per
+    identifier is NOT one recording per set — see ``pcm_digest``.
     """
     by_item: Dict[str, List[Path]] = {}
     for f in sorted(source_dir.glob("*.flac")):
@@ -146,11 +171,22 @@ def pick_sources_from_dir(source_dir: Path, n: int) -> List[Dict]:
     rng.shuffle(items)
 
     picked: List[Dict] = []
+    seen_audio: Dict[str, str] = {}
     for item in items:
         if len(picked) >= n:
             break
         f = rng.choice(by_item[item])
-        picked.append({"path": str(f), "ripper": None, "item": item})
+        digest = pcm_digest(f)
+        if digest is None:
+            log.warning("undecodable, skipped: %s", f.name)
+            continue
+        if digest in seen_audio:
+            log.warning("CONTENT DUPLICATE skipped: %s carries the same audio as %s",
+                        f.name, seen_audio[digest])
+            continue
+        seen_audio[digest] = f.name
+        picked.append({"path": str(f), "ripper": None, "item": item,
+                       "pcm_digest": digest})
     return picked
 
 

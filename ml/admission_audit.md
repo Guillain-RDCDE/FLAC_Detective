@@ -69,6 +69,18 @@ is the obligation on the next recertification:
 2. state both numbers — all-certified and admitted-only — and calibrate on the
    admitted one.
 
+**MEASURED the same day** (`ml/recert_admission_pass.py`, joined on the recert's
+own key — sha1(normpath)[:16], recovered by matching all 877 paths exactly;
+per-file rows in `ml/recert_admission.csv`, hashes only): **22/877 certified
+files (2.5 %) sit under the 18 kHz floor** — less than the 6.6 % the 258-corpus
+extrapolation suggested, the CD library being less band-limited than the wild
+corpus. Admitted-only tail: median 1.269 · p99 1.447 · **p99.9 1.634** ·
+max 2.418, against the published all-certified 1.614 — inside the worst-case
+bound (~1.67) argued above. Exceedance: review bar 1/855 = 0.12 % (vs 1/877 =
+0.11 %), hard bar 0 on both populations. The verdict stands with a number under
+it: misaligned, bounded, no constant moves, both quantiles now shipped in
+`mdct.py` (`CERTIFIED_GENUINE_ADMITTED_P999`).
+
 ## Standing rule, adopted
 
 **A calibration is computed under the admission conditions of the rule that
