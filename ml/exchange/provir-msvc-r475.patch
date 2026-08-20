@@ -1,0 +1,135 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -23,11 +23,11 @@
+ add_subdirectory(libmpcpsy)
+ add_subdirectory(libmpcenc)
+ add_subdirectory(libwavformat)
+-add_subdirectory(mpcgain)
++# add_subdirectory(mpcgain)  # PROVIR: needs libcuefile(GPL)/libreplaygain; mpcenc does not
+ add_subdirectory(mpcdec)
+ add_subdirectory(mpcenc)
+ add_subdirectory(mpc2sv8)
+ add_subdirectory(mpccut)
+-add_subdirectory(mpcchap)
++# add_subdirectory(mpcchap)  # PROVIR: needs libcuefile(GPL)/libreplaygain; mpcenc does not
+ add_subdirectory(wavcmp)
+ add_subdirectory(include)
+--- a/mpcdec/CMakeLists.txt
++++ b/mpcdec/CMakeLists.txt
+@@ -7,10 +7,12 @@
+ 
+ if(MSVC)
+ include_directories(${libmpc_SOURCE_DIR}/win32)
+-add_executable(mpcdec_cmd mpcdec.c ${libmpc_SOURCE_DIR}/win32/attgetopt)
++add_executable(mpcdec_cmd mpcdec.c ${libmpc_SOURCE_DIR}/win32/attgetopt.c)  # PROVIR: was missing .c
+ endif(MSVC)
+ 
+-add_executable(mpcdec_cmd mpcdec.c)
++if(NOT MSVC)
++add_executable(mpcdec_cmd mpcdec.c)  # PROVIR: was unguarded; fired alongside if(MSVC)
++endif(NOT MSVC)
+ 
+ if(NOT MSVC)
+ target_link_libraries(mpcdec_cmd m)
+--- a/mpc2sv8/CMakeLists.txt
++++ b/mpc2sv8/CMakeLists.txt
+@@ -10,8 +10,10 @@
+ add_executable(mpc2sv8 mpc2sv8.c ${libmpc_SOURCE_DIR}/win32/attgetopt.c ${libmpc_SOURCE_DIR}/win32/basename.c ${libmpc_SOURCE_DIR}/win32/dirent.c)
+ endif(MSVC)
+ 
++if(NOT MSVC)
+ add_executable(mpc2sv8 mpc2sv8.c)
+-
++  # PROVIR: was unguarded; fired alongside the if(MSVC) branch above
++endif(NOT MSVC)
+ if(SHARED)
+   target_link_libraries(mpc2sv8 mpcdec)
+ else(SHARED)
+--- a/mpccut/CMakeLists.txt
++++ b/mpccut/CMakeLists.txt
+@@ -10,8 +10,10 @@
+ add_executable(mpccut mpccut ${libmpc_SOURCE_DIR}/win32/attgetopt)
+ endif(MSVC)
+ 
++if(NOT MSVC)
+ add_executable(mpccut mpccut.c)
+-
++  # PROVIR: was unguarded; fired alongside the if(MSVC) branch above
++endif(NOT MSVC)
+ if(SHARED)
+   target_link_libraries(mpccut mpcdec)
+ else(SHARED)
+--- a/libmpcpsy/psy_tab.c
++++ b/libmpcpsy/psy_tab.c
+@@ -187,7 +187,11 @@
+     }
+ }
+ 
+-#ifdef _MSC_VER
++/* PROVIR 2026-08-20: was #ifdef _MSC_VER. Correct in 2011 - MSVC had no asinh - but MSVC 2013
++   (_MSC_VER 1800) added the C99 math functions, and <math.h> declares asinh __declspec(dllimport),
++   so this local definition became "error C2491: definition of dllimport function not allowed".
++   A portability guard that rotted with time rather than with platform. */
++#if defined(_MSC_VER) && _MSC_VER < 1800
+ static double
+ asinh ( double x )
+ {
+--- a/libmpcenc/bitstream.c
++++ b/libmpcenc/bitstream.c
+@@ -93,7 +93,9 @@
+ 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 103, 55, 3347, 12419, 56459, 16987, 313105, 54177, 3076873, 3739321, 3132677, 66353813, 123012781, 236330717}
+ };
+ 
+-static const mpc_uint8_t log2[32] =
++/* PROVIR 2026-08-20: renamed from `log2`. MSVC 2013+ declares C99 log2() in
++   <math.h>, so a file-scope table of that name is a redefinition. */
++static const mpc_uint8_t log2_tab[32] =
+ { 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6};
+ 
+ static const mpc_uint8_t log2_lost[32] =
+@@ -166,9 +168,9 @@
+ void encodeLog(mpc_encoder_t * e, mpc_uint32_t value, mpc_uint32_t max)
+ {
+ 	if (value < log2_lost[max - 1])
+-		writeBits(e, value, log2[max - 1] - 1);
++		writeBits(e, value, log2_tab[max - 1] - 1);
+ 	else
+-		writeBits(e, value + log2_lost[max - 1], log2[max - 1]);
++		writeBits(e, value + log2_lost[max - 1], log2_tab[max - 1]);
+ }
+ 
+ void writeMagic(mpc_encoder_t * e)
+--- a/common/huffman-bcl.c
++++ b/common/huffman-bcl.c
+@@ -33,6 +33,14 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++#if defined(_MSC_VER)
++/* PROVIR 2026-08-20: __builtin_log2 is a GCC builtin with no MSVC equivalent. MSVC 2013+
++   provides C99 log2() in <math.h>, which is what the builtin lowers to anyway. */
++#  include <math.h>
++#  define __builtin_log2(x) log2(x)
++#endif
++
++
+ typedef struct {
+     int Symbol;
+     unsigned int Count;
+--- a/libmpcenc/encode_sv7.c
++++ b/libmpcenc/encode_sv7.c
+@@ -24,6 +24,14 @@
+ #include "libmpcenc.h"
+ #include <mpc/minimax.h>
+ 
++#if defined(_MSC_VER)
++/* PROVIR 2026-08-20: __builtin_log2 is a GCC builtin with no MSVC equivalent. MSVC 2013+
++   provides C99 log2() in <math.h>, which is what the builtin lowers to anyway. */
++#  include <math.h>
++#  define __builtin_log2(x) log2(x)
++#endif
++
++
+ void Klemm ( void );
+ void Init_Skalenfaktoren ( void );
+ 

@@ -103,11 +103,16 @@ quoting them says so. The grid claim is itself measured, not asserted, by
 His build record for the source-compiled mpcenc used in the first correction —
 ``provir-msvc-r475.patch`` (8 files) plus ``BUILD.md`` with the source sha256 and
 the four MSVC defects, including the ``win32/attgetopt`` reference with no ``.c``
-extension that proves the MSVC path never once compiled — has a reserved spot
-under ``ml/exchange/`` but never arrived: LinkedIn silently refused the
-attachments (the same way it refuses ``.md`` and ``.csv``), and a resend via the
-usual Dropbox link was requested on 2026-08-20. BUILD.md carries the source
-sha256, so the resend verifies itself.
+extension that proves the MSVC path never once compiled — is archived under
+``ml/exchange/`` (as ``provir-mpcenc-BUILD.md``), received 2026-08-20 after
+LinkedIn silently dropped the original attachments. Verified on receipt: 8 files,
+the extensionless ``attgetopt`` line present, all four defect classes annotated.
+Receipt hashes in ``ml/exchange/README.md``. His BUILD.md already carries a
+same-day correction section incorporating the 250 Hz grid finding — he read the
+public repository before our message announcing it was even sent — and adds a
+rule worth keeping: two instruments agreeing on a round number is evidence only
+if they could have disagreed; compute the collision rate of the two number
+generators first.
 
 And a defect of ours that this exposed: 1 file of 24 reads 22,050 Hz at EVERY
 profile, including ``--radio`` where a 15.8 kHz cap certainly applies. That reading

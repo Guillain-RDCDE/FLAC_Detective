@@ -173,3 +173,26 @@ rather than discovered afterwards and argued about.
    passed off as lossless arrives at the rate the album should have.
 
 None of these existed before the set that taught us each one.
+
+## Provir's mpcenc build record — received 2026-08-20, bytes and hashes in the same action
+
+`provir-msvc-r475.patch` (his 8-file patch making musepack r475 configure and build
+under MSVC for the first time since 2011) and `provir-mpcenc-BUILD.md` (his build
+record: source sha256, toolchain, the four upstream defects, the profile-ladder
+measurement, and his own same-day correction section incorporating the 250 Hz grid
+finding). Received 2026-08-20 after LinkedIn silently dropped the original
+attachments; `BUILD.md` renamed with the `provir-` prefix on arrival, bytes
+untouched.
+
+```
+1b015005548e0f690a29cc62f3d49c48bf2d1228fcadcad7e2f6871b2dbb2864  provir-msvc-r475.patch
+0af127b114f964766403a95ff0dc715d33cb32beda922508a827d5f8f1e28cff  provir-mpcenc-BUILD.md
+```
+
+Verified on receipt, against the claims made about them: the patch touches exactly
+8 files; `mpcdec/CMakeLists.txt` does carry the `win32/attgetopt` reference with no
+`.c` extension (the line that proves the MSVC path never once compiled); all four
+defect classes are present and each hunk is annotated `PROVIR:` in place. The
+patch's fixture-generating relevance: our Musepack arm's encoder claims can now be
+checked against a source-built encoder with recorded provenance instead of a
+downloaded binary.
