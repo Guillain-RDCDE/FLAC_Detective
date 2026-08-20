@@ -53,6 +53,22 @@ dedup, the exchange set's 599-that-were-589 species — exposed by the P2 report
 printing each file twice. Deduped, normalized, regenerated; the freed slots went to
 three never-measured genuine files.
 
+### The Musepack arm, re-run with provenance and an off-grid edge
+
+Provir's BUILD.md lesson applied to our own fixture generator: the workflow now
+records the encoder in the artifact itself (`musepack_arm_r2_provenance.txt`) —
+Debian musepack-tools 2:0.1~r495-2build1, mpcenc 1.30.1 banner, built 2024 from
+**r495**, the same banner as his source build from a *later* revision than his
+r475: the version axis his document warns about, recorded instead of assumed. On a
+fresh 24-source draw (`musepack_arm_r2.csv`) every published AUC reproduces and
+the cell medians reproduce *exactly* (16,000 / 17,750 / 18,750 — the grid again,
+on a disjoint draw). The new off-grid −6 dB edge shows the separation does not
+live in the start of the fall (genuine 15,769 Hz vs insane 15,738 Hz, 31 Hz
+apart) — it lives in the floor statistic, which is what the zeroing mechanism
+predicts: the knee stays put, the depth changes. The observable that separates
+and the observable that is easy to measure off-grid are different quantities, and
+future tables must name which one they quote.
+
 ## v1.11.4 (2026-08-20) — a retraction we had already shipped, and a null result worth having
 
 v1.11.3 corrected a false claim in Rule 1 by citing a frequency Provir had supplied.

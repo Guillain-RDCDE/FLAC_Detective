@@ -100,6 +100,31 @@ is monotone), but the Hz values are cells, not measurements, and any future tabl
 quoting them says so. The grid claim is itself measured, not asserted, by
 ``ml/edge_width_selfanchored_probe.py`` (its P3); see that docstring for the count.
 
+RE-RUN 2026-08-20 (fresh sources, n=24) — provenance recorded, grid reproduced,
+and the -6 dB edge does not carry the separation
+--------------------------------------------------------------------------------
+The workflow now records the encoder that produced the CSV in the artifact
+itself (``musepack_arm_r2_provenance.txt``): Debian musepack-tools
+2:0.1~r495-2build1, mpcenc 1.30.1 built 2024-04-18 from **r495** — the same
+1.30.1 banner as Provir's source build, from a LATER source revision than his
+r475. Same banner, different source: exactly the axis his BUILD.md warns about,
+now recorded instead of assumed.
+
+On a fresh random draw of 24 archive.org sources (``musepack_arm_r2.csv``),
+every published AUC reproduces (mdct 0.46/0.52/0.52, stereo 0.96/0.96/0.94,
+cutoff 0.97/0.96/0.90) and the cell medians reproduce EXACTLY
+(16,000 / 17,750 / 18,750) — the grid, again, on material sharing nothing with
+the first draw.
+
+And the off-grid -6 dB edges land where the cells could not see: genuine
+15,769 Hz vs insane 15,738 Hz — 31 Hz apart, no separation — while radio reads
+15,181. The start of the fall barely moves; what separates at ``--insane``
+(AUC 0.90) is the floor statistic ``detect_cutoff`` reads, which is what "the
+encoder zeroes low-level HF" predicts: the knee stays put, the depth changes.
+The observable that separates and the observable that is easy to measure
+off-grid are DIFFERENT quantities, and any future "Musepack cutoff" table has
+to name which one it quotes.
+
 His build record for the source-compiled mpcenc used in the first correction —
 ``provir-msvc-r475.patch`` (8 files) plus ``BUILD.md`` with the source sha256 and
 the four MSVC defects, including the ``win32/attgetopt`` reference with no ``.c``

@@ -1,0 +1,10 @@
+date_utc: 2026-08-20T13:55:59Z
+runner: ubuntu24 20260816.277.1
+package: musepack-tools 2:0.1~r495-2build1 (amd64)
+mpcenc_sha256: bcf25fae363dd9c5368e141c0e9ba84c29f5c057e8f9f06db5d4ca5e134e08d6
+mpcdec_sha256: b95a2a7e51b083b497d49cb69fd6db26845c3c53928ae784e8e6e44f11028122
+mpcenc_banner:
+[1mMPC Encoder 1.30.1 --stable-- (C) 1999-2009 Buschmann/Klemm/Piecha/MDT
+Built Apr 18 2024 17:49:30
+[0m     
+[1mUsage:[0m
