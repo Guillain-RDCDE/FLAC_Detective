@@ -1,4 +1,4 @@
-## v1.11.4 (2026-08-21) — a retraction we had already shipped, and a null result worth having
+## v1.11.4 (2026-08-20) — a retraction we had already shipped, and a null result worth having
 
 v1.11.3 corrected a false claim in Rule 1 by citing a frequency Provir had supplied.
 Jamie Dodd then retracted that frequency himself, before we could act on it, with

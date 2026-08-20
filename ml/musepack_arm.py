@@ -49,7 +49,7 @@ Predictions, registered here before the job is run, in the exchange's convention
 Being wrong on P1 would be the most useful outcome available: it would mean Rule
 13 has a second mechanism nobody has named.
 
-CORRECTION 2026-08-21 — the mechanism we gave for P3 was wrong
+CORRECTION 2026-08-20 — the mechanism we gave for P3 was wrong
 ---------------------------------------------------------------
 P3 failed on measurement: the cutoff DOES separate on ``--insane``, at AUC 0.90.
 The failure was real and the number is ours. The **explanation** attached to it was

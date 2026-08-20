@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Can a cutoff-relative residual separate a near-Nyquist wall from an open spectrum?
 
-RETRACTED 2026-08-21. The frequency below came from Provir and Jamie Dodd withdrew
+RETRACTED 2026-08-20. The frequency below came from Provir and Jamie Dodd withdrew
 it himself: it is one reading of one file by one edge-finder, early 3.9x LAME at
 -b 320 applies no lowpass at all (so it measured the SOURCE, not the encoder), and
 503 of his 1,180 lawful files already read an edge at or above it. He also disclosed

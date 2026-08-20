@@ -139,8 +139,8 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     #
     # This comment used to read "MP3s never have cutoffs above 21.5 kHz (even 320 kbps
     # tops out around 20.5-21 kHz)". That is false, and it is false in BOTH directions,
-    # which is a stronger and more useful statement than the one this comment carried
-    # between 2026-08-20 and 2026-08-21.
+    # which is a stronger and more useful statement than the correction that briefly
+    # replaced it in v1.11.3.
     #
     # The first correction cited a specific frequency (~21,570 Hz) for an era-LAME 320
     # wall. Jamie Dodd of Provir supplied that number and then RETRACTED it himself,

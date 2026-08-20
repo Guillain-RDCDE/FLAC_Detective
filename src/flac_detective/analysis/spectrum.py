@@ -398,7 +398,7 @@ class EdgeReading(NamedTuple):
     ``width_hz`` is calibrated against our own corpus or not at all, and his 390-519
     is context, never a threshold to import.
 
-    MEASURED 2026-08-21: width does not become a rule here
+    MEASURED 2026-08-20: width does not become a rule here
     -------------------------------------------------------
     ``ml/edge_width_probe.py``, 120 genuine and 40 per arm. Width separates at AUC
     0.48-0.62 — 0.48 on ``aac_ff320``, i.e. below chance — and at a 5 % genuine cost

@@ -115,7 +115,7 @@ preceded the data.*
 
 ---
 
-# AMENDMENT — 2026-08-21, still before any file has been sent
+# AMENDMENT — 2026-08-20, still before any file has been sent
 
 Appended, not edited. The original text above is unchanged; a pre-registration that
 gets rewritten when it turns out to be inconvenient is not one. What follows says
