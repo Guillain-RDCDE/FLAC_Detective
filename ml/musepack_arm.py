@@ -152,7 +152,14 @@ from flac_detective.analysis.new_scoring.stereo_image import side_dead_run  # no
 from flac_detective.analysis.spectrum import (  # noqa: E402
     _welch_magnitude_db,
     detect_cutoff,
+    detect_cutoff_detailed,
 )
+
+# Sibling ml/ import: sys.path[0] is ml/ when run as `python ml/musepack_arm.py`,
+# which is how both the workflow and the usage line invoke it. The self-anchored
+# edge is the off-grid instrument: last crossing of ref-6 dB on the fine curve,
+# so its output is NOT a multiple of 250 Hz and its sentinel is typed.
+from edge_width_selfanchored_probe import self_anchored  # noqa: E402
 
 # Musepack quality presets, by name rather than by bitrate — mpcenc is inherently
 # VBR and its presets are the interface people actually use. Approximate rates:
@@ -205,12 +212,19 @@ def musepack_roundtrip(src_wav: Path, work: Path, profile: str,
     return decoded
 
 
-def statistics(path: Path) -> Tuple[float, float, float]:
-    """``(mdct_stat, stereo_dead_run, cutoff_hz)`` for one file.
+def statistics(path: Path) -> dict:
+    """One file's readings for every family, plus the off-grid edge.
 
     ``stop_at`` is disabled for the MDCT statistic on purpose: the shipped pipeline
     short-circuits once a reading is good enough to act on, but a calibration wants
     the true value.
+
+    ``cutoff`` is kept for continuity with the published tables and is a 250 Hz
+    grid cell (see the module docstring's second correction). ``edge_offgrid`` is
+    the measurement: the self-anchored last crossing of ref-6 dB, off-grid, with
+    ``edge_status`` as its typed sentinel ("ok"/"no_floor" carry an edge;
+    "no_wall"/"no_edge" are abstentions, never numbers). ``cutoff_found`` is
+    ``detect_cutoff_detailed``'s sentinel for the legacy column.
     """
     data, rate = read_excerpt(path)
     mono = data if data.ndim == 1 else np.mean(data, axis=1)
@@ -223,13 +237,26 @@ def statistics(path: Path) -> Tuple[float, float, float]:
     except Exception:
         run = float("nan")
 
+    cutoff = float("nan")
+    cutoff_found = 0
+    edge_offgrid = float("nan")
+    edge_status = "error"
     try:
         freq, mag = _welch_magnitude_db(mono.astype(np.float64), rate)
         cutoff = float(detect_cutoff(freq, mag, rate))
+        cutoff_found = int(detect_cutoff_detailed(freq, mag, rate).found)
+        edge_status, edge_offgrid, _width = self_anchored(freq, mag, rate)
     except Exception:
-        cutoff = float("nan")
+        pass
 
-    return float(mdct_stat), float(run), cutoff
+    return {
+        "mdct": float(mdct_stat),
+        "stereo_run": float(run),
+        "cutoff": cutoff,
+        "cutoff_found": cutoff_found,
+        "edge_offgrid": edge_offgrid,
+        "edge_status": edge_status,
+    }
 
 
 def auc(fake: np.ndarray, genuine: np.ndarray) -> float:
@@ -288,32 +315,34 @@ def main(argv: Optional[List[str]] = None) -> int:
             sf.write(str(src_wav), data, rate, subtype="PCM_16")
 
             try:
-                base_mdct, base_run, base_cut = statistics(src_wav)
+                base = statistics(src_wav)
             except Exception as exc:
                 print(f"  [{index}/{len(sources)}] {source.name}: baseline failed ({exc})",
                       flush=True)
                 continue
-            rows.append({"source": source.name, "arm": "genuine", "profile": "-",
-                         "mdct": base_mdct, "stereo_run": base_run, "cutoff": base_cut})
+            rows.append({"source": source.name, "arm": "genuine", "profile": "-", **base})
 
             for profile in args.profiles:
                 try:
                     decoded = musepack_roundtrip(src_wav, work, profile, mpcenc, mpcdec)
-                    mdct_stat, run, cut = statistics(decoded)
+                    stats = statistics(decoded)
                 except Exception as exc:
                     print(f"      {profile}: failed ({exc})", flush=True)
                     continue
-                rows.append({"source": source.name, "arm": "musepack", "profile": profile,
-                             "mdct": mdct_stat, "stereo_run": run, "cutoff": cut})
+                rows.append({"source": source.name, "arm": "musepack",
+                             "profile": profile, **stats})
 
         print(f"  [{index}/{len(sources)}] {source.name}  "
-              f"baseline mdct={base_mdct:.2f} run={base_run:.1f} cut={base_cut:.0f}",
+              f"baseline mdct={base['mdct']:.2f} run={base['stereo_run']:.1f} "
+              f"cut={base['cutoff']:.0f} edge={base['edge_offgrid']:.0f}"
+              f" ({base['edge_status']})",
               flush=True)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
-            fh, fieldnames=["source", "arm", "profile", "mdct", "stereo_run", "cutoff"])
+            fh, fieldnames=["source", "arm", "profile", "mdct", "stereo_run", "cutoff",
+                            "cutoff_found", "edge_offgrid", "edge_status"])
         writer.writeheader()
         writer.writerows(rows)
     print(f"\n{len(rows)} rows -> {args.out}", flush=True)
@@ -333,17 +362,27 @@ def report(rows: List[dict], profiles: List[str]) -> None:
         print("no genuine baseline measured — nothing can be said.")
         return
 
+    def edges(rowset: List[dict]) -> np.ndarray:
+        """Off-grid edges that ARE measurements ("ok"/"no_floor" carry an edge)."""
+        vals = np.array(
+            [float(r["edge_offgrid"]) for r in rowset
+             if r.get("edge_status") in ("ok", "no_floor")], dtype=float)
+        return vals[np.isfinite(vals)]
+
     g_mdct = np.array([r["mdct"] for r in genuine], dtype=float)
     g_run = np.array([r["stereo_run"] for r in genuine], dtype=float)
     g_cut = np.array([r["cutoff"] for r in genuine], dtype=float)
+    g_edge = edges(genuine)
 
     print(f"\ngenuine baseline (n={len(genuine)}): "
           f"mdct median {np.nanmedian(g_mdct):.2f} · "
           f"stereo run median {np.nanmedian(g_run):.1f} · "
-          f"cutoff median {np.nanmedian(g_cut):.0f} Hz")
+          f"cutoff median {np.nanmedian(g_cut):.0f} Hz (grid cell) · "
+          f"edge median {np.median(g_edge) if g_edge.size else float('nan'):.0f} Hz "
+          f"({g_edge.size} measured)")
 
     print(f"\n{'profile':12}{'n':>4}{'mdct AUC':>11}{'stereo AUC':>12}"
-          f"{'cutoff AUC':>12}{'cutoff med':>12}")
+          f"{'cutoff AUC':>12}{'cell med':>10}{'edge med':>10}{'n edge':>8}")
     for profile in profiles:
         arm = [r for r in rows if r["profile"] == profile]
         if not arm:
@@ -351,11 +390,18 @@ def report(rows: List[dict], profiles: List[str]) -> None:
         a_mdct = np.array([r["mdct"] for r in arm], dtype=float)
         a_run = np.array([r["stereo_run"] for r in arm], dtype=float)
         a_cut = np.array([r["cutoff"] for r in arm], dtype=float)
+        a_edge = edges(arm)
+        edge_med = np.median(a_edge) if a_edge.size else float("nan")
         # Cutoff runs the other way: a transcode's cutoff is LOWER than genuine, so
         # the discriminating direction is the negated statistic.
         print(f"{profile:12}{len(arm):>4}{auc(a_mdct, g_mdct):>11.2f}"
               f"{auc(a_run, g_run):>12.2f}{auc(-a_cut, -g_cut):>12.2f}"
-              f"{np.nanmedian(a_cut):>12.0f}")
+              f"{np.nanmedian(a_cut):>10.0f}{edge_med:>10.0f}{a_edge.size:>8}")
+
+    print("\n'cell med' is detect_cutoff's output and is a 250 Hz grid cell.")
+    print("'edge med' is the self-anchored off-grid measurement (last crossing of")
+    print("ref-6 dB), sentinel-gated: files reading no_wall/no_edge are counted out,")
+    print("never averaged in. THIS is the column future tables should quote.")
 
     print("\nRegistered predictions (see module docstring):")
     print("  P1 mdct   AUC < 0.65 everywhere   — Musepack has no MDCT to align")
@@ -367,8 +413,9 @@ def report(rows: List[dict], profiles: List[str]) -> None:
     print("the bandwidth (the cap is the full band); 18,750 Hz is a 48 kHz constant,")
     print("and at 44.1 kHz it is not a band boundary at all. The separation is the")
     print("encoder zeroing low-level HF, not a lowpass. See the module docstring.")
-    print("\nAny arm median here still mixes in detect_cutoff's Nyquist-on-failure")
-    print("return. Use detect_cutoff_detailed for a sentinel that says so.")
+    print("\nThe legacy 'cutoff' column still mixes in detect_cutoff's")
+    print("Nyquist-on-failure return; 'cutoff_found' is its sentinel, and the")
+    print("'edge_offgrid'/'edge_status' columns are the replacement instrument.")
 
 
 if __name__ == "__main__":

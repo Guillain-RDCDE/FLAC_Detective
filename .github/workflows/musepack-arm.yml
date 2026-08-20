@@ -53,6 +53,22 @@ jobs:
           mpcdec 2>&1 | head -4 || true
           which mpcenc mpcdec
 
+      - name: Record encoder provenance
+        # Provir's BUILD.md lesson, applied to our own fixture generator: the
+        # encoder build is load-bearing for encoder-specific claims, so the exact
+        # binary that produced a CSV is recorded IN the artifact next to it —
+        # package version, binary hashes, banner — not left in a transient log.
+        run: |
+          {
+            echo "date_utc: $(date -u +%FT%TZ)"
+            echo "runner: ${ImageOS:-?} ${ImageVersion:-?}"
+            dpkg-query -W -f='package: ${Package} ${Version} (${Architecture})\n' musepack-tools
+            echo "mpcenc_sha256: $(sha256sum "$(which mpcenc)" | cut -d' ' -f1)"
+            echo "mpcdec_sha256: $(sha256sum "$(which mpcdec)" | cut -d' ' -f1)"
+            echo "mpcenc_banner:"
+            mpcenc 2>&1 | head -4 || true
+          } | tee musepack_provenance.txt
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -102,4 +118,5 @@ jobs:
           path: |
             musepack_arm.csv
             musepack_arm.log
+            musepack_provenance.txt
           if-no-files-found: warn
