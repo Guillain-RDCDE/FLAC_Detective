@@ -147,6 +147,7 @@ ml/score_distribution.csv
 # repository keeps the conclusions, not the track titles.
 ml/nearnyq_residual.csv
 ml/edge_width.csv
+ml/edge_width_selfanchored.csv
 ml/scoredist.err
 ml/scoredist.log
 
