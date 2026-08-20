@@ -80,6 +80,27 @@ He also made his *Goodbye My Friend* exhibit reproducible from our side for the
 first time: `lame3.92`, sha256 `cb2cdfde7b170d90…`, 195,072 bytes, built
 2002-04-16 — archived in `ml/exchange/README.md`.
 
+### The admission audit: his species, hunted through our own calibrations
+
+The week produced three instances (our Rule 1 residual, his width sweep, his Opus
+flatness probe) of one species — *a statistic computed across a population the
+rule cannot read* — so `ml/admission_audit.md` walks every calibrated constant in
+the engine against its rule's own admission gates, with counts from the committed
+per-file CSVs. Verdicts: Rule 1 **aligned** (fixed v1.11.3, test-pinned); Rule 12
+Platt **aligned** (`emit_probs.py` skips gate-abstained files by default); Rule 15
+`RUN_BAR` **aligned in effect** (mono gate applied by the probe; the unapplied
+12 kHz floor excludes 0/258 genuine files); Rule 14 `SEAM_BAR` **misaligned,
+negligible** (2/258 below the 15 kHz floor — both at 14,000 Hz, grid cells —
+≤ 1 rank of the p95); and **Rule 13 misaligned, bounded — the fourth instance of
+the species**: 17/258 genuine (6.6 %) sit below the rule's 18 kHz admission
+floor, so ~58 of the 877 recertification files are ones the rule will never be
+asked about. Bounded: exceedance 0.11 % → at most 0.12 %, bars stay above the
+admitted population's p99.9 under every removal scenario, no constant changes;
+the next recertification must filter through `should_run_rule_13` and publish
+both quantiles. Standing rule adopted: a calibration is computed under the
+admission conditions of the rule that consumes it, or states why the superset is
+safe.
+
 ### The Musepack arm, re-run with provenance and an off-grid edge
 
 Provir's BUILD.md lesson applied to our own fixture generator: the workflow now
