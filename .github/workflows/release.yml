@@ -61,6 +61,28 @@ jobs:
 
           echo "✅ All versions match: $TAG_VERSION"
 
+          # __release_date__ is USER-VISIBLE — utils.py renders it in the version
+          # banner — so a stale one ships wrong information to everybody. v1.11.3
+          # went out announcing 2026-08-19 having been released on the 20th, because
+          # bumping the version in three places is a checklist and the date is not
+          # on it. It is now.
+          #
+          # Compared against the tagged commit's own date rather than "today": a
+          # rerun of this job weeks later must still validate, and the commit date is
+          # what the release actually is.
+          RELEASE_DATE=$(grep '^__release_date__ = ' src/flac_detective/__version__.py | cut -d '"' -f 2)
+          COMMIT_DATE=$(git show -s --format=%cs "$GITHUB_SHA")
+          echo "__release_date__: $RELEASE_DATE   tagged commit: $COMMIT_DATE"
+
+          if [ "$RELEASE_DATE" != "$COMMIT_DATE" ]; then
+            echo "❌ Error: __release_date__ ($RELEASE_DATE) is not the tagged commit's"
+            echo "   date ($COMMIT_DATE). This string is shown to users in the version"
+            echo "   banner. Update src/flac_detective/__version__.py and re-tag."
+            exit 1
+          fi
+
+          echo "✅ Release date matches the tagged commit: $RELEASE_DATE"
+
       - name: Install Commitizen
         run: |
           python -m pip install commitizen

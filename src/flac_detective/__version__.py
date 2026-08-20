@@ -8,7 +8,7 @@ __version__ = "1.11.3"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-08-19"
+__release_date__ = "2026-08-20"
 __release_name__ = "A false claim in Rule 1, and the Musepack axis earned"
 
 # Metadata
