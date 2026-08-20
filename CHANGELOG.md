@@ -1,3 +1,157 @@
+## v1.11.3 (2026-08-20) — a false claim in Rule 1, and the Musepack axis finally earned
+
+Jamie Dodd published the tiering behind Provir's owner-ruled labels. Two things
+came out of it: a claim written into this engine turned out to be false, and the
+axis this project promised a week ago got measured.
+
+### Rule 1 contained a factual error about MP3 encoders
+
+The guard at 21.5 kHz carried this comment:
+
+> MP3s never have cutoffs above 21.5 kHz (even 320 kbps tops out around 20.5-21 kHz)
+
+That is false for the entire pre-3.96 LAME era. Jamie owns both the CD and the
+"lossless" store download of the same Scott Brown material. The CD runs clean to
+Nyquist; the store file walls at **21,562.8 Hz**; and the CD's own audio through
+**LAME 3.92 -b 320** reproduces that wall to **8.1 Hz** — three FFT bins. He then
+re-measured rather than assumed, and found the wall is an **era** property, not a
+version one: 3.90.3, 3.92, 3.93.1r, 3.93.1w32 and a 2002 daily all land within 8 Hz
+of each other at `-b 320`, in both `-m s` and `-m j`. Only later builds move down
+(3.96.1 → 19,842.8; 3.97 and 3.98.4 → 19,999.0).
+
+His own caveat lands on us harder than on him: his two edge-finders read that same
+file at **21,436.3** and **21,562.8 Hz**. Our threshold is 21,500. His strongest
+exhibit falls on either side of our constant depending on which instrument measures
+it.
+
+### What we tried, and why the region stays shut anyway
+
+At 44.1 kHz the binding guard is not that constant but `cutoff >= 0.95 * Nyquist`
+(20,947.5 Hz), above which Rule 1 returns before consulting anything. Measured on
+our corpus, that closed region holds **29 of 40 `mp3_V0`** files and **34 of 40
+`aac_ff320`** files.
+
+Opening it was attempted and **the measurement refused**:
+
+- `compute_residual_floor_db`, the calibrated instrument (AUC 0.95), reads a **fixed**
+  band at 0.961–0.993 × Nyquist. For a wall at 21,570 Hz that band straddles the wall
+  — half live signal, half digital silence — so it reads an era-LAME brickwall as an
+  authentic rolloff. It cannot just be extended upward.
+- A cutoff-**relative** residual was built and priced instead. In the closed region it
+  reads AUC 0.79 on `mp3_V0`, 0.72 on `aacmf_256` and **0.45 on `aac_ff320`** — worse
+  than chance on the arm that needs it most. Genuine files reach down to −59.6 dB,
+  below the transcode median of −42.4, so no threshold separates them.
+- Widening the rule's own 0.94 guard to 0.95 was also priced: in that slice **1
+  genuine file of 7** reads below the −55 dB conviction floor. On a +50 rule where
+  all five historical false convictions came from Rule 1 + Rule 3, that is not a
+  trade.
+
+So the region is now closed **on evidence**. It used to be closed on an assumption
+that was false. Those are different failures and only one of them was fixable today.
+
+### What the closed region actually costs, and what carries it instead
+
+| arm | Rule 1 silent (cutoff ≥ 20,947 Hz) | Rule 1 active |
+|---|---|---|
+| `mp3_V0` | n=24 · **0 % convicted** · 50 % flagged | n=16 · 19 % · 81 % |
+| `aac_ff320` | n=33 · 21 % · **100 % flagged** | n=7 · 57 % · 100 % |
+| `mp3_320` | n=3 — too few to read | n=37 · 35 % · 68 % |
+
+**These two columns are not a controlled comparison and must not be read as one.**
+The groups are split *by cutoff*, so the silent group is intrinsically harder for
+every spectral family, not only for Rule 1. How much of the gap is Rule 1's silence
+and how much is the material cannot be separated without opening the guard — which
+the section above shows we cannot do safely. The number bounds the cost; it does not
+attribute it.
+
+What the breakdown does say cleanly is which families hold the region up:
+
+- `aac_ff320`, silent group: **`mdct` carries 33 of 33**. Rule 13 owns this arm
+  outright, which is why the max-over-frames variant rejected in v1.11.2 was buying
+  recall that was already paid for.
+- `mp3_V0`, silent group: `stereo` 15, `cnn` 12, `temporal` 10 of 24.
+
+That second line is the v1.11.0 witnesses doing exactly the job they were built for.
+They contribute zero points and cannot flag anything new — but in the one region
+where the band-edge family is structurally silent, they are what turns points already
+earned into a corroborated verdict. Half of that group still goes unflagged, and that
+is the honest size of the remaining hole.
+
+### One thing was fixable: a Welch pass spent on a slice nobody could read
+
+`analyze_spectrum` computed the residual across [0.90, 0.95) × Nyquist while Rule 1
+rejects any 320 estimate from 0.94 × Nyquist up. A **220 Hz slice was computed and
+discarded** on every file that landed there. The window now stops where the rule
+stops — verdicts are byte-identical, one Welch pass is saved.
+
+`tests/test_rule1_nearnyquist.py` pins it: both branches of the residual gate must be
+reachable, the discarded slice must give the same answer whatever the residual says,
+and the two constants must move together. Verified to **fail** when the window is put
+back to 0.95, which is the only way this regresses.
+
+This is the mild form of a defect this project keeps finding — Rule 14 was
+unreachable for its own target population, and Jamie found six mumbling witnesses in
+one sitting. An instrument that runs for a population it can never be asked about.
+
+### Musepack: the axis claimed on 2026-08-13, measured on 2026-08-20
+
+What this project had was `6/64` on a Musepack arm — the CNN's WARNING floor, not
+evidence. `mpcenc` is in no Windows package manager and is not an ffmpeg encoder, so
+the arm was never built. It **is** a Debian package: `musepack-tools`. Same move as
+the CoreAudio arm — the encoder we cannot run locally becomes a job on a free runner.
+
+24 sources, paired (each measured as-is and after a round trip), three profiles:
+
+| profile | mdct AUC | stereo AUC | cutoff AUC | cutoff median |
+|---|---|---|---|---|
+| `radio` | 0.46 | **0.96** | **0.97** | 16,000 Hz |
+| `standard` | 0.52 | **0.96** | **0.96** | 17,750 Hz |
+| `insane` | 0.52 | **0.94** | 0.90 | 18,750 Hz |
+
+Predictions were registered in the module docstring before the job ran. Two held and
+one half-failed:
+
+- **P1 held** — Rule 13 reads 0.46–0.52. Musepack is a *subband* codec (Layer 2's
+  32-band polyphase filterbank), so there is no MDCT to align, and the rule correctly
+  reads nothing. Being wrong here would have meant Rule 13 responds to something its
+  docstring does not name.
+- **P2 held, and wider than claimed** — the stereo family reads 0.94–0.96 on every
+  profile, not just `standard`.
+- **P3 half-failed** — the cutoff was predicted *not* to separate on `--insane`. It
+  separates at 0.90, because Musepack still lowpasses at **18,750 Hz** even at its
+  top preset, far more aggressively than MP3 320. That failure is the useful part:
+  Musepack is an easy arm, not an exotic one.
+
+The axis is now real and its mechanism is named: cutoff plus side channel, and
+nothing from the MDCT family.
+
+### The wild ledger records how a file was SELECTED
+
+Provir's own least comfortable number: their engine convicts 14 of 16 fakes their
+author picked out by eye (**88 %**) and 0 of 9 he had to listen for (**0 %**). Not
+two performance figures — one instrument scored against the sense that selected its
+problem, averaged into a headline.
+
+A `basis` field cannot show that, because both groups' labels may be equally sound.
+The bias is in the choosing. So `ml/wild_fake_ledger.py` gained `selection`
+(systematic / reported / detector / human_eye / human_ear), a derived `referee` flag,
+and `byte_identity` and `spectrogram` as accepted bases — naming `spectrogram`
+deliberately, because refusing to list it only makes people record it as `listening`.
+`status` now prints the cross-tabulation unasked and warns when every fake was eye- or
+ear-chosen. Verified against a reconstruction of Provir's corpus shape: it reproduces
+88 % / 0 % and both warnings fire.
+
+The ledger is empty, which is the only reason this cost nothing.
+
+### Pre-registered, before his 53 wild files are sent
+
+`ml/exchange/PREREGISTERED_2026-08-20.md` records what we expect on the 9 `ear+eye`
+rows — the only population anywhere selected by the ear and survived by the eye, and
+therefore the cleanest available test of whether this engine's `mdct`, `stereo`,
+`temporal` and `cnn` families are independent instruments or elaborate re-derivations
+of the same band edge. **P3 there is written so that convicting those files on
+band-edge evidence alone counts as a failure, not a success.**
+
 ## v1.11.2 (2026-08-19) — one glossary correction taken, one rejected on measurement
 
 Provir published a flag glossary. Two of its entries bear on Rule 15, and the

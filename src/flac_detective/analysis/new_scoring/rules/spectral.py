@@ -1,4 +1,43 @@
-"""Spectral analysis rules (Rule 1, Rule 2, Rule 8)."""
+"""Spectral analysis rules (Rule 1, Rule 2, Rule 8).
+
+Rule 1's near-Nyquist region, and why it stays shut
+---------------------------------------------------
+Rule 1 awards +50, and every false conviction this project has ever shipped came
+from Rule 1 + Rule 3 at +50 each. It is therefore guarded, and at 44.1 kHz the
+binding guard is ``cutoff >= 0.95 * Nyquist`` (20,947.5 Hz): above that line Rule 1
+returns before any instrument is consulted.
+
+Jamie Dodd's LAME-era exhibit (see the comment on ``HIGH_QUALITY_CUTOFF_THRESHOLD``)
+shows that real 320 kbps transcodes DO live above that line, so the guard is not
+merely conservative — it is silent on a real population. Measured on our own corpus,
+that region holds 29 of 40 ``mp3_V0`` files and 34 of 40 ``aac_ff320`` files.
+
+Opening it was attempted on 2026-08-20 and **the measurement refused**:
+
+* The calibrated instrument that settles the ambiguous zone,
+  ``compute_residual_floor_db``, reads a FIXED band at 0.961-0.993 * Nyquist. For a
+  wall at 21,570 Hz that band straddles the wall — half live signal, half digital
+  silence — so it reads an era-LAME brickwall as an authentic rolloff. It cannot
+  simply be extended upward.
+* A cutoff-RELATIVE residual was built and measured instead (``ml/nearnyq_residual_probe.py``).
+  In the closed region it reads AUC 0.79 on ``mp3_V0``, 0.72 on ``aacmf_256`` and
+  **0.45 on ``aac_ff320``** — worse than chance on the arm that matters most. The
+  genuine population reaches down to -59.6 dB, below the transcode median of -42.4,
+  so no threshold separates them. And it abstains on 81 % of genuine files, correctly:
+  a spectrum that runs to Nyquist has no wall to characterise, and n=9 transcodes is
+  not a calibration set after what a 25-file sample did to Rule 15's bar.
+
+So the region is closed on evidence, not on assumption, and the assumption that used
+to justify it was false. Those are different failures and only one of them was fixed.
+
+One consequence is corrected here: ``analyze_spectrum`` used to compute the residual
+across [0.90, 0.95) * Nyquist while Rule 1 rejects any 320 estimate from
+0.94 * Nyquist up — so a 220 Hz slice was computed and thrown away every time. The
+window now stops where the rule stops. Widening the RULE to match the window was the
+other way to reconcile them, and was rejected: in that slice 1 genuine file of 7
+reads below the -55 dB conviction floor. One option is free and the other needs
+evidence we do not have.
+"""
 
 import logging
 import math
@@ -92,8 +131,30 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
             logger.info("RULE 1: Ambiguous (could be FFT rounding) - SKIP for safety")
             return (0, []), None
 
-    # Safety check 2: If cutoff > 21.5 kHz, it's likely an authentic high-quality FLAC
-    # MP3s never have cutoffs above 21.5 kHz (even 320 kbps tops out around 20.5-21 kHz)
+    # Safety check 2: a cutoff this high is treated as an authentic high-quality FLAC.
+    #
+    # This comment used to read "MP3s never have cutoffs above 21.5 kHz (even 320 kbps
+    # tops out around 20.5-21 kHz)". That is FALSE for the entire pre-3.96 LAME era and
+    # was corrected on 2026-08-20. Jamie Dodd of Provir owns both the CD and the
+    # store download of the same Scott Brown material: the CD runs clean to Nyquist,
+    # the store file walls at 21,562.8 Hz, and the CD's OWN audio through LAME 3.92
+    # -b 320 reproduces that wall to 8.1 Hz — three FFT bins. He then re-measured
+    # rather than assumed, and found the wall is an ERA property, not a version one:
+    # 3.90.3, 3.92, 3.93.1r, 3.93.1w32 and a 2002 daily all land within 8 Hz of each
+    # other at -b 320, in both -m s and -m j. Only later builds move down (3.96.1 to
+    # 19,842.8; 3.97 and 3.98.4 to 19,999.0).
+    #
+    # So era-2002 LAME at 320 kbps walls ABOVE this threshold, and the file that
+    # proves it is read at 21,436.3 Hz by one edge-finder and 21,562.8 Hz by another —
+    # it lands on either side of this line depending on the instrument, which is the
+    # second reason not to trust an absolute edge without naming the tool.
+    #
+    # The guard stays anyway. See the module docstring for the measurement: the region
+    # above it cannot be opened with any instrument this engine currently has.
+    #
+    # Note this branch is REDUNDANT at 44.1 kHz, where safety check 1 has already
+    # returned at 0.95 * Nyquist = 20,947.5 Hz. It is live at 48 kHz and above, where
+    # 0.95 * Nyquist exceeds 21,500.
     HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
 
     if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:

@@ -142,6 +142,10 @@ ml/r12*.err
 ml/r12*.log
 ml/r12*.csv
 ml/score_distribution.csv
+# Carries per-file rows from the private authentic corpus, so its `path` column is
+# a list of someone's record collection. The probe regenerates it on demand; the
+# repository keeps the conclusions, not the track titles.
+ml/nearnyq_residual.csv
 ml/scoredist.err
 ml/scoredist.log
 

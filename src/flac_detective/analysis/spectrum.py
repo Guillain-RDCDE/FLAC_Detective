@@ -196,12 +196,20 @@ def analyze_spectrum(
         cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
 
         # Residual-floor metric for Rule 1's near-Nyquist 320 kbps gate. Only the
-        # ~90-95% Nyquist band needs it (where a 320k brickwall overlaps an authentic
-        # rolloff), so we skip the extra Welch pass everywhere else to keep the hot
-        # path fast.
+        # band where a 320k brickwall overlaps an authentic rolloff needs it, so we
+        # skip the extra Welch pass everywhere else to keep the hot path fast.
+        #
+        # The top of this window was 0.95 * Nyquist until 2026-08-20, while Rule 1
+        # rejects any 320 estimate from 0.94 * Nyquist up — so the residual was
+        # computed across a 220 Hz slice the rule could never consult, and thrown
+        # away. The window now stops where the rule stops.
+        #
+        # Widening the RULE to 0.95 instead was the other way to reconcile them, and
+        # was measured before being rejected: in that slice 1 genuine file of 7 reads
+        # below the -55 dB conviction floor. See rules/spectral.py's module docstring.
         nyquist = samplerate / 2.0
         residual_floor_db = float("nan")
-        if 0.90 * nyquist <= final_cutoff < 0.95 * nyquist:
+        if 0.90 * nyquist <= final_cutoff < 0.94 * nyquist:
             residual_floor_db = compute_residual_floor_db(full_audio, samplerate)
 
         logger.info(
