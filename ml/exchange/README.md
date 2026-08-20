@@ -196,3 +196,21 @@ defect classes are present and each hunk is annotated `PROVIR:` in place. The
 patch's fixture-generating relevance: our Musepack arm's encoder claims can now be
 checked against a source-built encoder with recorded provenance instead of a
 downloaded binary.
+
+## The Goodbye My Friend reproduction key — received 2026-08-20 (evening)
+
+His arm-1 exhibit (store file walls at 21,562.8 Hz; CD audio re-encoded through
+era-LAME reproduces the wall to 8.1 Hz) was until now recreatable only on his
+machine, because "LAME 3.92" names a family of byte-different binaries — his own
+hashed register shows nine distinct banners across eleven builds, two of them
+twenty years apart printing the same string. The exhibit's exact encoder is now
+pinned:
+
+```
+lame3.92   sha256 cb2cdfde7b170d90...   195,072 bytes   built 2002-04-16
+```
+
+With this, the recreation leg of the exhibit is reproducible by anyone holding a
+binary matching that hash. Joint rule this produced, from his register plus our
+r495-vs-r475 Musepack finding: banner, source revision and build date are three
+independent axes, and a version string pins none of them.

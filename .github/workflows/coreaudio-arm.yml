@@ -48,6 +48,22 @@ jobs:
           # and tells us in the log which AAC variants this image actually offers.
           afconvert -hf 2>&1 | grep -iE "aac|m4af" | head -20
 
+      - name: Record encoder provenance
+        # Same discipline as the Musepack arm, from Provir's BUILD.md lesson: the
+        # encoder build is load-bearing for encoder-specific claims, so the exact
+        # binary that produced a CSV ships IN the artifact next to it. For
+        # CoreAudio the encoder is the OS framework, so the OS build number is the
+        # closest thing to a source revision and is recorded alongside the binary
+        # hash of the afconvert front-end.
+        run: |
+          {
+            echo "date_utc: $(date -u +%FT%TZ)"
+            echo "runner_image: ${ImageOS:-?} ${ImageVersion:-?}"
+            echo "os: $(sw_vers -productName) $(sw_vers -productVersion) build $(sw_vers -buildVersion) $(uname -m)"
+            echo "afconvert_sha256: $(shasum -a 256 "$(which afconvert)" | cut -d' ' -f1)"
+            echo "audiotoolbox: $(ls -la /System/Library/Frameworks/AudioToolbox.framework/Versions/ 2>/dev/null | head -3 || true)"
+          } | tee coreaudio_provenance.txt
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -97,4 +113,5 @@ jobs:
           path: |
             coreaudio_arm.csv
             coreaudio_arm.log
+            coreaudio_provenance.txt
           if-no-files-found: warn

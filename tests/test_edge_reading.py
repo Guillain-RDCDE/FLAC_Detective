@@ -82,6 +82,10 @@ def test_a_wall_reads_narrower_than_a_rolloff():
     equivalent reads 390-519 Hz on their MP3 positives with different smoothing and a
     different reference band, and importing that number would be exactly the mistake
     both projects have now made once each. What must hold is the ORDER.
+
+    (2026-08-20: Provir retracted that very range — an ungated sweep; 4 admissible
+    files read 398-474 Hz — which is the strongest argument yet for asserting only
+    the order. See EdgeReading's docstring.)
     """
     wall = detect_cutoff_detailed(*_spectrum(_brickwall(19000.0)), RATE)
     slope = detect_cutoff_detailed(*_spectrum(_rolloff(15000.0, 4000.0)), RATE)

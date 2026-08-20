@@ -53,6 +53,33 @@ dedup, the exchange set's 599-that-were-589 species — exposed by the P2 report
 printing each file twice. Deduped, normalized, regenerated; the freed slots went to
 three never-measured genuine files.
 
+### His evening reply: a retraction we quote, a missing number, and a key
+
+Provir retracted the 390–519 Hz width range (stamped at every site we quote it:
+`EdgeReading`, `ml/edge_width_probe.py`, the self-anchored probe,
+`tests/test_edge_reading.py`, and the v1.11.4 section below): it came from an
+**ungated** characterisation sweep, and under his own 160 Hz admission rule the 11
+wild MP3s reduce to **4 admissible files at 398–474 Hz** — both quoted endpoints
+among the refused. That is the third instance in one week, across the two engines,
+of the same species: *a statistic computed across a population the rule cannot
+read* (our Rule 1 residual, his width sweep, his Opus flatness probe).
+
+The answer to the question we handed him — the measured flip rate of his whole
+fire predicate under anchor wander — **did not arrive**: his message shipped with
+the result placeholder literally unfilled (`‹FILL: anchor-wander result …›`), and
+everything after it is pre-run mechanism and bounds (width moves at most 1:1
+against the anchor; two lawful masters at 700/723 Hz within reach of being pushed
+*into* firing — the direction his first rule forbids, bounded by his two-group
+corroboration to a review flag). The number is still owed and has been asked for.
+
+His LAME register, hashed the same afternoon, joins with our r495-vs-r475 into
+one rule: **banner, source revision and build date are three independent axes,
+and a version string pins none of them** — eleven binaries, nine distinct
+banners, two byte-different builds twenty years apart printing the same string.
+He also made his *Goodbye My Friend* exhibit reproducible from our side for the
+first time: `lame3.92`, sha256 `cb2cdfde7b170d90…`, 195,072 bytes, built
+2002-04-16 — archived in `ml/exchange/README.md`.
+
 ### The Musepack arm, re-run with provenance and an off-grid edge
 
 Provir's BUILD.md lesson applied to our own fixture generator: the workflow now
@@ -118,6 +145,12 @@ Frequency is only a gate in his engine (21,350–21,650 Hz); the test underneath
 transition **width**, as a conjunction rather than a threshold, with MP3 positives at
 390–519 Hz. He volunteered the caveat too: 5 of his 75 lawful in-window files also
 show a sharp wall.
+
+> **Retracted by him 2026-08-20 (evening):** the 390–519 came from an ungated
+> characterisation sweep. Under his own 160 Hz admission rule the wild MP3s
+> reduce to **4 admissible files at 398–474 Hz**, and both quoted endpoints are
+> among the refused. Same species as our Rule 1 residual floor — a statistic
+> computed across a population the rule cannot read. See Unreleased.
 
 Measured here on 120 genuine and 40 per arm (`ml/edge_width_probe.py`):
 

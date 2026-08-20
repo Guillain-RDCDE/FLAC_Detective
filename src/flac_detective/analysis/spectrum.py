@@ -405,7 +405,15 @@ class EdgeReading(NamedTuple):
     do show a sharp wall (409-900 Hz). Width does the work and is still not a
     separator on its own, which is why the conjunction exists.
 
-    Our numbers are NOT comparable to his
+    RETRACTED BY HIM 2026-08-20 (evening), stamped wherever we quote the range: the
+    390-519 was not measured under the gate he quoted it against. It came from a
+    characterisation sweep that applies NO admission gate; under his own 160 Hz
+    edge-stability rule the 11 wild MP3s reduce to 4 admissible (398-474 Hz), and
+    BOTH endpoints of the quoted interval come from files the gate refuses (the 390
+    carries an edge std of 263.7, the 519 of 363.3). Same species as our Rule 1
+    residual floor: a statistic computed across a population the rule cannot read —
+    third instance of the species across the two engines in one week. His lawful
+    409-900 and drive 373-837 figures were re-checked and stand.
     -------------------------------------
     Different smoothing, different reference band, different definition of where a
     transition starts and stops. His own standing rule applies to us here: never

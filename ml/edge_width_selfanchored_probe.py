@@ -131,6 +131,18 @@ of its own inputs. What remains open is HIS half of his question: whether his
 390-519 Hz survives his own anchor's 160 Hz wander, on his corpus, with his
 gate. Our result removes our null as evidence either way.
 
+STAMPED 2026-08-20 (evening): he answered in two parts and retracted one. The
+390-519 itself came from an UNGATED sweep — under his own 160 Hz admission rule
+the wild MP3s reduce to 4 admissible files at 398-474 Hz, both quoted endpoints
+among the refused (our Rule 1 residual's species, third instance across the two
+engines). His pre-run bounds: width moves at most 1:1 against the anchor
+(slope -1.000 on synthetic, -0.659 on a sloped shelf), one admissible wild MP3
+within reach of his 600 Hz threshold, and two LAWFUL masters at 700/723 Hz
+within reach of being pushed INTO firing — the direction his first rule
+forbids, bounded by his two-group corroboration to a review flag. The measured
+flip rate on the whole fire predicate DID NOT ARRIVE: his message shipped with
+the result placeholder unfilled, and the number is still owed.
+
 Usage::
 
     python ml/edge_width_selfanchored_probe.py --selftest   # synthetic knowns

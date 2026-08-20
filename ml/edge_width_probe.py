@@ -35,6 +35,11 @@ WIDTH, and it is a conjunction rather than a threshold: his MP3 positives return
 Unprompted, he added: of 75 lawful files inside that window, **5 do show a sharp
 wall** (409-900 Hz). So width does the work and is still not a separator on its own.
 
+(Retracted by him 2026-08-20: the 390-519 came from an UNGATED characterisation
+sweep. Under his own 160 Hz admission rule the wild MP3s reduce to 4 admissible
+files at 398-474 Hz, and both endpoints of the quoted interval are among the
+refused. See ``EdgeReading``'s docstring in ``spectrum.py`` for the full stamp.)
+
 His numbers are not ours and must not be imported
 --------------------------------------------------
 Different smoothing, different reference band, different definition of where a
