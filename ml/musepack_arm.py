@@ -107,12 +107,12 @@ extension that proves the MSVC path never once compiled — is archived under
 ``ml/exchange/`` (as ``provir-mpcenc-BUILD.md``), received 2026-08-20 after
 LinkedIn silently dropped the original attachments. Verified on receipt: 8 files,
 the extensionless ``attgetopt`` line present, all four defect classes annotated.
-Receipt hashes in ``ml/exchange/README.md``. His BUILD.md already carries a
-same-day correction section incorporating the 250 Hz grid finding — he read the
-public repository before our message announcing it was even sent — and adds a
-rule worth keeping: two instruments agreeing on a round number is evidence only
-if they could have disagreed; compute the collision rate of the two number
-generators first.
+Receipt hashes in ``ml/exchange/README.md``. His BUILD.md arrived already
+carrying a same-day correction section incorporating the 250 Hz grid finding —
+written after he received our message announcing it, stamped above his original
+inference rather than replacing it — and adds a rule worth keeping: two
+instruments agreeing on a round number is evidence only if they could have
+disagreed; compute the collision rate of the two number generators first.
 
 And a defect of ours that this exposed: 1 file of 24 reads 22,050 Hz at EVERY
 profile, including ``--radio`` where a 15.8 kHz cap certainly applies. That reading
