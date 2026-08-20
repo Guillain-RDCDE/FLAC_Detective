@@ -236,3 +236,24 @@ What it changed here: three schema repairs in ml/wild_fake_ledger.py (see its
 docstring and tests/test_wild_fake_ledger.py) and AMENDMENT 2 of
 PREREGISTERED_2026-08-20.md - the pre-registration stays unspent, because this
 delivery does not carry the population it names.
+
+## The v2 exchange set — frozen 2026-08-20, NOT yet sent
+
+Built to retire the two defects the 2026-08 set could not shake: sources are now
+deduplicated by CONTENT at pick time (30 s of decoded PCM, mono s16le - the
+599-that-were-589 repair, pinned by tests/test_exchange_dedup.py), and every
+transcode is resampled back to its source rate, so the Opus arm no longer
+announces itself by living at 48 kHz (verified on the frozen set: all ten arms
+carry the identical rate distribution, 53 x 44.1k + 5 x 48k + 1 x 96k).
+
+590 files: 59 fresh etree sources (95 candidate items, disjoint draw from the
+v1 set) x 10 arms, balanced. MANIFEST_v2.sha256 is committed here in the same
+action as its self-hash, per the standing rule:
+
+```
+a476fa216c7092269891d2e222bd73b323cd8003ce95bb9af2c983bf970b991f  MANIFEST_v2.sha256
+```
+
+The answer key lives outside the shipped directory, gitignored (*-LABELS.json).
+The set awaits a human decision to send - and per this directory's protocol,
+the next blind exchange trades EVIDENCE COLUMNS before anyone scores.
