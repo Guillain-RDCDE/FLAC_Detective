@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -354,6 +354,180 @@ def detect_cutoff(  # noqa: C901
     # If energy-based also didn't find anything suspicious, truly authentic
     logger.debug(f"No cutoff detected, full spectrum up to {freq_max:.0f} Hz")
     return float(freq_max)
+
+
+class EdgeReading(NamedTuple):
+    """What ``detect_cutoff`` cannot say, because it can only return one float.
+
+    ``detect_cutoff`` returns Nyquist in three unrelated situations: the spectrum
+    genuinely runs to the top, the energy is concentrated in the bass and no wall was
+    looked for, and nothing was found at all. A caller reading 22,050 Hz cannot tell
+    a measurement from a shrug, and any median computed over a mixture of the two is
+    partly a median of failures.
+
+    This project already knows that lesson from Rule 15's mono gate — "the correct
+    behaviour being silence, not a low score, because a low score is still an
+    opinion" — and did not apply it here. Jamie Dodd's engine returns an explicit
+    *no wall found* sentinel, which is why his lawful population reads as a sentinel
+    rather than as a pile of numbers near Nyquist.
+
+    ``found`` is that sentinel. ``width_hz`` is the second half, and it is the more
+    valuable one.
+
+    Why width
+    ---------
+    His measurement, given after retracting the frequency he had handed over: an edge
+    POSITION does not separate lawful masters from MP3 transcodes at all. Of his 17
+    real 2009 DJ-master MP3s, 11 carry a sharp wall topping out at 21,479 Hz and 6
+    have no wall up to 22,023 Hz — while 28 of his 75 lawful masters sit above 21,570.
+    Both populations live on both sides of any line.
+
+    What separates is how FAST the spectrum falls. In his engine frequency is only a
+    gate (21,350-21,650 Hz) and the test underneath is a transition width, used as a
+    conjunction rather than a threshold: his MP3 positives return 390-519 Hz.
+
+    With his own caveat, given unprompted: of 75 lawful files inside that window, 5
+    do show a sharp wall (409-900 Hz). Width does the work and is still not a
+    separator on its own, which is why the conjunction exists.
+
+    Our numbers are NOT comparable to his
+    -------------------------------------
+    Different smoothing, different reference band, different definition of where a
+    transition starts and stops. His own standing rule applies to us here: never
+    quote an absolute edge figure without naming the instrument that produced it. So
+    ``width_hz`` is calibrated against our own corpus or not at all, and his 390-519
+    is context, never a threshold to import.
+
+    MEASURED 2026-08-21: width does not become a rule here
+    -------------------------------------------------------
+    ``ml/edge_width_probe.py``, 120 genuine and 40 per arm. Width separates at AUC
+    0.48-0.62 — 0.48 on ``aac_ff320``, i.e. below chance — and at a 5 % genuine cost
+    it fires on 0-5 % of each arm. Against a stereo family at 92 % and an MDCT rule
+    at AUC 0.99, that is not an axis.
+
+    It was measured twice. The first run reused ``detect_cutoff``'s size-100
+    smoothing kernel and was invalid: at 2.69 Hz per bin that kernel spans 269 Hz,
+    and every width it produced (137-215 Hz median) sat below its own filter. The
+    synthetic control passed anyway, because a step function survives any kernel —
+    the same failure as the MP3-geometry probe that validated against a control
+    sharing its defect. Fixing it to 9 bins gave the statistic real dynamic range
+    (a synthetic brickwall went 70 Hz -> 11 Hz against a rolloff at ~200 Hz) and
+    changed the corpus answer not at all.
+
+    So the honest statement is narrow: **width does not work bolted onto our
+    edge-finder.** Our position comes from a 269 Hz-smoothed curve and the width
+    search starts 250 Hz below it, so the two halves are not one coherent
+    instrument. This says nothing about whether it works in Provir's, where it does.
+
+    One thing did fall out, and it is not a result
+    ----------------------------------------------
+    Exactly 3 of our 39 measurable genuine files read as near-perfect brickwalls —
+    2.7 Hz, 0.0 Hz and 18.8 Hz, at 21,000 / 21,000 / 20,250 Hz. Either they are
+    transcodes mislabelled in our own genuine corpus, or the statistic is spurious on
+    them. **This cannot be settled with the statistic under test**, and excluding them
+    because they look like transcodes is precisely the circularity this whole exchange
+    is about. They are adjudication candidates for ``ml/wild_fake_ledger.py``, whose
+    ``basis`` field exists for this, and nothing more until a human with evidence
+    rules on them.
+
+    For the record, and stated as a bound rather than as a finding: if all three were
+    transcodes, the 5 %-cost fire rates would rise to 7.5-25 % per arm. Still not an
+    axis, so the question does not change the decision — which is the only reason it
+    is safe to write down.
+    """
+
+    cutoff_hz: float
+    found: bool
+    width_hz: float
+
+
+# Where the transition is considered to start, relative to the in-band reference.
+# -6 dB rather than -3: at -3 dB an ordinary spectral dip opens a transition that
+# never closes, and the width then measures the music.
+EDGE_START_DROP_DB = 6.0
+
+# Smoothing for the WIDTH measurement, in bins — deliberately NOT the size-100
+# kernel ``detect_cutoff`` uses to find the edge.
+#
+# The first version of this function reused that kernel and produced a null: AUC
+# 0.51-0.64 across six arms, with every measured width (137-215 Hz median) sitting
+# BELOW the kernel's own span. At 16384-point FFT and 44.1 kHz a bin is 2.69 Hz, so
+# size=100 smears across 269 Hz — the statistic was reading the filter.
+#
+# Aggressive smoothing is right for finding WHERE an edge is and wrong for measuring
+# HOW STEEP it is, and reusing it was the same mistake as the earlier MP3-geometry
+# probe that validated against a synthetic control sharing its own defect: the
+# synthetic brickwall passed because a step function survives any kernel.
+WIDTH_SMOOTH_BINS = 9
+
+
+def detect_cutoff_detailed(
+    frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100
+) -> EdgeReading:
+    """``detect_cutoff`` plus the two things it cannot express: a sentinel and a width.
+
+    Deliberately a SEPARATE function. ``detect_cutoff`` feeds every scoring rule, and
+    changing what it returns would change verdicts; this one is for measurement
+    contexts — arms, probes, published tables — where averaging a failure into a
+    median is the actual harm. See :class:`EdgeReading`.
+    """
+    cutoff = float(detect_cutoff(frequencies, magnitude_db, samplerate))
+    nyquist = samplerate / 2.0
+
+    # detect_cutoff signals "nothing found" by returning the top of the band. That is
+    # the ambiguity this function exists to resolve, so it is resolved here rather
+    # than by the caller guessing.
+    if cutoff >= frequencies[-1] - 1e-6 or cutoff >= 0.999 * nyquist:
+        return EdgeReading(cutoff_hz=cutoff, found=False, width_hz=float("nan"))
+
+    if samplerate <= 48000:
+        ref_low = spectral_config.REFERENCE_FREQ_LOW
+        ref_high = spectral_config.REFERENCE_FREQ_HIGH
+    else:
+        scale = samplerate / 44100.0
+        ref_low = int(spectral_config.REFERENCE_FREQ_LOW * scale)
+        ref_high = int(spectral_config.REFERENCE_FREQ_HIGH * scale)
+
+    ref_mask = (frequencies >= ref_low) & (frequencies <= ref_high)
+    if not np.any(ref_mask):
+        return EdgeReading(cutoff_hz=cutoff, found=True, width_hz=float("nan"))
+    reference = float(np.median(magnitude_db[ref_mask]))
+
+    # Lightly smoothed — see WIDTH_SMOOTH_BINS. The edge POSITION comes from
+    # detect_cutoff's own heavily-smoothed curve; the STEEPNESS has to come from a
+    # curve that still has steepness in it.
+    above = frequencies > ref_low
+    freq_high = frequencies[above]
+    mag_high = magnitude_db[above]
+    if len(mag_high) > WIDTH_SMOOTH_BINS:
+        from scipy.ndimage import uniform_filter1d
+
+        mag_high = uniform_filter1d(mag_high, size=WIDTH_SMOOTH_BINS)
+
+    start_level = reference - EDGE_START_DROP_DB
+    end_level = reference - spectral_config.CUTOFF_THRESHOLD_DB
+
+    # Search forward from the detected edge minus one slice: the edge is reported as
+    # the START of the drop, so the transition begins at or just before it.
+    search = freq_high >= (cutoff - spectral_config.TRANCHE_SIZE)
+    if not np.any(search):
+        return EdgeReading(cutoff_hz=cutoff, found=True, width_hz=float("nan"))
+    freq_s, mag_s = freq_high[search], mag_high[search]
+
+    below_start = np.flatnonzero(mag_s <= start_level)
+    below_end = np.flatnonzero(mag_s <= end_level)
+    if below_start.size == 0 or below_end.size == 0:
+        # The spectrum never reaches the floor above the edge — a rolloff that fades
+        # rather than a wall that stops. Not a width, and not a zero either.
+        return EdgeReading(cutoff_hz=cutoff, found=True, width_hz=float("nan"))
+
+    first_start = float(freq_s[below_start[0]])
+    reaches_floor = below_end[below_end >= below_start[0]]
+    if reaches_floor.size == 0:
+        return EdgeReading(cutoff_hz=cutoff, found=True, width_hz=float("nan"))
+
+    width = float(freq_s[reaches_floor[0]]) - first_start
+    return EdgeReading(cutoff_hz=cutoff, found=True, width_hz=max(width, 0.0))
 
 
 def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarray) -> float:

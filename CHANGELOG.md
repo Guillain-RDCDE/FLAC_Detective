@@ -1,3 +1,167 @@
+## v1.11.4 (2026-08-21) — a retraction we had already shipped, and a null result worth having
+
+v1.11.3 corrected a false claim in Rule 1 by citing a frequency Provir had supplied.
+Jamie Dodd then retracted that frequency himself, before we could act on it, with
+the error bars he had left off. This release removes it from our code and reports
+what replaced it — including a null.
+
+### What we published and had to take back
+
+We wrote, in a shipped code comment and in release notes now on PyPI, that
+*"3.90.3, 3.92, 3.93.1r, 3.93.1w32 and a 2002 daily all land within 8 Hz of each
+other at -b 320"*. **No measurement supports that sentence.** He had fused two
+different 8 Hz figures — 8.1 Hz was store-file-vs-recreation, ~8 Hz was
+build-to-build — and told us so unprompted. The build-to-build spread survives on
+its own (5.3–5.4 Hz on separate material, measured before the claim existed) but
+must never be bound to a frequency.
+
+The frequency itself is worse than imprecise:
+
+- it is one reading, of one file, by one edge-finder written that morning;
+- **early 3.9x LAME at `-b 320` applies no lowpass at all**, so the number measured
+  the source material, not the encoder — the same build group swings **3,800 Hz** on
+  content alone (17,420 Hz on one track of a CD, 21,226 Hz on another from the same
+  disc);
+- 503 of his 1,180 lawful files (**42.6 %**) already read an edge at or above it. A
+  threshold there convicts lawful CD masters at scale, classical and acoustic first.
+
+**We had not moved the guard.** Our own measurement had already refused to open that
+region a day earlier, for unrelated reasons. Two independent refusals of the same
+change is the useful part of this exchange working.
+
+### The conclusion is stronger than the number was
+
+Of his 17 real 2009 DJ-master MP3s, 11 carry a sharp wall topping out at 21,479 Hz
+and **6 have no wall at all** up to 22,023 Hz. Meanwhile **28 of his 75 lawful
+masters sit above 21,570**.
+
+Both populations live on both sides of every line. **No edge position separates
+them**, so our 21,500 constant was never a threshold set too low — it is the wrong
+kind of quantity. That also settles the instrument caveat from v1.11.3 rather than
+leaving it open: his two edge-finders reading the same file at 21,436.3 and 21,562.8
+Hz is the same result arriving from measurement error instead of population overlap.
+
+### What he uses instead, and why it does not transfer
+
+Frequency is only a gate in his engine (21,350–21,650 Hz); the test underneath is
+transition **width**, as a conjunction rather than a threshold, with MP3 positives at
+390–519 Hz. He volunteered the caveat too: 5 of his 75 lawful in-window files also
+show a sharp wall.
+
+Measured here on 120 genuine and 40 per arm (`ml/edge_width_probe.py`):
+
+| arm | width AUC vs genuine | fires at 5 % genuine cost |
+|---|---|---|
+| `mp3_320` | 0.56 | 2.5 % |
+| `mp3_V0` | 0.62 | 5.0 % |
+| `aac_ff320` | **0.48** | 2.5 % |
+| `aacmf_256` | 0.54 | 2.5 % |
+| `opus_256` | 0.60 | 0.0 % |
+| `vorbis_q8` | 0.52 | 5.0 % |
+
+Below chance on `aac_ff320`. Against a stereo family at 92 % and an MDCT rule at
+AUC 0.99, **width does not become a rule here.**
+
+**It was measured twice, and the first run was invalid.** It reused
+`detect_cutoff`'s size-100 smoothing kernel — 269 Hz at 2.69 Hz per bin — and every
+width it produced (137–215 Hz median) sat below the filter's own span. The synthetic
+control passed regardless, because a step function survives any kernel: the same
+failure as the MP3-geometry probe that validated against a control sharing its
+defect. Fixed to 9 bins, a synthetic brickwall went 70 Hz to 11 Hz against a rolloff
+at ~200 Hz, and **the corpus answer did not move.**
+
+So the claim is narrow and it is about us: width does not work *bolted onto our
+edge-finder*. Our edge position comes from a 269 Hz-smoothed curve while the width
+search starts 250 Hz below it — two halves that are not one instrument. Nothing here
+says it fails in his.
+
+### What was adopted: a sentinel, because a shrug is not a measurement
+
+`detect_cutoff` returns Nyquist in three unrelated situations — the spectrum
+genuinely reaches the top, the energy sits in the bass, and nothing was found at all.
+A caller cannot tell a measurement from a shrug.
+
+That is Rule 15's mono-gate lesson unapplied: *"the correct behaviour being silence,
+not a low score, because a low score is still an opinion."* And it had already cost
+us — the v1.11.3 Musepack table averaged in one file reading 22,050 Hz at **every**
+profile, including `--radio` where a 15.8 kHz cap certainly applies.
+
+`detect_cutoff_detailed` now returns `(cutoff_hz, found, width_hz)`. Deliberately a
+**separate** function: `detect_cutoff` feeds every scoring rule and changing it would
+change verdicts. **No verdict moves in this release.**
+
+What the sentinel says on its own — not new evidence, since it is largely
+"cutoff < Nyquist" which existing rules already act on, but now sayable:
+
+| arm | no edge found |
+|---|---|
+| genuine | **68 %** |
+| `mp3_320` | 8 % |
+| `opus_256` | 8 % |
+| `vorbis_q8` | 28 % |
+| `mp3_V0` | 38 % |
+| `aacmf_256` | 42 % |
+| `aac_ff320` | 55 % |
+
+### Three genuine files that read as perfect brickwalls
+
+Exactly 3 of our 39 measurable genuine files read **2.7 Hz, 0.0 Hz and 18.8 Hz** of
+transition, at 21,000 / 21,000 / 20,250 Hz. Either they are transcodes mislabelled in
+our own genuine corpus, or the statistic is spurious on them.
+
+**This cannot be settled with the statistic under test.** Excluding them because they
+look like transcodes is exactly the circularity this whole exchange is about. They
+are adjudication candidates for `ml/wild_fake_ledger.py` and nothing more until a
+human with evidence rules on them. Stated as a bound and not as a finding: if all
+three were transcodes the 5 %-cost fire rates would rise to 7.5–25 %, still not an
+axis — which is the only reason it is safe to write the number down at all.
+
+### Musepack: our result was right, our explanation was wrong
+
+P3 failed on measurement and the number is ours. The **mechanism** we attached to it
+was not. We said Musepack *"still lowpasses at 18,750 Hz even at its top preset"*. It
+does not lowpass at `--insane` at all.
+
+He built `mpcenc` from source to check (the upstream CMake build has been broken
+under MSVC since 2011 — four defects, one referencing a source file with no `.c`
+extension, so that path can never have been run). The `--insane` cap is the full
+band: 22.1 kHz at 44.1 kHz, per the encoder's own report, with three synthetic probes
+reading the decoded edge at 22,050.0 Hz.
+
+**18,750 Hz is a 48 kHz constant.** `mpcenc.c:1282` computes bandwidth as
+`(Max_Band+1) × (SampleFreq/32/2000)` kHz over 32 subbands:
+
+    48,000 Hz -> 0.750000 kHz/band, Max_Band=24 -> 18,750.00   exact
+    44,100 Hz -> 0.689063 kHz/band, Max_Band=26 -> 18,604.69
+
+Verified against our own data: our sources are 44.1 kHz, and at 44.1 kHz a bandwidth
+of 18,750 Hz needs `Max_Band+1 = 27.211` — not an integer, so not a band boundary.
+Our figure cannot be a Musepack cap. It is the encoder zeroing low-level HF content,
+which is a real observable and not the one we named.
+
+His caveat, volunteered: his probes were synthetic and broadband, and real music with
+little HF gives a lower measured edge with no lowpass at all. So *"the 18,750 cap
+does not exist at `--insane`"*, not *"you mismeasured"*.
+
+He also retracted his own Musepack claim in the same message: what Provir called a
+fully characterised codec is one encoder build (mpcenc 1.30.0, Feb 2009), q10 only,
+29 recordings, all electronic, zero wild files — and the "100 % catch at q5–q7" line
+is an n=10 note with no surviving artefact.
+
+### The pre-registration was aimed at the wrong population, and was amended in time
+
+`ear+eye` does not mean "selected by the ear and survived the eye". It means *"I had
+to listen; the picture alone was ambiguous"* — **the eye failed to decide, it did not
+confirm.** And *Goodbye My Friend* is not in that tier at all; it is
+`owner+provenance`, a referee row.
+
+`ml/exchange/PREREGISTERED_2026-08-20.md` carries a dated **amendment**, appended
+rather than edited, before any file has been sent. P2 keeps its number and loses its
+meaning; P3 is unchanged and now does more work, since a conviction carried by two
+band-edge sources would be our engine claiming certainty exactly where the most
+direct instrument abstained. P6 is added: referee rows scored separately, never
+averaged into a headline.
+
 ## v1.11.3 (2026-08-20) — a false claim in Rule 1, and the Musepack axis finally earned
 
 Jamie Dodd published the tiering behind Provir's owner-ruled labels. Two things

@@ -7,18 +7,22 @@ from Rule 1 + Rule 3 at +50 each. It is therefore guarded, and at 44.1 kHz the
 binding guard is ``cutoff >= 0.95 * Nyquist`` (20,947.5 Hz): above that line Rule 1
 returns before any instrument is consulted.
 
-Jamie Dodd's LAME-era exhibit (see the comment on ``HIGH_QUALITY_CUTOFF_THRESHOLD``)
-shows that real 320 kbps transcodes DO live above that line, so the guard is not
-merely conservative — it is silent on a real population. Measured on our own corpus,
-that region holds 29 of 40 ``mp3_V0`` files and 34 of 40 ``aac_ff320`` files.
+Real 320 kbps transcodes DO live above that line — his 17 real 2009 DJ-master MP3s
+include 6 with no wall at all up to 22,023 Hz — so the guard is not merely
+conservative; it is silent on a real population. Measured on our own corpus, that
+region holds 29 of 40 ``mp3_V0`` files and 34 of 40 ``aac_ff320`` files.
+
+It stays shut regardless, because 28 of his 75 **lawful** masters sit up there too.
+See the comment on ``HIGH_QUALITY_CUTOFF_THRESHOLD``: no edge position separates
+those two populations, so no amount of moving this constant would help.
 
 Opening it was attempted on 2026-08-20 and **the measurement refused**:
 
 * The calibrated instrument that settles the ambiguous zone,
-  ``compute_residual_floor_db``, reads a FIXED band at 0.961-0.993 * Nyquist. For a
-  wall at 21,570 Hz that band straddles the wall — half live signal, half digital
-  silence — so it reads an era-LAME brickwall as an authentic rolloff. It cannot
-  simply be extended upward.
+  ``compute_residual_floor_db``, reads a FIXED band at 0.961-0.993 * Nyquist. Any wall
+  landing inside that band is straddled — half live signal, half digital silence — so
+  the instrument reads a brickwall as an authentic rolloff. It cannot simply be
+  extended upward; a band that is meant to characterise a wall has to follow it.
 * A cutoff-RELATIVE residual was built and measured instead (``ml/nearnyq_residual_probe.py``).
   In the closed region it reads AUC 0.79 on ``mp3_V0``, 0.72 on ``aacmf_256`` and
   **0.45 on ``aac_ff320``** — worse than chance on the arm that matters most. The
@@ -134,23 +138,44 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     # Safety check 2: a cutoff this high is treated as an authentic high-quality FLAC.
     #
     # This comment used to read "MP3s never have cutoffs above 21.5 kHz (even 320 kbps
-    # tops out around 20.5-21 kHz)". That is FALSE for the entire pre-3.96 LAME era and
-    # was corrected on 2026-08-20. Jamie Dodd of Provir owns both the CD and the
-    # store download of the same Scott Brown material: the CD runs clean to Nyquist,
-    # the store file walls at 21,562.8 Hz, and the CD's OWN audio through LAME 3.92
-    # -b 320 reproduces that wall to 8.1 Hz — three FFT bins. He then re-measured
-    # rather than assumed, and found the wall is an ERA property, not a version one:
-    # 3.90.3, 3.92, 3.93.1r, 3.93.1w32 and a 2002 daily all land within 8 Hz of each
-    # other at -b 320, in both -m s and -m j. Only later builds move down (3.96.1 to
-    # 19,842.8; 3.97 and 3.98.4 to 19,999.0).
+    # tops out around 20.5-21 kHz)". That is false, and it is false in BOTH directions,
+    # which is a stronger and more useful statement than the one this comment carried
+    # between 2026-08-20 and 2026-08-21.
     #
-    # So era-2002 LAME at 320 kbps walls ABOVE this threshold, and the file that
-    # proves it is read at 21,436.3 Hz by one edge-finder and 21,562.8 Hz by another —
-    # it lands on either side of this line depending on the instrument, which is the
-    # second reason not to trust an absolute edge without naming the tool.
+    # The first correction cited a specific frequency (~21,570 Hz) for an era-LAME 320
+    # wall. Jamie Dodd of Provir supplied that number and then RETRACTED it himself,
+    # with the error bars he had left off:
     #
-    # The guard stays anyway. See the module docstring for the measurement: the region
-    # above it cannot be opened with any instrument this engine currently has.
+    #   * it is one reading, of one file, by one edge-finder written that morning;
+    #   * early 3.9x at -b 320 applies NO LOWPASS AT ALL, so the figure measures the
+    #     source material and not the encoder — the same build group swings 3,800 Hz
+    #     on content alone (17,420 Hz on one track of a CD, 21,226 Hz on another);
+    #   * 503 of his 1,180 lawful files (42.6 %) already read an edge at or above it,
+    #     so a threshold there convicts lawful CD masters at scale — classical and
+    #     acoustic material first.
+    #
+    # He also disclosed fusing two different 8 Hz figures: 8.1 Hz was store-file vs
+    # recreation, and ~8 Hz was build-to-build. "Walls at ~21,570 across five builds
+    # within 8 Hz" is a sentence no measurement supports, and this file asserted it.
+    # The build-to-build spread does survive on its own (5.3-5.4 Hz on separate
+    # material, measured before the claim existed) but must never be bound to a
+    # frequency.
+    #
+    # What survives is the conclusion, and it is the reason this guard cannot simply
+    # be moved up. Of his 17 real 2009 DJ-master MP3s, 11 carry a sharp wall topping
+    # out at 21,479 Hz and 6 have no wall at all up to 22,023 Hz; meanwhile 28 of his
+    # 75 lawful masters sit above 21,570. BOTH POPULATIONS LIVE ON BOTH SIDES OF EVERY
+    # LINE. There is no edge position that separates them, so 21,500 is not a
+    # threshold set too low — it is the wrong kind of quantity.
+    #
+    # That also settles the instrument caveat rather than leaving it open. His two
+    # edge-finders read the same file at 21,436.3 and 21,562.8 Hz, either side of this
+    # constant. That is not a problem awaiting a fix; it is the same result arriving
+    # from measurement error instead of from population overlap.
+    #
+    # The guard therefore stays, and stays as a GATE rather than as evidence. What
+    # discriminates is how fast the spectrum falls, not where — see
+    # analysis/spectrum.py's `detect_cutoff_detailed` and its EdgeReading docstring.
     #
     # Note this branch is REDUNDANT at 44.1 kHz, where safety check 1 has already
     # returned at 0.95 * Nyquist = 20,947.5 Hz. It is live at 48 kHz and above, where

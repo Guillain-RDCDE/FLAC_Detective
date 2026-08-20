@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 """Can a cutoff-relative residual separate a near-Nyquist wall from an open spectrum?
 
+RETRACTED 2026-08-21. The frequency below came from Provir and Jamie Dodd withdrew
+it himself: it is one reading of one file by one edge-finder, early 3.9x LAME at
+-b 320 applies no lowpass at all (so it measured the SOURCE, not the encoder), and
+503 of his 1,180 lawful files already read an edge at or above it. He also disclosed
+fusing two different 8 Hz figures — 8.1 Hz store-vs-recreation and ~8 Hz
+build-to-build — so "five builds within 8 Hz of a frequency" is unsupported.
+
+The conclusion survives and is stronger: 11 of his 17 real 2009 MP3s wall below
+21,479 Hz while 6 have no wall to 22,023, and 28 of his 75 lawful masters sit above
+21,570. No edge POSITION separates the populations. See ml/edge_width_probe.py for
+what replaced it.
+
+Kept below as written, because a probe's stated premise is part of its result.
+
 The hole this is trying to fill
 -------------------------------
 Rule 1 awards +50 and every false conviction this project has ever shipped came

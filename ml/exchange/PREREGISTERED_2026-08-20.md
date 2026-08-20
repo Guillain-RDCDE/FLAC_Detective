@@ -112,3 +112,79 @@ Per his own instruction, and because it is right:
 
 *No result section exists yet. Its absence is the evidence that this document
 preceded the data.*
+
+---
+
+# AMENDMENT — 2026-08-21, still before any file has been sent
+
+Appended, not edited. The original text above is unchanged; a pre-registration that
+gets rewritten when it turns out to be inconvenient is not one. What follows says
+what was wrong with it and what replaces it.
+
+## The tier does not mean what this document assumed
+
+Jamie corrected it unprompted, and in time. We wrote that the 9 `ear+eye` rows were
+*"selected by the ear and survived the eye"*. They are not. His tier means:
+
+> I had to listen; the picture alone was ambiguous.
+
+**The eye did not confirm those files — it failed to decide.** That is a different
+population and it tests a different thing.
+
+He also corrected a second error of ours: *Goodbye My Friend* is **not** in that
+group. It is `owner+provenance` — a referee row. We had been treating it as the
+exemplar of the tier.
+
+## What that changes
+
+The original P2/P3 were built on "the eye confirmed these, the ear found them", i.e.
+a population where two independent senses agreed. What actually exists is a
+population where **one sense abstained**. Those are not interchangeable:
+
+- Under the original reading, a 0/9 from our engine would have meant our families
+  cannot reach what two senses jointly established.
+- Under the correct reading, a 0/9 means our families cannot reach what the eye
+  found *undecidable* — which is a weaker claim about us, because an
+  eye-undecidable file may be undecidable for a band-edge instrument by construction
+  rather than by any failure of architecture.
+
+The test is still worth running, and it is still the sharpest population available.
+But it can no longer carry the sentence "this answers whether our non-spectral
+families are independent of the eye". It answers a narrower question: **can any of
+our families decide a file that a competent spectrogram reading could not?**
+
+He was explicit that if we want ear-selected-and-eye-confirmed, he is not sure such
+a population exists on his side. We are not asking him to manufacture one.
+
+## Amended predictions
+
+P1, P4 and P5 stand as written — they do not depend on the misreading.
+
+**P2 (amended).** At least **2 of 9** reach `FAKE_CERTAIN`. Unchanged as a number,
+changed in what it means: it is now a claim that our engine can decide files a
+spectrogram could not, not a claim about surviving joint confirmation. Provir reads
+0 of 9 and he confirms that reproduces on their current build, with all nine
+currently at SUSPECT.
+
+**P3 (amended, and this is the one that matters).** Of the files we convict, more
+than half must draw at least one corroborating family from `mdct`, `stereo`,
+`temporal` or `cnn`. **Unchanged, and now doing more work than before**: since the
+eye could not settle these files, a conviction carried by two band-edge-derived
+sources would be our engine claiming certainty exactly where the most direct
+instrument abstained. That should read as a warning about our thresholds, not as a
+success — and it is scored as a failure of P3 either way.
+
+**P6 (new).** On the 6 referee-grade rows, no false conviction, and any rate we
+publish for them is published separately and never averaged into a headline with the
+25 eye- or ear-chosen rows. This was already our stated intent above; it is promoted
+to a scored prediction because an intent is not a bound.
+
+## Why this is being written before the data and not after
+
+Because he gave us the chance, and because a registration spent on the wrong
+population is worse than none: it produces a confident answer to a question nobody
+asked. The correction costs nothing today. After the files land it would have cost
+the whole exercise.
+
+*Still no result section. Its absence remains the evidence that this document
+precedes the data.*

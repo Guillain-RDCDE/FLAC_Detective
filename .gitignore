@@ -146,6 +146,7 @@ ml/score_distribution.csv
 # a list of someone's record collection. The probe regenerates it on demand; the
 # repository keeps the conclusions, not the track titles.
 ml/nearnyq_residual.csv
+ml/edge_width.csv
 ml/scoredist.err
 ml/scoredist.log
 

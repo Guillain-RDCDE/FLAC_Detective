@@ -49,6 +49,49 @@ Predictions, registered here before the job is run, in the exchange's convention
 Being wrong on P1 would be the most useful outcome available: it would mean Rule
 13 has a second mechanism nobody has named.
 
+CORRECTION 2026-08-21 — the mechanism we gave for P3 was wrong
+---------------------------------------------------------------
+P3 failed on measurement: the cutoff DOES separate on ``--insane``, at AUC 0.90.
+The failure was real and the number is ours. The **explanation** attached to it was
+not: this file, and the v1.11.3 release notes, said Musepack "still lowpasses at
+18,750 Hz even at its top preset". It does not lowpass at ``--insane`` at all.
+
+Jamie Dodd built ``mpcenc`` from source to check (the upstream CMake build has been
+broken under MSVC since 2011 — four defects, one referencing a source file with no
+``.c`` extension, so that path can never have been run). ``--insane``'s bandwidth cap
+is the full band: 22.1 kHz at 44.1 kHz, 24.0 kHz at 48 kHz, per the encoder's own
+report, with three synthetic probes measuring the decoded edge at 22,050.0 Hz.
+
+Where 18,750 comes from is exact, and it is a **48 kHz** number. ``mpcenc.c:1282``
+computes bandwidth as ``(Max_Band+1) * (SampleFreq/32/2000)`` kHz — 32 subbands, so
+the step is sample-rate dependent:
+
+    48,000 Hz -> 0.750000 kHz/band, Max_Band=24 -> 18,750.00   exact
+    44,100 Hz -> 0.689063 kHz/band, Max_Band=26 -> 18,604.69
+
+Verified here against our own data: our sources are 44.1 kHz (the genuine baseline
+tops at 22,050 Hz), and at 44.1 kHz a bandwidth of 18,750 Hz would require
+``Max_Band+1 = 27.211`` — not an integer, so not a band boundary. Our figure cannot
+be a Musepack cap.
+
+His profile ladder at 44.1 kHz is thumb 13.1 / radio 15.8 / standard 20.0 /
+extreme 22.1 / insane 22.1 kHz. Our measured medians were radio 16,000 (matching
+his cap), standard 17,750 and insane 18,750 — both **below** their caps. So the
+separation at ``--insane`` is the encoder zeroing low-level HF content, which is a
+real observable, and not a bandwidth limit, which is what we claimed.
+
+His own caveat, volunteered: his probes were synthetic and broadband, and real music
+with little HF produces a lower measured edge with no codec lowpass at all. So the
+correct statement is "the 18,750 cap does not exist at ``--insane``", not "you
+mismeasured".
+
+And a defect of ours that this exposed: 1 file of 24 reads 22,050 Hz at EVERY
+profile, including ``--radio`` where a 15.8 kHz cap certainly applies. That reading
+is ``detect_cutoff`` failing and returning Nyquist, which it does for "full
+spectrum", "bass concentration" and "found nothing" alike. It entered our medians as
+if it were a measurement. ``detect_cutoff_detailed`` now separates the sentinel from
+the reading; see its ``EdgeReading`` docstring.
+
 Paired, not pooled: every source is measured as-is and after a Musepack round
 trip, so the genuine baseline and the transcode are the same music. Same
 discipline as the CoreAudio arm.
@@ -291,6 +334,12 @@ def report(rows: List[dict], profiles: List[str]) -> None:
     print("  P3 cutoff separates on radio, not on insane")
     print("\nBeing wrong on P1 is the useful outcome: it would mean Rule 13 responds")
     print("to something its docstring does not name.")
+    print("\nP3 FAILED and its first explanation was wrong too. --insane does NOT cap")
+    print("the bandwidth (the cap is the full band); 18,750 Hz is a 48 kHz constant,")
+    print("and at 44.1 kHz it is not a band boundary at all. The separation is the")
+    print("encoder zeroing low-level HF, not a lowpass. See the module docstring.")
+    print("\nAny arm median here still mixes in detect_cutoff's Nyquist-on-failure")
+    print("return. Use detect_cutoff_detailed for a sentinel that says so.")
 
 
 if __name__ == "__main__":
