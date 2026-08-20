@@ -79,7 +79,57 @@ serious adjudication candidates. Being wrong on P3 means the grid reading of
 Results are appended below this line AFTER the corpus run, never above it, and
 the predictions above are left untouched whatever they say.
 --------------------------------------------------------------------------------
-(not yet run)
+MEASURED 2026-08-20, n = 360 unique files (120 genuine + 40 per arm), every row
+carrying both instruments. One defect caught mid-run and fixed before reading the
+numbers: the first pass measured the three forced candidates twice (forward-slash
+vs backslash paths defeating a string-level dedup — the exchange set's 599/589
+species), P2's report printing each file twice is what exposed it. CSV deduped,
+paths normalized, report regenerated; the freed slots went to 3 never-measured
+genuine files.
+
+    P3  CONFIRMED, stronger than registered: 154/154 slice-method bolted cutoffs
+        on the grid (100 %), 0/204 self-anchored edges (0.0 %). The grid is not a
+        tendency, it is the codomain.
+
+    P2  CONFIRMED, and none of the three is anything at all:
+
+                        bolted            self-anchored 16384    self-anchored 65536
+        007-07 Wax-T.   21,000 / 2.7 Hz   15,735 Hz / 5,020 Hz   15,761 Hz / 5,001 Hz
+        bt..__01 Stand  21,000 / 0.0 Hz   18,755 Hz / 1,973 Hz   18,870 Hz / 1,857 Hz
+        bt..__02 Run-A  20,250 / 18.8 Hz  15,291 Hz / 4,729 Hz   16,459 Hz / 3,596 Hz
+
+        All three bolted windows opened already below the -6 dB level at their
+        first bin (bt..__01's below -30 dB too, which is how a literal 0.0 was
+        manufactured from no wall whatsoever). Their true -6 dB edges sit 1.5 to
+        5.7 kHz below the bolted anchor and their falls span 1.9-5.0 kHz:
+        ordinary gentle rolloffs. The "3 of 39 genuine read perfect walls"
+        observation is withdrawn as an observation about files — it was an
+        observation about the anchor. The 7.5-25 % bound built on it is moot,
+        and nothing goes to the adjudication ledger.
+
+        Wider than the three: the bolted window was already below -6 dB at its
+        first bin on 204 of 208 found edges corpus-wide (~98 %). The v1.11.4
+        bolted width measurement was degenerate nearly everywhere, so its null
+        was a statement about the instrument, not the corpus. This probe's null
+        replaces it.
+
+    P1  CONFIRMED: self-anchored width AUC (status ok only, vs genuine) reads
+        mp3_320 0.63 / mp3_V0 0.51 / aac_ff320 0.37 / aacmf_256 0.51 /
+        opus_256 0.60 / vorbis_q8 0.50 at nfft 16384, and 0.60 / 0.50 / 0.32 /
+        0.49 / 0.59 / 0.43 at 65536 — aac_ff320 is anti-correlated (transcode
+        falls are WIDER than genuine ones there). Conjunction priced at 5 %
+        genuine cost (bar 563 Hz): mp3_320 25 %, opus_256 17.5 %, everything
+        else at or below 2.5 % of its arm — against a stereo family at 92 % on
+        the same arms. Genuine falls have median 4,000 Hz: on real music the
+        -6 to -30 dB distance is the natural rolloff, and it does not separate.
+
+So the generalized null now has its answer on our corpus, stated no wider than
+measured: the -6 to -30 dB fall distance does not separate transcodes from
+genuine here even when edge and width come from one coherent instrument — and
+the earlier bolted null could never have shown that, being degenerate on ~98 %
+of its own inputs. What remains open is HIS half of his question: whether his
+390-519 Hz survives his own anchor's 160 Hz wander, on his corpus, with his
+gate. Our result removes our null as evidence either way.
 
 Usage::
 
@@ -311,6 +361,7 @@ def selftest() -> int:
     check("bolted cutoff IS on the grid", on_grid(bolted), f"{bolted:.1f} Hz")
 
     print("2. linear ramp 20,000 -> 20,400 Hz, 0 to -40 dB (true -6/-30 span = 240 Hz)")
+
     def ramp_db(f):
         if f < 20000:
             return 0.0
@@ -337,6 +388,7 @@ def selftest() -> int:
     check("sentinel no_wall", st == "no_wall", st)
 
     print("4. interior dip (18-19 kHz at -50 dB) recovering before a wall at 21 kHz")
+
     def dip_db(f):
         if 18000 <= f <= 19000:
             return -50.0
@@ -367,11 +419,21 @@ def collect(limit_genuine: int, limit_arm: int, out_path: Path) -> List[dict]:
         print(f"reprise: {len(rows)} lignes deja mesurees", flush=True)
 
     fieldnames = [
-        "arm", "path", "rate",
-        "sa16_status", "sa16_edge", "sa16_width",
-        "sa65_status", "sa65_edge", "sa65_width",
-        "bolt_cutoff", "bolt_found", "bolt_width",
-        "bolt_on_grid", "anchor_missed", "anchor_dead",
+        "arm",
+        "path",
+        "rate",
+        "sa16_status",
+        "sa16_edge",
+        "sa16_width",
+        "sa65_status",
+        "sa65_edge",
+        "sa65_width",
+        "bolt_cutoff",
+        "bolt_found",
+        "bolt_width",
+        "bolt_on_grid",
+        "anchor_missed",
+        "anchor_dead",
     ]
     mode = "a" if done else "w"
     with open(out_path, mode, newline="", encoding="utf-8") as fh:
@@ -386,6 +448,12 @@ def collect(limit_genuine: int, limit_arm: int, out_path: Path) -> List[dict]:
             for pattern in patterns:
                 found = sorted(glob.glob(pattern, recursive="**" in pattern))
                 paths.extend(found[: limit // len(patterns) + 1])
+            # Dedup on the NORMALIZED path: the forced candidates are written with
+            # forward slashes while glob returns backslashes on Windows, and a
+            # string-level dedup measured the three candidates twice on the first
+            # run (caught in the P2 report printing each file twice — the same
+            # species as the exchange set's 599-that-were-589).
+            paths = [str(Path(p)) for p in paths]
             seen = 0
             for path in dict.fromkeys(paths):  # dedup, keep order
                 if seen >= limit:
@@ -419,16 +487,21 @@ def report(rows: List[dict]) -> None:
     print("P3. LA GRILLE : les cutoffs boulonnes sont-ils des bords de tranche ?")
     print("=" * 78)
     slice_rows = [
-        r for r in rows
+        r
+        for r in rows
         if int(r["bolt_found"]) and float(_f(r, "bolt_cutoff")) < 0.95 * _f(r, "rate") / 2
     ]
     grid_hits = sum(int(r["bolt_on_grid"]) for r in slice_rows)
     sa_grid = [r for r in rows if r["sa16_status"] == "ok" and on_grid(_f(r, "sa16_edge"))]
     sa_ok = [r for r in rows if r["sa16_status"] == "ok"]
-    print(f"boulonnes (methode tranches) sur grille : {grid_hits}/{len(slice_rows)}"
-          f" = {100 * grid_hits / max(len(slice_rows), 1):.1f} %")
-    print(f"auto-ancres sur grille : {len(sa_grid)}/{len(sa_ok)}"
-          f" = {100 * len(sa_grid) / max(len(sa_ok), 1):.1f} %")
+    print(
+        f"boulonnes (methode tranches) sur grille : {grid_hits}/{len(slice_rows)}"
+        f" = {100 * grid_hits / max(len(slice_rows), 1):.1f} %"
+    )
+    print(
+        f"auto-ancres sur grille : {len(sa_grid)}/{len(sa_ok)}"
+        f" = {100 * len(sa_grid) / max(len(sa_ok), 1):.1f} %"
+    )
 
     print("\n" + "=" * 78)
     print("SENTINELLES auto-ancrees par bras (nfft 16384)")
@@ -438,10 +511,14 @@ def report(rows: List[dict]) -> None:
         rowset = [r for r in rows if r["arm"] == arm]
         if not rowset:
             continue
-        counts = {s: sum(1 for r in rowset if r["sa16_status"] == s)
-                  for s in ("ok", "no_wall", "no_floor", "no_edge")}
-        print(f"{arm:12}{len(rowset):>5}{counts['ok']:>6}{counts['no_wall']:>9}"
-              f"{counts['no_floor']:>10}{counts['no_edge']:>9}")
+        counts = {
+            s: sum(1 for r in rowset if r["sa16_status"] == s)
+            for s in ("ok", "no_wall", "no_floor", "no_edge")
+        }
+        print(
+            f"{arm:12}{len(rowset):>5}{counts['ok']:>6}{counts['no_wall']:>9}"
+            f"{counts['no_floor']:>10}{counts['no_edge']:>9}"
+        )
 
     print("\n" + "=" * 78)
     print("P1. LARGEUR AUTO-ANCREE : separe-t-elle ? (parmi status ok)")
@@ -449,10 +526,12 @@ def report(rows: List[dict]) -> None:
     widths16 = {}
     widths65 = {}
     for arm in arms:
-        w16 = np.array([_f(r, "sa16_width") for r in rows
-                        if r["arm"] == arm and r["sa16_status"] == "ok"])
-        w65 = np.array([_f(r, "sa65_width") for r in rows
-                        if r["arm"] == arm and r["sa65_status"] == "ok"])
+        w16 = np.array(
+            [_f(r, "sa16_width") for r in rows if r["arm"] == arm and r["sa16_status"] == "ok"]
+        )
+        w65 = np.array(
+            [_f(r, "sa65_width") for r in rows if r["arm"] == arm and r["sa65_status"] == "ok"]
+        )
         widths16[arm] = w16[np.isfinite(w16)]
         widths65[arm] = w65[np.isfinite(w65)]
     gen16 = widths16.get("genuine", np.array([]))
@@ -460,23 +539,30 @@ def report(rows: List[dict]) -> None:
     for arm in arms:
         w16, w65 = widths16[arm], widths65[arm]
         a16 = auc(-w16, -gen16) if arm != "genuine" and w16.size and gen16.size else float("nan")
-        a65 = (auc(-w65, -widths65["genuine"])
-               if arm != "genuine" and w65.size and widths65["genuine"].size else float("nan"))
+        a65 = (
+            auc(-w65, -widths65["genuine"])
+            if arm != "genuine" and w65.size and widths65["genuine"].size
+            else float("nan")
+        )
         med16 = np.median(w16) if w16.size else float("nan")
         med65 = np.median(w65) if w65.size else float("nan")
         print(f"{arm:12}{w16.size:>5}{med16:>8.0f}{a16:>7.2f}{w65.size:>7}{med65:>8.0f}{a65:>7.2f}")
 
     if gen16.size:
-        print("\nconjonction tarifee, barre = p5 des authentiques "
-              f"= {np.percentile(gen16, 5):.0f} Hz")
+        print(
+            "\nconjonction tarifee, barre = p5 des authentiques "
+            f"= {np.percentile(gen16, 5):.0f} Hz"
+        )
         bar = float(np.percentile(gen16, 5))
         for arm in arms:
             if arm == "genuine" or not widths16[arm].size:
                 continue
             fires = int((widths16[arm] <= bar).sum())
             total = sum(1 for r in rows if r["arm"] == arm)
-            print(f"    {arm:12} {fires:3d}/{widths16[arm].size:3d} des ok"
-                  f"   = {100 * fires / total:5.1f} % de l'arme entiere ({total})")
+            print(
+                f"    {arm:12} {fires:3d}/{widths16[arm].size:3d} des ok"
+                f"   = {100 * fires / total:5.1f} % de l'arme entiere ({total})"
+            )
 
     print("\n" + "=" * 78)
     print("P2. LES TROIS CANDIDATS A ADJUDICATION, re-mesures hors grille")
@@ -485,16 +571,24 @@ def report(rows: List[dict]) -> None:
     for r in rows:
         if r["path"] in names and r["arm"] == "genuine":
             print(f"\n  {r['path']}")
-            print(f"    boulonne     : cutoff {_f(r, 'bolt_cutoff'):.0f} Hz"
-                  f" (grille: {'oui' if int(r['bolt_on_grid']) else 'non'})"
-                  f", largeur {_f(r, 'bolt_width'):.1f} Hz")
-            print(f"    fenetre      : deja sous -6 dB au 1er bin :"
-                  f" {'OUI' if int(r['anchor_missed']) else 'non'} ;"
-                  f" deja sous -30 dB : {'OUI' if int(r['anchor_dead']) else 'non'}")
-            print(f"    auto  16384  : {r['sa16_status']}"
-                  f", bord {_f(r, 'sa16_edge'):.0f} Hz, largeur {_f(r, 'sa16_width'):.1f} Hz")
-            print(f"    auto  65536  : {r['sa65_status']}"
-                  f", bord {_f(r, 'sa65_edge'):.0f} Hz, largeur {_f(r, 'sa65_width'):.1f} Hz")
+            print(
+                f"    boulonne     : cutoff {_f(r, 'bolt_cutoff'):.0f} Hz"
+                f" (grille: {'oui' if int(r['bolt_on_grid']) else 'non'})"
+                f", largeur {_f(r, 'bolt_width'):.1f} Hz"
+            )
+            print(
+                f"    fenetre      : deja sous -6 dB au 1er bin :"
+                f" {'OUI' if int(r['anchor_missed']) else 'non'} ;"
+                f" deja sous -30 dB : {'OUI' if int(r['anchor_dead']) else 'non'}"
+            )
+            print(
+                f"    auto  16384  : {r['sa16_status']}"
+                f", bord {_f(r, 'sa16_edge'):.0f} Hz, largeur {_f(r, 'sa16_width'):.1f} Hz"
+            )
+            print(
+                f"    auto  65536  : {r['sa65_status']}"
+                f", bord {_f(r, 'sa65_edge'):.0f} Hz, largeur {_f(r, 'sa65_width'):.1f} Hz"
+            )
 
     print("\n" + "=" * 78)
     print("DEGENERESCENCES boulonnees dans tout le corpus")

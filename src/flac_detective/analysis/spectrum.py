@@ -308,7 +308,13 @@ def detect_cutoff(  # noqa: C901
 
                 # If N consecutive slices are low, it's a true cutoff
                 if consecutive_low >= spectral_config.CONSECUTIVE_LOW_THRESHOLD:
-                    # Return start of drop
+                    # Return start of drop. This is a slice boundary: every cutoff
+                    # this branch can return lands on the grid
+                    # CUTOFF_SCAN_START + k * TRANCHE_SIZE (14,000 + k x 250 Hz at
+                    # 44.1 kHz), so any median of these values is grid-quantized to
+                    # its 250 Hz cell. That is how a published Musepack median read
+                    # "exactly 18,750 Hz" — a grid point, not the encoder constant
+                    # it collided with (found 2026-08-20, answering Provir's check).
                     detected_cutoff = current_freq - (tranche_size_hz * (consecutive_low - 1))
                     logger.debug(
                         f"Cutoff detected at {detected_cutoff:.0f} Hz "
@@ -382,6 +388,15 @@ class EdgeReading(NamedTuple):
     have no wall up to 22,023 Hz — while 28 of his 75 lawful masters sit above 21,570.
     Both populations live on both sides of any line.
 
+    Disclosed by him 2026-08-20, stamped here because we quote the figure: the "6
+    have no wall" half derives from his width field returning a magic ``1500.0``
+    when no 30 dB drop is found — a sentinel living in a numeric field,
+    indistinguishable from a measurement to any caller (his own words: our
+    ``detect_cutoff`` returning Nyquist for three conditions, in his code). He
+    verified the claim survives, because 1500.0 there really does mean "found
+    nothing" — but a file genuinely measuring 1500 Hz of transition would be
+    silently reclassified. The figure rests on a magic float, not a typed absence.
+
     What separates is how FAST the spectrum falls. In his engine frequency is only a
     gate (21,350-21,650 Hz) and the test underneath is a transition width, used as a
     conjunction rather than a threshold: his MP3 positives return 390-519 Hz.
@@ -419,6 +434,18 @@ class EdgeReading(NamedTuple):
     search starts 250 Hz below it, so the two halves are not one coherent
     instrument. This says nothing about whether it works in Provir's, where it does.
 
+    CORRECTED 2026-08-20, by him, before we could build on the contrast: Provir's
+    is not one coherent instrument either. His edge comes from an 8192-point FFT
+    (p90 across 5 s chunks, whole file, ref -15 dB), his width from a 32768-point
+    one (mean power, first 90 s, ref -30 dB); the width search starts at
+    edge - 300 Hz, his gate admits edges wandering by up to 160 Hz, and the width
+    is quoted to 1.35 Hz. His fire test (width < 600 Hz) is blunt enough that the
+    wander "probably" does not reach it — "probably" flagged by him as unmeasured.
+    So the better-specified question, his phrasing, ours to answer as much as his:
+    does width fail bolted onto ANY separately-derived edge? Answered by
+    ``ml/edge_width_selfanchored_probe.py``, which finds and measures the
+    transition on one curve, one pass, no separate edge-finder.
+
     One thing did fall out, and it is not a result
     ----------------------------------------------
     Exactly 3 of our 39 measurable genuine files read as near-perfect brickwalls —
@@ -434,6 +461,19 @@ class EdgeReading(NamedTuple):
     transcodes, the 5 %-cost fire rates would rise to 7.5-25 % per arm. Still not an
     axis, so the question does not change the decision — which is the only reason it
     is safe to write down.
+
+    RESOLVED 2026-08-20, the same day, by his two follow-up observations. Both were
+    right. The roundness is our own reporting grid — ``detect_cutoff`` returns slice
+    boundaries, so 21,000 / 21,000 / 20,250 are 250 Hz cells, and two files
+    "agreeing to the Hz" merely share a cell. And the widths were below the
+    instrument's own floor because the bolted search window opened already under the
+    -6 dB level at its first bin — on those three files and on ~98 % of the corpus.
+    Re-measured self-anchored and off-grid (``ml/edge_width_selfanchored_probe.py``):
+    their true -6 dB edges sit at 15,735 / 18,755 / 15,291 Hz with falls of 5,020 /
+    1,973 / 4,729 Hz, resolution-stable — ordinary gentle rolloffs, no walls at all.
+    The observation is withdrawn as an observation about files (it described the
+    anchor), the 7.5-25 % bound is moot, and nothing goes to the adjudication
+    ledger.
     """
 
     cutoff_hz: float

@@ -85,6 +85,28 @@ with little HF produces a lower measured edge with no codec lowpass at all. So t
 correct statement is "the 18,750 cap does not exist at ``--insane``", not "you
 mismeasured".
 
+SECOND CORRECTION 2026-08-20, same day — why the median is EXACTLY 18,750
+--------------------------------------------------------------------------
+He then asked for one more thing to be excluded: a measured median landing exactly
+on a computed constant, the day after a 269 Hz kernel was caught wearing a
+measurement's clothes. Rightly asked. The answer is our own reporting grid:
+``detect_cutoff`` scans 250 Hz slices upward from 14,000 Hz and returns slice
+boundaries, so every slice-method cutoff lands on **14,000 + k x 250 Hz** —
+16,000, 17,750 and 18,750, all three medians above, are grid points. The collision
+with mpcenc's 48 kHz ladder is arithmetic, not an echo: that ladder steps by
+750 Hz and shares every third rung with a 250 Hz grid. So the medians in this
+file's tables are quantized to their 250 Hz cell; the AUCs survive (quantization
+is monotone), but the Hz values are cells, not measurements, and any future table
+quoting them says so. The grid claim is itself measured, not asserted, by
+``ml/edge_width_selfanchored_probe.py`` (its P3); see that docstring for the count.
+
+His build record for the source-compiled mpcenc used in the first correction —
+``provir-msvc-r475.patch`` (8 files) plus ``BUILD.md`` with the source sha256 and
+the four MSVC defects, including the ``win32/attgetopt`` reference with no ``.c``
+extension that proves the MSVC path never once compiled — is to be archived under
+``ml/exchange/`` as soon as the LinkedIn attachments are pulled; they were not on
+disk when this note was written.
+
 And a defect of ours that this exposed: 1 file of 24 reads 22,050 Hz at EVERY
 profile, including ``--radio`` where a 15.8 kHz cap certainly applies. That reading
 is ``detect_cutoff`` failing and returning Nyquist, which it does for "full

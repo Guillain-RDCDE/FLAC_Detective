@@ -21,6 +21,11 @@ above 21,570. **Both populations live on both sides of every line.** No edge
 position separates them, which is why our own 21,500 constant was wrong in both
 directions rather than merely set too low.
 
+(Stamped 2026-08-20, his own disclosure: the "6 have no wall" half rests on his
+width field returning a magic 1500.0 when no 30 dB drop is found — a sentinel in a
+numeric field. He verified the claim survives; the caveat travels with the figure.
+See ``EdgeReading``'s docstring in ``spectrum.py``.)
+
 What he uses instead, and the caveat he volunteered
 ----------------------------------------------------
 Frequency is only a gate (21,350-21,650 Hz). The test underneath is transition

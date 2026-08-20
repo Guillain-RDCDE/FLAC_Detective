@@ -1,3 +1,58 @@
+## Unreleased
+
+### The edge grid: every slice-method cutoff is a multiple of 250 Hz
+
+Answering two verification requests from Provir (2026-08-20) exposed one cause under
+both. `detect_cutoff` scans 250 Hz slices upward from 14,000 Hz and returns slice
+boundaries, so every slice-method cutoff lands on the grid **14,000 + k × 250 Hz** —
+measured across 360 files: 154/154 slice-method cutoffs on-grid, 0/204 self-anchored
+edges. That resolves both of his checks at once: the Musepack `--insane` median
+reading *exactly* 18,750 Hz (a grid cell colliding with mpcenc's 48 kHz ladder,
+which steps by 750 Hz and shares every third rung with a 250 Hz grid — arithmetic,
+not an echo of `Max_Band`), and two of the three "perfect brickwall" genuine files
+agreeing to the Hz at 21,000 (same 250 Hz cell). Any published median of these
+cutoffs is quantized to its cell; the grid is now stated in `detect_cutoff` itself
+and stamped on the affected tables below.
+
+### The three "perfect brickwalls" were the anchor, not the files
+
+`ml/edge_width_selfanchored_probe.py`, predictions registered and committed before
+the run; P1/P2/P3 all confirmed. The bolted width window of v1.11.4 opened already
+below its own −6 dB level at its first bin on **~98 % of found edges (204/208)** —
+including all three brickwall candidates, whose true −6 dB edges sit at 15,735 /
+18,755 / 15,291 Hz with resolution-stable falls of 5,020 / 1,973 / 4,729 Hz.
+Ordinary gentle rolloffs; the literal 0.0 Hz width had been manufactured by a window
+that opened below −30 dB. The v1.11.4 observation is withdrawn — it described the
+anchor, not the files — its 7.5–25 % bound is moot, and nothing goes to the
+adjudication ledger.
+
+### Width measured coherently for the first time, and the null survives
+
+His correction, the day after v1.11.4: his width instrument is not one instrument
+either (edge from FFT 8192 at p90, width from FFT 32768 as a mean, a gate admitting
+160 Hz of anchor wander, width quoted to 1.35 Hz). So the open question became his
+phrasing of it: does width fail bolted onto ANY separately-derived edge?
+Self-anchored — edge and width from one curve, one pass, no `detect_cutoff` — the
+−6 to −30 dB fall distance reads AUC 0.37–0.63 across arms at both resolutions
+(aac_ff320 anti-correlated), and fires on at most 25 % of an arm at 5 % genuine
+cost, against a stereo family at 92 % on the same arms. The null now describes the
+corpus, not the instrument. His half of the question — whether his 390–519 Hz
+survives his own anchor's wander, on his corpus, with his gate — is his to measure.
+
+### Stamped on a figure we quote: his own 1500.0 sentinel
+
+His disclosure, volunteered: the "6 of 17 have no wall" figure rests on his width
+field returning a magic 1500.0 when no 30 dB drop is found — a sentinel in a
+numeric field, our `detect_cutoff` shrug in his code, and the caveat now travels
+with every place we cite the figure (`EdgeReading`, `ml/edge_width_probe.py`). He
+verified the claim survives: 1500.0 there really does mean "found nothing".
+
+One defect caught in our own run before reading any number: the three forced
+candidates were measured twice — slash-direction defeating a string-level path
+dedup, the exchange set's 599-that-were-589 species — exposed by the P2 report
+printing each file twice. Deduped, normalized, regenerated; the freed slots went to
+three never-measured genuine files.
+
 ## v1.11.4 (2026-08-20) — a retraction we had already shipped, and a null result worth having
 
 v1.11.3 corrected a false claim in Rule 1 by citing a frequency Provir had supplied.
@@ -75,6 +130,14 @@ edge-finder*. Our edge position comes from a 269 Hz-smoothed curve while the wid
 search starts 250 Hz below it — two halves that are not one instrument. Nothing here
 says it fails in his.
 
+> **Stamped 2026-08-20.** He corrected the premise the next day: his instrument is
+> not one instrument either, and the two-instruments contrast this claim leaned on
+> does not exist. Worse for the claim: the bolted width window measured here had
+> opened already below its own −6 dB level on ~98 % of found edges, so this null
+> described the instrument, not the corpus. Superseded by
+> `ml/edge_width_selfanchored_probe.py` (see Unreleased): the null survives,
+> coherently measured this time.
+
 ### What was adopted: a sentinel, because a shrug is not a measurement
 
 `detect_cutoff` returns Nyquist in three unrelated situations — the spectrum
@@ -116,6 +179,15 @@ human with evidence rules on them. Stated as a bound and not as a finding: if al
 three were transcodes the 5 %-cost fire rates would rise to 7.5–25 %, still not an
 axis — which is the only reason it is safe to write the number down at all.
 
+> **Stamped 2026-08-20, resolved the same day.** Both of his follow-up observations
+> were right: 21,000 / 21,000 / 20,250 are `detect_cutoff` slice boundaries (every
+> slice-method cutoff lands on 14,000 + k × 250 Hz), and the widths sat below the
+> instrument's own floor because the bolted window opened already under −6 dB at
+> its first bin. Re-measured self-anchored and off-grid: true edges 15,735 /
+> 18,755 / 15,291 Hz, falls 5,020 / 1,973 / 4,729 Hz — ordinary rolloffs, no
+> walls. The observation is withdrawn (it described the anchor, not the files),
+> the 7.5–25 % bound is moot, nothing is adjudicated. See Unreleased.
+
 ### Musepack: our result was right, our explanation was wrong
 
 P3 failed on measurement and the number is ours. The **mechanism** we attached to it
@@ -142,6 +214,15 @@ which is a real observable and not the one we named.
 His caveat, volunteered: his probes were synthetic and broadband, and real music with
 little HF gives a lower measured edge with no lowpass at all. So *"the 18,750 cap
 does not exist at `--insane`"*, not *"you mismeasured"*.
+
+> **Stamped 2026-08-20.** His follow-up asked to also exclude a measured median
+> landing *exactly* on a computed constant. Excluded, with a finding: our medians
+> are grid-quantized. `detect_cutoff` returns slice boundaries on
+> 14,000 + k × 250 Hz (measured: 154/154 slice-method cutoffs on-grid across 360
+> files), and the 48 kHz ladder steps by 750 Hz, sharing every third rung with a
+> 250 Hz grid — the collision was guaranteed arithmetic. 16,000 / 17,750 / 18,750
+> are 250 Hz cells, not measurements; the AUCs survive, quantization being
+> monotone. See Unreleased.
 
 He also retracted his own Musepack claim in the same message: what Provir called a
 fully characterised codec is one encoder build (mpcenc 1.30.0, Feb 2009), q10 only,
@@ -271,6 +352,11 @@ the CoreAudio arm — the encoder we cannot run locally becomes a job on a free 
 | `radio` | 0.46 | **0.96** | **0.97** | 16,000 Hz |
 | `standard` | 0.52 | **0.96** | **0.96** | 17,750 Hz |
 | `insane` | 0.52 | **0.94** | 0.90 | 18,750 Hz |
+
+> **Stamped 2026-08-20:** the cutoff medians in this table are quantized to
+> `detect_cutoff`'s 250 Hz scan grid (14,000 + k × 250 Hz) — cells, not
+> Hz-accurate measurements; the AUCs are unaffected. See the v1.11.4 Musepack
+> note and the Unreleased section.
 
 Predictions were registered in the module docstring before the job ran. Two held and
 one half-failed:
