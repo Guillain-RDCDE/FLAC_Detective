@@ -64,8 +64,30 @@ channel, seeded per file for reproducibility), added BEFORE the v1 chain. One
 mechanism, physically motivated, not a fit. If v2 fails, the simulator cannot
 reproduce the wild signature and that is the reported result.
 
-CHAIN V2 MEASURED 2026-08-21 — see the appended block at the end of this
-docstring after the run.
+CHAIN V2 MEASURED 2026-08-21 — the noise floor kills exactly what it was
+predicted to kill, and the residual names the layer neither chain models:
+
+    engine signaled   direct 62 %   v1 65 %   v2 55 %   (wild: 8.8 %)
+    family        direct AUC  fire    v1 AUC  fire    v2 AUC  fire
+    idem_R              0.98   98%      0.46    5%      0.42    8%
+    mdct                0.47    0%      0.42    0%      0.44    0%
+    stereo_run          0.96   92%      0.93   86%      0.40    0%   <- killed, as wild
+    seam                0.89   72%      0.89   70%      0.60   20%   <- collapsed
+
+    A2[v2] HELD (idem median 3.25, wild 3.18) · A1[v2] FAILED (55 % vs <= 20 %).
+
+Per the registration, no v3. The honest result is a LAYERED characterisation of
+the real mastering chain, each layer now demonstrated by the instrument it
+kills: (1) level rides + limiting destroy the codec fixed point (v1, idem
+0.98 -> 0.46); (2) a decorrelated analog noise floor refills the side channel
+and re-agitates per-bin HF variance (v2, stereo 0.93 -> 0.40, seam 0.89 ->
+0.60); (3) a third layer this file does not model — the one that MASKS THE
+SPECTRAL CLIFF, since the 55 % residual signal on v2 comes from the
+spectral/CNN families that the wild chain also defeats. Candidates for layer 3,
+stated not measured: a stronger or shaped (pink) noise floor, crossfade content
+from adjacent tracks in the DJ mix, analog saturation harmonics above the
+cutoff. The wild53's 8.8 % stays the only measurement of the full stack, and
+the lab arm reproduces two of its three layers with named mechanisms.
 
 Usage::
 

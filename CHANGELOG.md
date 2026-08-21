@@ -172,6 +172,29 @@ container-invariant) and refuses a second item carrying the same audio —
 `tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
 track under two etree item names) and pins that it collapses.
 
+### The re-mastered arm: the lab-to-wild gap decomposed into named layers
+
+The bench gained the arm the W-series proved missing (`ml/remaster_arm.py`,
+chain and acceptance criteria registered before each measurement, the wild53
+signature as the known answer). Chain v1 (EQ + level rides + limiter) reproduces
+the fixed-point destruction exactly (MP3_IDEM AUC 0.98 → 0.46, median R 3.05 vs
+wild 3.18) and touches nothing else. Chain v2 — the one permitted strengthening,
+a decorrelated −72 dBFS stereo noise floor — kills the side-channel family as
+the wild does (stereo AUC 0.93 → 0.40, fire 86 % → 0 %) and collapses the
+temporal family (0.89 → 0.60). The engine still signals 55 % of v2 against the
+wild's 8.8 %, and per the registration there is no v3: the honest result is a
+**layered characterisation of the real mastering chain**, each layer
+demonstrated by the instrument it kills — (1) limiting destroys the codec fixed
+point, (2) the analog noise floor refills the side channel and re-agitates HF
+variance, (3) an unmodelled third layer masks the spectral cliff (the v2
+residual is carried by the spectral/CNN families the wild also defeats).
+Alongside: the reopened dead-run question closed the other way
+(`ml/wild53_deadrun.py`, D-series) — our max_run reads 0.0 on the very bytes
+where Provir's DEAD_STRUCTURE_MAXRUN reads 100–118, so his statistic and ours
+are different observables, and asking him for its actual domain is now mandatory
+rather than curiosity: it is the one flag family demonstrably reading a
+population our whole engine misses.
+
 ### The wild53 scored: the first measured lab-to-wild gap, and it is brutal
 
 The audio arrived with a regenerated ledger carrying per-row hashes; **53/53
