@@ -155,6 +155,30 @@ held everywhere; the one missed efficacy prediction is reported with its
 mechanism named. The engine's wild owner-tier recall moves 8.8 % -> 50.0 %
 with zero convictions and zero new genuine cost on three safety populations.
 
+V1.13 CAMPAIGN — THE H-SERIES, registered 2026-08-21 before any measurement
+----------------------------------------------------------------------------
+The change: the residual-floor COMPUTATION window's floor moves from 0.90 to
+0.85 x Nyquist (18,742.5 Hz at 44.1 kHz), so the MP3 cells at 18,750-19,750
+gain a depth reading. The rule-consultation zone is untouched (top stays
+coupled to the 0.94 guard, pinned by test_rule1_nearnyquist, rewritten to pin
+the new floor invariant: the floor now serves a named consumer — gate C-prime
+on uninformative containers — and must cover the MP3 signature cells). Cost:
+one extra Welch pass on files whose cutoff lands in [0.85, 0.90) x Nyquist,
+paid to give C-prime its observable. This is G2's named mechanism, repaired.
+
+    H1      clean genuine (ledger-corrected) newly +50 vs shipped v1.12: <= 2
+    H1-bis  797-file library (24-bit control): <= 6
+    H1-ter  genuine-as-WAV, offline: <= 2
+    H2      wild owner offline +50: >= 20/34 (the original G2 bar)
+    H3      lab arms: no decrease from 160
+    H4      end-to-end wild53 owner signaled: >= 60 % (v1.12 ships 50.0 %)
+
+Same stop-rule as G1 on every H1 variant. Results appended below after runs.
+
+H-SERIES RESULTS
+-----------------
+(not yet run)
+
 Usage::
 
     python ml/r1_gates_repricing.py --measure   # inputs pass (resumable)

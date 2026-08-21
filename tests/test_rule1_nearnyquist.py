@@ -101,24 +101,32 @@ def test_the_discarded_slice_cannot_use_the_residual_at_all():
     assert hard[1] is soft[1] is None
 
 
-def test_the_computation_window_stops_where_the_rule_stops():
-    """The Welch pass must not be spent on a slice the rule cannot consult.
+def test_the_computation_window_matches_its_consumers():
+    """The window's TOP is the near-Nyquist rule's guard; its FLOOR is C-prime's.
 
-    Pinned against the source because the two constants live in different modules and
-    nothing else couples them. Moving one without the other silently restores the
-    wasted pass — or, worse, silently starves a gate that has begun to need it.
+    Rewritten for v1.13, as this test's own failure message demanded. The top
+    invariant is unchanged: computing above Rule 1's 0.94 guard wastes a Welch
+    pass on a slice the rule cannot consult. The floor gained a consumer in
+    v1.12: gate C-prime accepts an uninformative (PCM-level) container only
+    when the wall proves its depth, so the floor must sit at or below the
+    lowest MP3 signature cell C-prime can score — 18,750 Hz, i.e. 0.85 x
+    Nyquist at 44.1 kHz. A floor quietly raised above that silently starves
+    C-prime on uncompressed input, which is exactly how the v1.12 campaign
+    missed its G2 bar (15/34 instead of >= 20).
     """
     source = Path("src/flac_detective/analysis/spectrum.py").read_text(encoding="utf-8")
     match = re.search(
-        r"if\s+0\.90\s*\*\s*nyquist\s*<=\s*final_cutoff\s*<\s*([0-9.]+)\s*\*\s*nyquist",
+        r"if\s+([0-9.]+)\s*\*\s*nyquist\s*<=\s*final_cutoff\s*<\s*([0-9.]+)\s*\*\s*nyquist",
         source,
     )
     assert match, (
         "could not find the residual-floor computation window in spectrum.py; if it "
         "was restructured, this test must be rewritten rather than deleted — the "
-        "invariant it pins is that the window and Rule 1's guard agree."
+        "invariants it pins are that the window's top and Rule 1's guard agree, and "
+        "that its floor covers gate C-prime's MP3 cells."
     )
-    window_top = float(match.group(1))
+    window_floor = float(match.group(1))
+    window_top = float(match.group(2))
 
     rule_source = Path("src/flac_detective/analysis/new_scoring/rules/spectral.py").read_text(
         encoding="utf-8"
@@ -132,4 +140,11 @@ def test_the_computation_window_stops_where_the_rule_stops():
         f"consulting it at {guard_fraction} * Nyquist. Either the window wastes a "
         "Welch pass on a slice the rule cannot use, or the rule needs a residual "
         "that is no longer computed. They must move together."
+    )
+    # 18,750 Hz is the lowest MP3 signature cell C-prime scores on uncompressed
+    # input; 0.85 * 22,050 = 18,742.5 sits just under it.
+    assert window_floor <= 18750.0 / 22050.0, (
+        f"the residual computation floor ({window_floor} * Nyquist) sits above the "
+        "18,750 Hz MP3 cell — gate C-prime is starved of its depth reading on "
+        "uncompressed input, the exact mechanism of v1.12's missed G2."
     )

@@ -209,7 +209,16 @@ def analyze_spectrum(
         # below the -55 dB conviction floor. See rules/spectral.py's module docstring.
         nyquist = samplerate / 2.0
         residual_floor_db = float("nan")
-        if 0.90 * nyquist <= final_cutoff < 0.94 * nyquist:
+        # v1.13: the computation FLOOR moved 0.90 -> 0.85 x Nyquist. The window
+        # gained a consumer below the near-Nyquist zone: gate C-prime accepts an
+        # uninformative (PCM-level) container only when the wall proves its
+        # depth, and the MP3 signature cells at 18,750-19,750 Hz had no reading
+        # under the old floor — the named mechanism of the v1.12 campaign's one
+        # missed efficacy prediction (G2, 15/34 vs a registered 20). The TOP
+        # stays coupled to Rule 1's 0.94 guard (test_rule1_nearnyquist pins
+        # both invariants). Cost: one extra Welch pass on files whose cutoff
+        # lands in [0.85, 0.90) x Nyquist.
+        if 0.85 * nyquist <= final_cutoff < 0.94 * nyquist:
             residual_floor_db = compute_residual_floor_db(full_audio, samplerate)
 
         logger.info(
