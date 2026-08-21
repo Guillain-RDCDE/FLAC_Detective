@@ -39,7 +39,33 @@ does not model â€” reported as such, never tuned until it passes.
 
 Results are appended below AFTER the runs; the registrations above stay.
 --------------------------------------------------------------------------------
-(not yet run)
+CHAIN V1 MEASURED 2026-08-21 — A2 and A3 HELD, A1 FAILED, and the failure names
+the missing ingredient:
+
+    engine signaled   direct 62 %   remastered-v1 65 %   (wild: 8.8 %)
+    family        direct AUC  fire   v1 AUC  fire
+    idem_R              0.98   98%     0.46    5%   <- fixed point destroyed, as wild
+    mdct                0.47    0%     0.42    0%
+    stereo_run          0.96   92%     0.93   86%   <- SURVIVES v1; wild kills it
+    seam                0.89   72%     0.89   70%   <- SURVIVES v1; wild kills it
+
+    A1 FAILED (65 % vs <= 20 %) · A2 HELD (idem median 3.05, wild 3.18) · A3 HELD.
+
+So EQ + level rides + limiting reproduce the fixed-point destruction exactly and
+do not touch the side-channel or temporal-variance tells — while the real chain
+kills those too. The physical reading: a joint-stereo-killed side channel can
+only be REFILLED by new inter-channel content, and per-bin HF variance can only
+be re-agitated by broadband noise. A real console/press chain necessarily adds
+a decorrelated analog noise floor; v1 adds none.
+
+CHAIN V2 — the one permitted strengthening, described before it is measured:
+v1 plus a decorrelated stereo noise floor at -72 dBFS (white, independent per
+channel, seeded per file for reproducibility), added BEFORE the v1 chain. One
+mechanism, physically motivated, not a fit. If v2 fails, the simulator cannot
+reproduce the wild signature and that is the reported result.
+
+CHAIN V2 MEASURED 2026-08-21 — see the appended block at the end of this
+docstring after the run.
 
 Usage::
 
@@ -66,6 +92,7 @@ from edge_width_probe import auc  # noqa: E402
 
 AUDIT = Path(r"C:\Users\loutr\audit_corpus")
 OUT = Path(r"C:\Users\loutr\remaster_arm")
+OUT_V2 = Path(r"C:\Users\loutr\remaster_arm_v2")
 LIMIT = 40
 
 CHAIN_V1 = (
@@ -84,43 +111,65 @@ POPULATIONS = {
     "genuine": AUDIT / "authentic",
     "direct": AUDIT / "fake" / "mp3_320",
     "remastered": OUT,
+    "remastered_v2": OUT_V2,
 }
 
 
-def build(ffmpeg: str) -> int:
-    OUT.mkdir(parents=True, exist_ok=True)
+NOISE_DBFS = -72.0
+
+
+def build(ffmpeg: str, v2: bool = False) -> int:
+    """Build the re-mastered arm. v2 = v1 + decorrelated -72 dBFS stereo noise."""
+    import hashlib
+    import tempfile
+
+    out_dir = OUT_V2 if v2 else OUT
+    out_dir.mkdir(parents=True, exist_ok=True)
     sources = sorted((AUDIT / "fake" / "mp3_320").glob("*.flac"))[:LIMIT]
+    amp = 10 ** (NOISE_DBFS / 20.0)
     made = 0
     for src in sources:
-        dst = OUT / src.name
+        dst = out_dir / src.name
         if dst.exists():
             made += 1
             continue
-        r = subprocess.run(
-            [
-                ffmpeg,
-                "-hide_banner",
-                "-loglevel",
-                "error",
-                "-y",
-                "-i",
-                str(src),
-                "-af",
-                CHAIN_V1,
-                "-c:a",
-                "flac",
-                "-sample_fmt",
-                "s16",
-                str(dst),
-            ],
-            capture_output=True,
-            text=True,
-        )
+        with tempfile.TemporaryDirectory() as tmp:
+            chain_input = src
+            if v2:
+                data, rate = sf.read(str(src), dtype="float32")
+                if data.ndim == 1:
+                    data = np.stack([data, data], axis=1)
+                seed = int(hashlib.sha1(src.name.encode()).hexdigest()[:8], 16)
+                rng = np.random.default_rng(seed)
+                noise = amp * rng.standard_normal(data.shape).astype(np.float32)
+                noisy = Path(tmp) / "noisy.wav"
+                sf.write(str(noisy), np.clip(data + noise, -1.0, 1.0), rate, subtype="PCM_24")
+                chain_input = noisy
+            r = subprocess.run(
+                [
+                    ffmpeg,
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-y",
+                    "-i",
+                    str(chain_input),
+                    "-af",
+                    CHAIN_V1,
+                    "-c:a",
+                    "flac",
+                    "-sample_fmt",
+                    "s16",
+                    str(dst),
+                ],
+                capture_output=True,
+                text=True,
+            )
         if r.returncode == 0:
             made += 1
         else:
             print(f"  chain failed: {src.name}: {r.stderr.strip()[-200:]}")
-    print(f"re-mastered arm: {made}/{len(sources)} files in {OUT}")
+    print(f"re-mastered arm ({'v2' if v2 else 'v1'}): " f"{made}/{len(sources)} files in {out_dir}")
     return 0
 
 
@@ -239,15 +288,18 @@ def report(rows: List[dict]) -> None:
     print("THE TWO-COLUMN TABLE â€” direct vs re-mastered (wild53 shown as reference)")
     print("=" * 76)
 
-    n_d, n_r = count("direct"), count("remastered")
-    s_d, s_r = signaled("direct"), signaled("remastered")
-    print(
-        f"\nengine signaled: direct {s_d}/{n_d} = {100*s_d/max(n_d, 1):.0f} %"
-        f"   remastered {s_r}/{n_r} = {100*s_r/max(n_r, 1):.0f} %"
-        f"   (wild53 owner tier: 8.8 %)"
-    )
+    arms = [p for p in ("direct", "remastered", "remastered_v2") if count(p)]
+    n_d, s_d = count("direct"), signaled("direct")
+    line = "\nengine signaled:"
+    for population in arms:
+        n_p, s_p = count(population), signaled(population)
+        line += f"   {population} {s_p}/{n_p} = {100*s_p/max(n_p, 1):.0f} %"
+    print(line + "   (wild53 owner tier: 8.8 %)")
 
-    print(f"\n{'family':12}{'direct AUC':>12}{'fire':>7}{'remast AUC':>12}{'fire':>7}")
+    header = f"\n{'family':12}"
+    for population in arms:
+        header += f"{population[:10]+' AUC':>15}{'fire':>7}"
+    print(header)
     bars = {
         "idem_R": ("low", IDEM_BAR),
         "mdct": ("high", RATIO_REVIEW),
@@ -257,10 +309,10 @@ def report(rows: List[dict]) -> None:
     for key, (direction, bar) in bars.items():
         gen = _vals(rows, "genuine", key)
         line = f"{key:12}"
-        for population in ("direct", "remastered"):
+        for population in arms:
             vals = _vals(rows, population, key)
             if not vals.size or not gen.size:
-                line += f"{'â€”':>12}{'â€”':>7}"
+                line += f"{'-':>15}{'-':>7}"
                 continue
             if direction == "low":
                 a = auc(-vals, -gen)
@@ -268,38 +320,42 @@ def report(rows: List[dict]) -> None:
             else:
                 a = auc(vals, gen)
                 fire = int((vals >= bar).sum())
-            line += f"{a:>12.2f}{100*fire/vals.size:>6.0f}%"
+            line += f"{a:>15.2f}{100*fire/vals.size:>6.0f}%"
         print(line)
 
-    idem_r = _vals(rows, "remastered", "idem_R")
-    a1 = s_r <= 0.20 * max(n_r, 1)
-    a2 = idem_r.size and 2.3 <= float(np.median(idem_r)) <= 3.8
     a3 = s_d >= 0.60 * max(n_d, 1)
     print(
-        f"\nA1 engine <=20 % on remastered: {'HELD' if a1 else 'FAILED'}"
-        f" ({100*s_r/max(n_r, 1):.0f} %)"
-    )
-    print(
-        f"A2 idem median in [2.3, 3.8]:   {'HELD' if a2 else 'FAILED'}"
-        f" (median {np.median(idem_r):.2f})"
-        if idem_r.size
-        else "A2 no idem readings"
-    )
-    print(
-        f"A3 engine >=60 % on direct:     {'HELD' if a3 else 'FAILED'}"
+        f"\nA3 engine >=60 % on direct:  {'HELD' if a3 else 'FAILED'}"
         f" ({100*s_d/max(n_d, 1):.0f} %)"
     )
+    for population in arms:
+        if population == "direct":
+            continue
+        n_p, s_p = count(population), signaled(population)
+        idem_r = _vals(rows, population, "idem_R")
+        a1 = s_p <= 0.20 * max(n_p, 1)
+        a2 = bool(idem_r.size) and 2.3 <= float(np.median(idem_r)) <= 3.8
+        med = f"{np.median(idem_r):.2f}" if idem_r.size else "-"
+        print(
+            f"A1[{population}] engine <=20 %: {'HELD' if a1 else 'FAILED'}"
+            f" ({100*s_p/max(n_p, 1):.0f} %)   "
+            f"A2[{population}] idem median in [2.3, 3.8]: "
+            f"{'HELD' if a2 else 'FAILED'} ({med})"
+        )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", action="store_true")
+    parser.add_argument("--build-v2", action="store_true")
     parser.add_argument("--measure", action="store_true")
     parser.add_argument("--out", type=Path, default=Path("ml/remaster_arm.csv"))
     args = parser.parse_args(argv)
 
     if args.build:
         return build(require_ffmpeg())
+    if args.build_v2:
+        return build(require_ffmpeg(), v2=True)
     if args.measure:
         rows = measure(args.out)
         report(rows)
