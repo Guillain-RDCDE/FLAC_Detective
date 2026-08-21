@@ -26,6 +26,34 @@ an era-PAIRED probe that re-encodes through the same lame3.92 binary.
 Being wrong on E1 would say generation-pairing does not recover the tell and
 his wild bins measured something else. Results appended below.
 --------------------------------------------------------------------------------
+E-SERIES RESULTS (2026-08-21, cell 1, seed 20260820)
+
+    smoke        HELD    lame3.92 executed, banner "LAME version 3.92 MMX
+                         (http://www.mp3dev.org/)", output decodes.
+    E1           FAILED  as registered — and the registered premise was wrong,
+                         which is part of the result. Measured:
+
+                                          3.100 probe   3.92-paired
+                     fresh source              9.44         21.95
+                     lame3.92 transcode        5.63          7.79
+
+                         Absolute R is PROBE-RELATIVE: lame3.92's second pass
+                         converges faster to its own fixed point (smaller d2),
+                         inflating every R it produces. Comparing raw R across
+                         probes was a category error. Within each probe's own
+                         scale the tell is not merely present under pairing, it
+                         is LARGER: fresh-vs-transcode contrast is 14.16 dB for
+                         the era-paired probe against 3.81 dB for 3.100.
+    E2           HELD    both probes read fresh far from their fixed points.
+
+E1-PRIME, registered before cell 2 (the revision must not be graded on the
+data that suggested it):
+
+    E1'  On a NEW excerpt (different seed, different partials), the
+         within-probe contrast R(fresh) - R(lame3.92 transcode) is at least
+         3.0 dB larger for the era-paired probe than for the 3.100 probe.
+
+CELL 2 RESULTS
 (not yet run)
 """
 
@@ -87,11 +115,57 @@ def paired_idem(audio: np.ndarray, ffmpeg: str) -> float:
     return float(20.0 * np.log10(d1 / d2))
 
 
+def _tonal_mix_cell2(seconds: float = 30.0) -> np.ndarray:
+    """A different excerpt for E1-prime: new seed, new partials, noise bursts."""
+    rng = np.random.default_rng(20260821)
+    t = np.arange(int(RATE * seconds)) / RATE
+    x = np.zeros_like(t)
+    for f0, amp in ((196, 0.14), (587, 0.10), (1760, 0.07), (5274, 0.04), (11000, 0.02)):
+        x += amp * np.sin(2 * np.pi * f0 * t + rng.uniform(0, 6.28))
+    x += 0.03 * rng.standard_normal(len(t))
+    bursts = (rng.random(len(t)) < 0.0005).astype(np.float32)
+    x += 0.25 * np.convolve(bursts, np.hanning(64), mode="same")
+    env = 0.5 * (1 + np.sin(2 * np.pi * 0.53 * t + 1.0))
+    return (x * env).astype(np.float32)
+
+
+def run_cell(fresh: np.ndarray, ffmpeg: str, label: str) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        transcode392 = lame392_roundtrip(fresh, Path(tmp), ffmpeg)
+    if transcode392 is None:
+        raise SystemExit("lame3.92 produced no decodable output")
+
+    r_fresh_3100, _, _ = mp3_idem(fresh, RATE, ffmpeg)
+    r_fresh_392 = paired_idem(fresh, ffmpeg)
+    r_t392_3100, _, _ = mp3_idem(transcode392, RATE, ffmpeg)
+    r_t392_392 = paired_idem(transcode392, ffmpeg)
+
+    print(f"\n[{label}]")
+    print(f"{'':24}{'3.100 probe':>13}{'3.92-paired':>13}")
+    print(f"{'fresh source':24}{r_fresh_3100:>13.2f}{r_fresh_392:>13.2f}")
+    print(f"{'lame3.92 transcode':24}{r_t392_3100:>13.2f}{r_t392_392:>13.2f}")
+
+    contrast_3100 = r_fresh_3100 - r_t392_3100
+    contrast_392 = r_fresh_392 - r_t392_392
+    print(f"{'within-probe contrast':24}{contrast_3100:>13.2f}{contrast_392:>13.2f}")
+    e1p = np.isfinite(contrast_392) and np.isfinite(contrast_3100) \
+        and contrast_392 >= contrast_3100 + 3.0
+    print(f"E1'  paired contrast >= 3.100 contrast + 3 dB: "
+          f"{'HELD' if e1p else 'FAILED'}")
+
+
 def main(argv=None) -> int:
-    argparse.ArgumentParser(description=__doc__).parse_args(argv)
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--cell2", action="store_true",
+                   help="run the E1-prime cell on the fresh excerpt")
+    args = p.parse_args(argv)
     if not LAME392.exists():
         raise SystemExit(f"missing {LAME392}")
     ffmpeg = require_ffmpeg()
+
+    if args.cell2:
+        run_cell(_tonal_mix_cell2(30.0), ffmpeg, "cell 2, seed 20260821")
+        return 0
 
     print("smoke: encoding synthetic source through lame3.92 (first execution)")
     fresh = _tonal_mix(30.0)
