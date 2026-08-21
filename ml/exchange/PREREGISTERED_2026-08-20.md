@@ -290,3 +290,37 @@ an owner's knowledge does not survive leaving the lab, or that it reads the
 eye-chosen disc BETTER than the attested ones — either way something worth a
 week. His purchase condition is adopted as written: if any of this music turns
 out essential to our binary, buy the disc.
+
+## W-SERIES RESULTS — 2026-08-21, scored on verified bytes
+
+Hash gate: **53/53 verified against his regenerated ledger, 0 missing, 0
+divergent** (`ml/score_wild53.py`, per-row output in `ml/wild53_scores.csv`).
+Engine: v1.11.4, deep, CNN available; working tree engine-identical to the tag
+(diff since: docstrings, comments, one unused constant).
+
+    W1  HELD    0/53 FAKE_CERTAIN (Wilson up to 6.8 %)
+    W2  HELD    direction only, as registered: owner-knowledge 3/34 = 8.8 %
+                signaled vs eye 0/19 = 0.0 % — Wilson intervals overlap
+                ([3.0, 23.0] vs [0.0, 16.8]), so the direction is real and the
+                margin is not demonstrated
+    W3  FAILED  3/34 = 8.8 % of CD1+CD2 signaled, against a registered >= 40 %
+    W4  FAILED  0/34 CD1+CD2 at or under the MP3_IDEM bar (median R 3.18,
+                genuine corpus median 2.73 — indistinguishable)
+    W5  HELD    by construction of the report
+
+**The failures are the finding.** This is the first measured lab-to-wild gap of
+the project: on lab-made direct transcodes the engine signals 68–100 % per arm;
+on owner-attested wild 320s that passed through a mastering chain (MP3 decode →
+DJ mix, crossfades, levels → CD press → rip) it signals 8.8 % and clears 31 of
+34. Provir's engine reads the same tier at 32 % — 3.6× ours, on the population
+his flag families were built for. And W4 says WHY: the mastering chain pushes
+the audio clean off the MP3 fixed point (R median 3.18 ≈ genuine), so the same
+chain plausibly destroys the alignment and side-channel tells our families
+read. The lab benchmark measures direct transcodes; the wild sells re-mastered
+ones; those are different populations and every published rate now needs to say
+which one it is about.
+
+W1 is the half that survives with honour: whatever the recall gap, the engine
+convicted nothing — on 53 files whose owner rules them all lossy, zero false
+*certainty* in either direction of the argument. The conviction gate priced for
+exactly this.

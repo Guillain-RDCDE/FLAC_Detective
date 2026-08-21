@@ -273,3 +273,22 @@ corrected here, above it, the usual way:
 
 His condition travels with the 53 wavs and is adopted as written: if any of
 this music turns out essential to our binary, buy the disc.
+
+## The wild53 AUDIO - received 2026-08-21, verified 53/53, W-series scored
+
+Two zip archives via the Drive link circuit; extracted to C:\Users\loutr\wild53
+(off-repo). The regenerated ledger inside carries sha256 + pcm_sha256 per row
+and verified 53/53 with 0 divergent against the wavs. Scored the same day by
+ml/score_wild53.py (committed before it ran); per-row results in
+ml/wild53_scores.csv, W-series outcome appended to PREREGISTERED_2026-08-20.md.
+
+Also in the delivery, unannounced - the complete Scott Brown arm-1 provenance
+pair, hashed on receipt:
+
+```
+2b32826260e555de801822eeda5232e58fe95c106ed039f01e76097e2bd3e528  Scott Brown - Goodbye My Friend (Original Mix).aiff
+b86d6d968e54f86c22bb5bf099db4c58c64a0ed880f8a490c1a6efeba85abcc4  Various - Scott Brown - Hardwired III (CD2) - Unmixed DJ Friendly.flac
+```
+
+His purchase condition travels with all of it and is adopted as written: if any
+of this music turns out essential to our binary, buy the disc.

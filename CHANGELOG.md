@@ -172,6 +172,30 @@ container-invariant) and refuses a second item carrying the same audio —
 `tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
 track under two etree item names) and pins that it collapses.
 
+### The wild53 scored: the first measured lab-to-wild gap, and it is brutal
+
+The audio arrived with a regenerated ledger carrying per-row hashes; **53/53
+verified, 0 divergent**, and the W-series — registered and committed before the
+first byte was downloaded — was scored on bytes (`ml/score_wild53.py`,
+`ml/wild53_scores.csv`). W1 **held**: 0/53 FAKE_CERTAIN — on 53 files the owner
+rules all lossy, the conviction gate produced zero false certainty in either
+direction. W2 held on direction (owner-knowledge 8.8 % signaled vs eye 0 %,
+Wilson intervals overlapping). **W3 and W4 failed, and the failures are the
+finding**: the engine signals 8.8 % of owner-attested wild 320s against 68–100 %
+per arm on lab-made transcodes — Provir's engine reads the same tier at 32 %,
+3.6× ours — and MP3_IDEM reads 0/34 under its bar with a median R
+indistinguishable from genuine. The mastering chain between the MP3 and the
+disc (DJ mix, crossfades, levels, CD press) pushes the audio clean off the MP3
+fixed point and plausibly off every alignment and side-channel tell with it.
+**The lab benchmark measures direct transcodes; the wild sells re-mastered
+ones; these are different populations**, and every published rate now needs to
+say which one it is about. Bonus received with the set and hashed: the Scott
+Brown exhibit pair (store .aiff + lawful unmixed CD) — our self-anchored
+instrument reads the store file's −6 dB knee at 17.5–18.5 kHz where his two
+edge-finders read the floor at 21,436/21,562 Hz: three instruments, three
+numbers, all "the edge", the never-quote-an-edge-without-naming-the-instrument
+rule in a single exhibit.
+
 ### The Musepack arm, re-run with provenance and an off-grid edge
 
 Provir's BUILD.md lesson applied to our own fixture generator: the workflow now
