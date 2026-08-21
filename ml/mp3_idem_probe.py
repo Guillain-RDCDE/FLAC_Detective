@@ -106,6 +106,16 @@ sample rate). The predictions split, and the split is the finding:
     corpus) — per the standing rule the numbers are not comparable until each
     names its instrument, and this one now has: theirs is the open question.
 
+    SHARPENED 2026-08-21 (his era bench, 72 recordings x 7 LAME generations,
+    reported not measured here): the tell is VERSION-LOCKED, not merely
+    codec-paired — his mp3-paired R reads full strength on 3.99/3.100 material,
+    half on 3.96, and DEAD on 3.90-3.93 (0 of 72 at his 1 % lawful threshold).
+    So a per-codec battery must match the encoder GENERATION as well as the
+    codec. This probe runs libmp3lame 3.100 (see ml/encoder_provenance.md):
+    full strength against modern-era MP3, and structurally blind to the 3.9x
+    era his wild corpus carries — the banner/source/build-date axes, arriving
+    inside our own instrument.
+
     RESOLVED 2026-08-21, and it is the cleanest cross-validation the exchange
     has produced. Their Opus figure never came from an MP3 re-encode: their
     probe re-encodes with LIBOPUS, and their 2026-07-20 cross-codec control is
