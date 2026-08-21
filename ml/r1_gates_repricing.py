@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""The v1.12 campaign: re-price Rule 1's three admission gates, wild53 held out.
+
+What is being changed, precisely (registered before any measurement)
+--------------------------------------------------------------------
+The M-series proved the wild anatomy has one load-bearing layer: the stereo
+witness reads the owner-attested wilds at AUC 0.97 and has nothing to
+corroborate, because three Rule 1 admission gates — each calibrated on
+direct-lab material — suppress the points. The three repairs:
+
+  GATE A (variance). Old: exit when cutoff_std > 100 Hz. The instrument
+  quantizes to 250 Hz cells, so a rock-stable wall near a cell boundary reads
+  std up to 125 (50/50 between adjacent cells) and exits. New: exit when
+  cutoff_std > 130 Hz — the smallest round figure above the one-cell wander
+  bound. PRINCIPLE, not a fit: the bound (125) is arithmetic on the grid, and
+  130 is not tuned against any corpus.
+
+  GATE B (the 20,000-exact exception). Old: a cutoff of exactly 20,000 Hz is
+  discarded as possible FFT rounding whenever energy_ratio > 1e-6 — which any
+  wild press-noise floor satisfies. New: at 20,000 Hz, consult the DEPTH
+  instead: if residual_floor_db <= NEARNYQ_FLOOR_DB (-55 dB) the wall is real
+  and scoring proceeds; NaN or shallow keeps the old skip. (20,000/22,050 =
+  0.907 sits inside the residual window, so the reading exists at 44.1 kHz;
+  at 48 kHz the residual is NaN and the legacy skip is preserved.)
+
+  GATE C (container bitrate by format). Old: mp3_ranges checks the container
+  bitrate against windows calibrated for FLAC (320 -> 700-1050 kbps); a WAV
+  reads ~1411 kbps and every WAV is structurally out of Rule 1's reach. New:
+  when the container bitrate is at PCM level (>= 90 % of sample_rate x 32/1000,
+  i.e. an uncompressed container), the container carries no compression
+  information and the check is BYPASSED (treated as in-range), never failed.
+  FLAC windows are unchanged in this campaign.
+
+Acceptance — the G-series, registered before the inputs pass runs
+------------------------------------------------------------------
+    G1  SAFETY, the binding one: on the 258 genuine (80 audit-certified + 178
+        wild), at most 2 files newly receive R1's +50 under the new gates —
+        and a full-engine re-run on every such file yields ZERO new genuine
+        conviction and at most +1 newly signaled.
+    G2  EFFICACY: on the wild53 owner tier (34), the new gates award +50 to at
+        least 20 files.
+    G3  NO REGRESSION: on the 720 lab arms, the count of files receiving +50
+        does not decrease.
+    G4  END TO END: full engine with the new gates on the wild53 — owner tier
+        signaled >= 50 % (from 8.8 %), eye tier reported separately, and any
+        FAKE_CERTAIN triggers the W1-style audit before anything is celebrated.
+
+If G1 fails the campaign stops and reports; no threshold is re-tuned against
+the population that scored it. The wild53 is the held-out bench: no constant in
+the three repairs above was derived from it (130 is grid arithmetic, -55 dB is
+the shipped NEARNYQ_FLOOR_DB, the PCM test is format arithmetic).
+
+Stage 1 (this file): measure Rule 1's inputs on every file — 258 genuine, 720
+arms, 53 wild — then evaluate OLD (the shipped apply_rule_1, called directly)
+vs NEW (the same sequence with gates A/B/C repaired) offline on those inputs.
+Stage 2 (branch): apply the patch in src, full-engine the wild53 and every
+genuine file whose R1 outcome changed, score G1-G4.
+
+Results are appended below after each stage; the registrations stay.
+--------------------------------------------------------------------------------
+(stage 1 not yet run)
+
+Usage::
+
+    python ml/r1_gates_repricing.py --measure   # inputs pass (resumable)
+    python ml/r1_gates_repricing.py --evaluate  # offline old-vs-new + G numbers
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import math
+import sys
+from glob import glob
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import numpy as np
+import soundfile as sf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from flac_detective.analysis.spectrum import analyze_spectrum  # noqa: E402
+from flac_detective.analysis.new_scoring.rules.spectral import (  # noqa: E402
+    NEARNYQ_FLOOR_DB,
+    apply_rule_1_mp3_bitrate,
+    estimate_mp3_bitrate,
+)
+
+NEW_VARIANCE_THRESHOLD = 130.0
+PCM_CONTAINER_FACTOR = 0.90
+
+POPULATIONS: Dict[str, List[str]] = {
+    "genuine_audit": [r"C:\Users\loutr\audit_corpus\authentic\*.flac"],
+    "genuine_wild": [r"C:\Users\loutr\wild_authentic\*.flac"],
+    "arm_mp3_192": [r"C:\Users\loutr\audit_corpus\fake\mp3_192\*.flac"],
+    "arm_mp3_320": [r"C:\Users\loutr\audit_corpus\fake\mp3_320\*.flac"],
+    "arm_mp3_V0": [r"C:\Users\loutr\audit_corpus\fake\mp3_V0\*.flac"],
+    "arm_aac_ff128": [r"C:\Users\loutr\audit_corpus\fake\aac_ff128\*.flac"],
+    "arm_aac_ff256": [r"C:\Users\loutr\audit_corpus\fake\aac_ff256\*.flac"],
+    "arm_aac_ff320": [r"C:\Users\loutr\audit_corpus\fake\aac_ff320\*.flac"],
+    "arm_aacmf_256": [r"C:\Users\loutr\audit_corpus\fake\aacmf_256\*.flac"],
+    "arm_opus_256": [r"C:\Users\loutr\audit_corpus\fake\opus_256\*.flac"],
+    "arm_vorbis_q8": [r"C:\Users\loutr\audit_corpus\fake\vorbis_q8\*.flac"],
+    "wild_owner": [
+        r"C:\Users\loutr\wild53\21-08-26\Original Hardcore The Nu Breed (2004)\CD1 Darren Styles\*.wav",
+        r"C:\Users\loutr\wild53\21-08-26\Original Hardcore The Nu Breed (2004)\CD2 Dougal\*.wav",
+    ],
+    "wild_eye": [
+        r"C:\Users\loutr\wild53\21-08-26\Original Hardcore The Nu Breed (2004)"
+        r"\CD3 Bonus (Mixed by Styles and Dougal)\*.wav",
+    ],
+}
+
+
+def container_kbps(path: Path) -> Optional[float]:
+    try:
+        info = sf.info(str(path))
+        seconds = info.frames / info.samplerate
+        return path.stat().st_size * 8.0 / seconds / 1000.0
+    except Exception:
+        return None
+
+
+def measure(out_csv: Path) -> None:
+    done = set()
+    if out_csv.exists():
+        with open(out_csv, newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                done.add((row["population"], row["track"]))
+        print(f"reprise: {len(done)} deja mesures", flush=True)
+    fieldnames = [
+        "population",
+        "track",
+        "sample_rate",
+        "cutoff",
+        "energy_ratio",
+        "cutoff_std",
+        "residual_floor_db",
+        "container_kbps",
+    ]
+    with open(out_csv, "a" if done else "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        if not done:
+            writer.writeheader()
+        for population, patterns in POPULATIONS.items():
+            n = 0
+            for pattern in patterns:
+                for raw in sorted(glob(pattern)):
+                    path = Path(raw)
+                    if (population, path.name) in done:
+                        n += 1
+                        continue
+                    kbps = container_kbps(path)
+                    if kbps is None:
+                        continue
+                    try:
+                        cutoff, energy, std, resid = analyze_spectrum(path)
+                        rate = int(sf.info(str(path)).samplerate)
+                    except Exception:
+                        continue
+                    writer.writerow(
+                        {
+                            "population": population,
+                            "track": path.name,
+                            "sample_rate": rate,
+                            "cutoff": f"{cutoff:.1f}",
+                            "energy_ratio": f"{energy:.3e}",
+                            "cutoff_std": f"{std:.1f}",
+                            "residual_floor_db": f"{resid:.1f}" if np.isfinite(resid) else "nan",
+                            "container_kbps": f"{kbps:.0f}",
+                        }
+                    )
+                    fh.flush()
+                    n += 1
+            print(f"{population}: {n} mesures", flush=True)
+
+
+def old_r1_plus50(row: dict) -> bool:
+    """The shipped rule, called directly on the measured inputs."""
+    resid = float(row["residual_floor_db"]) if row["residual_floor_db"] != "nan" else float("nan")
+    (score, _reasons), _est = apply_rule_1_mp3_bitrate(
+        cutoff_freq=float(row["cutoff"]),
+        container_bitrate=float(row["container_kbps"]),
+        cutoff_std=float(row["cutoff_std"]),
+        sample_rate=int(row["sample_rate"]),
+        energy_ratio=float(row["energy_ratio"]),
+        residual_floor_db=resid,
+    )
+    return score >= 50
+
+
+def new_r1_plus50(row: dict) -> bool:  # noqa: C901
+    """The repaired gate sequence — mirrors apply_rule_1 with gates A/B/C fixed."""
+    cutoff = float(row["cutoff"])
+    rate = int(row["sample_rate"])
+    std = float(row["cutoff_std"])
+    energy = float(row["energy_ratio"])
+    kbps = float(row["container_kbps"])
+    resid = float(row["residual_floor_db"]) if row["residual_floor_db"] != "nan" else float("nan")
+    nyquist = rate / 2.0
+
+    if cutoff >= 0.95 * nyquist:
+        return False
+    if cutoff == 20000.0:
+        # GATE B repaired: depth decides, not raw HF energy.
+        wall_is_real = (not math.isnan(resid)) and resid <= NEARNYQ_FLOOR_DB
+        if not wall_is_real:
+            if energy > 0.000001 or std == 0.0:
+                return False
+    if cutoff > 21500:
+        return False
+    if std > NEW_VARIANCE_THRESHOLD:  # GATE A repaired: above one-cell wander.
+        return False
+    est = estimate_mp3_bitrate(cutoff)
+    if est == 0:
+        return False
+    mp3_ranges = {
+        128: (400, 550),
+        160: (450, 650),
+        192: (500, 750),
+        224: (550, 800),
+        256: (600, 850),
+        320: (700, 1050),
+    }
+    if est not in mp3_ranges:
+        return False
+    if est == 320 and cutoff >= 0.94 * nyquist:
+        return False
+    # GATE C repaired: an uncompressed container carries no information.
+    pcm_level = PCM_CONTAINER_FACTOR * (rate * 32.0 / 1000.0)
+    if kbps < pcm_level:
+        lo, hi = mp3_ranges[est]
+        if not (lo <= kbps <= hi):
+            return False
+    if est == 320 and (not math.isnan(resid)) and resid > NEARNYQ_FLOOR_DB:
+        return False
+    return True
+
+
+def evaluate(out_csv: Path) -> None:
+    rows = list(csv.DictReader(open(out_csv, newline="", encoding="utf-8")))
+    print(f"{len(rows)} lignes d'entrees\n")
+    print(f"{'population':16}{'n':>5}{'old +50':>9}{'new +50':>9}{'delta':>7}")
+    genuine_newly: List[str] = []
+    for population in POPULATIONS:
+        subset = [r for r in rows if r["population"] == population]
+        if not subset:
+            continue
+        old = sum(1 for r in subset if old_r1_plus50(r))
+        new = sum(1 for r in subset if new_r1_plus50(r))
+        print(f"{population:16}{len(subset):>5}{old:>9}{new:>9}{new - old:>+7}")
+        if population.startswith("genuine"):
+            genuine_newly += [
+                r["track"] for r in subset if new_r1_plus50(r) and not old_r1_plus50(r)
+            ]
+
+    arms_old = sum(1 for r in rows if r["population"].startswith("arm_") and old_r1_plus50(r))
+    arms_new = sum(1 for r in rows if r["population"].startswith("arm_") and new_r1_plus50(r))
+    owner_new = sum(1 for r in rows if r["population"] == "wild_owner" and new_r1_plus50(r))
+
+    print(
+        f"\nG1 stage-1  genuine newly +50 (<=2): "
+        f"{'HELD' if len(genuine_newly) <= 2 else 'FAILED'} "
+        f"({len(genuine_newly)}: {genuine_newly[:6]})"
+    )
+    print(
+        f"G2          wild owner new +50 (>=20/34): "
+        f"{'HELD' if owner_new >= 20 else 'FAILED'} ({owner_new}/34)"
+    )
+    print(
+        f"G3          arms +50 no decrease: "
+        f"{'HELD' if arms_new >= arms_old else 'FAILED'} "
+        f"({arms_old} -> {arms_new})"
+    )
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--measure", action="store_true")
+    parser.add_argument("--evaluate", action="store_true")
+    parser.add_argument("--out", type=Path, default=Path("ml/r1_gates_inputs.csv"))
+    args = parser.parse_args(argv)
+    if args.measure:
+        measure(args.out)
+        return 0
+    if args.evaluate:
+        evaluate(args.out)
+        return 0
+    parser.print_help()
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
