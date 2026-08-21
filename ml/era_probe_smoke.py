@@ -53,8 +53,19 @@ data that suggested it):
          within-probe contrast R(fresh) - R(lame3.92 transcode) is at least
          3.0 dB larger for the era-paired probe than for the 3.100 probe.
 
-CELL 2 RESULTS
-(not yet run)
+CELL 2 RESULTS (2026-08-21, seed 20260821, noise bursts added)
+
+    E1'          HELD                  3.100 probe   3.92-paired
+                     fresh source            10.58         22.03
+                     lame3.92 transcode       7.36          8.88
+                     contrast                 3.21         13.16
+
+What one cell licenses, and no more: on synthetic material, pairing the probe
+to the transcode's own generation widens the fresh/transcode separation by
+~10 dB over the shipped 3.100 instrument, consistent with his version-locked
+finding from the outside. It does NOT yet license an era-paired battery on
+real music, thresholds, or any scoring change — that battery gets its own
+registration.
 """
 
 from __future__ import annotations
