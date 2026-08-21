@@ -61,6 +61,12 @@ NOISE = re.compile(
     r"\d+(\.\d+)?x|#\d+)$"
 )
 
+# Bold that is structure, not assertion: markdown links, interrogative headings,
+# ordinal-prefixed scenario labels ("1. MP3 320 kbps VBR"), and the bare
+# "0 points" outcome rows — a bolded zero asserts the absence of an award, and
+# what CAN drift there is the nonzero claim beside it, which stays inventoried.
+STRUCTURE = re.compile(r"^\[.*\]\(.*\)$|\?$|^\d+\.\s|^0 points$")
+
 
 def inventory() -> List[dict]:
     """Every bolded numeric claim in the public files."""
@@ -72,7 +78,7 @@ def inventory() -> List[dict]:
         text = path.read_text(encoding="utf-8")
         for match in BOLD_NUMERIC.finditer(text):
             claim = match.group(1).strip()
-            if NOISE.match(claim):
+            if NOISE.match(claim) or STRUCTURE.search(claim):
                 continue
             found.append({"file": rel, "claim": claim})
     return found

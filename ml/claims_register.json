@@ -157,5 +157,287 @@
       ],
       "note": "the debunked-then-earned AUC of the ML story; full narrative in ml/README.md"
     }
+  },
+  {
+    "id": "gs-band-authentic",
+    "file": "docs/getting-started.md",
+    "pattern": "0-30",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_AUTHENTIC = 30"
+    }
+  },
+  {
+    "id": "gs-band-warning",
+    "file": "docs/getting-started.md",
+    "pattern": "31-54",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_WARNING = 31"
+    }
+  },
+  {
+    "id": "gs-band-suspicious",
+    "file": "docs/getting-started.md",
+    "pattern": "55-85",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_SUSPICIOUS = 55"
+    }
+  },
+  {
+    "id": "gs-band-critical",
+    "file": "docs/getting-started.md",
+    "pattern": "86-150",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_FAKE_CERTAIN = 86"
+    }
+  },
+  {
+    "id": "techdocs-band-warning",
+    "file": "docs/technical-details.md",
+    "pattern": "31-54",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_WARNING = 31"
+    }
+  },
+  {
+    "id": "techdocs-band-suspicious",
+    "file": "docs/technical-details.md",
+    "pattern": "55-85",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/constants.py",
+      "regex": "SCORE_SUSPICIOUS = 55"
+    }
+  },
+  {
+    "id": "techdocs-suspicious-move",
+    "file": "docs/technical-details.md",
+    "pattern": "moved from 61 to 55 in v0\\.15\\.1",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/analyze_warning_band.py",
+        "CHANGELOG.md"
+      ],
+      "note": "the score-distribution study that moved the SUSPICIOUS floor"
+    }
+  },
+  {
+    "id": "techdocs-median-58",
+    "file": "docs/technical-details.md",
+    "pattern": "median of ~58",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/analyze_warning_band.py"
+      ]
+    }
+  },
+  {
+    "id": "techdocs-plus5pp",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+5 percentage points",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/analyze_warning_band.py"
+      ]
+    }
+  },
+  {
+    "id": "techdocs-54-at-85",
+    "file": "docs/technical-details.md",
+    "pattern": "54 of them sat at exactly 85",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/README.md"
+      ],
+      "note": "the v1.8 near-bar pileup; narrative and table in ml/README.md"
+    }
+  },
+  {
+    "id": "techdocs-coreaudio-256",
+    "file": "docs/technical-details.md",
+    "pattern": "2 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/coreaudio_arm.py",
+        "CHANGELOG.md"
+      ],
+      "note": "CoreAudio 256k rung of the trigger ladder, n=100 run 2026-08-18"
+    }
+  },
+  {
+    "id": "techdocs-coreaudio-320",
+    "file": "docs/technical-details.md",
+    "pattern": "0 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/coreaudio_arm.py",
+        "CHANGELOG.md"
+      ],
+      "note": "CoreAudio 320k rung of the trigger ladder, n=100 run 2026-08-18"
+    }
+  },
+  {
+    "id": "techdocs-cnn-rolloff-gate",
+    "file": "docs/technical-details.md",
+    "pattern": "~7 kHz",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/ml_classifier.py",
+      "regex": "_ROLLOFF_GATE_HZ = 7000\\.0"
+    }
+  },
+  {
+    "id": "techdocs-cnn-arch",
+    "file": "docs/technical-details.md",
+    "pattern": "EfficientNet-B0",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "ml/train.py",
+      "regex": "(?i)efficientnet[-_]?b0"
+    }
+  },
+  {
+    "id": "techdocs-cnn-midside",
+    "file": "docs/technical-details.md",
+    "pattern": "2-channel mid/side mel-spectrogram",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/ml_classifier.py",
+      "regex": "mid\\+side mel-spec"
+    }
+  },
+  {
+    "id": "techdocs-r2-per200hz",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+1 point",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/spectral.py",
+      "regex": "min\\(frequency_deficit / 200, 30\\)",
+      "note": "Rule 2: 1 point per 200 Hz of deficit, capped at 30"
+    }
+  },
+  {
+    "id": "techdocs-r4-24bit",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+30 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/bitrate.py",
+      "regex": "score \\+= 30",
+      "note": "Rule 4: 24-bit with low-bitrate MP3 signature"
+    }
+  },
+  {
+    "id": "techdocs-r5-variance",
+    "file": "docs/technical-details.md",
+    "pattern": "-40 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/bitrate.py",
+      "regex": "score -= 40",
+      "note": "Rule 5 VBR-variance protection; the same value appears in Rule 7 phase 2 (silence.py score -= 40)"
+    }
+  },
+  {
+    "id": "techdocs-r6-highbitrate",
+    "file": "docs/technical-details.md",
+    "pattern": "-30 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/bitrate.py",
+      "regex": "score -= 30",
+      "note": "Rule 6 high-bitrate protection; -30 also appears in Rule 8's moderate tier (spectral.py) and Rule 10's local-artifact case (consistency.py), each backed by its own file"
+    }
+  },
+  {
+    "id": "techdocs-r7-r8-minus50",
+    "file": "docs/technical-details.md",
+    "pattern": "-50 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/silence.py",
+      "regex": "score -= 50",
+      "note": "Rule 7 phase-1 clean-silence protection; Rule 8's strong tier (-50 at >= 0.98 Nyquist) lives in spectral.py"
+    }
+  },
+  {
+    "id": "techdocs-r7-clicks",
+    "file": "docs/technical-details.md",
+    "pattern": "-10 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/silence.py",
+      "regex": "score -= 10",
+      "note": "Rule 7 phase 3: vinyl clicks confirmation"
+    }
+  },
+  {
+    "id": "techdocs-r7-upsample",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+20 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/silence.py",
+      "regex": "score \\+= 20",
+      "note": "Rule 7 phase 2: no noise above cutoff, upsample suspect"
+    }
+  },
+  {
+    "id": "techdocs-r10-variance",
+    "file": "docs/technical-details.md",
+    "pattern": "-20 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/consistency.py",
+      "regex": "score -= 20",
+      "note": "Rule 10: high cross-segment variance reads as dynamic mastering"
+    }
+  },
+  {
+    "id": "techdocs-r13-hard",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+55 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/mdct_alignment.py",
+      "regex": "SCORE_HARD = 55"
+    }
+  },
+  {
+    "id": "techdocs-r13-review",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+25 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/mdct_alignment.py",
+      "regex": "SCORE_REVIEW = 25"
+    }
+  },
+  {
+    "id": "techdocs-r8-reduced",
+    "file": "docs/technical-details.md",
+    "pattern": "-15",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/spectral.py",
+      "regex": "-15",
+      "note": "Rule 8 safeguard: bonus reduced to -15 under an MP3 signature with silence ratio > 0.15"
+    }
   }
 ]

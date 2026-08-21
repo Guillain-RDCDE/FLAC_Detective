@@ -40,7 +40,9 @@ def apply_rule_7_silence_analysis(
         -10 points if 5-50 clicks/min (CONFIRMS vinyl)
         0 points otherwise
 
-    Total Score Range: -100 to +70 points
+    Total Score Range: -50 to +50 points. (An earlier docstring said "-100 to
+    +70": impossible — both Phase 1 verdicts return early, so -50/-40/-10 and
+    +50/+20 never combine. Caught by the 2026-08 claims audit.)
 
     Args:
         file_path: Path to the FLAC file

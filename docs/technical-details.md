@@ -454,9 +454,17 @@ asserted.** The same audit pass that killed Rule 3 also showed the `cnn` and
 2. **Surface noise**: Low-frequency rumble (< 100 Hz)
 3. **Clicks & pops**: Vinyl surface artifacts
 
-**Scoring**:
-- Vinyl characteristics detected: **-100 points** (strong protection)
+**Scoring** (phases run in order; a phase-1 verdict stops the rule):
+- Dither in silences (ratio > 0.3): **+50 points** — transcode, stop
+- Clean natural silence (ratio < 0.15): **-50 points** — authentic, stop
+- Uncertain zone, vinyl noise found: **-40 points**, plus **-10 points** if
+  clicks confirm (5-50/min) — maximum protection -50 on either path
+- Uncertain zone, no noise above cutoff: **+20 points** (upsample suspect)
 - No vinyl signatures: **0 points**
+
+An earlier revision of this page claimed a single "-100" protection; no code
+path has ever been able to award it (the -50 outcomes return early), and the
+claims audit caught the drift in 2026-08.
 
 **Why protection?**
 ```
@@ -473,11 +481,14 @@ Vinyl rips legitimately have:
 **Purpose**: Protect files with cutoff near theoretical maximum
 
 **Detection method**:
-- Cutoff ≥ 95% Nyquist (e.g., ≥ 20947 Hz for 44.1 kHz)
+- Cutoff near Nyquist (e.g., ≥ 20947 Hz for 44.1 kHz at the 95 % tier)
 - Likely anti-aliasing filter, not MP3 cutoff
 
-**Scoring**:
-- Near Nyquist: **-50 points** (protection)
+**Scoring** (two tiers, with safeguards):
+- Cutoff ≥ 98 % Nyquist: **-50 points** (strong protection)
+- 95 % ≤ cutoff < 98 % Nyquist: **-30 points** (moderate protection)
+- Safeguard: an MP3 signature with a dirty silence ratio cancels the bonus
+  (> 0.2) or reduces it to -15 (> 0.15)
 - Far from Nyquist: checked by Rule 2
 
 ---
@@ -516,13 +527,20 @@ quantisation directly instead of inferring it from spectral side effects.
 **Purpose**: Validate patterns across entire file
 
 **Detection method**:
-- Analyze 3+ segments of the file
-- MP3s show consistent compression throughout
-- Authentic files have variable spectral content
+- Analyze 5 segments across the file (start, 25 %, 50 %, 75 %, end)
+- A real transcode is compressed the same way everywhere; localized or
+  drifting anomalies point at mastering, not transcoding
+- Runs only once the score already exceeds 30 (the file is already suspect)
 
-**Scoring**:
-- Consistent MP3 patterns: **+20 points**
-- Variable patterns: **0 points**
+**Scoring** (protective only — this rule never adds points):
+- Cutoff variance > 1000 Hz across segments: **-20 points** (dynamic
+  mastering, not a global transcode)
+- Exactly one problematic segment: **-30 points** (local artifact)
+- Consistent segments: **0 points** (the suspicion stands as accumulated)
+
+An earlier revision of this page claimed "+20 for consistent MP3 patterns";
+the rule has never awarded positive points — consistency leaves the existing
+score untouched. The claims audit caught the inversion in 2026-08.
 
 ---
 
