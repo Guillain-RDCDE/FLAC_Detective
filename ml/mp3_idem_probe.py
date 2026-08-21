@@ -116,6 +116,16 @@ sample rate). The predictions split, and the split is the finding:
     era his wild corpus carries — the banner/source/build-date axes, arriving
     inside our own instrument.
 
+    NARROWED IN THE WILD, same day (his wild mp3s binned by their own LAME
+    tag, forty per class where forty existed): files tagged 3.99/3.100 read
+    below his lawful p1 at 2/18 and 5/32 (medians 2.18 and 1.82 vs lawful
+    3.23) — but 3.97 and 3.98 read LAWFUL-LIKE (medians 3.44 and 3.25, zero
+    of forty below threshold each), although the bench said 3.98 kept most of
+    its strength at 320. His sentence, adopted as the docstring's direction:
+    version-locked, and narrower in the wild than the bench says — at CBR 320
+    the probe reaches its own generation and the one adjacent release, and
+    nothing older. Calibration material, not a measurement.
+
     RESOLVED 2026-08-21, and it is the cleanest cross-validation the exchange
     has produced. Their Opus figure never came from an MP3 re-encode: their
     probe re-encodes with LIBOPUS, and their 2026-07-20 cross-codec control is

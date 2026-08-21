@@ -134,10 +134,28 @@ def pcm_digest(path: Path) -> Optional[str]:
     """
     try:
         r = subprocess.run(
-            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path),
-             "-t", "30", "-map", "0:a:0", "-ac", "1", "-ar", "44100",
-             "-f", "s16le", "-"],
-            capture_output=True, timeout=120)
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                str(path),
+                "-t",
+                "30",
+                "-map",
+                "0:a:0",
+                "-ac",
+                "1",
+                "-ar",
+                "44100",
+                "-f",
+                "s16le",
+                "-",
+            ],
+            capture_output=True,
+            timeout=120,
+        )
     except (OSError, subprocess.TimeoutExpired):
         return None
     if r.returncode != 0 or not r.stdout:
@@ -181,12 +199,14 @@ def pick_sources_from_dir(source_dir: Path, n: int) -> List[Dict]:
             log.warning("undecodable, skipped: %s", f.name)
             continue
         if digest in seen_audio:
-            log.warning("CONTENT DUPLICATE skipped: %s carries the same audio as %s",
-                        f.name, seen_audio[digest])
+            log.warning(
+                "CONTENT DUPLICATE skipped: %s carries the same audio as %s",
+                f.name,
+                seen_audio[digest],
+            )
             continue
         seen_audio[digest] = f.name
-        picked.append({"path": str(f), "ripper": None, "item": item,
-                       "pcm_digest": digest})
+        picked.append({"path": str(f), "ripper": None, "item": item, "pcm_digest": digest})
     return picked
 
 
@@ -334,6 +354,30 @@ def transcode(args: Tuple[Path, Path, Codec]) -> Optional[Tuple[str, str, str]]:
         )
         if not ok:
             return None
+        # The rate an encoder is asked for is not the rate it emits (Provir,
+        # 2026-08-21: MediaFoundation AC-3 emits 256 whatever -b:a says; wmav2
+        # overshoots 1.1-1.7x; neither warns). A cell keyed by a requested rate
+        # the encoder ignored measures a different quantiser than its label.
+        # Audited clean on all nine arms the same day (ml/rate_emitted_audit.py)
+        # and CHECKED here forever after, so a future encoder swap cannot lie.
+        if "-b:a" in codec.args:
+            requested_kbps = float(codec.args[codec.args.index("-b:a") + 1].rstrip("k"))
+            try:
+                import soundfile
+
+                info = soundfile.info(str(src))
+                seconds = info.frames / info.samplerate
+                emitted_kbps = lossy.stat().st_size * 8.0 / seconds / 1000.0
+                if abs(emitted_kbps - requested_kbps) / requested_kbps > 0.15:
+                    log.warning(
+                        "RATE_OFF %s: requested %.0f kbps, emitted %.0f kbps (%s)",
+                        codec.name,
+                        requested_kbps,
+                        emitted_kbps,
+                        src.name,
+                    )
+            except Exception:
+                pass
         ok = _run(
             [
                 "ffmpeg",
