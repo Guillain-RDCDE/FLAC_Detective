@@ -79,6 +79,14 @@ The guiding principle is **"protect authentic files first"**: a false alarm on r
 worse than missing a borderline fake. Treat AUTHENTIC as *"no evidence of transcoding"*, not a
 guarantee.
 
+**What the numbers describe.** Every accuracy figure this project publishes was measured on
+*direct* transcodes — lossy audio re-encoded straight to FLAC, nothing in between. Transcodes
+that passed through a **mastering chain** before reaching a disc (levels, limiting, press —
+what wild compilations actually sell) are a different population: on 34 owner-attested wild
+MP3-sourced tracks, the engine signaled **8.8 %** — and convicted **zero**, which is the half
+of the design that held. Both numbers are pre-registered and hash-verified; the gap is real,
+measured, and being worked on rather than blurred.
+
 → Every rule explained: **[Technical Details](docs/technical-details.md)**.
 
 ---

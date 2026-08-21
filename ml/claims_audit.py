@@ -124,6 +124,14 @@ def check_register(entries: List[dict]) -> List[str]:  # noqa: C901
                     f"CONTRADICTION {entry['id']}: {ev['path']}:{'.'.join(ev['keys'])} "
                     f"= {actual}, claim says {ev['expected']}"
                 )
+        elif kind == "code_pattern":
+            code_path = ROOT / ev["path"]
+            if not code_path.exists():
+                failures.append(f"MISSING-EVIDENCE {entry['id']}: {ev['path']} absent")
+            elif not re.search(ev["regex"], code_path.read_text(encoding="utf-8")):
+                failures.append(
+                    f"CONTRADICTION {entry['id']}: {ev['regex']!r} not found in {ev['path']}"
+                )
         elif kind == "none_yet":
             failures.append(
                 f"MISSING-EVIDENCE {entry['id']}: registered with no evidence "

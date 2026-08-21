@@ -3,49 +3,122 @@
     "id": "readme-rule-count",
     "file": "README.md",
     "pattern": "12 heuristic rules",
-    "evidence": {"kind": "rule_count", "expected": 12, "cnn_excluded": true,
-                 "note": "counts def apply_rule_N in new_scoring/rules, CNN (R12) excluded"}
+    "evidence": {
+      "kind": "rule_count",
+      "expected": 12,
+      "cnn_excluded": true,
+      "note": "counts def apply_rule_N in new_scoring/rules, CNN (R12) excluded"
+    }
   },
   {
     "id": "techdocs-rule-count",
     "file": "docs/technical-details.md",
     "pattern": "12 heuristic rules",
-    "evidence": {"kind": "rule_count", "expected": 12, "cnn_excluded": true}
+    "evidence": {
+      "kind": "rule_count",
+      "expected": 12,
+      "cnn_excluded": true
+    }
   },
   {
     "id": "readme-fp-specificity",
     "file": "README.md",
     "pattern": "80 % to 95 %",
-    "evidence": {"kind": "json_count", "path": "ml/authentic_files.json",
-                 "keys": ["count"], "expected": 11234,
-                 "note": "verifies the 11,234-file denominator; the 80/95 narrative lives in ml/README.md. Local-only: authentic_files.json is gitignored (private paths)."}
+    "evidence": {
+      "kind": "json_count",
+      "path": "ml/authentic_files.json",
+      "keys": [
+        "count"
+      ],
+      "expected": 11234,
+      "note": "verifies the 11,234-file denominator; the 80/95 narrative lives in ml/README.md. Local-only: authentic_files.json is gitignored (private paths)."
+    }
   },
   {
     "id": "techdocs-rule3-143-fires",
     "file": "docs/technical-details.md",
     "pattern": "143 times, always alongside Rule 1, and never once alone",
-    "evidence": {"kind": "artifact", "paths": ["ml/rule_audit_baseline.csv", "CHANGELOG.md"],
-                 "note": "the per-file audit CSV the count was derived from (v1.10)"}
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/rule_audit_baseline.csv",
+        "CHANGELOG.md"
+      ],
+      "note": "the per-file audit CSV the count was derived from (v1.10)"
+    }
   },
   {
     "id": "techdocs-rule11-auc",
     "file": "docs/technical-details.md",
     "pattern": "AUC 0\\.321",
-    "evidence": {"kind": "artifact", "paths": ["ml/README.md"],
-                 "note": "v1.8 per-rule audit, narrative + tables in ml/README.md"}
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/README.md"
+      ],
+      "note": "v1.8 per-rule audit, narrative + tables in ml/README.md"
+    }
   },
   {
     "id": "techdocs-r13-vorbis-auc",
     "file": "docs/technical-details.md",
     "pattern": "AUC 0\\.806 to 0\\.955",
-    "evidence": {"kind": "artifact", "paths": ["CHANGELOG.md", "ml/recert_880.csv"],
-                 "note": "two-window Rule 13 result (v1.10) and the per-file recert CSV"}
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "CHANGELOG.md",
+        "ml/recert_880.csv"
+      ],
+      "note": "two-window Rule 13 result (v1.10) and the per-file recert CSV"
+    }
   },
   {
     "id": "techdocs-coreaudio-ladder",
     "file": "docs/technical-details.md",
     "pattern": "13 %",
-    "evidence": {"kind": "artifact", "paths": ["ml/coreaudio_arm.py", "CHANGELOG.md"],
-                 "note": "CoreAudio arm 128/256/320k trigger ladder (13/2/0 %), n=100 run 2026-08-18"}
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/coreaudio_arm.py",
+        "CHANGELOG.md"
+      ],
+      "note": "CoreAudio arm 128/256/320k trigger ladder (13/2/0 %), n=100 run 2026-08-18"
+    }
+  },
+  {
+    "id": "readme-wild-gap",
+    "file": "README.md",
+    "pattern": "8\\.8 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/exchange/PREREGISTERED_2026-08-20.md",
+        "ml/wild53_scores.csv"
+      ],
+      "note": "W-series result on the owner-attested wild tier, pre-registered before download"
+    }
+  },
+  {
+    "id": "techdocs-wild-gap",
+    "file": "docs/technical-details.md",
+    "pattern": "8\\.8 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/exchange/PREREGISTERED_2026-08-20.md",
+        "ml/wild53_scores.csv"
+      ]
+    }
+  },
+  {
+    "id": "techdocs-r1-50pts",
+    "file": "docs/technical-details.md",
+    "pattern": "\\+50 points",
+    "evidence": {
+      "kind": "code_pattern",
+      "path": "src/flac_detective/analysis/new_scoring/rules/spectral.py",
+      "regex": "score \\+= 50",
+      "note": "Rule 1 spectral bitrate signature"
+    }
   }
 ]

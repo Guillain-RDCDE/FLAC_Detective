@@ -256,6 +256,14 @@ There are two entry points to the same lossless machinery:
 FLAC Detective uses **12 heuristic rules** with **additive scoring** (0–150 points), plus
 an **optional CNN rule** (Rule 12, enabled with the `[ml]` extra — see below).
 
+> **Population note (2026-08).** Every rate and AUC on this page was measured on **direct
+> transcodes** — lossy audio re-encoded straight to FLAC. Transcodes that passed through a
+> mastering chain before reaching a disc (the population wild compilations actually sell) read
+> very differently: on 34 owner-attested wild MP3-sourced tracks the engine signaled 8.8 % and
+> convicted zero. A published rate on this project now states which population it describes;
+> the measurement and its pre-registered predictions live in the repository
+> (`ml/exchange/PREREGISTERED_2026-08-20.md`, `ml/wild53_scores.csv`).
+
 ### Scoring engine flow
 
 **Order matters.** The rules don't just sum — the engine runs them in a deliberate order
