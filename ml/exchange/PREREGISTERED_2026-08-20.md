@@ -230,3 +230,63 @@ required), and no way to record a selection **pipeline** (CD3: a metric shortlis
 and an eye ruled — `+`-chained selections added, a chain tainted by its most
 sensory link). His CD3 circularity warning is honored as written: the 19 eye rows
 are selection evidence for any band-edge statistic, never ground truth.
+
+---
+
+# AMENDMENT 3 — 2026-08-21, before the audio is downloaded
+
+Appended, not edited. Two things his 2026-08-21 reply settled, and one new
+registration that must exist before any byte of the 53 lands here.
+
+## The two 34s are different sets, and P1–P6 never spend on this delivery
+
+Confirmed by him: the wild53 ledger's 34 is Nu Breed CD1+CD2, single tier,
+`owner-knowledge`, no detector involved — and he cannot find the
+16-owner-eye/9-ear-eye split *for this set* anywhere in his records. The split
+this document's P1–P6 were written against came from his **corpus-wide** fake
+taxonomy (his 2026-08-20 message: 34 fakes, 16 `owner-eye`, 9 `ear+eye`, 6 on
+neither eyes nor ears), which is a different population that happens to also
+number 34. **P1–P6 therefore stay unspent on the Nu Breed 53 even with audio in
+hand**; they spend if and only if the corpus-wide `ear+eye` and referee rows
+ever ship. Two 34s colliding is this week's 750-shares-every-third-rung lesson
+in census form: an exact numeric agreement between two lists is evidence of
+nothing until both lists are named.
+
+## Registered for the Nu Breed 53, before download — the W-series
+
+The audio is en route with a regenerated ledger carrying sha256 + pcm_sha256
+per row. **This is not a blind test and is not scored as one**: his labels and
+his engine's verdicts are already known here. What the discipline still buys is
+predictions about OUR engine committed before it runs. Protocol: hash-verify
+every file against his regenerated ledger first; run the shipped release
+(v1.11.4) with `--deep`; Wilson bounds on every clean line; CD3 reported
+separately everywhere.
+
+    W1  Zero FAKE_CERTAIN across all 53. (His engine convicts none in any
+        configuration; our conviction gate needs two independent families, and
+        a CD master cut from MP3 decodes is exactly the blunted-tell chain the
+        gate was priced for. A conviction here would be MORE alarming than
+        impressive, and W1 failing triggers a manual audit of the convicting
+        families before anything is celebrated.)
+    W2  The signaled rate (verdict ≠ AUTHENTIC) on CD1+CD2 (owner-knowledge,
+        n=34) EXCEEDS the rate on CD3 (eye, n=19). Direction only — matching
+        the direction his engine reads (32 % vs 5 %), for the stated reason:
+        CD3 is HF-poor early-90s material, and our spectral instruments read
+        less where there is less to read.
+    W3  At least 40 % of CD1+CD2 signaled. First recall claim on an
+        owner-attested wild 320 population; the lab arm reads far higher, and
+        the gap between lab and wild is precisely what this measures.
+    W4  The MP3_IDEM instrument (measured, not a rule): R ≤ 1.68 (our genuine
+        p5 bar) on at least 50 % of CD1+CD2. These files are MP3-320-sourced —
+        the exact fixed point the probe re-encodes toward — but the mastering
+        chain between the MP3 and the disc (level moves, crossfades, re-rip)
+        adds distance back, and how much is the question this number answers.
+    W5  CD3 is never averaged into any headline with CD1+CD2, in anything we
+        publish from this set. A constraint, scored as a prediction, because an
+        intent is not a bound.
+
+Being wrong on W2 would matter most: it would say our engine's agreement with
+an owner's knowledge does not survive leaving the lab, or that it reads the
+eye-chosen disc BETTER than the attested ones — either way something worth a
+week. His purchase condition is adopted as written: if any of this music turns
+out essential to our binary, buy the disc.

@@ -10,6 +10,14 @@ CELT transcodes through a 48 kHz resample that destroys sample-exact alignment.
 This is the only known family with NO alignment dependence at all: we re-encode
 from PCM, so the encoder picks its own grid every time.
 
+(RETRACTED BY HIM 2026-08-21, stamped over the premise per the house method: he
+cannot find 67 %-at-0 % as a defensible figure anywhere in his records. His
+Opus-convergence axis degraded at every increase in n — n=3 perfect, n=186
+dead, n=24 perfect again — and the standing figure is **22 % of dithered Opus
+at 0 FP, n=90**, with the trap history part of the figure: small-sample
+optimism, three times on one axis. The premise below stays because a probe's
+declared premise is part of its result.)
+
 The idea is a fixed point. Encode-decode is a map on audio; lossy-processed audio
 is close to that map's fixed point already. So:
 
@@ -97,6 +105,18 @@ sample rate). The predictions split, and the split is the finding:
     chance. Different instrument (their dist, their bitrate ladder, their
     corpus) — per the standing rule the numbers are not comparable until each
     names its instrument, and this one now has: theirs is the open question.
+
+    RESOLVED 2026-08-21, and it is the cleanest cross-validation the exchange
+    has produced. Their Opus figure never came from an MP3 re-encode: their
+    probe re-encodes with LIBOPUS, and their 2026-07-20 cross-codec control is
+    the mirror of ours — under a libopus probe, mp3_320 reads 1.63, AAC 1.60,
+    Vorbis 1.58, all sitting ON genuine at 1.59. Two labs, a month apart,
+    different instruments, same sentence: **the probe must use the SUSPECTED
+    encoder — codec-paired, both directions.** The 67 % itself is retracted
+    (see the stamp at the top); the standing Opus figure on their side is 22 %
+    of dithered Opus at 0 FP, n=90. The per-codec battery (sweep
+    mp3/aac/opus re-encoders) is the agreed generalisation on both sides, and
+    remains unbuilt here pending the runtime/dependency pricing above.
 
     NOT WIRED INTO THE ENGINE, deliberately, despite P3: (a) the family costs
     two ffmpeg roundtrips per file (~15-20 s) and would make the shipped

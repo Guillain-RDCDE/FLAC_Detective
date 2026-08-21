@@ -138,6 +138,15 @@ system-binary dependency have not been priced against a marginal catch on an arm
 two witness families already read. It stays a measured instrument, like HF_SEAM
 did before it earned Rule 14's slot.
 
+> **Resolved 2026-08-21 — the cleanest cross-validation of the exchange.** Their
+> probe re-encodes with *libopus*, and their 2026-07-20 cross-codec control is
+> the exact mirror of ours: under a libopus probe, mp3/AAC/Vorbis all sit ON
+> genuine. Two labs, a month apart, different instruments, same sentence: the
+> probe must use the suspected encoder — codec-paired, both directions. And the
+> 67 % is retracted by him: not defensible anywhere in his records (his axis
+> degraded at every increase in n; the standing figure is **22 % of dithered
+> Opus at 0 FP, n=90**, trap history attached). Stamped where we quote it.
+
 ### The claims harness: distrust stated practice, run before every release
 
 `ml/claims_audit.py` + `ml/claims_register.json` — Provir's automated

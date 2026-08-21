@@ -257,3 +257,19 @@ a476fa216c7092269891d2e222bd73b323cd8003ce95bb9af2c983bf970b991f  MANIFEST_v2.sh
 The answer key lives outside the shipped directory, gitignored (*-LABELS.json).
 The set awaits a human decision to send - and per this directory's protocol,
 the next blind exchange trades EVIDENCE COLUMNS before anyone scores.
+
+## Corrections stamped on the wild53 note - 2026-08-21, both his, both self-caught
+
+The archived provir-wild53-note.txt stays byte-frozen; two of its numbers are
+corrected here, above it, the usual way:
+
+- DEADRUN_UNCORROBORATED "22" is the OCCURRENCE count; the per-file count -
+  which is what every other row in that table is - is **20** (two files carry
+  two DEADRUN variants each). His words: one hand-carried number was wrong, in
+  the exact document written to demonstrate why hand-carried numbers fail.
+- The regenerated ledger (incoming with the audio) carries sha256 and
+  pcm_sha256 per row and supersedes the archived one as a manifest; the
+  archived copy remains the record of what was first received.
+
+His condition travels with the 53 wavs and is adopted as written: if any of
+this music turns out essential to our binary, buy the disc.
