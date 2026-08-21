@@ -31,6 +31,34 @@ Being wrong on M1 means the aggregation was NOT the load-bearing difference and
 the absolute-threshold/side-only geometry is; either answer sharpens the map.
 The shipped rule does not move either way — a re-pricing of median vs max on
 BOTH populations (direct + wild) is v1.12 material, priced like everything else.
+
+MEASURED 2026-08-21 — BOTH predictions failed, and the failure collapses the
+whole wild anatomy into one layer:
+
+    tier               n   med(shipped)  med(max)   AUC shp   AUC max
+    genuine           40         1.00        3.0        —        —
+    owner-knowledge   34         3.38       37.0     0.97      0.93
+    eye               19         3.44       34.0     0.97      0.92
+
+    M1 FAILED (1/34 over the max bar — the genuine max tail is huge, p95 55.5;
+    max adds nothing at our geometry). M2 FAILED in the best possible way: the
+    SHIPPED median reads 34/34 over RUN_BAR at AUC 0.97.
+
+M2's registration confused "signaled by the engine" with "witness over the
+bar". The truth: **the witness roster SEES the wild population almost
+perfectly** — the shipped Rule 15 statistic separates owner-attested wilds
+from genuine at 0.97 on the same excerpts the engine cleared. What is missing
+is not detection, it is POINTS: a zero-point witness may only complete a
+corroboration, never initiate one, and the Rule 1 admission gates
+(ml/wild53_cliff.py, mechanisms a-c) suppress the very points it would
+corroborate. So the wild anatomy reduces to ONE load-bearing layer: repair the
+R1 gates on this population and the stereo witness corroborates 34/34
+instantly — nothing else in the engine needs to learn anything. That is the
+v1.12 campaign's shape, now fully measured. The aggregation question is
+CLOSED at our geometry (max loses on both populations); his instrument reads
+the tier through a different mechanism (absolute threshold on 16-bit-rounded
+side magnitudes), and the two domains stay mapped side by side, un-converged,
+as he asked.
 """
 
 from __future__ import annotations

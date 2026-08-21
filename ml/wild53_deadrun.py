@@ -46,6 +46,20 @@ or domain (his runs may live in time, or on another transform entirely).
 The "ask him for DEAD_STRUCTURE's actual domain" item, open since
 2026-08-18, is now mandatory rather than curiosity — it is the one flag
 family demonstrably reading a population our whole engine misses.
+
+ANSWERED 2026-08-21, from his code rather than his memory: up to four 8 s
+windows at 25/50/75/87 % of the file; per-window peak-floor abstention; gain
+restore; resample to 44.1 kHz; ROUND TO 16-BIT PRECISION; STFT on a 1024-bin
+half-spectrum (~21.5 Hz/bin); MID=(L+R)/2, SIDE=L-R, bins >= 10 kHz. MAXRUN =
+the longest run of consecutive bins with |SIDE| < 1e-3 ABSOLUTE, interior
+only, within ONE frame, maximised over every frame of every window — so 118
+means one frame carried ~2.5 kHz of dead side spectrum bounded by live bins.
+Against ours (mono sum, 2-16 kHz, 40 dB RELATIVE to a wide local percentile,
+median over frames): same name, same origin, not one shared observable — the
+0.0-vs-118 needed no further explanation. His wish is adopted as policy: the
+two instruments stay as they are and the domains are mapped side by side
+(see ml/wild53_r15max.py for the map's first result). A None is never clean,
+and a shared name is never a shared measurement.
 """
 
 from __future__ import annotations

@@ -172,6 +172,24 @@ container-invariant) and refuses a second item carrying the same audio —
 `tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
 track under two etree item names) and pins that it collapses.
 
+### The M-series collapses the wild anatomy into one layer — and the engine already sees
+
+Provir answered DEAD_STRUCTURE's domain from the code (side channel, absolute
+1e-3 threshold on 16-bit-rounded magnitudes, longest interior frequency-run
+maximised over frames): same name as our dead-run, zero shared observable —
+the D-series 0.0-vs-118 fully explained. The M-series (`ml/wild53_r15max.py`,
+registered before the run) then tested the one aggregation choice separating
+his 12/34 from our 3/34 — and **both predictions failed, the second one in the
+best possible way: the SHIPPED Rule 15 median reads the owner-attested wilds
+at AUC 0.97, 34/34 over RUN_BAR.** The witness roster sees the wild population
+almost perfectly; what is missing is not detection but POINTS — a zero-point
+witness may only corroborate, and the Rule 1 admission gates suppress the very
+points it would corroborate. The wild anatomy therefore reduces to one
+load-bearing layer: repair the R1 gates and the stereo witness corroborates
+34/34 instantly. Max-over-frames is closed at our geometry (genuine max tail
+p95 = 55.5, no separation gained); the two engines' instruments stay mapped
+side by side, un-converged, as he asked.
+
 ### Layer 3 measured, and it is us: the wild cliff is cleaner than the lab's
 
 The L-series (`ml/wild53_cliff.py`, registered before the run) asked what fills
