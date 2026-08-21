@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """The re-mastered arm: price every family against the population the wild sells.
 
 Why this arm exists
 -------------------
 The W-series (2026-08-21) measured the first lab-to-wild gap: the engine signals
-68–100 % per arm on lab-made DIRECT transcodes and 8.8 % on owner-attested wild
-320s that passed through a mastering chain (MP3 decode → DJ mix, levels,
-crossfades → CD press → rip). MP3_IDEM told us why: the chain pushes the audio
+68â€“100 % per arm on lab-made DIRECT transcodes and 8.8 % on owner-attested wild
+320s that passed through a mastering chain (MP3 decode â†’ DJ mix, levels,
+crossfades â†’ CD press â†’ rip). MP3_IDEM told us why: the chain pushes the audio
 clean off the codec fixed point (wild median R 3.18 vs direct 0.89). The lab
 bench had no arm for that population, so every published rate silently described
 direct transcodes only. This file builds the missing arm and re-prices the
@@ -16,26 +16,26 @@ The simulated chain, v1 (registered before any measurement)
 -----------------------------------------------------------
 ffmpeg, applied to the DECODED direct transcode, back to FLAC s16:
 
-    equalizer f=60  g=+2.0 (q 1.0)   — bass ride, DJ-desk style
-    equalizer f=8000 g=+1.5 (q 1.5)  — presence lift
-    dynaudnorm f=250:g=15            — program-dependent level rides
-    alimiter  limit=0.97             — brickwall limiter into the press
-    aresample + s16 dither           — the CD master step
+    equalizer f=60  g=+2.0 (q 1.0)   â€” bass ride, DJ-desk style
+    equalizer f=8000 g=+1.5 (q 1.5)  â€” presence lift
+    dynaudnorm f=250:g=15            â€” program-dependent level rides
+    alimiter  limit=0.97             â€” brickwall limiter into the press
+    aresample + s16 dither           â€” the CD master step
 
-Acceptance, registered BEFORE the simulated arm is measured — the validator is
+Acceptance, registered BEFORE the simulated arm is measured â€” the validator is
 the wild53 signature, a KNOWN ANSWER measured on real bytes:
 
     A1  The shipped engine (deep) signals <= 20 % of the re-mastered arm
         (wild reads 8.8 %).
     A2  MP3_IDEM median R on the re-mastered arm lands in [2.3, 3.8]
         (wild reads 3.18; genuine 2.73; direct 0.89).
-    A3  The SAME engine run signals >= 60 % of the direct arm — the contrast
+    A3  The SAME engine run signals >= 60 % of the direct arm â€” the contrast
         is the measurement; without A3 the arm proves nothing.
 
 If A1/A2 fail on chain v1, ONE strengthened v2 is permitted and must be
 described here; if v2 fails too, the honest result is "the simulator cannot
 reproduce the wild signature" and the real chain contains something this file
-does not model — reported as such, never tuned until it passes.
+does not model â€” reported as such, never tuned until it passes.
 
 Results are appended below AFTER the runs; the registrations above stay.
 --------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ def build(ffmpeg: str) -> int:
     return 0
 
 
-def measure(out_csv: Path) -> List[dict]:
+def measure(out_csv: Path) -> List[dict]:  # noqa: C901
     from flac_detective import __version__
     from flac_detective.analysis.analyzer import FLACAnalyzer
     from flac_detective.analysis.new_scoring.mdct import best_alignment_stat
@@ -236,14 +236,14 @@ def report(rows: List[dict]) -> None:
         return sum(1 for r in rows if r["population"] == population)
 
     print("\n" + "=" * 76)
-    print("THE TWO-COLUMN TABLE — direct vs re-mastered (wild53 shown as reference)")
+    print("THE TWO-COLUMN TABLE â€” direct vs re-mastered (wild53 shown as reference)")
     print("=" * 76)
 
-    n_g, n_d, n_r = count("genuine"), count("direct"), count("remastered")
+    n_d, n_r = count("direct"), count("remastered")
     s_d, s_r = signaled("direct"), signaled("remastered")
     print(
-        f"\nengine signaled: direct {s_d}/{n_d} = {100*s_d/max(n_d,1):.0f} %"
-        f"   remastered {s_r}/{n_r} = {100*s_r/max(n_r,1):.0f} %"
+        f"\nengine signaled: direct {s_d}/{n_d} = {100*s_d/max(n_d, 1):.0f} %"
+        f"   remastered {s_r}/{n_r} = {100*s_r/max(n_r, 1):.0f} %"
         f"   (wild53 owner tier: 8.8 %)"
     )
 
@@ -260,7 +260,7 @@ def report(rows: List[dict]) -> None:
         for population in ("direct", "remastered"):
             vals = _vals(rows, population, key)
             if not vals.size or not gen.size:
-                line += f"{'—':>12}{'—':>7}"
+                line += f"{'â€”':>12}{'â€”':>7}"
                 continue
             if direction == "low":
                 a = auc(-vals, -gen)
@@ -277,7 +277,7 @@ def report(rows: List[dict]) -> None:
     a3 = s_d >= 0.60 * max(n_d, 1)
     print(
         f"\nA1 engine <=20 % on remastered: {'HELD' if a1 else 'FAILED'}"
-        f" ({100*s_r/max(n_r,1):.0f} %)"
+        f" ({100*s_r/max(n_r, 1):.0f} %)"
     )
     print(
         f"A2 idem median in [2.3, 3.8]:   {'HELD' if a2 else 'FAILED'}"
@@ -287,7 +287,7 @@ def report(rows: List[dict]) -> None:
     )
     print(
         f"A3 engine >=60 % on direct:     {'HELD' if a3 else 'FAILED'}"
-        f" ({100*s_d/max(n_d,1):.0f} %)"
+        f" ({100*s_d/max(n_d, 1):.0f} %)"
     )
 
 
