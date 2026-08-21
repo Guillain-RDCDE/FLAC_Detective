@@ -58,6 +58,25 @@ genuine file whose R1 outcome changed, score G1-G4.
 
 Results are appended below after each stage; the registrations stay.
 --------------------------------------------------------------------------------
+AMENDMENT — GATE D, found by G4 itself (2026-08-21, stage 2)
+-------------------------------------------------------------
+The first end-to-end run of the patched engine on the wild53 read EXACTLY the
+v1.11.4 numbers — because this campaign's offline evaluation calls the RULE
+FUNCTION, and the PIPELINE never calls it for WAV input: calculator.py disables
+Rule 1 entirely for uncompressed containers ("no lossless-compression signal"),
+which is the same rationale gate C just made obsolete inside the rule. That is
+what an end-to-end criterion is FOR, and G4 caught it on its first firing.
+
+  GATE D (the dispatch). Old: is_uncompressed -> Rule 1 removed from the rule
+  list. New: Rule 1 runs on uncompressed input; gate C handles the
+  uninformative container inside the rule, and every other guard (variance,
+  residual, Nyquist) is container-agnostic.
+
+  G1-ter  Registered before it runs: the genuine corpora (80 audit + 40 wild),
+          CONVERTED to WAV, through the new rule — at most 2 files newly
+          receive +50 relative to their FLAC selves. Same bound and same
+          stop-rule as G1.
+
 STAGE 1 MEASURED 2026-08-21, n = 1,031 — G2 and G3 HELD, G1 FAILED AS WRITTEN,
 and the failure found something bigger than the campaign:
 
@@ -100,6 +119,41 @@ the documentary basis (uploader_admission — the taper states the chain), the
 genuine labels correct, G1 re-scores against corrected labels, and stage 2
 (branch, src patch, wild53 full-engine, G4) proceeds. If the human rules them
 genuine despite the documentation, G1's failure stands and the campaign ends.
+
+STAGE 2 FINAL — 2026-08-21 (night), after adjudication, on the branch
+----------------------------------------------------------------------
+The 30 MiniDisc files were adjudicated fake by Guillain on the documentary
+basis (uploader_admission, group scope, taper-written chains). G1 re-scored
+against corrected labels: HELD at 0. Then the end-to-end run exposed GATE D
+(above), and gate C's first form FAILED its own G1-ter (4 genuine-as-WAV newly
++50, bound 2) — the sub-320 cells had lost their only guard. One registered
+revision, gate C-PRIME: an uninformative container is accepted only when the
+wall proves its depth (residual <= NEARNYQ_FLOOR_DB), gate B's logic extended.
+
+Final scores, all measured:
+
+    SAFETY   G1      HELD  0 genuine newly +50 (labels corrected)
+             G1-bis  HELD  0 of 797 library files (the 24-bit control)
+             G1-ter  HELD  0 genuine-as-WAV newly +50 under C-prime
+             W1      HELD  0 FAKE_CERTAIN across the wild 53, end to end
+    EFFICACY G2      MISSED  15/34 offline vs the registered >= 20 — the cost
+                     of C-prime: cells below the residual window's 0.90 x Ny
+                     floor have no depth reading on uncompressed input.
+                     Widening the residual computation window is v1.13,
+                     registered separately, not patched tonight.
+             G4      HELD  owner tier 17/34 = 50.0 % signaled end to end
+                     (from 8.8 %), all WARNING, none convicted
+    NO-REG   G3      HELD  lab arms 142 -> 160 (+15 on mp3_320: gate B
+                     repairs the lab bench too)
+    (W2's direction reversed under the new gates — the eye tier answers
+    loudest at 94.7 %, which is expected when a band-edge rule regains its
+    voice on the tier the eye selected, and is reported separately as the
+    circular tier it is.)
+
+SHIP DECISION: gates A, B, C-prime and D ship as v1.12.0. The safety criteria
+held everywhere; the one missed efficacy prediction is reported with its
+mechanism named. The engine's wild owner-tier recall moves 8.8 % -> 50.0 %
+with zero convictions and zero new genuine cost on three safety populations.
 
 Usage::
 
@@ -269,9 +323,16 @@ def new_r1_plus50(row: dict) -> bool:  # noqa: C901
         return False
     if est == 320 and cutoff >= 0.94 * nyquist:
         return False
-    # GATE C repaired: an uncompressed container carries no information.
+    # GATE C-PRIME (the one registered revision): an uncompressed container
+    # carries no information, and the bypass demands the proof the container
+    # can no longer give — a deep residual floor. Without a depth reading the
+    # rule abstains on uncompressed input (G1-ter's lesson).
     pcm_level = PCM_CONTAINER_FACTOR * (rate * 32.0 / 1000.0)
-    if kbps < pcm_level:
+    deep = (not math.isnan(resid)) and resid <= NEARNYQ_FLOOR_DB
+    if kbps >= pcm_level:
+        if not deep:
+            return False
+    else:
         lo, hi = mp3_ranges[est]
         if not (lo <= kbps <= hi):
             return False
@@ -288,8 +349,7 @@ def adjudicated_fakes() -> set:
     import json
 
     records = json.loads(ledger.read_text(encoding="utf-8"))
-    return {r["filename"] for r in records.values()
-            if r["adjudication"]["label"] == "fake"}
+    return {r["filename"] for r in records.values() if r["adjudication"]["label"] == "fake"}
 
 
 def evaluate(out_csv: Path) -> None:

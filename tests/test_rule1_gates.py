@@ -62,11 +62,22 @@ class TestGateB_20kExactDecidesOnDepth:
         assert score == 0
 
 
-class TestGateC_PCMContainerBypass:
-    def test_wav_at_pcm_level_scores(self):
-        """1411 kbps is the container FORMAT, not the audio's history."""
-        score, est = _r1(container_bitrate=1411.0)
+class TestGateCPrime_PCMContainerBypassRequiresDepth:
+    def test_wav_at_pcm_level_scores_when_the_wall_proves_depth(self):
+        """1411 kbps is the container FORMAT, not the audio's history — and the
+        bypass demands the proof the container can no longer give."""
+        score, est = _r1(container_bitrate=1411.0, residual_floor_db=-60.0)
         assert score == 50 and est == 320
+
+    def test_wav_without_depth_reading_is_refused(self):
+        """G1-ter's lesson: for sub-320 cells the container was the only guard;
+        an uninformative container plus no depth proof must not score."""
+        score, _ = _r1(container_bitrate=1411.0, residual_floor_db=float("nan"))
+        assert score == 0
+
+    def test_wav_with_shallow_floor_is_refused(self):
+        score, _ = _r1(container_bitrate=1411.0, residual_floor_db=-40.0)
+        assert score == 0
 
     def test_flac_outside_window_still_refused(self):
         """FLAC windows unchanged: dense material above 1050 but below PCM."""
@@ -76,6 +87,38 @@ class TestGateC_PCMContainerBypass:
     def test_flac_inside_window_still_scores(self):
         score, est = _r1(container_bitrate=900.0)
         assert score == 50 and est == 320
+
+    def test_flac_inside_window_needs_no_depth_reading(self):
+        """The informative-container path is untouched: NaN residual keeps the
+        legacy behaviour for in-window FLAC below the 320 branch."""
+        (score, _), est = apply_rule_1_mp3_bitrate(
+            cutoff_freq=19750.0,
+            container_bitrate=900.0,
+            cutoff_std=0.0,
+            sample_rate=44100,
+            energy_ratio=1e-5,
+            residual_floor_db=float("nan"),
+        )
+        assert score == 50 and est == 320
+
+
+class TestGateD_WavDispatch:
+    def test_rule1_runs_on_uncompressed_input(self, tmp_path):
+        """The dispatcher must not remove Rule 1 for WAV — gate C handles the
+        uninformative container inside the rule. Before v1.12 every WAV was
+        structurally beyond the rule's reach; found by G4's first firing."""
+        import numpy as np
+        import soundfile as sf
+
+        from flac_detective.analysis.analyzer import FLACAnalyzer
+
+        rng = np.random.default_rng(20260821)
+        wav = tmp_path / "probe.wav"
+        sf.write(str(wav), 0.1 * rng.standard_normal((44100 * 12, 2)), 44100, subtype="PCM_16")
+        result = FLACAnalyzer(deep=False).analyze_file(str(wav))
+        assert (
+            "Rule1MP3Bitrate" in result["score_breakdown"]
+        ), "Rule 1 absent from the WAV path breakdown — gate D regressed"
 
 
 class TestUntouchedGuards:

@@ -243,15 +243,31 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
                 )
                 return (score, reasons), None
 
-        # GATE C, repaired in v1.12: the ranges above are calibrated for
-        # MP3-decoded-to-FLAC. An UNCOMPRESSED container (WAV/AIFF) reads at PCM
-        # level (~1411 kbps at 44.1/16/2) whatever the audio's history, so the
-        # container bitrate carries no compression information there and the
-        # check is BYPASSED — never failed. Before this repair every WAV was
-        # structurally beyond Rule 1's reach by format alone (measured on the
-        # wild 53, all WAV, engine signaling 8.8 %). FLAC windows unchanged.
+        # GATE C-PRIME, repaired in v1.12 (one registered revision of gate C).
+        # The ranges above are calibrated for MP3-decoded-to-FLAC. An
+        # UNCOMPRESSED container (WAV/AIFF) reads at PCM level (~1411 kbps at
+        # 44.1/16/2) whatever the audio's history, so the container bitrate
+        # carries no compression information there — before this repair every
+        # WAV was structurally beyond Rule 1's reach by format alone (measured
+        # on the wild 53, all WAV, engine signaling 8.8 %).
+        #
+        # But for the sub-320 cells the container window was the ONLY guard, and
+        # bypassing it unguarded newly flagged 4 of 120 genuine files converted
+        # to WAV (G1-ter, first form, FAILED at its registered bound). So the
+        # bypass demands the proof the container can no longer give: **an
+        # uninformative container is accepted only when the wall proves its
+        # depth** (residual floor at or below NEARNYQ_FLOOR_DB) — gate B's own
+        # logic, extended. Cost, measured and reported rather than hidden: walls
+        # in cells below the residual window's 0.90 x Nyquist floor have no
+        # depth reading and stay out of reach on uncompressed input (wild owner
+        # tier: 15/34 instead of 26/34; G2's registered >= 20 was MISSED and is
+        # reported as such). Widening the residual computation window is v1.13
+        # material, registered separately. FLAC windows unchanged.
         pcm_level = 0.90 * (sample_rate * 32.0 / 1000.0)
-        container_uninformative = container_bitrate >= pcm_level
+        wall_proved_depth = (not math.isnan(residual_floor_db)) and (
+            residual_floor_db <= NEARNYQ_FLOOR_DB
+        )
+        container_uninformative = container_bitrate >= pcm_level and wall_proved_depth
 
         # Le bitrate conteneur est-il dans la plage attendue ?
         if container_uninformative or (min_br <= container_bitrate <= max_br):

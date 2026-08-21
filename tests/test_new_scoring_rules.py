@@ -174,13 +174,22 @@ class TestMandatoryValidation:
         # If container fails, it returns (score=0, reasons=[]), None.
         # So estimated_bitrate will be None.
 
-        # v1.12 GATE C: this assertion used to pin the DEFECT it complained about
-        # ("Maybe the ranges in Rule 1 are too strict for 24-bit containers?" —
-        # yes, they were: the windows are calibrated for 16-bit FLAC, and a
+        # v1.12 GATE C-PRIME: the windows are calibrated for 16-bit FLAC, and a
         # 24-bit container at 1623 kbps sits above PCM-16 level, where the
-        # container bitrate carries no compression information). The repaired
-        # gate bypasses the range check there, and the fake this test is NAMED
-        # after is now caught — which is what the test's own title demanded.
+        # container bitrate carries no compression information. The bypass then
+        # demands the proof the container can no longer give: WITHOUT a depth
+        # reading (residual NaN, as in this call) the rule abstains —
+        assert score_r1 == 0
+        assert estimated_bitrate is None
+        # — and WITH a deep residual floor, the fake this test is NAMED after
+        # is caught, which is what the title always demanded:
+        (score_r1, _), estimated_bitrate = apply_rule_1_mp3_bitrate(
+            cutoff_freq,
+            container_bitrate,
+            0.0,
+            sample_rate,
+            residual_floor_db=-60.0,
+        )
         assert score_r1 == 50
         assert estimated_bitrate == 224
 

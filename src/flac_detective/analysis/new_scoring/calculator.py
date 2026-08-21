@@ -224,11 +224,22 @@ def _apply_scoring_rules(  # noqa: C901
                 Rule6HighQualityProtection(),
             ]
         elif is_uncompressed:
+            # GATE D, repaired in v1.12. Rule 1 used to be removed here entirely
+            # ("no lossless-compression signal") — which put every WAV
+            # structurally beyond the rule's reach and was one of the four
+            # mechanisms behind the engine reading 8.8 % on the owner-attested
+            # wild 53 (all WAV). Gate C inside the rule now treats a PCM-level
+            # container bitrate as uninformative rather than as a failure, and
+            # the rule's other guards (variance, residual floor, Nyquist) are
+            # container-agnostic, so the rule runs. Found by G4's first
+            # end-to-end firing: the offline G-series called the rule function
+            # and could not see the dispatch. (Rule 3 no longer exists.)
             logger.info(
-                "UNCOMPRESSED input (e.g. WAV): disabling Rules 1 & 3 "
-                "(no lossless-compression signal); spectral rules still apply."
+                "UNCOMPRESSED input (e.g. WAV): Rule 1 runs with the container "
+                "bitrate treated as uninformative (v1.12 gates C+D)."
             )
             fast_rules = [
+                Rule1MP3Bitrate(),
                 Rule2Cutoff(),
                 Rule424BitSuspect(),
                 Rule5HighVariance(),
