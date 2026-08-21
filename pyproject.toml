@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flac-detective"
-version = "1.11.4"
+version = "1.12.0"
 description = "Advanced FLAC authenticity analyzer - Detects MP3-to-FLAC transcodes with high precision"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -204,14 +204,14 @@ disable = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "1.11.4"
+version = "1.12.0"
 tag_format = "v$version"
 update_changelog_on_bump = false
 version_files = [
     "pyproject.toml:version",
     "src/flac_detective/__version__.py:__version__"
 ]
-bump_message = "bump: version $current_version → $new_version"
+bump_message = "bump: version $current_version â†’ $new_version"
 major_version_zero = false
 
 # Flake8 configuration

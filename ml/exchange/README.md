@@ -292,3 +292,24 @@ b86d6d968e54f86c22bb5bf099db4c58c64a0ed880f8a490c1a6efeba85abcc4  Various - Scot
 
 His purchase condition travels with all of it and is adopted as written: if any
 of this music turns out essential to our binary, buy the disc.
+
+## The Provir encoder collection - received 2026-08-21 (evening)
+
+His full redistributable emitter set, the two promised records, and the sealed
+manifests: 175 entries, 56 MB (zip receipt sha c3c9ad384dd5d90d...). Verified
+against his own SHA256SUMS.txt: 170/174 byte-exact plus 4 extensionless README
+files renamed .txt by Google Drive in transit - contents byte-identical to the
+manifest, transport artifact, not alteration. NOTHING in the collection has
+been executed here yet: hashed, inventoried, archived first.
+
+The provenance loop of his arm-1 closed on receipt: LAME/lame3.92/lame.exe is
+195,072 bytes, sha256 cb2cdfde7b170d90... - byte-identical to the exhibit key
+he pinned on 2026-08-21 and we archived the same day.
+
+Archived here (provir- prefix): the encoder probe map, the 1995-2026 coverage
+register with its ranked gap list, the LAME era build-identity register, the
+full encoder register, his README (restricted-encoders policy: licence-gated
+binaries are named with the sha256 of identical bytes and where to fetch them;
+one scene release excluded on principle), and SHA256SUMS.txt. The binaries
+live off-repo at C:\Users\loutr\provir_encoders\ - they are his builds and his
+manifest vouches for them; ours would add nothing.

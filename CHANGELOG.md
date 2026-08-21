@@ -1,4 +1,39 @@
-## Unreleased
+## v1.12.0 (2026-08-21) — Rule 1's four admission gates repaired; the engine reaches the wild
+
+The first engine change since v1.11.0, and the first release whose every number
+was pre-registered before its measurement. Four admission gates in Rule 1 — each
+calibrated on direct-lab material — silenced the spectral family on exactly the
+population wild compilations sell. Repaired: **gate A** (variance threshold
+100 → 130 Hz — the old bound was smaller than the edge-finder's 250 Hz
+quantization step, so a rock-stable wall near a cell boundary exited); **gate B**
+(the 20,000-Hz-exact "FFT rounding" exception now decides on the wall's DEPTH —
+residual floor ≤ −55 dB — instead of raw HF energy, which wild press noise
+always trips); **gate C′** (an uncompressed container's bitrate carries no
+compression information and is bypassed — but only when the wall proves its
+depth, because for sub-320 cells the container window was the only guard);
+**gate D** (Rule 1 runs on WAV input at all — the dispatcher used to remove it
+for uncompressed containers, which put every WAV structurally beyond the rule's
+reach; found by the campaign's own end-to-end criterion on its first firing).
+
+Priced on 1,031 files plus three safety populations, wild53 held out, every
+criterion registered before measurement (`ml/r1_gates_repricing.py`):
+**all safety criteria held** — 0 genuine newly scored (after the label
+correction below), 0 of 797 library files (the 24-bit control), 0 genuine-as-WAV
+(the format control), 0 convictions end-to-end on the wild 53. **Efficacy:
+owner-attested wild recall moves 8.8 % → 50.0 % signaled** (17/34, all WARNING,
+none convicted); the lab mp3_320 arm gains +15 files (gate B repairs the bench
+too). One efficacy prediction missed and reported: the offline +50 count reached
+15/34 against a registered ≥ 20 — C′'s depth requirement has no reading below
+0.90 × Nyquist; widening the residual computation window is v1.13, registered
+separately.
+
+**The campaign's safety gate also found 30 mislabeled files in our own genuine
+corpus**: 11 Calexico etree items (30 of 180 wild-genuine files) carry
+taper-documented Sony MiniDisc chains (`ECM-DS70P > MZ-N10`) — ATRAC, lossy —
+adjudicated fake on the documentary basis and quarantined; they sat inside every
+"258 genuine" calibration this project ever published. The wild ledger holds its
+first 30 real rows, and the engine that found them still never became their
+label.
 
 ### The edge grid: every slice-method cutoff is a multiple of 250 Hz
 
