@@ -2,13 +2,14 @@
  "0b097b94dd57dc175f6e86ad245b6d5bfbc5b770ee560134e869ec00c3a2c2a0": {
   "added": "2026-08-21T18:48:54Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:04Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-05 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 19289061,
   "filename": "calexico2003-10-05__Calexico_2003-10-05t01.flac",
@@ -27,13 +28,14 @@
  "215c7ea38ac16b5b3bbdb6642fced5c27fe34971ba202bab36de0973f2a8d2f8": {
   "added": "2026-08-21T18:54:53Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:05Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-09 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 32820393,
   "filename": "calexico2006-07-09__Calexico_2006-07-09t02.flac",
@@ -52,13 +54,14 @@
  "2960dc77a2c9917a76e943e8caf6cae9654cdd7738a04f7f15ea8093d5e794ba": {
   "added": "2026-08-21T18:55:12Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:06Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-08-12 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 31348387,
   "filename": "calexico2006-08-12__Calexico_2006-08-12t01.flac",
@@ -79,13 +82,14 @@
  "2e876ebd90078d92c5fef5d0509f5e76b8d5fc3751e5b2b35b1df2975f937f75": {
   "added": "2026-08-21T18:51:32Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:07Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2005-12-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 15049324,
   "filename": "calexico2005-12-08__Calexico_2005-12-08t01.flac",
@@ -106,13 +110,14 @@
  "327b507c5b04e545f6d093ee2e27e84620bd1049898a621f2f09b5e5a2e808b5": {
   "added": "2026-08-21T18:57:01Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:07Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2007-07-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 22998231,
   "filename": "calexico2007-07-08__Calexico_2006-07-08t04.flac",
@@ -133,13 +138,14 @@
  "413650f17ee2f55e9514e19c13a14c8384a42ee68d778c3dba1c7355bde745bb": {
   "added": "2026-08-21T18:50:29Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:07Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-07 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 26450458,
   "filename": "calexico2003-10-07__Calexico_2003-10-07t02.flac",
@@ -158,13 +164,14 @@
  "421c1f45c1ac13d49d4b2dfd12b664dcf5b8ac200a0a91e52ba5918899defccf": {
   "added": "2026-08-21T18:49:55Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:08Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-06 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 21632446,
   "filename": "calexico2003-10-06__Calexico_2003-10-06t02.flac",
@@ -183,13 +190,14 @@
  "4357b0b6ec30f6355318642184e4b9c16d29cbf79e3f4d6d39c457423a63901e": {
   "added": "2026-08-21T18:52:59Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:08Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-03-23.ECM : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 12189474,
   "filename": "calexico2006-03-23.ECM__Calexico_2006-03-23t04.flac",
@@ -208,13 +216,14 @@
  "45f0a69601348d8c3ffbedb87afc7b5d880beb058bc2b0bc88ddbf954cecdfd2": {
   "added": "2026-08-21T18:52:09Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:08Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-03-23.ECM : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 19864024,
   "filename": "calexico2006-03-23.ECM__Calexico_2006-03-23t01.flac",
@@ -235,13 +244,14 @@
  "53003e686ba135bb214de3a9d4e3ea0932612241fee633b779e262fe316d51cc": {
   "added": "2026-08-21T18:52:45Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:09Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-03-23.ECM : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 19499506,
   "filename": "calexico2006-03-23.ECM__Calexico_2006-03-23t03.flac",
@@ -260,13 +270,14 @@
  "5c588474a92f5cfb90f5b8ac4bd59faec113490985a5118e4a00066376e4bde8": {
   "added": "2026-08-21T18:55:52Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:09Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-08-12 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 15074121,
   "filename": "calexico2006-08-12__Calexico_2006-08-12t03.flac",
@@ -285,13 +296,14 @@
  "625e1f86e61cb1d311e0a4fa666ccb13b65bc4b0fef2f60e9f7919684821a059": {
   "added": "2026-08-21T18:55:35Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:10Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-08-12 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 30957462,
   "filename": "calexico2006-08-12__Calexico_2006-08-12t02.flac",
@@ -312,13 +324,14 @@
  "64e39bcae38f7f7741971caa4fcece70c58be6dc2d4d6a1cd5fd49c45271f504": {
   "added": "2026-08-21T18:56:22Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:10Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2007-07-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 15364382,
   "filename": "calexico2007-07-08__Calexico_2006-07-08t01.flac",
@@ -337,13 +350,14 @@
  "6e134f85846f882b75ca64e984f9bd198a81233bd91af4720e9105a7d2f36654": {
   "added": "2026-08-21T18:56:41Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:11Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2007-07-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 12532200,
   "filename": "calexico2007-07-08__Calexico_2006-07-08t02.flac",
@@ -362,13 +376,14 @@
  "815cee1ffa3be610210bfa994eccad29ae949ca1b922a2bb4f397b9add4a83ee": {
   "added": "2026-08-21T18:50:08Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:11Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-07 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 29397540,
   "filename": "calexico2003-10-07__Calexico_2003-10-07t01.flac",
@@ -387,13 +402,14 @@
  "8c30135f4433172538ebfca09aa05c6149299f89738929e9e15bcc13536c1fc5": {
   "added": "2026-08-21T18:49:38Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:11Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-06 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 18608174,
   "filename": "calexico2003-10-06__Calexico_2003-10-06t01.flac",
@@ -412,13 +428,14 @@
  "8e97da7394090d0fb5fdc1a4aae11bcff0dbb416dcab84718777247c9c691d37": {
   "added": "2026-08-21T18:48:41Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:12Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-03-20 : taper-documented source 'ECM-DS70P > MZ-R55' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 5728012,
   "filename": "calexico2003-03-20__Calexico_2003-03-20t02.flac",
@@ -437,13 +454,14 @@
  "90c23aa5aeb20f0aae6f78d6cef410da388d0cbcfacc10448d341481c4852d16": {
   "added": "2026-08-21T18:48:15Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:12Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-03-20 : taper-documented source 'ECM-DS70P > MZ-R55' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 17059450,
   "filename": "calexico2003-03-20__Calexico_2003-03-20t01.flac",
@@ -462,13 +480,14 @@
  "9bd07be959b32fc0b3c3b56e4faa2de52b9f068a723311ef437775f2c392acde": {
   "added": "2026-08-21T18:54:30Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:12Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-09 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 33180295,
   "filename": "calexico2006-07-09__Calexico_2006-07-09t01.flac",
@@ -489,13 +508,14 @@
  "9dd19cec432346449a50049b4a19bd0e3f9797095ea0b686e599c369dcb44669": {
   "added": "2026-08-21T18:53:55Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:13Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-07 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 28132036,
   "filename": "calexico2006-07-07__Calexico_2006-07-07t03.flac",
@@ -516,13 +536,14 @@
  "a0f994a7371b62a5bad7075c8ba27efcf87c9d968f2426a8ba102da278b91c06": {
   "added": "2026-08-21T18:53:16Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:13Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-07 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 31763937,
   "filename": "calexico2006-07-07__Calexico_2006-07-07t01.flac",
@@ -543,13 +564,14 @@
  "a1a645ba1dc8a4a7495f242827dc6fd83af111efe8b61822a421b6d3c2265237": {
   "added": "2026-08-21T18:51:53Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:14Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2005-12-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 17812825,
   "filename": "calexico2005-12-08__Calexico_2005-12-08t02.flac",
@@ -570,13 +592,14 @@
  "abf3516b5f9ea1c9a46b9fef85b7292571cf4c2002f79d8dc9a18ee5802a3b73": {
   "added": "2026-08-21T18:49:17Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:14Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2003-10-05 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 28109508,
   "filename": "calexico2003-10-05__Calexico_2003-10-05t02.flac",
@@ -595,13 +618,14 @@
  "b3dc1d4f5950b4db406ef0d860756e1d4ee86dd7648baeca907e401562bd410f": {
   "added": "2026-08-21T18:50:46Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:14Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2005-07-17 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 36602458,
   "filename": "calexico2005-07-17__Calexico_2005-07-17t01.flac",
@@ -620,13 +644,14 @@
  "b4157cefdc5c4a9d7edf69c099abaabd4b19a8c119bc0a1f23f3ce192fc7d9e9": {
   "added": "2026-08-21T18:53:41Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:15Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-07 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 17588691,
   "filename": "calexico2006-07-07__Calexico_2006-07-07t02.flac",
@@ -647,13 +672,14 @@
  "be726e09cc5904447e25c72169d887b043e03add1e7941f7a872461558fb279d": {
   "added": "2026-08-21T18:51:12Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:15Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2005-07-17 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 2 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 28845045,
   "filename": "calexico2005-07-17__Calexico_2005-07-17t02.flac",
@@ -672,13 +698,14 @@
  "d5582292ea20dfec6f045484156ab1441d62034f2184f2b90f70ca7ae8187b38": {
   "added": "2026-08-21T18:52:32Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:15Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-03-23.ECM : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 13694866,
   "filename": "calexico2006-03-23.ECM__Calexico_2006-03-23t02.flac",
@@ -697,13 +724,14 @@
  "e0c257bc4dcfc98cc60be3531f7d771d79156b5d07bc5889cdd55638ac49448a": {
   "added": "2026-08-21T18:56:49Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:16Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2007-07-08 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 27942472,
   "filename": "calexico2007-07-08__Calexico_2006-07-08t03.flac",
@@ -722,13 +750,14 @@
  "e2b5d8ca253b4797df6b55b076fde7b9a66c654377d909343541d11f56a6b684": {
   "added": "2026-08-21T18:54:10Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:16Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-07-07 : taper-documented source 'CSB (w/ bass roll off) > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 28598138,
   "filename": "calexico2006-07-07__Calexico_2006-07-07t04.flac",
@@ -747,13 +776,14 @@
  "fe13da2e2aa74c7f3fc5f82bacf74bfcb826da37c9cd733c3bf4fb548ea915a0": {
   "added": "2026-08-21T18:56:04Z",
   "adjudication": {
-   "at": null,
-   "basis": null,
-   "by": null,
-   "label": "undecided",
-   "note": null,
-   "referee": false,
-   "selection": null
+   "at": "2026-08-21T19:40:16Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/calexico2006-08-12 : taper-documented source 'ECM-DS70P > MZ-N10' - MZ-* is a Sony MiniDisc recorder, ATRAC (lossy). Ruling extends from the item's source note to its 4 track(s) in this corpus; the recording chain is per-item, documented once by its taper.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
   },
   "bytes": 22060021,
   "filename": "calexico2006-08-12__Calexico_2006-08-12t04.flac",

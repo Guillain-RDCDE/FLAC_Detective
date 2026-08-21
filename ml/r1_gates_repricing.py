@@ -280,8 +280,33 @@ def new_r1_plus50(row: dict) -> bool:  # noqa: C901
     return True
 
 
+def adjudicated_fakes() -> set:
+    """Filenames adjudicated 'fake' in the wild ledger (human labels only)."""
+    ledger = Path("ml/wild_fake_ledger.json")
+    if not ledger.exists():
+        return set()
+    import json
+
+    records = json.loads(ledger.read_text(encoding="utf-8"))
+    return {r["filename"] for r in records.values()
+            if r["adjudication"]["label"] == "fake"}
+
+
 def evaluate(out_csv: Path) -> None:
     rows = list(csv.DictReader(open(out_csv, newline="", encoding="utf-8")))
+    # Re-label rows whose file a HUMAN has since adjudicated fake (2026-08-21:
+    # 30 MiniDisc/ATRAC files, documentary basis). They leave the genuine pool
+    # and are scored as their own population — the G-series stays scored
+    # against the ledger's labels, never against the engine's opinion.
+    relabeled = adjudicated_fakes()
+    moved = 0
+    for r in rows:
+        if r["population"].startswith("genuine") and r["track"] in relabeled:
+            r["population"] = "relabeled_md"
+            moved += 1
+    if moved:
+        POPULATIONS.setdefault("relabeled_md", [])
+        print(f"{moved} rows re-labeled genuine -> relabeled_md (ledger adjudications)")
     print(f"{len(rows)} lignes d'entrees\n")
     print(f"{'population':16}{'n':>5}{'old +50':>9}{'new +50':>9}{'delta':>7}")
     genuine_newly: List[str] = []

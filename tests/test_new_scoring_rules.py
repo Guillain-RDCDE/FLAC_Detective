@@ -174,20 +174,15 @@ class TestMandatoryValidation:
         # If container fails, it returns (score=0, reasons=[]), None.
         # So estimated_bitrate will be None.
 
-        # If we want to test Rule 4, we need an estimated bitrate?
-        # Rule 4 takes mp3_bitrate_detected.
-        # If Rule 1 returns None, Rule 4 receives None.
-        # Rule 4: `has_low_mp3_source = mp3_bitrate_detected is not None and ...`
-        # So if Rule 1 fails, Rule 4 fails too?
-        # That seems to be the logic.
-        # But the test title says "MP3 320 kbps in 24-bit".
-        # If it's a fake, it might have high bitrate.
-        # Maybe the ranges in Rule 1 are too strict for 24-bit containers?
-        # For now, I will assert what the code DOES, not what it "should" do if the code is different.
-        # If the code returns 0, I assert 0.
-
-        assert score_r1 == 0
-        assert estimated_bitrate is None
+        # v1.12 GATE C: this assertion used to pin the DEFECT it complained about
+        # ("Maybe the ranges in Rule 1 are too strict for 24-bit containers?" —
+        # yes, they were: the windows are calibrated for 16-bit FLAC, and a
+        # 24-bit container at 1623 kbps sits above PCM-16 level, where the
+        # container bitrate carries no compression information). The repaired
+        # gate bypasses the range check there, and the fake this test is NAMED
+        # after is now caught — which is what the test's own title demanded.
+        assert score_r1 == 50
+        assert estimated_bitrate == 224
 
         # Rule 2
         # Threshold 48k -> 22k.
@@ -195,23 +190,16 @@ class TestMandatoryValidation:
         score_r2, _ = apply_rule_2_cutoff(cutoff_freq, sample_rate)
         assert score_r2 == 18
 
-        # Rule 3
-        # Needs mp3_bitrate_detected. If None, score is 0.
-
-        # Rule 4
-        # Needs mp3_bitrate_detected. If None, score is 0.
+        # Rule 4 — with Rule 1 now delivering the estimate (v1.12 gate C), the
+        # 24-bit + low-source-bitrate suspicion fires as the test always wanted.
         score_r4, _ = apply_rule_4_24bit_suspect(bit_depth, estimated_bitrate, cutoff_freq)
-        assert score_r4 == 0
+        assert score_r4 == 30
 
-        # Total score = 18.
-        # Verdict: AUTHENTIC ( < 31).
-        # This contradicts the test name "DOIT être FAKE_CERTAIN".
-        # This implies the current rules might miss this case if container bitrate is high.
-        # However, I am here to fix the test to run, not necessarily redesign the rules unless asked.
-        # But wait, the user asked to "Widen the range".
-        # Maybe I should adjust the test expectation to match current logic, or adjust data.
-        # If I change container_bitrate to be within range for 224kbps (550-800), say 700.
-        # Then Rule 1 triggers.
+        # Historical note, kept because the reasoning mattered: before v1.12
+        # this path scored 18 points total and the test's own comments said
+        # "This contradicts the test name 'DOIT être FAKE_CERTAIN'". The
+        # second half below (container 700) was added then to simulate the
+        # catch; it now simply agrees with the first half.
 
         # Let's modify the test data to simulate a "perfect" fake that fits the rules.
         container_bitrate_fake = 700

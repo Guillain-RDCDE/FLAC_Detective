@@ -115,25 +115,30 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         )
         return (score, reasons), None
 
-    # EXCEPTION CRITIQUE : Cutoff exactement 20 kHz (ENHANCED)
-    # ==========================================================
-    # Problème : FFT peut arrondir 20-21 kHz à 20000 Hz pile
-    # Solutions :
-    #   1. Test énergie résiduelle > 20 kHz (energy_ratio)
-    #   2. Test variance nulle (cutoff_std)
+    # EXCEPTION : cutoff exactly 20 kHz — GATE B, repaired in v1.12.
+    # ================================================================
+    # The old exception discarded a 20,000 Hz cutoff as possible FFT rounding
+    # whenever energy_ratio > 1e-6. On wild re-mastered material the press/console
+    # noise floor guarantees energy_ratio > 1e-6 on EVERY file, so every wall
+    # snapped to the 20,000 Hz grid cell was thrown away — measured on the
+    # owner-attested wild 34 (ml/wild53_cliff.py, mechanisms a-c). The DEPTH
+    # decides now: a wall whose residual floor sits at or below NEARNYQ_FLOOR_DB
+    # is a wall, whatever the broadband HF energy reads. 20,000/22,050 = 0.907
+    # sits inside the residual window, so the reading exists at 44.1 kHz; at
+    # 48 kHz the residual is NaN and the legacy skip is preserved.
     if cutoff_freq == 20000.0:
-        # Test 1 : Énergie résiduelle au-dessus de 20 kHz (HIGH_FREQ_THRESHOLD)
-        # Seuil minimal pour détecter présence d'énergie HF
-        if energy_ratio > 0.000001:
-            logger.info(f"RULE 1: Cutoff 20 kHz but HF energy = {energy_ratio:.6f}")
-            logger.info("RULE 1: Likely FFT rounding, not MP3 320k - SKIP")
-            return (0, []), None
-
-        # Test 2 : Variance nulle + cutoff pile = ambigu
-        if cutoff_std == 0.0:
-            logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
-            logger.info("RULE 1: Ambiguous (could be FFT rounding) - SKIP for safety")
-            return (0, []), None
+        wall_is_real = (not math.isnan(residual_floor_db)) and (
+            residual_floor_db <= NEARNYQ_FLOOR_DB
+        )
+        if not wall_is_real:
+            if energy_ratio > 0.000001:
+                logger.info(f"RULE 1: Cutoff 20 kHz but HF energy = {energy_ratio:.6f}")
+                logger.info("RULE 1: Likely FFT rounding, not MP3 320k - SKIP")
+                return (0, []), None
+            if cutoff_std == 0.0:
+                logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
+                logger.info("RULE 1: Ambiguous (could be FFT rounding) - SKIP for safety")
+                return (0, []), None
 
     # Safety check 2: a cutoff this high is treated as an authentic high-quality FLAC.
     #
@@ -188,10 +193,16 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         )
         return (score, reasons), None
 
-    # Safety check 3: Variance check
-    # Authentic FLACs often have variable cutoffs (high variance).
-    # CBR MP3s have very stable cutoffs (low variance).
-    CUTOFF_VARIANCE_THRESHOLD = 100.0  # Hz
+    # Safety check 3: Variance check — GATE A, repaired in v1.12.
+    # Authentic FLACs often have variable cutoffs (high variance); CBR MP3s have
+    # very stable cutoffs. But detect_cutoff quantizes to 250 Hz slice cells, so
+    # a perfectly stable wall sitting near a cell boundary oscillates one cell
+    # and reads std up to 125 Hz (50/50 between adjacent cells) — the old 100 Hz
+    # threshold was SMALLER than the instrument's quantization step and exited
+    # on rock-stable walls (measured: a wild wall at std 117.9, wall unmoved).
+    # 130 is the smallest round figure above the one-cell wander bound: grid
+    # arithmetic, not a corpus fit.
+    CUTOFF_VARIANCE_THRESHOLD = 130.0  # Hz
 
     if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
         logger.debug(
@@ -232,8 +243,18 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
                 )
                 return (score, reasons), None
 
+        # GATE C, repaired in v1.12: the ranges above are calibrated for
+        # MP3-decoded-to-FLAC. An UNCOMPRESSED container (WAV/AIFF) reads at PCM
+        # level (~1411 kbps at 44.1/16/2) whatever the audio's history, so the
+        # container bitrate carries no compression information there and the
+        # check is BYPASSED — never failed. Before this repair every WAV was
+        # structurally beyond Rule 1's reach by format alone (measured on the
+        # wild 53, all WAV, engine signaling 8.8 %). FLAC windows unchanged.
+        pcm_level = 0.90 * (sample_rate * 32.0 / 1000.0)
+        container_uninformative = container_bitrate >= pcm_level
+
         # Le bitrate conteneur est-il dans la plage attendue ?
-        if min_br <= container_bitrate <= max_br:
+        if container_uninformative or (min_br <= container_bitrate <= max_br):
             # Near-Nyquist 320 kbps wall-hardness gate. The cutoff alone cannot tell a
             # 320k brickwall from an authentic band-limited rolloff here; the residual
             # floor can. NaN (unknown / not in the near-Nyquist zone) -> legacy +50.
