@@ -172,6 +172,32 @@ container-invariant) and refuses a second item carrying the same audio —
 `tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
 track under two etree item names) and pins that it collapses.
 
+### Layer 3 measured, and it is us: the wild cliff is cleaner than the lab's
+
+The L-series (`ml/wild53_cliff.py`, registered before the run) asked what fills
+the cliff in the wild bytes — **all three predictions failed, with the sign
+reversed**: the wild walls are *deeper* than our own lab transcodes' (−63.9 vs
+−56.7 dB median), in the same grid cells, with zero files in Rule 1's
+near-Nyquist mute zone — and our v2 noise floor had *filled* the cliff by 20 dB,
+manufacturing an upscale-like artifact the CNN over-reads (the v2 residual is
+carried by cnn on 22 of 22 signaled files). The cliff is not masked; the
+follow-up dissection found what actually silences the spectral family on the
+wild 34: **three Rule 1 admission gates, each calibrated on the direct-lab
+population** — (a) the variance gate's 100 Hz threshold is smaller than
+`detect_cutoff`'s 250 Hz quantization step, so a rock-stable wall near a cell
+boundary reads std ≈ 118 and exits; (b) the 20,000-Hz-exact "FFT rounding"
+exception discards any wall snapped to that cell whenever energy_ratio > 1e-6,
+which the wild chain's press noise guarantees on every file; (c) the
+container-bitrate range (700–1050 kbps) was calibrated for FLAC, so **every WAV
+(1411 kbps) is structurally beyond Rule 1's reach by format**, and dense
+material FLAC-compresses out of range too. Plus the CNN reading the wild at
+3/53 — out-of-distribution, as Provir's own CNN audit warned. The true anatomy
+of the 8.8 %: the mastering chain kills the fixed point and the side/temporal
+tells (layers 1–2, demonstrated); the spectral silence is **our own gates**.
+Nothing is retouched: each gate protects real authentic populations, and moving
+any of them is the v1.12 engine campaign — priced against the full 800-file
+audit corpus with the wild53 as the held-out bench.
+
 ### The re-mastered arm: the lab-to-wild gap decomposed into named layers
 
 The bench gained the arm the W-series proved missing (`ml/remaster_arm.py`,
