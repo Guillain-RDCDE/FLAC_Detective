@@ -175,8 +175,53 @@ paid to give C-prime its observable. This is G2's named mechanism, repaired.
 
 Same stop-rule as G1 on every H1 variant. Results appended below after runs.
 
-H-SERIES RESULTS
------------------
+H-SERIES RESULTS — measured 2026-08-21/22 (inputs ml/r1_gates_inputs_v113.csv,
+ml/r1_gates_library_v113.csv, cross-version diff ml/h_series_compare.py,
+end-to-end ml/wild53_scores_v113.csv)
+--------------------------------------------------------------------------------
+
+    SAFETY   H1      HELD    0 genuine newly +50 vs shipped v1.12 — and the
+                             only two pre-existing genuine +50 (lf2025, 48 kHz,
+                             residuals -22.9/-38.1) are REMOVED: two false
+                             positives gone, not new ones arrived.
+             H1-bis  HELD    0 of 797 newly +50 (24-bit control).
+             H1-ter  HELD    0 genuine-as-WAV newly +50 (container-override
+                             equivalence: same audio, same measurements, only
+                             the container differs).
+    EFFICACY H2      HELD    24/34 offline (bar >= 20; v1.12 read 15). All 9
+                             gains are WAV at PCM-level container, cutoffs
+                             19,250-19,750, residuals -63..-71 dB: the starved
+                             cells, fed exactly as registered.
+             H4      HELD    owner tier 24/34 = 70.6 % signaled end to end
+                             (bar >= 60 %; v1.12 shipped 50.0 %). AND the
+                             engine's first two TRUE wild convictions:
+                             "01 Won't Forget These Days" (spectral+stereo,
+                             64) and "06 Pretty Green Eyes" (cnn+spectral+
+                             stereo, 82) — both owner-attested fakes, both
+                             among the 9 C-prime gains, the M-series
+                             prediction (repair the gates and stereo
+                             corroborates) landing in the verdict column.
+                             Zero convictions on the eye tier and CD3.
+    MISS     H3      FAILED  lab arms 160 -> 153. Mechanism, named from the
+                             movers: the est-320 exoneration (residual above
+                             NEARNYQ_FLOOR_DB drops the signature) now reaches
+                             cells 19,500-19,750 where AAC-256/320, MF-256,
+                             V0 and Vorbis-q8 walls carry floors of -33..-51
+                             dB — above a -55 bar calibrated entirely on
+                             [0.90, 0.94) x Nyquist. Seven real transcodes
+                             exonerated; the same mechanism removes a
+                             pre-existing +50 from 7 library files. The bar's
+                             calibration domain never saw the low cells —
+                             re-calibrating NEARNYQ_FLOOR_DB per cell (or
+                             bounding the exoneration to its calibration
+                             domain) is the v1.14 candidate, registered when
+                             it runs, not patched tonight.
+
+SHIP DECISION: v1.13.0 ships. Every safety criterion held (three genuine
+populations, zero cost — strictly negative: two false positives removed); the
+wild owner tier moves 50.0 % -> 70.6 % with the first two true convictions;
+the one missed efficacy prediction ships as a miss with its mechanism named,
+exactly as v1.12 shipped G2.
 (not yet run)
 
 Usage::
