@@ -58,7 +58,48 @@ genuine file whose R1 outcome changed, score G1-G4.
 
 Results are appended below after each stage; the registrations stay.
 --------------------------------------------------------------------------------
-(stage 1 not yet run)
+STAGE 1 MEASURED 2026-08-21, n = 1,031 — G2 and G3 HELD, G1 FAILED AS WRITTEN,
+and the failure found something bigger than the campaign:
+
+    population        n   old +50   new +50
+    genuine_audit    80        3         3
+    genuine_wild    178        2         6    <- G1: 4 newly +50, bound was 2
+    arms (720)      720      142       160    <- G3 HELD (+15 on mp3_320 alone:
+                                                 gate B repairs the LAB too)
+    wild_owner       34        0        26    <- G2 HELD
+    wild_eye         19        0        19    (reported separately, circular tier)
+
+    G1 stage-1 FAILED: 4 genuine_wild files newly receive +50 — and all four
+    are Calexico etree recordings. THE CAMPAIGN STOPS HERE AS REGISTERED. No
+    threshold is re-tuned. src is untouched.
+
+WHAT THE FAILURE FOUND. Before calling the four false positives, their archive
+items' own metadata was consulted — provenance documented by the tapers
+themselves, years before any of this: `ECM-DS70P > MZ-N10` and
+`CSB > MZ-N10` / `MZ-R55`. **MZ-N10 and MZ-R55 are Sony MiniDisc recorders:
+the chain is ATRAC, a lossy perceptual codec.** A full lineage audit of the
+wild_authentic corpus followed (all 74 items; scratch scripts, results
+recorded here): **11 Calexico items — 30 of the corpus's 180 files (16.7 %) —
+carry a taper-documented MiniDisc chain.** One further item
+(glenhansard2016-04-02, "Muvid IR815 digital Ausgang") is ambiguous and
+listed for examination without a verdict.
+
+So G1's four are not false positives of the repaired gates: they are the
+repaired gates DETECTING documented ATRAC-sourced material inside our own
+"genuine" labels — the corpus defect class Provir's whole exchange is about,
+found by the very campaign the labels were scoring. Every calibration that
+used "258 genuine" (RUN_BAR, SEAM_BAR, the v1.9 corroboration threshold, the
+eligibility figures) included these files.
+
+STATUS: CAMPAIGN SUSPENDED PENDING HUMAN ADJUDICATION — not failed, not
+resumed. The 30 files are registered in ml/wild_fake_ledger.py with their
+documented sources (label undecided: the ledger's design point is that the
+engine's own detection never becomes the label, and the adjudication belongs
+to a human with the archive.org pages open). If the human rules them lossy on
+the documentary basis (uploader_admission — the taper states the chain), the
+genuine labels correct, G1 re-scores against corrected labels, and stage 2
+(branch, src patch, wild53 full-engine, G4) proceeds. If the human rules them
+genuine despite the documentation, G1's failure stands and the campaign ends.
 
 Usage::
 

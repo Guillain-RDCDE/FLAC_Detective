@@ -172,6 +172,29 @@ container-invariant) and refuses a second item carrying the same audio —
 `tests/test_exchange_dedup.py` rebuilds the exact historical trap (one taper's
 track under two etree item names) and pins that it collapses.
 
+### The v1.12 G-series: suspended by its own safety gate, which found 30 mislabeled files
+
+The three Rule 1 gate repairs (variance 130 from grid arithmetic; the
+20,000-exact exception deciding on depth instead of raw HF energy; PCM-level
+containers bypassing the FLAC-calibrated range check) were registered with
+acceptance criteria before any measurement (`ml/r1_gates_repricing.py`) and
+evaluated offline on 1,031 files. **G2 held** (26/34 wild owner files newly
+reach +50, from zero), **G3 held** (lab arms 142 → 160, +15 on mp3_320 alone —
+gate B repairs the lab bench too), and **G1 failed as written**: 4 genuine
+files newly +50 against a bound of 2 — so the campaign stopped, no threshold
+retuned, src untouched. Then the four were traced: all Calexico etree
+recordings, and their items' own taper-written metadata reads
+`ECM-DS70P > MZ-N10` — **a Sony MiniDisc chain: ATRAC, lossy**. A full lineage
+audit of the wild corpus found **11 items, 30 of 180 files (16.7 %), carrying a
+documented MiniDisc chain** while labeled genuine — inside every calibration
+that used "258 genuine". The repaired gates did not produce false positives;
+they detected documented ATRAC material our labels had wrong, and the safety
+bound caught it before anything shipped. The 30 files are registered in the
+wild ledger with their documented sources, label undecided: **the campaign is
+suspended pending human adjudication** (documentary basis: the taper states
+the chain). Rules them lossy → labels correct, G1 re-scores, stage 2 proceeds.
+Rules them genuine → G1 stands and the campaign ends.
+
 ### The M-series collapses the wild anatomy into one layer — and the engine already sees
 
 Provir answered DEAD_STRUCTURE's domain from the code (side channel, absolute
