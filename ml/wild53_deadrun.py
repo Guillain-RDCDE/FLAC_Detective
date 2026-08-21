@@ -28,6 +28,24 @@ family.
 
 Control: 40 wild genuine (archive.org etree) — same provenance class as the
 probe's earlier genuine baseline, disjoint from the Nu Breed material.
+
+MEASURED 2026-08-21 — D1 and D2 FAILED, in the branch registered above
+-----------------------------------------------------------------------
+    tier               n   med max_run   p90   AUC vs genuine
+    genuine           40          0.0    0.0        —
+    owner-knowledge   34          0.0    0.0      0.50
+    eye               19          0.0    0.0      0.49
+
+Median 0.0 EVERYWHERE — on the very bytes where his DEAD_STRUCTURE_MAXRUN
+reads 100–118 and carries most of his 12 SUSPECTs. So the reopened question
+closes the other way: the difference between his 32 % and our 8.8 % on this
+tier is NOT that mastering feeds a family we also have — it is that his
+"dead run" and ours are DIFFERENT OBSERVABLES. Same file, his instrument
+reads a hundred-something, ours reads zero: different band, depth, reference
+or domain (his runs may live in time, or on another transform entirely).
+The "ask him for DEAD_STRUCTURE's actual domain" item, open since
+2026-08-18, is now mandatory rather than curiosity — it is the one flag
+family demonstrably reading a population our whole engine misses.
 """
 
 from __future__ import annotations
