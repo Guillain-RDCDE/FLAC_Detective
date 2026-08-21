@@ -17,14 +17,14 @@ from flac_detective.analysis.new_scoring.rules.spectral import (
 
 
 def _r1(**kw):
-    defaults = dict(
-        cutoff_freq=20250.0,
-        container_bitrate=900.0,
-        cutoff_std=0.0,
-        sample_rate=44100,
-        energy_ratio=1e-5,
-        residual_floor_db=-60.0,
-    )
+    defaults = {
+        "cutoff_freq": 20250.0,
+        "container_bitrate": 900.0,
+        "cutoff_std": 0.0,
+        "sample_rate": 44100,
+        "energy_ratio": 1e-5,
+        "residual_floor_db": -60.0,
+    }
     defaults.update(kw)
     (score, _reasons), est = apply_rule_1_mp3_bitrate(**defaults)
     return score, est
@@ -64,14 +64,19 @@ class TestGateB_20kExactDecidesOnDepth:
 
 class TestGateCPrime_PCMContainerBypassRequiresDepth:
     def test_wav_at_pcm_level_scores_when_the_wall_proves_depth(self):
-        """1411 kbps is the container FORMAT, not the audio's history — and the
-        bypass demands the proof the container can no longer give."""
+        """PCM-level container bitrate is format, not history.
+
+        The bypass demands the proof the container can no longer give.
+        """
         score, est = _r1(container_bitrate=1411.0, residual_floor_db=-60.0)
         assert score == 50 and est == 320
 
     def test_wav_without_depth_reading_is_refused(self):
-        """G1-ter's lesson: for sub-320 cells the container was the only guard;
-        an uninformative container plus no depth proof must not score."""
+        """G1-ter's lesson: no depth proof, no score.
+
+        For sub-320 cells the container window was the only guard, so an
+        uninformative container plus no depth reading must not score.
+        """
         score, _ = _r1(container_bitrate=1411.0, residual_floor_db=float("nan"))
         assert score == 0
 
@@ -89,8 +94,11 @@ class TestGateCPrime_PCMContainerBypassRequiresDepth:
         assert score == 50 and est == 320
 
     def test_flac_inside_window_needs_no_depth_reading(self):
-        """The informative-container path is untouched: NaN residual keeps the
-        legacy behaviour for in-window FLAC below the 320 branch."""
+        """The informative-container path is untouched.
+
+        NaN residual keeps the legacy behaviour for in-window FLAC below the
+        320 branch.
+        """
         (score, _), est = apply_rule_1_mp3_bitrate(
             cutoff_freq=19750.0,
             container_bitrate=900.0,
@@ -104,9 +112,12 @@ class TestGateCPrime_PCMContainerBypassRequiresDepth:
 
 class TestGateD_WavDispatch:
     def test_rule1_runs_on_uncompressed_input(self, tmp_path):
-        """The dispatcher must not remove Rule 1 for WAV — gate C handles the
-        uninformative container inside the rule. Before v1.12 every WAV was
-        structurally beyond the rule's reach; found by G4's first firing."""
+        """The dispatcher must not remove Rule 1 for WAV input.
+
+        Gate C-prime handles the uninformative container inside the rule.
+        Before v1.12 every WAV was structurally beyond the rule's reach;
+        found by G4's first end-to-end firing.
+        """
         import numpy as np
         import soundfile as sf
 
