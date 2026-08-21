@@ -259,12 +259,15 @@ an **optional CNN rule** (Rule 12, enabled with the `[ml]` extra — see below).
 > **Population note (2026-08).** Every rate and AUC on this page was measured on **direct
 > transcodes** — lossy audio re-encoded straight to FLAC. Transcodes that passed through a
 > mastering chain before reaching a disc (the population wild compilations actually sell) read
-> very differently: on 34 owner-attested wild MP3-sourced tracks, v1.11.4 signaled 8.8 % and
-> v1.12.0 signals 50.0 % (four lab-calibrated admission gates repaired), both versions
-> convicting zero. A published rate on this project now states which population it describes;
-> the measurements and their pre-registered predictions live in the repository
-> (`ml/exchange/PREREGISTERED_2026-08-20.md`, `ml/wild53_scores.csv`,
-> `ml/wild53_scores_v112.csv`, `ml/r1_gates_repricing.py`).
+> very differently: on 34 owner-attested wild MP3-sourced tracks, v1.11.4 signaled 8.8 %,
+> v1.12.0 signaled 50.0 % (four lab-calibrated admission gates repaired), and v1.13.0
+> signals 70.6 % (the residual window widened to feed gate C′) with the first two true
+> convictions — both owner-attested fakes, corroborated by independent families. False
+> convictions: zero, every version, every population. A published rate on this project now
+> states which population it describes; the measurements and their pre-registered
+> predictions live in the repository (`ml/exchange/PREREGISTERED_2026-08-20.md`,
+> `ml/wild53_scores.csv`, `ml/wild53_scores_v112.csv`, `ml/wild53_scores_v113.csv`,
+> `ml/r1_gates_repricing.py`).
 
 ### Scoring engine flow
 

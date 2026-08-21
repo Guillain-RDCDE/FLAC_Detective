@@ -430,6 +430,31 @@
     }
   },
   {
+    "id": "readme-wild-v113",
+    "file": "README.md",
+    "pattern": "70\\.6 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/wild53_scores_v113.csv",
+        "ml/r1_gates_repricing.py"
+      ],
+      "note": "v1.13.0 end-to-end wild owner-tier rate, H4 of the H-series"
+    }
+  },
+  {
+    "id": "techdocs-wild-v113",
+    "file": "docs/technical-details.md",
+    "pattern": "70\\.6 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/wild53_scores_v113.csv",
+        "ml/r1_gates_repricing.py"
+      ]
+    }
+  },
+  {
     "id": "techdocs-r8-reduced",
     "file": "docs/technical-details.md",
     "pattern": "-15",

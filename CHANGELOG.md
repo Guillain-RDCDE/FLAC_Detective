@@ -1,4 +1,35 @@
-## Unreleased
+## v1.13.0 (2026-08-22) — The residual window feeds gate C′; first true convictions in the wild
+
+One engine change, registered in v1.12.0's own changelog before it was made: the
+residual-floor **computation** window's floor moves from 0.90 to 0.85 × Nyquist
+(18,742.5 Hz at 44.1 kHz), so the MP3 signature cells at 18,750–19,750 Hz gain a
+depth reading. That was the named mechanism of v1.12's one missed prediction:
+gate C′ accepts an uninformative (PCM-level) container only when the wall proves
+its depth, and below 0.90 × Nyquist there was nothing to prove it with. The
+consultation zone is untouched; `tests/test_rule1_nearnyquist.py` now pins the
+floor to its consumer as well as the top to its guard.
+
+Priced under six criteria registered before measurement (H-series,
+`ml/r1_gates_repricing.py`; cross-version diff `ml/h_series_compare.py`):
+**every safety criterion held, at strictly negative cost** — 0 genuine newly
+scored, 0 of 797 library files, 0 genuine-as-WAV, and the only two pre-existing
+genuine +50 are *removed* (two false positives gone). **Efficacy: the offline
++50 count moves 15/34 → 24/34** (all nine gains are WAV at PCM-level container
+with residuals −63…−71 dB — the starved cells, fed exactly as registered), and
+**end to end the owner-attested wild tier moves 50.0 % → 70.6 % signaled with
+the engine's first two true wild convictions**: both owner-attested fakes,
+convicted on `spectral+stereo` (64 pts) and `cnn+spectral+stereo` (82 pts) —
+the M-series prediction (repair the admission gates and the stereo witness
+corroborates) landing in the verdict column. Zero convictions on the eye tier
+and the mixed disc.
+
+One prediction missed, shipped as a miss with its mechanism named: the lab arms
+lose 7 of 160 (+50 count 160 → 153). The est-320 exoneration — residual above
+−55 dB drops the signature — now reaches cells 19,500–19,750 Hz, where
+AAC/V0/Vorbis walls carry floors of −33…−51 dB, above a bar calibrated entirely
+on [0.90, 0.94) × Nyquist. Re-calibrating the depth bar per cell (or bounding
+the exoneration to its calibration domain) is the v1.14 candidate; it gets its
+own registration.
 
 ### The calibration debt paid: bars re-verified on the purged corpus
 
