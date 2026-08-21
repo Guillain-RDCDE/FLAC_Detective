@@ -21,7 +21,33 @@ Populations: clean = 80 audit-certified + the 148 remaining wild genuine
 
 Results are appended below after the run.
 --------------------------------------------------------------------------------
-(not yet run)
+MEASURED 2026-08-21 (n = 258: 226/206 clean measurable + 32 quarantined):
+
+    RUN_BAR = 2.0    clean p90 1.48  p95 1.94  p99 4.55   -> BAR HOLDS
+                     old-'genuine' p95 was 1.72: the quarantined files (median
+                     1.00) were pulling the p95 DOWN, so the shipped bar's
+                     safety margin was UNDER-stated, not over-stated. Margin is
+                     now 2.0 vs 1.94 — thin, real, and finally measured on a
+                     clean population.
+    SEAM_BAR = 0.60  clean p90 0.58  p95 0.65  p99 0.82   -> flagged RAISE by
+                     THIS FILE'S rule — and the counterfactual kills the flag:
+                     the same rule fires on the ORIGINAL 258 too (0.60 < the
+                     published p95 of 0.651). SEAM_BAR was designed to sit
+                     BETWEEN p90 and p95 (temporal_seam.py's own provenance
+                     comment), and on the clean population it still does
+                     (0.58 < 0.60 < 0.65), with quantiles unchanged to the
+                     second decimal. The trigger measured a divergence between
+                     this audit's criterion and the constant's documented
+                     design, not an effect of the purge.
+
+    VERDICT: no constant moves. The purge left both bars where their designs
+    put them; the one flag raised was this harness mis-specifying SEAM_BAR's
+    acceptance as RUN_BAR's, caught by asking whether the rule would have
+    fired before the purge — the test that separates a real effect from an
+    artifact of the criterion. The quarantined files read LIKE genuine on
+    both statistics (stereo median 1.00, seam 0.41): ATRAC's tells live
+    elsewhere, which is consistent with the engine reading them at 30 %
+    through cnn+stereo rather than through these bars.
 """
 
 from __future__ import annotations

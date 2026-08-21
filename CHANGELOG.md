@@ -1,3 +1,22 @@
+## Unreleased
+
+### The calibration debt paid: bars re-verified on the purged corpus
+
+The 32 quarantined files sat inside every "258 genuine" calibration, so the two
+witness bars were re-verified on the clean population with the acceptance rule
+registered first (`ml/recal_clean228.py`). **No constant moves.** RUN_BAR (2.0):
+clean p95 = 1.94 — the quarantined files were pulling the p95 *down* (they read
+like genuine on this statistic, median 1.00), so the shipped margin was
+UNDER-stated, not over-stated. SEAM_BAR (0.60): clean p90/p95 = 0.58/0.65,
+unchanged to the second decimal, the bar still between p90 and p95 as designed —
+the audit rule's own "must be ≥ p95" flag was dismissed by the counterfactual
+(it fires on the original 258 too, so it measured the criterion, not the purge).
+Also: the ambiguous glenhansard item settled by reading its full description —
+the Muvid IR815 is an **internet radio**, its digital out a decoded compressed
+broadcast stream; 2 more files adjudicated on the documentary basis and
+quarantined (ledger: 32 fake). The public population notes now carry both
+versioned numbers (8.8 % at v1.11.4, 50.0 % at v1.12.0, zero convictions both).
+
 ## v1.12.0 (2026-08-21) — Rule 1's four admission gates repaired; the engine reaches the wild
 
 The first engine change since v1.11.0, and the first release whose every number

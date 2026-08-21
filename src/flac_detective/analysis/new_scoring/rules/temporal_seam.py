@@ -60,6 +60,13 @@ logger = logging.getLogger(__name__)
 #
 # The two populations agree closely — unlike Rule 13's, where the wild tail was
 # heavier and a lucky sample produced a published calibration that was wrong.
+#
+# RE-VERIFIED 2026-08-21 after the corpus purge (32 taper-documented lossy files
+# quarantined — ml/recal_clean228.py): clean p90 0.58, p95 0.65 — unchanged to
+# the second decimal, and the bar still sits between p90 and p95 exactly as
+# designed. (An audit rule mis-specified as "bar must be >= p95" flagged this
+# constant, and the counterfactual dismissed the flag: that rule fires on the
+# original 258 too, so it measured the criterion, not the purge.)
 SEAM_BAR = 0.60
 
 # Below this cutoff the file is band-limited enough that the cheap spectral rules

@@ -57,6 +57,12 @@ logger = logging.getLogger(__name__)
 # genuine files (20 more mono-gated): p95 = 1.74. The bar sits just above it, where
 # ~5 % of real music testifies and has nothing to corroborate.
 #
+# RE-VERIFIED 2026-08-21 after the corpus purge (32 taper-documented lossy files
+# quarantined from the "genuine" wild corpus — ml/recal_clean228.py): clean p95
+# = 1.94. The quarantined files were pulling the p95 DOWN (they read like
+# genuine here, median 1.00), so the shipped margin was UNDER-stated. The bar
+# holds; the margin is 2.0 vs 1.94 and is now measured on a clean population.
+#
 # Measured new false convictions at this bar and at p90, p99 and above the maximum:
 # zero in every case.
 #

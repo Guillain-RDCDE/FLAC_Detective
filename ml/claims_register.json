@@ -120,5 +120,42 @@
       "regex": "score \\+= 50",
       "note": "Rule 1 spectral bitrate signature"
     }
+  },
+  {
+    "id": "readme-wild-v112",
+    "file": "README.md",
+    "pattern": "50\\.0 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/wild53_scores_v112.csv",
+        "ml/r1_gates_repricing.py"
+      ],
+      "note": "v1.12.0 end-to-end wild owner-tier rate, G4 of the gates campaign"
+    }
+  },
+  {
+    "id": "techdocs-wild-v112",
+    "file": "docs/technical-details.md",
+    "pattern": "50\\.0 %",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/wild53_scores_v112.csv",
+        "ml/r1_gates_repricing.py"
+      ]
+    }
+  },
+  {
+    "id": "readme-ml-auc-story",
+    "file": "README.md",
+    "pattern": "AUC 0\\.99",
+    "evidence": {
+      "kind": "artifact",
+      "paths": [
+        "ml/README.md"
+      ],
+      "note": "the debunked-then-earned AUC of the ML story; full narrative in ml/README.md"
+    }
   }
 ]

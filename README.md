@@ -83,9 +83,11 @@ guarantee.
 *direct* transcodes — lossy audio re-encoded straight to FLAC, nothing in between. Transcodes
 that passed through a **mastering chain** before reaching a disc (levels, limiting, press —
 what wild compilations actually sell) are a different population: on 34 owner-attested wild
-MP3-sourced tracks, the engine signaled **8.8 %** — and convicted **zero**, which is the half
-of the design that held. Both numbers are pre-registered and hash-verified; the gap is real,
-measured, and being worked on rather than blurred.
+MP3-sourced tracks, v1.11.4 signaled **8.8 %**, and v1.12.0 — after repairing four admission
+gates that had been calibrated on lab material — signals **50.0 %**, still convicting
+**zero**, which is the half of the design that held throughout. Every number here was
+pre-registered before its measurement and scored on hash-verified bytes; the remaining gap is
+real, measured, and being worked on rather than blurred.
 
 → Every rule explained: **[Technical Details](docs/technical-details.md)**.
 

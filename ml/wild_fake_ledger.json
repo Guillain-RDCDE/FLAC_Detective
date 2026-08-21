@@ -695,6 +695,34 @@
    }
   ]
  },
+ "d3d39cc2d9dab002b0db09e17a617bb5b079eb3208cab0f71be0a2230435822f": {
+  "added": "2026-08-21T21:12:30Z",
+  "adjudication": {
+   "at": "2026-08-21T21:12:41Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/glenhansard2016-04-02.IR815.karstenausNDH.flac16 : 'Muvid IR815 (digital Ausgang)' - an internet radio's digital out is a decoded compressed broadcast stream; ruling extends from the item's device chain to its 2 tracks in this corpus. The taper's own note 'do not convert to .mp3' postdates the compression it asks to avoid.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
+  },
+  "bytes": 27689105,
+  "filename": "glenhansard2016-04-02.IR815.karstenausNDH.flac16__02. Glen Hansard_ Her Mercy.flac",
+  "sha256": "d3d39cc2d9dab002b0db09e17a617bb5b079eb3208cab0f71be0a2230435822f",
+  "source": "archive.org etree glenhansard2016-04-02.IR815.karstenausNDH.flac16 - taper-documented chain 'Muvid IR815 (digital Ausgang) > Creative SB X-Fi (digital Eingang)': the Muvid IR815 is an INTERNET RADIO - the recording captures the decoded digital output of a compressed broadcast stream; flagged ambiguous by the 2026-08-21 lineage audit, settled by reading the item's full description on 2026-08-21",
+  "verdicts": [
+   {
+    "at": "2026-08-21T21:12:40Z",
+    "families": [
+     "spectral"
+    ],
+    "score": 30,
+    "verdict": "AUTHENTIC",
+    "version": "1.12.0"
+   }
+  ]
+ },
  "d5582292ea20dfec6f045484156ab1441d62034f2184f2b90f70ca7ae8187b38": {
   "added": "2026-08-21T18:52:32Z",
   "adjudication": {
@@ -744,6 +772,34 @@
     "score": 0,
     "verdict": "AUTHENTIC",
     "version": "1.11.4"
+   }
+  ]
+ },
+ "e0f8c2489179bcddef102c202d171931da4d0dadd9c598e0092051d85cd5968b": {
+  "added": "2026-08-21T21:12:07Z",
+  "adjudication": {
+   "at": "2026-08-21T21:12:42Z",
+   "basis": "uploader_admission",
+   "by": "Guillain d'Erceville",
+   "label": "fake",
+   "note": "https://archive.org/details/glenhansard2016-04-02.IR815.karstenausNDH.flac16 : 'Muvid IR815 (digital Ausgang)' - an internet radio's digital out is a decoded compressed broadcast stream; ruling extends from the item's device chain to its 2 tracks in this corpus. The taper's own note 'do not convert to .mp3' postdates the compression it asks to avoid.",
+   "referee": true,
+   "scope": "group",
+   "selection": "systematic"
+  },
+  "bytes": 18424197,
+  "filename": "glenhansard2016-04-02.IR815.karstenausNDH.flac16__01. Talk.flac",
+  "sha256": "e0f8c2489179bcddef102c202d171931da4d0dadd9c598e0092051d85cd5968b",
+  "source": "archive.org etree glenhansard2016-04-02.IR815.karstenausNDH.flac16 - taper-documented chain 'Muvid IR815 (digital Ausgang) > Creative SB X-Fi (digital Eingang)': the Muvid IR815 is an INTERNET RADIO - the recording captures the decoded digital output of a compressed broadcast stream; flagged ambiguous by the 2026-08-21 lineage audit, settled by reading the item's full description on 2026-08-21",
+  "verdicts": [
+   {
+    "at": "2026-08-21T21:12:30Z",
+    "families": [
+     "spectral"
+    ],
+    "score": 38,
+    "verdict": "WARNING",
+    "version": "1.12.0"
    }
   ]
  },
