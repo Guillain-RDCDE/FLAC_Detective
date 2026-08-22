@@ -65,3 +65,29 @@ none of it transfers to the 3.9x-era builds Provir's wild corpus contains, where
 early `-b 320` applies no lowpass at all. His exhibit's exact encoder is pinned
 in `ml/exchange/README.md` (`lame3.92`, sha256 `cb2cdfde7b170d90...`, built
 2002-04-16), so the era gap is now measurable from both sides.
+
+## Two rules added 2026-08-22, both from the second encoder exchange
+
+**The route is part of the identity.** Provir's ffmpeg ladder (23 Windows
+builds, 0.7.1 to 8.0, 2,953 cells) resolved one thing this file had been
+writing as if it were obvious: libmp3lame reached *through* ffmpeg never lands
+in the same distinguishable class as `lame.exe` at the same LAME version — the
+"Lavc"-wrapped MP3 is its own four eras, and libvorbis and libopus through
+ffmpeg behave the same way. So every row above that says "libmp3lame 3.100"
+means **libmp3lame 3.100 via ffmpeg 8.1's Lavc route**, and so does the
+MP3_IDEM probe (`ml/mp3_idem_probe.py`), which re-encodes through that same
+route. A 2004 disc encoded with `lame.exe 3.92` is two steps from that probe —
+generation *and* route — which is the case for the era-paired battery
+(`ml/era_battery.py`). Attribution names the route, not just the library.
+
+**Before quoting an arm's idem median, look at its best phases.** The idem
+fixed point is grid-locked (period 576 samples, zero tolerance — his finding,
+reproduced here the same day). When the phase search over an arm returns best
+phases that cluster on one *non-zero* constant, that is the generating chain's
+filter delay talking, not the encoder: our re-mastered arm v1 (EQ + dynaudnorm
++ alimiter) sat at phase 219 on 11 of 12 files, and its "destroyed" fixed
+point was partly the arm being read 219 samples off its own grid
+(`ml/idem_phase_probe.py`, PS4). Provir adopted the same check into his hurdle
+log from that result. The rule: an arm's idem median is quoted at its best
+phase, with the phase distribution beside it; a constant non-zero cluster is
+reported as the chain's delay and the arm is re-read corrected.
