@@ -36,8 +36,27 @@ Validation on known answers, registered before the run — results appended
 
 If AV1 fails the probe is not adopted and the failure ships as the result.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-22, n = 5 per population, 30-s excerpts, canonical phases)
+
+    AV1  HELD    fixtures -0.13..0.10 vs genuine 1.13..1.82 — the ACM
+                 self-pairs with clean separation, his AUC-0.999 shape
+                 reproduced in our hands.
+    AV3  HELD    the same fixtures read 1.39..2.39 under our LAME-320 probe,
+                 median diagonal 2.26 dB — a Fraunhofer file needs a
+                 Fraunhofer probe, measured here.
+    AV2  FAILED  as registered — and the failure is the registered margin,
+                 not the lock. Measured: LAME arms 0.72..1.18 under the ACM
+                 probe vs fixtures -0.13..0.10 — ZERO overlap, 0.62 dB of
+                 absolute clearance, arms never reach the fixed point. The
+                 1.5 dB median-gap bar was a guess and the measured gap is
+                 0.91 dB. Consistent with his bench (1/72 LAME arms below
+                 his lawful minimum): the pull toward the ACM fixed point is
+                 real but partial. His disambiguator rule is adopted with
+                 the probe: the ACM read is quoted beside a LAME read, never
+                 alone.
+
+ADOPTED as a measurement instrument (AV1 was the adoption criterion). Not
+wired to the engine; a per-codec battery cell like MP3_IDEM before it.
 """
 
 from __future__ import annotations
