@@ -31,8 +31,46 @@ PREDICTIONS, registered before the key is opened on the movers
 
 Results appended below after the run; hash of the received file recorded.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-22; received file sha256 e9f0c389e9a322bba8235ae293a15524
+c5be0034100a93c01835a6f04211f458, 599 rows, all at 44100 in ARM-2)
+
+    The registration's own premise failed first: "converted = run-1 rate
+    48000" counts 147, but his 179 = 147 @48k + 30 @96k + 2 read as 44000 —
+    converted means every rate other than 44.1k. Criterion corrected in
+    code, the error kept here. On the corrected criterion:
+
+    A2-1  HELD on the corrected criterion (FAILED as written): 0 movers
+          among the 420 byte-copied files; all 8 are converted items (two
+          of them 96 kHz genuine recordings, which the written criterion
+          had wrongly filed as copies). His engine is deterministic on
+          identical bytes.
+    A2-2  FAILED  3 of 8 movers are opus_256, not >= 5. The leak's
+          footprint is spread, not concentrated: 3 opus, 3 genuine (two of
+          them the 96 kHz items), 1 aac_ff256, 1 mp3_320.
+    A2-3  FAILED  3 of 8 move toward clear, not >= 5 — and the surprise is
+          the other direction: two opus_256 items move flagged ->
+          CONVICTED after the downsample. Removing the 48 kHz rate did not
+          only remove a tell; at 44.1 kHz his alignment-type reads gained
+          on Opus. Per label, detection is essentially unchanged
+          (opus 60 -> 59, aac_ff256 60 -> 59, genuine flagged 17 -> 18):
+          the leak was never carrying his Opus recall — his engine read
+          Opus at 60/60 with or without the rate.
+
+    The movers, with the key opened:
+        0080 aac_ff256  flagged   -> clear      (now wrong)
+        0234 genuine    flagged   -> clear      (96 kHz; now correct)
+        0253 opus_256   flagged   -> convicted  (now correct)
+        0256 genuine    clear     -> flagged    (96 kHz; now wrong)
+        0362 opus_256   flagged   -> convicted  (now correct)
+        0449 opus_256   flagged   -> clear      (now wrong)
+        0505 mp3_320    convicted -> flagged    (still detected)
+        0508 genuine    clear     -> flagged    (48 kHz; now wrong)
+
+    Net: 3 toward correct, 3 away, 1 detection-preserving downgrade, and
+    the eight are the whole resample effect on 179 converted files (4.5 %).
+    Our own disclosed leak cost him almost nothing in recall — which is the
+    strongest argument that the v2 set's rate equalisation was hygiene,
+    not a rescue.
 """
 
 from __future__ import annotations
@@ -59,8 +97,11 @@ def main() -> int:
     key = json.loads(KEY.read_text(encoding="utf-8"))["labels"]
     assert len(run1) == len(arm2) == 599, (len(run1), len(arm2))
 
-    converted = {f for f, r in run1.items() if r["sample_rate"] == "48000"}
-    print(f"converted (run-1 at 48 kHz): {len(converted)}  byte-copied: {599 - len(converted)}")
+    # "Converted" = every run-1 rate other than 44100 (147 @48k + 30 @96k + 2 he
+    # read as 44000 = his 179). The registration wrote "48000" — a premise
+    # error caught on the first run, recorded in the results block.
+    converted = {f for f, r in run1.items() if r["sample_rate"] != "44100"}
+    print(f"converted (run-1 rate != 44.1 kHz): {len(converted)}  byte-copied: {599 - len(converted)}")
     rate_now = Counter(r["sample_rate"] for r in arm2.values())
     print(f"ARM-2 sample rates: {dict(rate_now)}")
 
