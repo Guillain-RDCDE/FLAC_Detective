@@ -90,7 +90,11 @@ PROBES: Dict[str, Path] = {
     "lame3.92": LAME_ROOT / "lame3.92" / "lame.exe",
     "lame3.93.1": LAME_ROOT / "lame3.93.1r" / "lame.exe",
     "lame3.96.1": LAME_ROOT / "lame3.96.1" / "lame.exe",
-    "lame3.97": LAME_ROOT / "lame3.97" / "lame.exe",
+    # The period 3.97 binary will not launch on this Windows (WinError 216);
+    # his 2026 MinGW rebuild agrees with it to the decimal on his bench, so
+    # that rebuild stands in — the one rung where the rule "never a rebuild"
+    # is bent, and it is bent on his measurement, not ours.
+    "lame3.97": LAME_ROOT / "lame3.97_mingw64" / "lame.exe",
     "lame3.98.4": LAME_ROOT / "lame3.98.4" / "lame.exe",
     "lame3.100": LAME_ROOT / "lame3.100" / "lame.exe",
 }
@@ -130,7 +134,7 @@ def lame_roundtrip(audio: np.ndarray, exe: Path, ffmpeg: str) -> Optional[np.nda
         try:
             subprocess.run([str(exe), "-b", "320", str(src), str(enc)],
                            capture_output=True, timeout=300, cwd=str(work))
-        except subprocess.TimeoutExpired:
+        except (subprocess.TimeoutExpired, OSError):
             return None
         if not enc.exists() or enc.stat().st_size < 4096:
             return None
