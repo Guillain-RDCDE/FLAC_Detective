@@ -89,6 +89,19 @@ from adjacent tracks in the DJ mix, analog saturation harmonics above the
 cutoff. The wild53's 8.8 % stays the only measurement of the full stack, and
 the lab arm reproduces two of its three layers with named mechanisms.
 
+AMENDMENT 2026-08-22 — layer 1's idem row was partly instrument. The idem
+fixed point is grid-locked (period 576, zero tolerance; Provir's finding,
+reproduced here same-day), and this arm's chain carries a CONSTANT filter
+delay: the phase search (ml/idem_phase_probe.py, PS4) finds best phase 219 on
+11/12 v1 files, and the arm's median idem R drops 3.13 -> 1.99 dB once
+corrected. So the "fixed point destroyed, as wild" annotation on the idem row
+above OVERSTATES the chain's effect — part of that destruction was reading
+the arm at the wrong grid phase. The wild half of the sentence is unchanged
+and strengthened: the 34 owner-attested wilds read >= 1.89 dB at the best of
+all 576 phases (0/34 below the re-cut lawful bar of 1.18). The limiter/level
+layer still moves files off the fixed point — but by less than this table's
+phase-0 numbers claim.
+
 Usage::
 
     python ml/remaster_arm.py --build     # construct the re-mastered arm

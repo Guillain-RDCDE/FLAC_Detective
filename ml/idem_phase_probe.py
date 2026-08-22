@@ -72,8 +72,45 @@ PREDICTIONS, registered before any measurement — results appended below
 Same honesty rule as every campaign: predictions commit before the run;
 results are appended, never rewritten; a wrong premise is part of the result.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-22; selftest first: a phase-0 transcode cropped by 137
+samples read 6.61 at phase 0 and 0.77 at the recovered phase 439 — his
+grid-lock experiment, reproduced on our instrument to the sample)
+
+    PS1  HELD    8/8 control arms: best phase 0, R_best == R_phase0 exactly.
+                 The search does not manufacture signal.
+    PS2  MEASURED  the draws effect on lawful is tiny (largest best-phase
+                 drop across 20 genuine: 0.16 dB; most best phases are 0 or
+                 near-tie drift). Re-cut bar = genuine best-phase minimum
+                 = 1.18 dB.
+    PS3  FAILED as registered — on the LOW side, the strongest possible form
+                 of the original conclusion: 0/34 wilds below the re-cut bar
+                 (registered band 3-17; wild best-phase minimum 1.89, median
+                 3.14). Even at the best of all 576 phases the owner-attested
+                 wilds sit at genuine-level distance from the 3.100 fixed
+                 point. Phase explains ~nothing of W4; the
+                 mastering-destroys-the-fixed-point reading STANDS, now with
+                 the instrument objection retired. Two named residual axes,
+                 neither measured tonight and neither registered here:
+                 (a) generation — the probe is 3.100-paired and the 2004
+                 wilds' encoders are era builds (the era-paired battery is
+                 its own registration); (b) piecewise phase — a DJ-mixed
+                 compilation can carry different grid offsets in different
+                 stretches of one track, and a single global crop cannot
+                 align a grid that shifts mid-excerpt.
+    PS4  HELD    11/12 remaster-v1 files find best phase 219 — one constant
+                 phase across files, i.e. a fixed filter delay in the
+                 EQ+dynaudnorm+alimiter chain — and the arm's median drops
+                 3.13 -> 1.99 dB (bar: >= 1.0). The v1 arm's measured idem
+                 "destruction" (AUC 0.98 -> 0.46 in remaster_arm.py) was
+                 PARTLY PHASE ARTIFACT: phase-corrected, the arm sits much
+                 closer to the fixed point than the phase-0 read claimed.
+                 The remaster-arm layer table is amended where it lives
+                 (ml/remaster_arm.py); the WILD conclusion is unaffected —
+                 the wilds realign to nothing.
+
+The instrument's one-sentence summary for the exchange: the phase search
+repairs the ARM, retires the objection on the WILD, and the gap between
+those two sentences is the honest state of the lab-to-wild question.
 """
 
 from __future__ import annotations
