@@ -10,6 +10,16 @@ CELT transcodes through a 48 kHz resample that destroys sample-exact alignment.
 This is the only known family with NO alignment dependence at all: we re-encode
 from PCM, so the encoder picks its own grid every time.
 
+(NARROWED 2026-08-22, the grid-lock finding: "no alignment dependence" was
+half true. The probe needs no alignment METADATA — but the fixed point is
+GRID-LOCKED with period 576 samples and zero tolerance, so a read at the
+file's native phase is a phase-0 read, correct for our own lab arms by
+construction and the best case for everything else. A wild or edited file
+reads lawful at every phase but its own. Every read of an unknown-provenance
+file belongs in ml/idem_phase_probe.py, which searches the phase; this file's
+single-phase read is for phase-0-by-construction material only. See
+ml/exchange/provir-FINDINGS_idem_grid_lock.md, reproduced here same-day.)
+
 (RETRACTED BY HIM 2026-08-21, stamped over the premise per the house method: he
 cannot find 67 %-at-0 % as a defensible figure anywhere in his records. His
 Opus-convergence axis degraded at every increase in n — n=3 perfect, n=186
