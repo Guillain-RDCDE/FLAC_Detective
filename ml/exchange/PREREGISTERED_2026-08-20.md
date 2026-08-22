@@ -324,3 +324,18 @@ W1 is the half that survives with honour: whatever the recall gap, the engine
 convicted nothing — on 53 files whose owner rules them all lossy, zero false
 *certainty* in either direction of the argument. The conviction gate priced for
 exactly this.
+
+---
+
+## ADDENDUM 2026-08-22 — instrument caveat on every W4 idem number above
+
+Provir's grid-lock finding (FINDINGS_idem_grid_lock, archived 2026-08-22;
+reproduced on our instrument the same day — a phase-0 transcode cropped by
+137 samples reads 6.61 at phase 0 and 0.77 at the recovered phase 439): the
+idem fixed point has period 576 samples with zero tolerance, and every
+fixture row both labs hold was measured at phase 0 by construction. The W4
+numbers appended above are therefore PHASE-0 READS of a population that is
+not at phase 0. They stand as measured — the appended record is never
+rewritten — but they must not be quoted as the wild idem rate without this
+caveat. The phase-corrected re-read is registered and running:
+ml/idem_phase_probe.py (PS1-PS4), results appended there.
