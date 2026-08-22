@@ -313,3 +313,33 @@ binaries are named with the sha256 of identical bytes and where to fetch them;
 one scene release excluded on principle), and SHA256SUMS.txt. The binaries
 live off-repo at C:\Users\loutr\provir_encoders\ - they are his builds and his
 manifest vouches for them; ours would add nothing.
+
+## The collection, second delivery - received 2026-08-22
+
+The folder grew 174 -> 335 manifest entries (zip receipts: Encoders
+20260822T085506Z 186 MB, l3enc_KEYS 20260822T085515Z 1,067 bytes). Verified
+against his refreshed SHA256SUMS.txt: 330/335 byte-exact, 4 extensionless
+LAME READMEs renamed .txt by Drive in transit (contents byte-identical - the
+same transport artifact as the first delivery, now also a line in his package
+notes), and 1 file (l3enc_2.72/Frontend/desktop.ini) not exported by Drive at
+all - his own hurdle notes name Drive's desktop.ini behaviour; an inert
+metadata file, recorded as undelivered rather than divergent. Extracted
+off-repo to C:\Users\loutr\provir_encoders_r2\ (the 08-21 delivery kept
+intact beside it).
+
+New since the first delivery, archived here on receipt (provir- prefix, run
+`git log --diff-filter=A` for the receipt commit): the grid-lock finding
+(FINDINGS_idem_grid_lock - the idem fixed point has period 576 samples and
+zero tolerance; every fixture row either side holds was phase 0 by
+construction, and every wild number must be re-read at the best phase before
+it is quoted again - our W4 included), his phase-search tool, his in-process
+Fraunhofer ACM encoder tool, the hurdles record, the refreshed register /
+coverage / probe map / restricted manifest, the FhG ACM and l3enc identity
+files, and the _sources README that names the return convention for our
+FDK-AAC column (3 sources x 128/192/320 CBR, NOTE.txt with command line and
+binary identity).
+
+The l3enc registration keys travelled in their own zip, separate from the
+shareware packages whose licence forbids altering or omitting files - the
+separation is the point, and it is preserved: the keys stay off-repo with the
+binaries and are not archived here.

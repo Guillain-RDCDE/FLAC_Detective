@@ -233,7 +233,7 @@ Three rungs the ladder lacked, built from source (identity + deviations in
 
 Owner pulled the public LAME binary archive (3.20 → 3.93.1); identities in `era_encoders/ERA_BUILD_IDENTITY_lame_archive.md`.
 Every runnable build went through the same 3-source × 3-rate ladder. Table GENERATED from the ledger by
-`_emitter_sweep/archive_rung_table.py` (median edge [min–max] and median slope across the three sources; snapshot 19:50):
+`_emitter_sweep/archive_rung_table.py` (median edge [min–max] and median slope across the three sources; snapshot 2026-08-21 21:06):
 
 | rung | 128k edge kHz (slope dB/kHz) | 192k edge kHz (slope dB/kHz) | 320k edge kHz (slope dB/kHz) | cells |
 |---|---|---|---|---|
@@ -278,10 +278,22 @@ Every runnable build went through the same 3-source × 3-rate ladder. Table GENE
 | lame3.93.1w32 | 15.3 [15.2–15.3] (26) | 18.6 [18.5–18.8] (33) | 20.5 [20.1–21.5] (22) | OK×9 |
 | lame3.94b | 17.0 [17.0–17.2] (31) | 18.5 [17.6–18.7] (40) | 19.0 [18.6–20.0] (12) | OK×9 |
 | lame3.95 | 17.0 [17.0–17.2] (31) | 18.5 [17.6–18.7] (40) | 19.0 [18.6–20.0] (12) | OK×9 |
+| lame3.96 | 17.0 [17.0–17.2] (33) | 18.5 [17.4–18.7] (38) | 18.6 [18.1–19.0] (12) | OK×9 |
 | lame3.96.1 | 17.0 [17.0–17.2] (33) | 18.5 [17.4–18.7] (38) | 18.6 [18.1–19.0] (12) | OK×9 |
 | lame3.97 | — | — | — | ERROR×9 |
+| lame3.97_mingw64 | 16.5 [16.4–16.5] (31) | 18.6 [18.5–18.7] (37) | 20.0 [19.9–20.1] (38) | OK×9 |
+| lame3.98 | 16.5 [16.0–16.5] (30) | 18.6 [18.5–18.7] (35) | 20.0 [19.9–20.1] (37) | OK×9 |
+| lame3.98.3 | 16.5 [16.0–16.5] (30) | 18.6 [18.5–18.7] (35) | 20.0 [19.9–20.1] (38) | OK×9 |
 | lame3.98.4 | 16.5 [16.0–16.5] (31) | 18.6 [18.5–18.7] (35) | 20.0 [19.9–20.1] (38) | OK×9 |
+| lame3.98.4b | 16.5 [16.0–16.5] (31) | 18.6 [18.5–18.7] (35) | 20.0 [19.9–20.1] (38) | OK×9 |
+| lame3.99 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
+| lame3.99.1 | 16.5 [16.4–16.6] (33) | 18.6 [18.5–18.7] (38) | 20.0 [19.9–20.2] (43) | OK×9 |
+| lame3.99.2 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
+| lame3.99.3 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
+| lame3.99.4 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
 | lame3.99.5 | 16.5 [16.4–16.5] (33) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.1] (41) | OK×9 |
+| lame3.99.5_src | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
+| lame3.100 | 16.5 [16.4–16.5] (33) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.1] (41) | OK×9 |
 | lame3.100.1 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
 | lame4.0 | 16.5 [16.3–16.5] (37) | 18.6 [18.5–18.7] (39) | 20.0 [19.9–20.2] (41) | OK×9 |
 | wb_lame3.97 | 16.5 [16.4–16.5] (31) | 18.6 [18.5–18.7] (37) | 20.0 [19.9–20.1] (38) | OK×9 |
@@ -290,12 +302,12 @@ Every runnable build went through the same 3-source × 3-rate ladder. Table GENE
 **What the ladder says (default CBR `-b` lowpass, i.e. the as-shipped config — user `-k`/`--lowpass` overrides are a
 different class, see the full-band-320 work):**
 - **128k brackets the GENERATION from the lowpass alone**: 16.0 kHz (3.20–3.63b, 1999–2000) → **15.3 kHz** (3.65b–3.93.1,
-  2000–2003, the Napster/Kazaa golden age) → 17.0 kHz (3.94b/3.95/3.96.1, 2003–2005) → **16.5 kHz** (3.98.4 → 4.0, 2008–2026).
+  2000–2003, the Napster/Kazaa golden age) → 17.0 kHz (3.94b/3.95/3.96/3.96.1, 2003–2005) → **16.5 kHz** (3.97 → 4.0, 2006–2026: 3.97, 3.98, 3.98.3, 3.98.4 ×2, 3.99–3.99.5 ×2, 3.100 ×2, 4.0 — one config on every cell).
   The wild's commonest rate now carries a four-way era split on one number.
 - **192k**: 20.0 kHz and barely a wall (slope 8–9) up to 3.63b; a REAL wall (slope ~34) from 3.65b; 19.2 at 3.88b; **18.6 from 3.89b
-  onward, unchanged through 4.0** (3.94b–3.96.1 18.5).
+  onward, unchanged through 4.0** (3.94b–3.96.1 18.5). Point releases measured 21:06: every 3.99.x and both 3.100 builds ≡ 4.0 on all nine cells.
 - **320k**: effectively OPEN (21.4, slope 14–19) from 3.34b to 3.88b → 20.5 (3.89b–3.93.1; 3.92 and the 2002 daily 20.1) → 19.0
-  (3.94b/3.95) → 18.6 (3.96.1) → **20.0 (3.98.4 → 4.0)**. So a 2000–2001 LAME 320 rip has no lowpass wall at all — wall-invisible,
+  (3.94b/3.95) → 18.6 (3.96/3.96.1) → **20.0 (3.97 → 4.0)**. So a 2000–2001 LAME 320 rip has no lowpass wall at all — wall-invisible,
   like the Fraunhofer engine ([[encoder-emitter-landmarks]]); the 21.4 "edge" is the filterbank ceiling, not a lowpass.
 - The 1999 builds (3.20/3.24b/3.30b) lowpass ONLY at 128 (16.0); at 192/320 on classical they read 22.05 kHz, slope ≈ 0.
 - 3.90 ≡ 3.90.1 ≡ 3.90.3 ≡ 3.90.3mod ≡ 3.91 on every cell (one generation, frontend churn); 3.93 ≡ 3.93.1r on edge.
@@ -358,8 +370,212 @@ the WMP-era Fraunhofer codec carries **no lowpass wall** — wall statistics are
 lands in the wild "FhG-consistent" class (headerless CBR, no wall). (3) **Idem row done 20:32** (`_convict/idem/fhgacm_idem_row.py`, 72 stems, 30-s): **self-pairs at 320 with AUC 0.999** (0.08 vs
 null 1.39) and at 128 with 0.974 — the WMP-era headerless-CBR 320 class has a strong same-encoder fixed point, and the probe is a
 system binary; the LAME-3.100 probe is BLIND to ACM-320 (AUC 0.45) — family-locking confirmed on a second Fraunhofer generation.
-Map: `ENCODER_PROBE_MAP_v0.md` v0.2. Lawful pricing of the ACM-320 probe and the cross-generation (3.1↔3.4) cells are owed.
+Map: `ENCODER_PROBE_MAP_v0.md` v0.2.
+(4) **LAWFUL PRICE, 21:27** (`fhgacm_lawful_price.py`, 30-s excerpts, gt-joined floor, 912 rows): under the **ACM-320 probe** the
+twelve lowest "lawful" reads (0.015–0.126) are ALL `SQUAD-E_GDRIVE` files — `re-con - n-joy`, `DCODEMYDIRECTION`, `rave heaven`,
+`fix me`, `doesnt matter`, `dedededed`, `tinchy`, … — the very files the 08-07 drive triage flagged as transcodes, now reading AT the
+Fraunhofer-ACM fixed point (and NOT at the ACM-128 one: their median under `fhgacm_128` is 2.34). **The quarantined drive is not
+lawful ground truth ([[squad-e-gdrive-not-lawful-ground-truth]]) and is excluded from the denominator:** clean lawful **n=596 — min
+0.209, q01 0.492, q05 0.814, median 1.70**. Against that: ACM-320 arms **69/72 below the lawful MINIMUM (0-FP shape), 72/72 at q01**;
+ACM-128 arms 44/72 below min, 68/72 at q01. The ACM-128 probe is weaker (lawful q01 0.150 → 8/72; its tail is the Simply Jazz
+archival set — the band-limited-archival FP mechanism again). ⚠ Constructed fixtures, not the wild; family-locking in the REVERSE
+direction (LAME and FhG-3.1 arms under the ACM probes) is running as `fhgacm_cross_row.py` — the leg is only a family fingerprint if
+those read lawful-like. **It held, with one qualification (cross row 21:48, `fhgacm_cross_row.py`, 72 stems):** under the ACM-320 probe, LAME-320 arms
+read lawful-like (median 0.89; **1/72 below the lawful minimum**, 10/72 at q01) and the 1998 FhG-3.1 320 arms too (0.72; 2/72) — **family-
+AND generation-locked at matched rate** — but **LAME-128 arms fall to the fixed point (median 0.09; 50/72 below the minimum)**: the probe
+carries the generic heavily-quantised response to ANY ~128k MP3. So the ACM-320 probe convicts "Fraunhofer-ACM 320 OR a ~128k MP3 of any
+make"; a second probe separates them (under `mp3_128` a LAME-128 file sits at its own fixed point ~0.2, an ACM-320 file reads ~4.3).
+**The SQUAD-E tail, so probed (`squade_tail_probe.py`, the twelve lowest):** `mp3_128` 1.8–7.3 · `mp3_320` 3.1–4.9 · `fhgacm_128` 1.8–3.7 ·
+**`fhgacm_320` 0.015–0.126** — high under every LAME probe and under ACM-128, at the fixed point ONLY under ACM-320: **the fixture
+signature of a Fraunhofer-ACM 320 encode** (ACM-320 arm: 4.32 / — / 2.44 / 0.08) and of nothing else measured. ⇒ **Phase search 23:00 (`idem_phase_search.py --full`, 576 phases, mp3_320 and mp3_128): all twelve stay high at their best phase — 2.2–4.0 under LAME-320 (best phase mostly 529 = the untrimmed-decode alignment, so the grid was found and the LAME probe still does not reach them), 1.6–7.0 under LAME-128 — against 0.015–0.126 under ACM-320. The attribution STANDS; dedededed (2.17) and tinchy (2.24) sit at the top of the LAME-320-aligned range and are said so.** **The drive's
+"(master).wav" transcodes — rave heaven, fix me, doesnt matter, dedededed, tinchy, re-con n-joy, DCODEMYDIRECTION, TWISTA009, the beating
+of the drum, im guna make you love me, ultrabeat p & d re-con, save this fuckin rave — carry the NAMED family "Fraunhofer ACM-generation
+320 kbps" (the WMP 9/10 / Sound Forge / Cool Edit-era codec).** Caveats that travel with it: n=12 files, constructed fixtures as the
+reference, another FhG-core 320 encoder of the same generation would sit at the same point (Sound Forge/Cool Edit plug-ins); the 08-07
+triage's "mid-rate" reading for several of these came from texture floors — the two readings are now in tension and the idem family read
+is the better-anchored one (four probes, one fixed point).
 **Not in the share folder** (Windows-licensed system binary; MANIFEST_RESTRICTED names it and its sha256).
+
+## ⭐⭐ XING MP3 — AudioCatalyst 2.1 (xmencmp3.dll 1.0.0.6, 1999-07-29), THE 16 kHz LANDMARK MEASURED (2026-08-21 21:27, 24 cells, all OK)
+
+**Route, stated plainly:** the owner installed a *scene* "FULL" pack of AudioCatalyst 2.1 (AppleSeed; the .nfo itself cites the
+PWA release named in the DOJ case) — his decision, his machine, for R&D measurement. Nothing from it enters the share folder and the
+install is EXCLUDED from any public emitter table until a clean twin of the encoder DLL is found (official 2.1 trial / RealJukebox /
+MusicMatch). Identities: `AudioCatalyst.exe` 2.10.00 — **PE timestamp 2039-03-22 = a patched header** (the crack); the engine
+`C:\Program Files (x86)\Common Files\Xing Shared\MPEG Encode\xmencmp3.dll` **1.0.0.6, Xing Technology Corporation, PE 1999-07-29,
+sha256 1af1bfaca975f129…** (319,488 B) — a COM DLL, unregistered, exports only licensing (`Authenticate/Unlock`), so there is no CLI/COM
+door: the owner encoded the three sweep sources in the GUI ("Create an MP3 now"), the files entered the ledger through the MANUAL
+emitter path (`D:\Xing_cells\out\<label>\<source>_<rate>.mp3`, byte-copied into the sweep so every check ran unchanged). Settings
+read back from `AudioCatalyst.ini` (UAC-virtualised): CONSTANT, Default (Joint Stereo), XingReduceSampleRate=True, copyright/original
+bits on, **MP3HighFrequencyMode = the switch that decides the whole fingerprint.**
+
+| config | rate | elec | class | pop95 | read |
+|---|---|---|---|---|---|
+| **HF Mode OFF** (`xing_ac21_cbr_nohf`) | 128 | 16,021 (28) | 16,010 (46) | 16,021 (32) | **a FIXED 16.0 kHz wall at EVERY rate, every source** — slopes 28–53, stopbands −53 to −76 dB |
+| | 192 | 16,021 (36) | 16,021 (44) | 16,021 (33) | |
+| | 256 | 16,021 (42) | 16,026 (38) | 16,021 (35) | |
+| | 320 | 16,021 (53) | 16,026 (38) | 16,021 (33) | |
+| **HF Mode ON** (`xing_ac21_cbr`, as shipped in 2.1) | 128 | 16,085 (13) | 19,854 (33) | 17,727 (29) | content edges; |
+| | 192 | 18,147 (3) | 19,859 (46) | 18,330 (19) | opens with rate, |
+| | 256 | 19,794 (42) | 19,859 (48) | 18,352 (21) | but never above a |
+| | 320 | 19,794 (50) | 19,886 (32) | 18,519 (19) | **~19.9 kHz ceiling** |
+
+**Reads.** (1) **The wild "Xing class" is HF-Mode-OFF Xing: one rate-independent 16.0 kHz wall** — the two genuine specimens on disk
+now have an emitter, and a bitrate-blind 16.0 kHz razor is a LANDMARK, not a rate estimate (a 320 kbps Xing file reads like a 128 kbps
+LAME file on bandwidth alone — [[lame-bitrate-ladder]]'s "assuming LAME" caveat made concrete). (2) HF Mode ON (the 2.1 default) is a
+second, softer fingerprint with a ~19.9 kHz ceiling — AudioCatalyst 2.x users who left the default produced that. (3) Xing wrote no
+Xing/Info header on CBR here; a Xing-VBR cell is owed (the VBR quality slider). (4) Provenance caveat travels with every row —
+**BUT THE CLEAN TWIN WAS ALREADY IN THE REGISTER (21:46).** Xing Technology → RealNetworks → the encoder was open-sourced in 2005 as
+the **Helix MP3 encoder** (`era_encoders/helix_mp3/hmp3.exe`, RPSL, measured 08-12, IN THE SHARE FOLDER). Its default cells read
+**15,838–15,870 Hz at 128 and 16,015–16,026 Hz at 192/320 on all three sources — the same 16.0 kHz wall** as AudioCatalyst 2.1 with
+HF Mode off (16,010–16,026); and **`hmp3 -HF2` = Xing's "High Frequency Mode"** (19.2–19.9 kHz at 192/320 ≈ the HF-on cells).
+So the public emitter table cites **Helix 5.0 (clean, redistributable) for the Xing class**, and the owner-installed AudioCatalyst 2.1
+is the private confirmation that the 1999 product behaves identically to its 2005 open-source descendant — the warez caveat no longer
+touches the claim, only the 2.1 binary itself. Still worth holding from the same archive, both clean-route: **`tompg.zip` (Xing MPEG
+encoder CLI 3.0, 1997-11-03)** — the earliest Xing generation, and **`MP3EN15.EXE` (XingMPEG Encoder 1.5b9, 1999-01-03, GUI)**.
+
+**THE XING LINEAGE, CLEAN ROUTE, 21:55 (`era_encoders/XING_IDENTITY.md`; owner fetched tompg / MP3EN15 / Helix-x64 from the archive page
+and dropped them in `Encoders/Xing/` on the Drive):**
+
+| generation | binary | PE date | 128 / 192 / 320 edges (elec / class / pop95) | route |
+|---|---|---|---|---|
+| **Xing tompg 3.0** (CLI; `-B` is PER CHANNEL, `-L3`) | `xing_tompg30/tompg.exe` | 1997-11-03 | **16,021 / 16,021 / 16,021** at every rate, every source (slopes 26–47) | clean (Xing's own distribution) |
+| XingMPEG Encoder 1.5b9 (GUI) | `xing_mp3en15b9_installer/MP3EN15.EXE` | 1998-04-23 stub | not yet installed (owner's hands) | clean (Xing shareware) |
+| AudioCatalyst 2.1, HF off | `xmencmp3.dll` 1.0.0.6 | 1999-07-29 | 16,010–16,026 at every rate | scene pack (private) |
+| AudioCatalyst 2.1, HF on (default) | same | | 16.1–19.9 (content, ≤19.9 ceiling) | scene pack (private) |
+| Helix 5.0 r11 x86 (default) | `helix_mp3/hmp3.exe` | 2005 | 15.84–15.87 at 128; 16.015–16.026 at 192/320 | clean (RPSL, in the share) |
+| Helix 5.0 r11 x86 `-HF2` | same | | 19.2–19.9 at 192/320 | clean |
+| **Helix 5.0 r11 x64** (default) | `helix_mp3_x64/hmp3enc64.exe` | 2009-05-16 | 16.0 at 128; **19.2–19.9 at 192/320 = HF ON by default** | clean (owner drop) |
+
+**Reads.** The **16.0 kHz wall is the Xing engine's constant from 1997 to 2005** — tompg, AudioCatalyst and Helix-x86 read it to the bin;
+"High Frequency Mode" (AudioCatalyst 2.x) = Helix `-HF2`, and the 2009 x64 Helix compile ships with it ON by default — **the same source
+with a different build default**: build ≠ version, a third time tonight. A wild file with a rate-independent 16.0 kHz razor is Xing
+(or Helix default) — and that family now has three clean-route emitters in the register, so the public table never needs the 2.1 binary.
+
+
+## ⭐⭐ WINDOWS MEDIA ENCODER 9 SERIES — MICROSOFT'S OWN WMA 9.1 STANDARD / PRO, HEADLESS (2026-08-21 22:35, 15 cells OK + 3 RATE_UNSUPPORTED)
+
+Owner fetched the archive.org ISO (`WindowsMediaEncoder9Series_2003`, curator-scanned); both wrappers Authenticode-valid Microsoft,
+Defender clean. The IExpress wrapper demands "DirectX Media 8.1" (a 2001 runtime no modern Windows can install) — **the MSI inside has
+no such condition** (launch conditions: VersionNT64 ≥ 502, Privileged), so the owner installed `D:\WME9\x64\WMEncoder64.msi` directly
+(msiexec, elevated). Engine: `C:\Program Files\Windows Media Components\Encoder\WMEncEng.dll` **10.00.00.3809, Microsoft Corporation,
+PE 2006-10-18, sha256 c0db52705acbd52e…**; driven by the shipped `WMCmd.vbs` (`-audioonly -a_codec WMA9STD|WMA9PRO -a_mode 0
+-a_setting <kbps>_44_2`). Sweep virtual emitters `wme9/WMA9STD`, `wme9/WMA9PRO` (family `wma-ms`). Rates honoured exactly
+(128,016 / 192,016 / 320,008 bps reported). **WMA9PRO 320 at 44.1 kHz/16-bit is refused by the codec** ("input media format is
+invalid" — Pro's 320 needs 48 kHz/24-bit) → RATE_UNSUPPORTED ×3, recorded, never substituted.
+
+| codec | 128k | 192k | 320k | read |
+|---|---|---|---|---|
+| **WMA 9.1 Standard** (`wmav2` to ffmpeg; the WMP rip codec) | **15,956 / 15,983 / 15,967 Hz** (slopes 24–37) | 18,648 / 18,761 / 18,599 (30–45) | 20,064 / 20,085 / 20,064 (31–41) | **a 16.0 kHz wall at 128** — the WMP-default rip; 18.7 at 192; 20.1 at 320 |
+| **WMA 9.1 Professional** | 15,951 / 15,983 / 16,064 (23–37) | 18,739 / 18,761 / 18,707 (29–45) | — (unsupported at 44.1/16) | same ladder as Standard at 128/192 |
+| ffmpeg `wmav2` (the clone, earlier tonight) | 19,794 / 20,080 / 20,004 at a MEASURED 138 kbps | 276 kbps, 19.8–20.1 | 551 kbps, 20.1 | **no wall, wrong rates — not the wild WMA fingerprint** |
+
+**Reads.** (1) **The wild WMA-128 class (WMP's default rip 1999–2005, our 32/32 blind spot) carries a 16.0 kHz wall** — the third
+16-kHz family tonight (Xing 1997–2005; LAME 3.20–3.63b at 128; now WMA 9.1 at 128) and a different container, so the wall alone is a
+landmark class, not an emitter. (2) ffmpeg's `wmav2` is NOT a stand-in for Microsoft's encoder at any rate: no lowpass, rates off —
+every WMA number derived from the clone is about the clone ([[encoder-transfer-mediafoundation]] again, for WMA). (3) Still open in
+the lineage: WMA 7/8 (the 1999–2002 codecs — WME 7.1 / WMP 7), WMA Lossless (needs VBR mode 2), Voice; WME 9 can emit WMA 9 Voice
+and Lossless if ever needed. **Not in the share** (Microsoft installer; the owner placed the ISO on the Drive himself).
+
+## ⭐⭐ LATE-NIGHT FAMILIES (2026-08-21 23:00 → 2026-08-22 00:20): XingMP3 1.5 (clean), 8hz, GOGO, Shine, l3enc 1994–97, oggenc 1.0.1
+
+**XingMP3 Encoder 1.5b9 — `x3enc.exe` (CLI) + engine `XmeEncMp3.dll` PE 1999-02-10, CLEAN ROUTE (Xing shareware, owner-installed).**
+HF off (`-l`): **16,010–16,026 Hz at 128/192/320 on all three sources**; HF on (default): 16,085 / 19,854 / 17,743 at 128 · 18,147 /
+19,859 / 18,319 at 192 · 19,794 / 19,886 / 18,519 at 320 — **identical, cell for cell, to the AudioCatalyst 2.1 scene-pack readings**
+(same engine family four months apart). ⇒ every Xing number in the register is now backed by a clean binary (x3enc, tompg, Helix);
+the AudioCatalyst install is surplus to the record.
+
+**8hz-mp3 0.2b (April 1999, the dist10 child LAME 2.x grew from):** 128k 16,015 / 22,012 / 19,999 (content — no fixed lowpass),
+192k 19,342 / 22,050 / 20,004, 320k 19,972 / 22,050 / 20,021 — slopes 1–32: the ISO-reference lineage does not lowpass (BladeEnc's cousin).
+
+**GOGO-no-coda 3.07–3.12 (2001–2003, LAME-3.88-derived): one config across all six** — 128k **15,235–15,272 Hz** (LAME 3.8x/3.9x's
+15.3 kHz, as the lineage predicts), 192k 18,519–19,450, 320k 20,074 / 21,442 / 22,050 (open). The Japanese fork carries the LAME 3.88
+lowpass table unchanged through three years of speed work.
+
+**Shine 0.1.4 (2005, the simple fixed-point encoder):** no lowpass at any rate (128k 17,151 / 22,050 / 20,004; 192k 19,331 / 22,050 /
+20,004; 320k 19,999 / 22,050 / 20,058; slopes −3 … 27) — content edges only.
+
+**Fraunhofer l3enc 1.00 → 2.72 (1994–97), DOS, via DOSBox, at the shareware cap 112 kbit/s JS (first 18 cells; 12 slow cells re-cutting
+overnight with a 30-min limit):** **1.00 / 1.50 (Jul 1994 / Feb 1995): 13,905–13,954 Hz** · **2.00 (Sep 1995): 16,026–16,123 Hz** ·
+**2.60 / 2.61 / 2.71 / 2.72 (1996–97): 15,057–15,100 Hz**. The very first Fraunhofer generation moved its 112k lowpass three times in
+three years (13.9 → 16.1 → 15.1 kHz) — the earliest MP3s in existence are a datable class on one number. 0.99a/0.99c landed overnight (13,873–13,943 Hz — the 1994 generation); **2.70 does not run under DOSBox**
+(go32/DPMI build hangs silently; bracketed by 2.61/2.71 at 15.1 kHz) — 27/27 cells across the nine runnable packages by 01:28.
+
+**oggenc 1.0.1 (libvorbis 1.0.1 + libogg 1.0, BUILT HERE from the owner's xiph tarballs):** 128k 20,494 / 20,683 / 20,021, 192k 20,807 /
+21,808 / 20,069, 320k 21,447 / 22,050 / 20,080 — the 2003 Vorbis tuning's ~20.5 kHz at 128 (held 1.1.2 / 1.2.0 / aoTuV / GT3 read 19.5–20).
+`-b` enables bitrate management in 1.0.1 (it accepted `--managed` too).
+
+**Banked, not yet measured:** Winamp 5.53 plug-ins (enc_aacplus = CT aacPlus; AudioCoder host owed); Thomson mp3PRO player (encoder
+inside the exe, `/ENCODE` opens the GUI — owner cells at the 64k demo cap); RealProducer Basic 8 (cook3260.dll — owner GUI cells);
+SoundVQ (IS3 `Data.z`: `encoder.exe` + `SVQbatch.exe` inside — extractor owed); WME 7/7.1 (install vs WME 9 caveat). Identities:
+XING_IDENTITY.md, DIST10_IDENTITY.md, GOGO_IDENTITY.md, WINAMP553_IDENTITY.md, FHG_L3ENC_IDENTITY.md.
+
+## ⭐ REALAUDIO G2 COOK — RealProducer Basic 8 (2000), owner GUI cells (2026-08-22 00:24–00:32, 12 cells OK)
+
+The first RealNetworks emitter in the register. `C:\Program Files (x86)\Real\RealProducer\Codecs\cook3260.dll` 6.0.7.1208 "Cooker G2 Audio
+Codec for RealAudio" (sha256 71e8170989738779…, PE 2000-06-23) + `Common\encn3260.dll` 6.0.7.1185 "Live Anything Encoder Library"; `realprod.exe`
+8.0.0.45 — GUI only (Basic), so the owner encoded the three sweep sources through the Recording Wizard (Record From File → **Single-rate** →
+Audio Format **Stereo Music** → one Target Audience) into `D:\Xing_cells\out\real_cook_g2\<src>_<target>.rm`; the manual-emitter door
+(any container; `.rm` labels are the target's nominal number, `vbr`-style) decoded them with ffmpeg's cook decoder and measured them by the
+same instrument. Target Audience → actual cook mode: **56K Modem = 32.5 kbps @ 22.05 kHz · Dual ISDN = 64.7 kbps @ 44.1 · 256K and 512K
+DSL = the SAME 96.7 kbps @ 44.1 mode** (Basic 8's Stereo Music tops out at 96 k; 512K = duplicate payload, kept as a reproducibility pair).
+
+| label (target) | cook mode | elec | class | pop95 | read |
+|---|---|---|---|---|---|
+| 56 (56K Modem) | 32.5 k @ 22.05 kHz | 22,007 (0.8) | 22,012 (−8.8) | 22,023 (−2.8) | band limit is the 22 kHz sample rate itself (11 kHz content) — below the instrument's wall window; recorded as no wall |
+| 128 (Dual ISDN) | 64.7 k @ 44.1 | **15,935 (22)** | **15,940 (33)** | **15,929 (36)** | **a 15.9 kHz wall** — the fourth 16-kHz-class family of the night |
+| 256 / 512 | 96.7 k @ 44.1 | 19,735 (24) | 20,252 (52) | 20,004 (32) | ~20 kHz, content-dependent |
+
+**Reads.** (1) RealAudio's 64 k cook mode (the late-90s stream-rip class) walls at 15.9 kHz — indistinguishable from Xing/WMA-128/early-LAME
+on the wall alone; the `.rm`/`.ra` container and the cook codec name it. (2) The 96 k mode is ~20 kHz like everyone's 192–320. (3) The 32 k
+mode's 22.05 kHz sampling is its own tell. Identities in the register; RealProducer 13 installer banked (owner folder) — later raac/racp.
+
+## ⭐ GOGO 2.x → 3.13a — the Japanese fork's THREE LAME generations, from the owner's WinGOGO packs (2026-08-22 01:05–01:20, 27 cells OK)
+
+The owner's Drive folder `Gogo-No-Coda` carried the three WinGOGO installers rarewares lists beside the 3.07–3.12 CLIs we had
+measured: `wing224d.exe` (2.24d, Jan 2000, "based on LAME 3.23"), `wing239c.exe` (2.39c, Dec 2000, "LAME 3.29 + parts of 3.5x"),
+`wing313a.exe` (3.13a, May 2004, "LAME 3.88") — plain LZX cabs, 7-Zip opens them; each carries a command-line frontend + the engine
+DLL (frontend 2.23 / 2.36 / 2.36 again; the DLL owns the options too — GOGO 2.x DLLs do not know `-silent`: usage + WAIT FOR A
+KEY, hung two minutes headless; the adapter drops the switch for `gogo_2.*` rungs). 3.13a's pack is GUI-only; the owner supplied
+a `gogo.dll` 3.13 **built 2017-09-09** (PE) — a modern build of the 2004 source (build ≠ version caveat, as lame3.93.1w32).
+Identities + shas: `era_encoders/GOGO_IDENTITY.md`.
+
+| rung | engine | 128k elec / class / pop95 | 192k | 320k | read |
+|---|---|---|---|---|---|
+| gogo_2.24d_2000 | DLL 2.24d (LAME 3.23 lineage) | **16,015 / 15,730 / 16,021** | 19,471 / 22,050 / 20,010 | 21,442 / 22,050 / 20,069 | the 16.0 kHz generation; no fixed lowpass above 128 |
+| gogo_2.39c_2000 | DLL 2.39c (LAME 3.29+3.5x) | **16,015 / 15,730 / 16,021** | 19,471 / 22,050 / 20,010 | 21,442 / 22,050 / 20,069 | **IDENTICAL to 2.24d cell for cell** |
+| gogo_3.13a_2004 | DLL 3.13 (2017 build; LAME 3.88) | **15,267 / 15,235 / 15,262** | 19,224 / 19,450 / 19,132 | 21,442 / 22,050 / 20,074 | the 3.x table = 3.07–3.12 |
+
+**Reads.** (1) The fork tracks LAME's lowpass table by generation, not by its own version number: 16.0 kHz at 128 for the 2.x
+line (1999–2000), 15.3 kHz for the 3.x line (2001–2004) — one number dates a GOGO file to its generation, and 2.24d vs 2.39c is
+NOT separable on the wall (same table through a year of speed work). (2) 3.13a (2017 DLL) reads as its 2003 siblings — the
+lowpass policy survived the rebuild; whether the quantiser did is a fixed-point question not asked tonight. (3) GOGO 2.x at 192k
+on the classical source is open (22,050) where 3.x caps at 19.4 — the 2.x table had no 192 lowpass; another generation tell.
+
+## ⭐⭐ CODING TECHNOLOGIES aacPlus v1.28 (Winamp 5.53 `enc_aacplus.dll`, 2008) — HE-AAC v1 / HE-AAC high / LC-AAC, driven in-process (2026-08-22 08:03–08:10, 18 cells OK)
+
+The Winamp-era HE-AAC encoder (XM/Sirius, Winamp rips, early streaming) — banked 08-21 from the owner's Winamp 5.53 installer, run
+today through our own x86 host `dev_hunt/_encoders/winamp_aacplus/aacplus_host.exe` (Winamp AudioCoder API: `CreateAudio3(nch,
+srate, bps, 'PCM ', &outt, ini)` → C++ object; **vtable slot 0 = Encode** — slot 1 is the deleting destructor (it returned `this`
+and destroyed the coder: that is how the layout was found), slot 3 delay-loads libmp4v2). Dependencies NSCRT.dll (2003) +
+libmp4v2.dll from the same installer sit beside the plug-in; the host sets the plug-in's folder as the DLL search path. Output = ADTS.
+Type/bitrate support MEASURED: `AACP` aacPlus (HE-AAC v1 + SBR) 64–128 kbps only; `AACH` aacPlus High Bitrate 96–256; `AACr` LC-AAC
+64–320 (the MP4 variants `M4A+`/`M4AH`/`M4A ` exist, not cut). Identities: `enc_aacplus.dll` sha 045b1278872293e5 (PE 2008-03-17),
+`nscrt.dll` 8094af5ee310714c, `libmp4v2.dll` 91352c617f4f700d — WINAMP553_IDENTITY.md. Rates honoured (129–135 / 194–196 / 320–321).
+
+| type | 128k elec / class / pop95 | 192k | 320k | read |
+|---|---|---|---|---|
+| AACP (HE-AAC v1, SBR) | **20,338 / 20,435 / 20,080** | (not offered) | (not offered) | SBR reconstructs HF to ~20.1–20.4 kHz at 128 — a HE-AAC 128 reads like a 320 on the wall alone |
+| AACH (HE-AAC high) | 20,080 / 22,050 / 19,918 | 20,085 / 22,050 / 20,010 | (not offered) | ~20 kHz / open — content-limited |
+| AACr (LC-AAC) | **16,005 / 15,913 / 16,010** | 19,445 / 22,050 / 20,004 | 21,447 / 22,050 / 20,074 | **a 16.0 kHz wall at 128** — CT's LC core joins the 16-kHz class (Xing, WMA9-128, early LAME, cook-64, FhG ACM 15.8); open above |
+
+**Reads.** (1) The family's LC core lowpasses at 16.0 kHz at 128k — the fifth 16-kHz-class emitter; at 192/320 it is open. (2) Its
+HE-AAC modes have no wall at all at 128 (SBR fills to ~20 kHz): a 2005 XM/Winamp HE-AAC rip at 64–128 kbps will NOT show a codec
+wall — the SBR seam/structure is the tell, not the edge ([[derrien-mdct-residual-probe]] / the stereo-side family are the axes).
+(3) The plug-in's UI strings: "Note: some channel modes are only available for certain bitrates" — the support map above is what
+that means in practice. Also today: **Xing VBR** (x3enc `-v 50/75/100`, labels nominal 128/192/320, achieved 103–135 / 127–169 /
+152–203 kbps): edges 19,471–19,488 / 19,848–19,854 / 19,127–19,138 Hz at every scale — HF mode stays ON in VBR, no 16-kHz wall,
+content-limited; the 16.0 kHz Xing wall is a CBR-HF-off property, not "Xing".
 
 ## ⭐ iTunes' FRAUNHOFER MP3 ENCODER — THE 3×3 LADDER + ONE VBR CELL, via COM (2026-08-21 20:20–20:31, 12 cells, all OK)
 

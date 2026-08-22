@@ -119,3 +119,24 @@ fhgacm_128×mp3_128 0.804 · fhgacm_320×mp3_320 **0.450** · fhgacm_320×mp3_12
   Fraunhofer probe.
 - Direction: normal (arm BELOW null) on every cell. Not yet run: cross-generation (3.1 arms under the 3.4 probe and vice versa) —
   the attribution question; cheap, same stems.
+
+## v0.3 ADDENDUM (21:55) — the cross-family square closed, and the SQUAD-E tail probed on four axes
+
+Under the Fraunhofer-ACM-3.4 probes (72 stems, 30-s; lawful minima from the clean n=596 pricing: fhgacm_320 0.209, fhgacm_128 −0.219):
+
+arm            | fhgacm_320 (med · below min / below q01) | fhgacm_128 (med · below min / q01)
+---------------|------------------------------------------|------------------------------------
+lossless_ctrl  | 1.39 · 0 / 2                             | 2.45 · 0 / 0
+mp3_128 (LAME) | **0.09 · 50 / 69**  ← generic ~128k pull  | 1.51 · 0 / 1
+mp3_320 (LAME) | 0.89 · 1 / 10       ← family-locked       | 2.46 · 0 / 0
+fhg31_320      | 0.72 · 2 / 13       ← generation-locked   | 2.36 · 0 / 1
+fhgacm_320     | 0.08 · 69 / 72      (self)                | 2.44 · 0 / 0
+fhgacm_128     | 0.06 · 44 / 68                           | 0.37 · 0 / 8 (self)
+
+- **Matched-rate family-locking holds both ways now** (LAME probes blind to FhG arms; the ACM probe blind to LAME-320 and FhG-3.1-320).
+- **The cross-rate generic pull is real and large**: any ~128k MP3 falls under the ACM-320 probe. An ACM-320 leg therefore needs the
+  `mp3_128` probe as its disambiguator (LAME-128 at its own fixed point ~0.2 there; ACM-320 reads ~4.3).
+- **SQUAD-E tail (12 files), four probes**: mp3_128 1.8–7.3 · mp3_320 3.1–4.9 · fhgacm_128 1.8–3.7 · fhgacm_320 0.015–0.126 —
+  the ACM-320-arm pattern, no other. Named family: Fraunhofer ACM-generation 320 kbps (WMP-era).
+- Direction: normal on every cell. Still owed: wild replication on the E:\ headerless-CBR class (calibration only); a 60-s pricing if
+  the leg is ever wired (these are 30-s numbers).
