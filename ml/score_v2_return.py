@@ -44,8 +44,55 @@ dead_max_run vs our stereo_run / seam.
 
 Results appended below after the run.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-23, key as frozen; documentary adjudication after)
+
+    J1  FAILED on the frozen key: 3 of 59 genuine convicted (bound 2).
+        HELD after adjudication: one of the three (0197) is a taper-
+        documented MP2 chain — his conviction was right and the key was
+        wrong; one (0469) is an H1n recording of unstated format, both
+        labs' side-channel instruments reading it lossy — unverifiable;
+        the third (0306) is an analog FM line-in capture and stays
+        genuine. HIS false convictions on 56 verified genuine: 1.
+    J2  HELD    33 of his 41 clears are genuine; the 8 others are 6 aac_ff320
+                and 2 mp3_V0 at full-band cutoffs (the two arms that leave
+                no wall).
+    J3  HELD    his best phase lands on 0 for 150/177 of our MP3 arms
+                (85 %) and 2/413 of everything else (0 %). His phase
+                search, validated on a construction he could not see.
+    J4  HELD    dead_max_run's domain, read off the key: AUC 0.92 on
+                mp3_192 / aac_ff128 / aacmf_256, 0.91 on mp3_320 / mp3_V0 /
+                vorbis_q8, 0.86 on opus_256, 0.75 / 0.70 on aac_ff256 /
+                aac_ff320 (genuine median 10, transcode medians 30-265).
+                It reads every codec family including Opus, and weakens
+                only where ffmpeg's AAC leaves the side channel alone at
+                high rate — the mirror of our R15, measured at last.
+
+    OUR ENGINE (v1.13.0, deep) on the same key: 2 genuine FAKE_CERTAIN on
+    the frozen key — 0362 (recipe2004-08-21.sbd: SBD, named taper, no
+    lineage, 17.5 kHz wall: Rule 1 + CNN on the same feature = a TRUE false
+    conviction, our first since v1.10) and 0386 (rcpm2000-05-05: 'unknown >
+    CDR', his dead_max_run 334 and our two witnesses agree: unverifiable).
+    After adjudication: 1 false conviction each, on 56 verified genuine —
+    his on an FM capture, ours on a walled soundboard. Genuine signaled:
+    his 23/56, ours 6/56. Transcode convictions: his 104 (aacmf 40, opus 24,
+    mp3_320 20, mp3_192 14, 2 each aac_ff256/320/vorbis, 0 aac_ff128/V0),
+    ours 223 (vorbis 40, mp3_192 33, aac_ff256 33, aac_ff128 32, aacmf 25,
+    aac_ff320 21, mp3_320 17, opus 13, V0 9). He convicts 25 files we clear
+    (mp3_320, opus, aacmf — HF_SEAM / DEAD_STRUCTURE routes); we convict 0
+    he clears.
+
+    MECHANISM, first look: his rolloff_hz and our cutoff_hz are DIFFERENT
+    OBSERVABLES (median 12.5 kHz apart, never within a cell) — his is a
+    spectral-rolloff statistic, ours the wall; the adjudication column for
+    the wall is his telemetry.hf_cutoff / brickwall, to be paired next. His
+    idem R_mp3_320 at phase 0 vs ours: Pearson 0.72 on 580 files, same
+    family through two routes.
+
+    THE KEY'S OWN LESSON: the v2 genuine tier carried one documented MP2
+    chain and two unverifiable provenances among 59 — the fetcher selected
+    on licence and collection, never on the taper's source line. The v3
+    freezer reads source/lineage for codec names (MP2, MP3, MD, MZ-, ATRAC,
+    AAC) before a file can be labelled genuine.
 """
 
 from __future__ import annotations
@@ -63,6 +110,22 @@ OURS_IDEM = Path("ml/exchange/fd-exchange-v2_idem_flacdetective.csv")
 KEY = Path(r"C:\Users\loutr\fd-exchange-v2-2026-08-LABELS.json")
 ARMS = ["genuine", "mp3_192", "mp3_320", "mp3_V0", "aac_ff128", "aac_ff256", "aac_ff320", "aacmf_256", "opus_256", "vorbis_q8"]
 MP3_ARMS = {"mp3_192", "mp3_320", "mp3_V0"}
+
+# Documentary adjudication of the "genuine" rows either engine convicted,
+# read off the archive.org item metadata on 2026-08-23 (the MiniDisc method;
+# the engine's verdict never becomes the label). Applied AFTER the registered
+# J-series is scored on the key as frozen.
+ADJUDICATIONS = {
+    "fd-exchange-v2-2026-08-0197": ("fake", "uploader_admission",
+        "TenD2005-07-16.flac16: taper's source line 'Sony PC100 > AVI > MP2 > WAV > FLAC' - MPEG-1 Layer II, lossy"),
+    "fd-exchange-v2-2026-08-0386": ("unverifiable", "lineage_unknown",
+        "rcpm2000-05-05.flac16: 'source: unknown > CDR', taper unknown - no lossless provenance to stand on"),
+    "fd-exchange-v2-2026-08-0469": ("unverifiable", "device_ambiguous",
+        "SweatyAlreadyStringBand2026-08-16: 'Zoom H1n' records WAV or MP3, format unstated"),
+    # 0306 (dknowles2008-07-13.fm: analog FM line-in capture) and 0362
+    # (recipe2004-08-21.sbd: SBD, named taper) stay genuine - no documented
+    # codec; each is one engine's true false conviction.
+}
 
 
 def load(path: Path) -> dict:
@@ -159,6 +222,21 @@ def main() -> int:
     if pairs:
         a_, b_ = zip(*pairs)
         print(f"  his idem R_mp3_320 phase0 vs ours (same family, his route vs ffmpeg): Pearson {np.corrcoef(a_, b_)[0, 1]:.2f} on {len(pairs)} files")
+    # ---- After documentary adjudication --------------------------------------
+    print("\nAFTER ADJUDICATION (genuine rows re-read from archive.org metadata):")
+    corrected = dict(label)
+    for fid, (lab, basis, note) in ADJUDICATIONS.items():
+        corrected[fid + ".flac"] = lab
+        print(f"  {fid[-4:]} -> {lab:12} [{basis}] {note[:90]}")
+    gen_files = [f for f in his if corrected[f] == "genuine"]
+    his_fc = [f for f in gen_files if his[f]["verdict"] == "convicted"]
+    our_fc = [f for f in gen_files if ours[f]["verdict"] == "FAKE_CERTAIN"]
+    print(f"  verified genuine: {len(gen_files)}")
+    print(f"  HIS false convictions: {len(his_fc)}/{len(gen_files)} {[f[-9:-5] for f in his_fc]}")
+    print(f"  OUR false convictions: {len(our_fc)}/{len(gen_files)} {[f[-9:-5] for f in our_fc]}")
+    print(f"  HIS genuine signaled (flagged+convicted): {sum(his[f]['verdict'] != 'clear' for f in gen_files)}/{len(gen_files)}")
+    print(f"  OUR genuine signaled (WARNING+): {sum(ours[f]['verdict'] != 'AUTHENTIC' for f in gen_files)}/{len(gen_files)}")
+
     his_conv_our_auth = [f for f in his if his[f]["verdict"] == "convicted" and ours[f]["verdict"] == "AUTHENTIC"]
     our_conv_his_clear = [f for f in his if ours[f]["verdict"] == "FAKE_CERTAIN" and his[f]["verdict"] == "clear"]
     print(f"  he convicts / we clear: {len(his_conv_our_auth)} files; we convict / he clears: {len(our_conv_his_clear)} files")
