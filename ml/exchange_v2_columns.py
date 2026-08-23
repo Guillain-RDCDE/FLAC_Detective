@@ -46,7 +46,13 @@ import soundfile as sf
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-AUDIO = Path("Temp/fd-exchange-v2-2026-08/audio")
+# The frozen set OFF Dropbox. The Dropbox transport copy (Temp/) is "files on
+# demand": every file there became a reparse-point placeholder after upload,
+# and reads through placeholders returned wrong bytes on two files (0119,
+# 0557 — same size, reference decoder aborts, hash off the manifest) while
+# the server-side copy Provir downloaded verified 590/590. Measurements read
+# the original; the transport copy is for transport.
+AUDIO = Path(r"C:\Users\loutr\fd-exchange-v2-2026-08\audio")
 EXCERPT_SEC = 60.0
 
 
