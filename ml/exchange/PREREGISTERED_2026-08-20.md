@@ -339,3 +339,16 @@ not at phase 0. They stand as measured — the appended record is never
 rewritten — but they must not be quoted as the wild idem rate without this
 caveat. The phase-corrected re-read is registered and running:
 ml/idem_phase_probe.py (PS1-PS4), results appended there.
+
+## ADDENDUM 2 — 2026-08-23 — W4 re-read at the right phase AND the right generation
+
+Phase alone recovered nothing (ml/idem_phase_probe.py: 0/34 below the re-cut
+bar at the best of all 576 phases under the 3.100 probe). Generation did:
+under a lame3.90.3-paired probe, his period binary, 20 of the 34 read AT
+that probe's fixed point (-0.55..0.82 against a genuine minimum of 1.21),
+23/34 below some era probe's bar, the discs' encoder generation reading as
+LAME 3.90.x (ml/era_battery.py, EB3/EB4). W4's "0/34" is therefore a true
+statement about a probe two steps from the population, and a false one about
+the population. The conclusion drawn from it in this file — that the
+mastering chain destroyed the fixed point — is withdrawn as of this addendum;
+the measurement itself stands as measured.

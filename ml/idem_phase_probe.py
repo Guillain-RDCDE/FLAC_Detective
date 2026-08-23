@@ -111,6 +111,15 @@ grid-lock experiment, reproduced on our instrument to the sample)
 The instrument's one-sentence summary for the exchange: the phase search
 repairs the ARM, retires the objection on the WILD, and the gap between
 those two sentences is the honest state of the lab-to-wild question.
+
+AMENDMENT 2026-08-23 — PS3's residual axis (a), generation, was spent the
+next day and it was the whole answer. Under a lame3.90.3-paired probe
+(ml/era_battery.py, EB3/EB4) 20 of the same 34 wilds read AT the fixed point
+(-0.55..0.82 against that probe's genuine minimum 1.21). "The mastering
+chain destroyed the fixed point" was wrong: the 3.100-via-ffmpeg probe was
+two steps from the discs' encoder — generation and route — and the wilds
+sat at their own encoder's fixed point all along. PS3's 0/34 stands as
+measured for the probe it was measured with; its interpretation does not.
 """
 
 from __future__ import annotations

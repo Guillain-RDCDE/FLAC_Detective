@@ -61,8 +61,63 @@ PREDICTIONS, registered before measurement — results appended below
 
 Results appended below after the run.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-23; 434 reads, ml/era_battery_results.csv local — personal
+library titles in the genuine/arm rows)
+
+    probe        lawful bar  arms>bar  arms<bar  wild<bar
+    lame3.90.3         1.21      8/8       0/8      20/34
+    lame3.92           8.99      4/8       4/8       0/34
+    lame3.93.1         9.03      8/8       0/8       0/34
+    lame3.96.1         4.97      7/8       1/8       0/34
+    lame3.97           1.74      6/8       2/8       4/34
+    lame3.98.4         0.85      7/8       0/8       0/34
+    lame3.100          1.02      4/8       4/8       0/34
+
+    EB1  MEASURED  bars as above; R is probe-relative exactly as the
+                   E-series said (3.92/3.93.1 lawful minima near 9 dB,
+                   3.98.4 at 0.85) — no raw R was compared across probes.
+    EB2  FAILED both halves. Era probes are NOT uniformly blind to the
+                   Lavc-3.100 arms: 3.92 reads 4/8 below its bar, 3.97 2/8,
+                   3.96.1 1/8 (3.90.3, 3.93.1, 3.98.4 are blind as
+                   predicted). And lame.exe-3.100 sees only 4/8 of the
+                   same-generation arms below its bar (>= 6 registered):
+                   the route alone moves half of them out of reach. The
+                   version/route lock is real but graded, not binary —
+                   his "generation + adjacent only" with soft edges.
+    EB3  HELD — and it is the answer to W4. 23/34 wilds read below some
+                   era probe's lawful bar at the best canonical phase;
+                   under lame3.90.3 alone, 20/34, clustered AT the fixed
+                   point (wild best reads: -0.55 -0.51 -0.30 ... 0.82 —
+                   twenty files between -0.55 and 0.82 where the probe's
+                   genuine minimum is 1.21, median 2.86, and the modern
+                   lab arms read 1.63..5.92 like genuine). The same 34
+                   files read 0/34 under the 3.100 probe at the best of
+                   all 576 phases (PS3). The fixed point was never
+                   destroyed by the mastering chain: the probe was two
+                   steps away — generation AND route — and the wilds sat
+                   at THEIR encoder's fixed point the whole time.
+    EB4  HELD      20 of 23 recovered wilds best on lame3.90.3, 3 on
+                   lame3.97 (100 % on the top two rungs): the discs'
+                   encoder generation is LAME 3.90.x — the 2002-2004
+                   "--alt-preset" era build, read off the audio.
+
+    Phase note: the wilds' best canonical phases under 3.90.3 split 529 x14
+    / 0 x10 / 47 x10; the 14 at 529 are untrimmed decodes by his rule. The
+    full 576 search ran under 3.92 only (as registered); the 14 wilds still
+    above 3.90.3's bar (1.09..5.12) were not searched under 3.90.3 and are
+    the obvious next registration. The cross-probe phase-identity check
+    (0/34) compares canonical-phase argmins between probes whose reads
+    differ by near-ties and says nothing about his one-grid claim; a real
+    test needs the full search under two probes on the same file.
+
+WHAT THIS REVERSES. The L-series, the remaster arm and PS3 all read the wild
+idem through a 3.100-via-ffmpeg probe and concluded the mastering chain had
+moved the wilds off the fixed point. It had not. The remaster arm's layer 1
+("limiter -> fixed point") remains a real effect on OUR arm (PS4 measured it
+at the right phase: 1.99 median vs arms ~1.0), but it was never the
+explanation of W4. W4's explanation, now measured: version lock + route lock,
+his finding, whole. Dated amendments go where the old sentences live
+(ml/idem_phase_probe.py, ml/remaster_arm.py, the W preregistration).
 """
 
 from __future__ import annotations
@@ -224,9 +279,79 @@ def selftest(ffmpeg: str) -> int:
     return 0 if ok else 1
 
 
+def evaluate(out: Path) -> int:
+    """EB1-EB4 from the results CSV; every bar is the probe's own lawful minimum."""
+    from collections import Counter, defaultdict
+
+    rows = list(csv.DictReader(open(out, newline="", encoding="utf-8")))
+    reads = defaultdict(dict)  # (pop, path) -> probe -> R_best
+    phases = defaultdict(dict)
+    for r in rows:
+        if r["R_best"] != "nan":
+            reads[(r["population"], r["path"])][r["probe"]] = float(r["R_best"])
+            phases[(r["population"], r["path"])][r["probe"]] = r["best_phase"]
+    probes = list(PROBES)
+    bars = {}
+    print(f"{'probe':12}{'lawful bar':>11}{'arms>bar':>10}{'arms<bar':>10}{'wild<bar':>10}")
+    wild_below = defaultdict(set)
+    for p in probes:
+        gen = [v[p] for (pop, _), v in reads.items() if pop == "genuine_bar" and p in v]
+        if not gen:
+            continue
+        bar = min(gen)
+        bars[p] = bar
+        arms = [v[p] for (pop, _), v in reads.items() if pop == "arms_control" and p in v]
+        wild = {path: v[p] for (pop, path), v in reads.items() if pop == "wild_owner" and p in v}
+        above = sum(a > bar for a in arms)
+        below = sum(a < bar for a in arms)
+        wb = {path for path, v in wild.items() if v < bar}
+        wild_below[p] = wb
+        print(f"{p:12}{bar:>11.2f}{above:>7}/{len(arms):<2}{below:>7}/{len(arms):<2}{len(wb):>7}/{len(wild):<2}")
+
+    era = [p for p in probes if p != "lame3.100" and p in bars]
+    eb2_era = all(
+        sum(v[p] > bars[p] for (pop, _), v in reads.items() if pop == "arms_control" and p in v) >= 7
+        for p in era
+    )
+    arms100 = [v["lame3.100"] for (pop, _), v in reads.items() if pop == "arms_control" and "lame3.100" in v]
+    eb2_100 = sum(a < bars.get("lame3.100", float("inf")) for a in arms100) >= 6
+    print(f"\nEB2 era probes blind to Lavc-3.100 arms (>=7/8 above bar, every era rung): {'HELD' if eb2_era else 'FAILED'}")
+    print(f"EB2 lame.exe-3.100 probe sees them (>=6/8 below its bar): {'HELD' if eb2_100 else 'FAILED'}")
+
+    recovered = set().union(*wild_below.values()) if wild_below else set()
+    print(f"\nEB3 wilds below SOME probe's bar at best phase: {len(recovered)}/34 (bar >= 2): "
+          f"{'HELD' if len(recovered) >= 2 else 'FAILED'}")
+    for path in sorted(recovered):
+        v = reads[("wild_owner", path)]
+        best_p = min((p for p in v if p in bars), key=lambda p: v[p] - bars[p])
+        print(f"   {path[:44]:44} best rung {best_p:11} R={v[best_p]:.2f} (bar {bars[best_p]:.2f})")
+    if len(recovered) >= 2:
+        rungs = Counter()
+        for path in recovered:
+            v = reads[("wild_owner", path)]
+            rungs[min((p for p in v if p in bars), key=lambda p: v[p] - bars[p])] += 1
+        top = rungs.most_common(2)
+        share = sum(c for _, c in top) / len(recovered)
+        print(f"EB4 rung clustering (top two rungs {top} = {share:.0%}, bar >= 60 %): "
+              f"{'HELD' if share >= 0.6 else 'FAILED'}")
+
+    # His one-phase claim, checked in passing: does the best canonical phase
+    # agree across probes on the same file?
+    agree = 0
+    n = 0
+    for key, ph in phases.items():
+        if key[0] != "wild_owner" or len(ph) < 2:
+            continue
+        n += 1
+        agree += len(set(ph.values())) == 1
+    print(f"\nbest canonical phase identical across all probes on the same wild file: {agree}/{n}")
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--out", default="")
     parser.add_argument("--probes", nargs="*", default=list(PROBES))
     parser.add_argument("--populations", nargs="*", default=list(POPULATIONS))
@@ -237,6 +362,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.out:
         parser.error("--out requis")
     out = Path(args.out)
+    if args.evaluate:
+        return evaluate(out)
     exes = {name: _find(PROBES[name]) for name in args.probes}
 
     done = set()

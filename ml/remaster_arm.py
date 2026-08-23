@@ -102,6 +102,15 @@ all 576 phases (0/34 below the re-cut lawful bar of 1.18). The limiter/level
 layer still moves files off the fixed point — but by less than this table's
 phase-0 numbers claim.
 
+AMENDMENT 2026-08-23 — layer 1 was never W4's explanation. The era-paired
+battery (ml/era_battery.py) read 20 of the 34 wilds AT the fixed point of a
+lame3.90.3 probe. The wild's fixed point was intact; the 3.100-via-ffmpeg
+probe this arm was priced against was two steps (generation, route) from the
+discs' encoder. Layer 1 stays a measured effect on THIS arm (PS4, best-phase
+median 1.99 vs direct arms ~1.0) and stops being a claim about the wild.
+Layer 2 (the decorrelated noise floor killing the side/temporal witnesses)
+is untouched by this: those families do not read a fixed point.
+
 Usage::
 
     python ml/remaster_arm.py --build     # construct the re-mastered arm
