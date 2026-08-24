@@ -39,8 +39,45 @@ PREDICTIONS, registered before these columns are read against the key
 
 Results appended below after the run.
 --------------------------------------------------------------------------------
-RESULTS
-(not yet run)
+RESULTS (2026-08-24)
+
+    M1  HELD at the top of the band: 45/59 = 76 % of our Lavc mp3_320 arms
+        read below his LAME-320 probe's lawful bar (1.053; genuine median
+        2.366). His LAME-320 instrument reaches the Lavc route far better
+        than our lame.exe-3.100 rung did (4/8) — the route axis is
+        instrument-dependent, not a wall. AND the probe is RATE-locked:
+        mp3_192 2/59, mp3_V0 2/59 under the same bar — a 320-paired probe
+        reads 320 encodes, full stop. His LAME-128 probe reads ~nothing of
+        ours (max 1/59 anywhere — even mp3_192 sits between its rate and
+        320's).
+    M2  HELD  worst non-MP3 arm under his LAME-320 bar: aac_ff128 at 5 %.
+        The family lock, clean, on 354 files he did not build.
+        AND the ACM-320 columns measure his own disambiguator caveat
+        wider than he stated it: his ACM probe pulls our mp3_192 (34/59),
+        mp3_V0 (15/59) and even aac_ff128 (18/59) toward its fixed point —
+        the pull covers low-rate AAC, not only "~128k MP3 of any make".
+    M3  (exploratory) The phase search adds ~nothing on THIS set (median
+        gain 0.000-0.05 per label) — as construction predicts: our MP3
+        arms are at phase 0 and the rest have no MP3 grid; the search's
+        value lives in the wild, not here. |bestphase - full_bestphase|
+        medians are large on genuine (2.6) and aac_ff256/320 (2.1): the
+        two columns are different statistics, and interpreting them needs
+        his README (requested, not yet received).
+    M4  (exploratory) AAC_LATTICE's domain, read off the key: aacmf_256
+        51/59 (86 %), aac_ff320 20/59, aac_ff256 16/59, aac_ff128 6/59,
+        ~0 elsewhere, 1/56 genuine. Strongest exactly where his dead run
+        is weakest (high-rate ffmpeg AAC read at 0.70-0.75 by
+        dead_max_run) — his families complement each other the way ours
+        do, measured on one key.
+    M5  (exploratory) His correlation-based stereo axes read NOTHING on
+        this set (hf_stereo_corr / mid_stereo_corr AUC 0.35-0.50 vs our
+        stereo_run 0.70-0.97): his working side-channel instrument is the
+        dead run, not the correlations. MS_CONDITIONAL's domain, finally
+        read: AUC 0.86-0.97 on mp3_192 and the whole AAC family, 0.5 on
+        mp3_320/opus/vorbis. lsb_entropy / bit_effective: flat (0.48-0.52)
+        on an all-16-bit set, as expected for hi-res axes.
+    Bonus: best phases on the 413 non-MP3 files scatter (top count 6) —
+    pure draws, the negative control of J3's 150/177.
 """
 
 from __future__ import annotations
