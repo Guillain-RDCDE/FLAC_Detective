@@ -343,3 +343,35 @@ The l3enc registration keys travelled in their own zip, separate from the
 shareware packages whose licence forbids altering or omitting files - the
 separation is the point, and it is preserved: the keys stay off-repo with the
 binaries and are not archived here.
+
+## The typed-absence rule — registered 2026-08-29
+
+Jamie reported a guard reading, in effect, `(edge_std or 999) < 160`: a measured
+standard deviation of exactly **0.0** is falsy, becomes the sentinel, and the
+file reads as outside the stability window on the coercion rather than on the
+measurement. A zero standard deviation is a legitimate reading — every window
+agreed — and it is the strongest evidence for an edge, not the weakest.
+
+The guard is not in this tree. `opus_edge` appears nowhere here except inside
+the archived copy of his own return CSV, where it is his telemetry; and an AST
+audit of all 148 modules under `src/` and `ml/` finds no measurement tested for
+truth or coerced with `or` (`ml/typed_absence_audit.py`, tripwire verified
+against its control first: 4 of 4 caught, 0 false positives).
+
+The rule is registered anyway, because the species is ours as much as his and
+this is its **third** appearance across the two engines in one week:
+
+* his `width` returning a magic `1500.0` when no 30 dB drop is found — a
+  sentinel living in a numeric field, indistinguishable from a measurement to
+  any caller (his disclosure, 2026-08-20);
+* our `detect_cutoff` returning Nyquist for three different conditions, which is
+  the whole reason `EdgeReading` exists;
+* his `edge_std` coercion above.
+
+> **An absence is typed. It is never a value, and never a falsy value.** Test
+> `is None` (or `math.isnan`). Never test a measurement for truth, and never
+> coerce one with `or` — 0.0, 0 and "" are readings.
+
+Asserting that is cheap, so it is enforced instead: `ml/typed_absence_audit.py`
+exits non-zero on any occurrence and carries its own control block, and it runs
+as a release check.

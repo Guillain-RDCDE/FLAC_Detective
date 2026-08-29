@@ -491,6 +491,29 @@ class EdgeReading(NamedTuple):
     The observation is withdrawn as an observation about files (it described the
     anchor), the 7.5-25 % bound is moot, and nothing goes to the adjudication
     ledger.
+
+    THE TYPED-ABSENCE RULE, registered 2026-08-29 — the species, third instance
+    ---------------------------------------------------------------------------
+    This class exists because ``detect_cutoff`` signals "nothing found" by
+    returning Nyquist: an absence wearing the clothes of a measurement. Provir's
+    ``width`` does the same with ``1500.0``. On 2026-08-29 he reported the third
+    instance, on his side and in the other direction: a guard reading, in effect,
+    ``(edge_std or 999) < 160``, where a measured std of exactly **0.0** is falsy,
+    becomes the sentinel, and the file leaves the stability window on the
+    coercion rather than on the measurement. A zero std is a legitimate reading —
+    every window agreed — and it is the strongest evidence for an edge, not the
+    weakest.
+
+        An absence is TYPED. It is never a value, and never a falsy value.
+        Test ``is None`` (or ``math.isnan``). Never test a measurement for
+        truth, and never coerce one with ``or``: 0.0, 0 and "" are readings.
+
+    Enforced rather than asserted: ``ml/typed_absence_audit.py`` walks the AST of
+    every module under ``src/`` and ``ml/`` and exits non-zero on either shape.
+    It is also why ``found`` is a separate bool here and ``width_hz`` is ``nan``
+    rather than a magic number — a caller that ignores ``found`` gets a ``nan``,
+    which poisons a median loudly, instead of a plausible float that poisons it
+    silently.
     """
 
     cutoff_hz: float
