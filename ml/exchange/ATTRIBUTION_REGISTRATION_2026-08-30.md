@@ -61,3 +61,68 @@ on a wild file.
 
 Results are appended below, dated after the fact. Nothing above may be edited
 once the first number exists.
+
+---
+
+# RESULTS — appended 2026-08-30, criteria unedited above
+
+**All five predictions failed.** 72 files, 360 probe reads,
+`ml/attribution_probe.csv`.
+
+| # | bound | measured | |
+|---|---|---|---|
+| A1 self-pairing on mp3_320 | ≥ 9/12 | **7/12** | failed |
+| A2 all families | ≥ 60 % | **37 %** (22/60, chance 20 %) | failed |
+| A3 codec not encoder | ≤ 20 pts apart | aac_ff **67 %** vs aacmf **8 %**, 58 pts | failed |
+| A4 masters abstain | ≥ 8/12 tight | **5/12** | failed |
+| A5 no accidental Layer II | ≤ 2/60 | **22/60** | failed |
+
+A5 explains much of the rest: the twolame probe won 22 of 60 lossy files and 6
+of 12 genuine ones. It is not recognising Layer II; it is a **sink**. Its R is
+systematically lower than the others' because its own round-trip is less
+idempotent, and the design compared raw R across probes as though one scale fit
+all five. That is the defect, and it is mine: **R is not comparable across
+families without calibration.**
+
+## Post-hoc, and labelled as post-hoc — the idea survives, narrowed
+
+Not registered, computed after the failure, and therefore evidence of a
+hypothesis worth testing rather than a result. Each probe's R is centred on its
+own median over the twelve genuine files and scaled by its own spread there, and
+the file is attributed to the lowest z:
+
+    probe median R on genuine:  mp3 3.03   aac 2.03   vorbis 1.94   opus 8.96   mp2 1.89
+    probe spread on genuine:    mp3 0.74   aac 4.19   vorbis 1.12   opus 1.72   mp2 1.70
+
+    attributed correctly: 28/60 = 47 % against 20 % chance
+
+and it is not spread evenly, which is the whole finding:
+
+    mp3_320    12/12   perfect
+    opus_256   12/12   perfect
+    aac_ff256   2/12
+    vorbis_q8   2/12
+    aacmf_256   0/12
+
+**Self-pairing is real for MP3 and for Opus and absent for AAC and Vorbis** —
+and not for want of an encoder match: the aac_ff256 arm was made by the very
+encoder its probe uses, same bitrate, and still reads at chance. MP3 and Opus
+converge to a fixed point that a re-encode can find; ffmpeg's AAC and libvorbis,
+on this instrument, do not.
+
+## What does NOT change, and it is the important half
+
+**A4 failed, and A4 was the safety criterion.** Genuine masters are attributed
+confidently — post-hoc they scatter 2/0/4/4/2 across the five families rather
+than abstaining. So the instrument invents provenance on a file that has none,
+and **no number from it may be put on a wild file, in either direction.** That
+bar was registered before the run precisely so it could not be argued away
+afterwards.
+
+## What the next layer needs
+
+Not more probes: a calibrated per-probe null, measured on genuine material, and
+an abstention rule with a real bar under it — "no family unless the best z is
+below X and the runner-up is above Y". Both are one experiment, and it gets its
+own registration. Provir's encoder collection (LAME by era, Fraunhofer ACM,
+l3enc) is the layer after that, and nothing from it has been executed here yet.

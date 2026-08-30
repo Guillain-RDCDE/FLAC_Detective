@@ -65,3 +65,74 @@ re-encoded from the same source) and the whole run is void regardless of G1-G4.
 
 Results are appended below in a section dated after the fact. Nothing above may
 be edited once the first number exists.
+
+---
+
+# RESULTS — appended 2026-08-30, criteria unedited above
+
+216 measurements, 24 sources, `ml/generation_probe.csv`.
+
+| # | bound | measured | |
+|---|---|---|---|
+| G1 monotone per file, ladder L | ≥ 18/24 | **11/24** | failed |
+| G2 gen 1 vs gen 2 | Δ ≥ 0.15 **and** AUC ≥ 0.75 | Δ **+0.391**, AUC **0.644** | failed on the AUC half |
+| G3 the master stays out | 0 masters below the gen-1 median | median 3.067 vs 0.877, **0 below** | **held** |
+| G4 cross-codec, ladder A | AUC ≥ 0.65 | **0.493** | failed |
+| G5 the phase moves past gen 1 | < 50 % at phase 0 | **100 %** | failed — see below |
+
+    median R by generation
+      master              3.067
+      L (libmp3lame 320)  gen1 0.877   gen2 0.486   gen3 0.311   gen4 0.227
+      A (ffmpeg aac 256)  gen1 3.269   gen2 3.305   gen3 3.346   gen4 3.337
+
+## G5 was mis-specified, and the ladder is sound
+
+G5 said that if generations past the first still read best at phase 0, the
+ladder was built wrong and the run was void. **The ladder is right and the
+criterion was wrong.** A clean re-encode chain never leaves phase 0: each decode
+is delay-trimmed back to the original start, so the grid does not drift. Phase
+drift comes from *editing* — a wild transcode that was cropped or re-assembled —
+which is exactly the population Provir's grid lock was about, and it is not this
+ladder.
+
+The internal check that settles it: if the ladder were not a chain (each
+generation re-encoded from the same master instead of from its predecessor), R
+would be **constant** across generations. It falls by a factor of four,
+0.877 → 0.227, monotonically in the median. The ladder is a chain.
+
+So G1-G4 stand as measured, and G5 is withdrawn as a criterion. It is recorded
+here rather than deleted, because a registration that quietly loses the
+prediction it failed is worth nothing.
+
+## What the numbers say, stated as narrowly as they deserve
+
+Post-hoc separations, labelled post-hoc, from the same run:
+
+    master vs gen1   AUC 0.986      detection, already known
+    gen1 vs gen2     AUC 0.644      one generation apart: NOT readable
+    gen1 vs gen3     AUC 0.807
+    gen1 vs gen4     AUC 0.835      two or more apart: readable
+    gen2 vs gen3     AUC 0.720
+    gen3 vs gen4     AUC 0.609
+
+**Generation counting does not work at one-generation resolution and does work
+at two or more**, on MP3, with this probe. Per file the monotonicity is noisy
+(11 of 24 strict, 15 of 24 within 0.05); in the population the median converges
+cleanly at every step. That is a real effect measured against a bound it did not
+clear, which is the honest way to describe it: the fixed point converges, and
+the convergence is visible in a population and not reliable in one file.
+
+**Ladder A is flat.** ffmpeg's AAC chain reads 3.27, 3.31, 3.35, 3.34 — no
+convergence at all under an MP3 probe, AUC 0.493, chance. Read beside the
+attribution run of the same day, which found self-pairing perfect for MP3 and
+Opus and absent for AAC and Vorbis, the same boundary appears twice in one day
+from two directions: **some codecs have a re-encode fixed point that another
+pass can find, and ffmpeg's AAC does not.**
+
+## What would be needed to make counting usable
+
+A per-file read, not a population median: R at the best phase over the full 576
+search rather than the three canonical phases, and a second instrument beside it
+(the residual floor already discriminates generations in principle). Both are
+one experiment and it gets its own registration. Nothing here may be quoted as
+"the engine counts generations" — on one file, at one generation, it does not.
