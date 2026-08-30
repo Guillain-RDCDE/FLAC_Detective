@@ -15,9 +15,7 @@ from flac_detective.__version__ import (
     __url__,
 )
 from flac_detective.__version__ import __version__ as v
-from flac_detective.__version__ import (
-    __version_info__,
-)
+from flac_detective.__version__ import __version_info__
 from flac_detective.colors import Colors, colorize
 from flac_detective.utils import LOGO, find_flac_files, find_non_flac_audio_files
 

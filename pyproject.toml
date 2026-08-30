@@ -51,14 +51,22 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
+    # The gating linters are PINNED, not floated. On 2026-08-30 the CI had been
+    # red for two days on a file nobody had touched: `pip install -e ".[dev]"`
+    # picked up isort 9.0.1 where the last green run had 8.0.1, and 9 collapses a
+    # single-name parenthesised import that 8 left alone. A linter installed by
+    # range is not a gate, it is a weather report - and the local run passed only
+    # because isort could not read the files at all under the Windows console
+    # encoding (run the gates with PYTHONUTF8=1). Raising a pin is a deliberate
+    # change, with its cleanup in the same commit.
+    "black==26.5.1",
+    "isort==9.0.1",
+    "flake8==7.3.0",
     "flake8-docstrings>=1.7.0",
     "flake8-bugbear>=23.0.0",
     "flake8-comprehensions>=3.14.0",
     # "flake8-simplify>=0.21.0",  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
-    "mypy>=1.0.0",
+    "mypy==2.3.1",
     "pylint>=2.17.0",
     "pre-commit>=3.5.0",
     "bandit>=1.7.0",
