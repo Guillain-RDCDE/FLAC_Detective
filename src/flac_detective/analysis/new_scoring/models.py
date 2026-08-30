@@ -35,7 +35,10 @@ class ScoringContext:
     audio_meta: AudioMetadata
     bitrate_metrics: BitrateMetrics
     cutoff_freq: float
-    cutoff_std: float = 0.0
+    # NaN, not 0.0: a caller that does not supply the wander has not measured
+    # it, and 0.0 is a reading ("three windows in one 250 Hz cell"). See
+    # spectrum.cutoff_wander.
+    cutoff_std: float = float("nan")
     energy_ratio: float = 0.0
     # Residual spectral floor above the ~20.5 kHz wall (NaN = unknown / not in the
     # near-Nyquist 320 kbps zone). Drives Rule 1's wall-hardness gate.

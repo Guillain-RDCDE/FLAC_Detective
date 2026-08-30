@@ -48,6 +48,7 @@ import math
 from typing import List, Optional, Tuple
 
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
+from ..constants import CUTOFF_VARIANCE_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
@@ -135,8 +136,14 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
                 logger.info(f"RULE 1: Cutoff 20 kHz but HF energy = {energy_ratio:.6f}")
                 logger.info("RULE 1: Likely FFT rounding, not MP3 320k - SKIP")
                 return (0, []), None
-            if cutoff_std == 0.0:
-                logger.info("RULE 1: Cutoff exactement 20000 Hz avec variance 0")
+            # "Not known to vary" — a measured 0.0 OR an unknown wander (NaN: a
+            # single window, so it was never computed). Both are ambiguous here
+            # and both must take the safe exit. Written explicitly because when
+            # cutoff_std stopped being 0.0 for short files in v1.13.1, a bare
+            # `== 0.0` would have quietly dropped this guard instead of keeping
+            # it — the repair must not smuggle in a second behaviour change.
+            if cutoff_std == 0.0 or math.isnan(cutoff_std):
+                logger.info("RULE 1: Cutoff exactement 20000 Hz, variance nulle ou inconnue")
                 logger.info("RULE 1: Ambiguous (could be FFT rounding) - SKIP for safety")
                 return (0, []), None
 
@@ -195,15 +202,11 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
 
     # Safety check 3: Variance check — GATE A, repaired in v1.12.
     # Authentic FLACs often have variable cutoffs (high variance); CBR MP3s have
-    # very stable cutoffs. But detect_cutoff quantizes to 250 Hz slice cells, so
-    # a perfectly stable wall sitting near a cell boundary oscillates one cell
-    # and reads std up to 125 Hz (50/50 between adjacent cells) — the old 100 Hz
-    # threshold was SMALLER than the instrument's quantization step and exited
-    # on rock-stable walls (measured: a wild wall at std 117.9, wall unmoved).
-    # 130 is the smallest round figure above the one-cell wander bound: grid
-    # arithmetic, not a corpus fit.
-    CUTOFF_VARIANCE_THRESHOLD = 130.0  # Hz
-
+    # very stable cutoffs. The bar and the grid arithmetic behind it now live in
+    # constants.CUTOFF_VARIANCE_THRESHOLD, because Rule 11's TEST 11D reads the
+    # same statistic and was using a different, smaller bound (v1.13.1).
+    # NaN (a single window: the wander was not computable) is not > the bar, so
+    # an unknown wander does not skip Rule 1 — the same behaviour a 0.0 had.
     if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
         logger.debug(
             f"RULE 1: Skipped (cutoff std {cutoff_std:.1f} > {CUTOFF_VARIANCE_THRESHOLD}, variable spectrum)"

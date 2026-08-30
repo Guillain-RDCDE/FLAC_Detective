@@ -107,7 +107,13 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
     # rejects isolated bins so a lone noise spike near Nyquist can't fake an edge.
     from scipy.ndimage import uniform_filter1d
 
-    bin_hz = freq[1] - freq[0] if len(freq) > 1 else 1.0
+    # A one-bin spectrum has no bin width to speak of, and the smoothing size
+    # below would be derived from a fabricated 1.0 Hz. Typed as "unanalysable"
+    # rather than defaulted: same species as cutoff_wander's NaN, caught by
+    # ml/typed_absence_audit.py shape C on 2026-08-30.
+    if len(freq) < 2:
+        return result
+    bin_hz = freq[1] - freq[0]
     smooth_bins = max(3, int(round(500.0 / max(bin_hz, 1e-6))))
     mag_smooth = uniform_filter1d(mag_db, size=smooth_bins)
     above_thresh = np.where(mag_smooth >= ref - 40.0)[0]

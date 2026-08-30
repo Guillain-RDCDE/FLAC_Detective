@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NamedTuple, Optional, Tuple
+from typing import TYPE_CHECKING, List, NamedTuple, Optional, Sequence, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -98,7 +98,9 @@ def analyze_spectrum(
         Tuple (cutoff_frequency, energy_ratio, cutoff_std, residual_floor_db) where:
         - cutoff_frequency: detected cutoff frequency in Hz
         - energy_ratio: energy ratio in high frequencies
-        - cutoff_std: standard deviation of cutoff frequency
+        - cutoff_std: cutoff wander across the sampled windows, **NaN when a
+          single window was sampled** (files of 90 s or less) — see
+          :func:`cutoff_wander`. Callers must treat NaN as "unknown"; it is not 0.
         - residual_floor_db: floor above the ~20.5 kHz wall (NaN unless the cutoff
           sits in the near-Nyquist 320 kbps zone, where Rule 1 needs it)
     """
@@ -191,9 +193,9 @@ def analyze_spectrum(
         # For energy, we also take min() to be consistent
         final_energy = min(energy_ratios)
 
-        # Calculate standard deviation of cutoffs to detect variable spectral content
-        # Authentic FLACs often have high variance in cutoff frequency
-        cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
+        # Cutoff wander across the sampled windows. NaN when a single window was
+        # sampled: see cutoff_wander() — the absence is typed, never 0.0.
+        cutoff_std = cutoff_wander(cutoff_freqs)
 
         # Residual-floor metric for Rule 1's near-Nyquist 320 kbps gate. Only the
         # band where a 320k brickwall overlaps an authentic rolloff needs it, so we
@@ -519,6 +521,40 @@ class EdgeReading(NamedTuple):
     cutoff_hz: float
     found: bool
     width_hz: float
+
+
+def cutoff_wander(cutoff_freqs: Sequence[float]) -> float:
+    """How far the detected cutoff moves across the sampled windows, or NaN.
+
+    NaN — not 0.0 — when fewer than two windows were sampled, because with one
+    window the statistic is **not computable** and 0.0 is a reading. That
+    distinction is not academic here; it cost points until v1.13.1.
+
+    ``analyze_spectrum`` samples ``3 if total_duration > 90 else 1`` windows, so
+    every file of 90 seconds or less produced exactly one cutoff and the
+    not-computable case was returned as ``0.0``. Rule 11's TEST 11D read that
+    zero as "cutoff very stable, suspect digital" and subtracted 10 from the
+    cassette score — enough, on files whose only cassette evidence was a
+    progressive roll-off (11B alone, 20 points), to fall under
+    ``CASSETTE_THRESHOLD`` and lose the -40 protection along with Rule 1's
+    exemption. An absence, scored, in the direction of conviction. Every file in
+    both measurement corpora is 60 seconds, so it fired on all of them:
+    ``cutoff_std_hz`` reads 0.0 on 590 of 590 rows of the v2 column file, one
+    distinct value.
+
+    Found because Provir reported the mirror defect in his own engine on
+    2026-08-29 (``(edge_std or 999) < 160``, where a measured 0.0 became the
+    sentinel). His was one-directional and could only lose recall. Ours was not.
+    Fourth instance of the species across the two engines; the audit that missed
+    it, ``ml/typed_absence_audit.py``, grew a third shape the same day.
+
+    NaN rather than None keeps the return type, matches ``residual_floor_db``
+    and ``EdgeReading.width_hz``, and poisons a median loudly instead of
+    silently.
+    """
+    if len(cutoff_freqs) < 2:
+        return float("nan")
+    return float(np.std(cutoff_freqs))
 
 
 # Where the transition is considered to start, relative to the in-band reference.

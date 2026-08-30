@@ -420,7 +420,7 @@ def new_calculate_score(
     metadata: Dict,
     duration_check: Dict,
     filepath: Path,
-    cutoff_std: float = 0.0,
+    cutoff_std: float = float("nan"),
     energy_ratio: float = 0.0,
     cache=None,
     source_path: Optional[Path] = None,
@@ -436,7 +436,8 @@ def new_calculate_score(
         metadata: File metadata
         duration_check: Duration check results
         filepath: Path to the readable audio analysed (temp copy / decoded WAV)
-        cutoff_std: Standard deviation of cutoff frequency (default 0.0)
+        cutoff_std: Cutoff wander across the sampled windows; NaN when it was
+            not computable (a single window) — never 0.0 for absence
         energy_ratio: High frequency energy ratio (default 0.0)
         cache: Optional AudioCache instance (contains pre-loaded full audio)
         source_path: Original on-disk file, used for the *real* bitrate when the

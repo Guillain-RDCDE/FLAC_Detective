@@ -1,0 +1,751 @@
+file,corpus,label,cutoff_hz,cutoff_std_hz,rule11_runs,cassette_shipped,cassette_without_absence,gate_shipped,gate_repaired,moves,reasons
+fd-exchange-v2-2026-08-0001.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0002.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0003.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0004.flac,fd-exchange-v2,,16250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0005.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0006.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0007.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0008.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0009.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0010.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0011.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0012.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0013.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0014.flac,fd-exchange-v2,,20750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0015.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0016.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0017.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0018.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0019.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0020.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0021.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0022.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0023.flac,fd-exchange-v2,,16750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0024.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0025.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0026.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0027.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0028.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0029.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0030.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0031.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0032.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0033.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0034.flac,fd-exchange-v2,,17750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0035.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0036.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0037.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0038.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0039.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0040.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0041.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0042.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0043.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0044.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0045.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0046.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.1 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0047.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0048.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0049.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0050.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0051.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0052.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0053.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0054.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0055.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0056.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0057.flac,fd-exchange-v2,,22750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0058.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0059.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0060.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0061.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0062.flac,fd-exchange-v2,,20750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0063.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0064.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0065.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0066.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0067.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0068.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0069.flac,fd-exchange-v2,,22000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0070.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0071.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0072.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0073.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0074.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0075.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0076.flac,fd-exchange-v2,,17500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0077.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0078.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0079.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0080.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0081.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0082.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0083.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0084.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0085.flac,fd-exchange-v2,,19250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0086.flac,fd-exchange-v2,,17000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0087.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0088.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0089.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0090.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0091.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0092.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0093.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0094.flac,fd-exchange-v2,,22500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0095.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0096.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0097.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0098.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0099.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0100.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0101.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0102.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0103.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0104.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0105.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0106.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0107.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0108.flac,fd-exchange-v2,,17750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0109.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0110.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0111.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0112.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0113.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0114.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0115.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0116.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0117.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0118.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0119.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0120.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0121.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0122.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0123.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0124.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0125.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.1 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0126.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0127.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0128.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0129.flac,fd-exchange-v2,,20750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0130.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0131.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0132.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0133.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.6 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0134.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0135.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.5 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0136.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0137.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0138.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0139.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0140.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0141.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0142.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0143.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0144.flac,fd-exchange-v2,,17750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.6 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0145.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0146.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0147.flac,fd-exchange-v2,,16500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0148.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0149.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0150.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0151.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0152.flac,fd-exchange-v2,,16750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0153.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0154.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0155.flac,fd-exchange-v2,,15250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0156.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0157.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0158.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0159.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.6 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0160.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0161.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0162.flac,fd-exchange-v2,,16750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0163.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0164.flac,fd-exchange-v2,,19250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0165.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0166.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0167.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0168.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0169.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0170.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0171.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0172.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0173.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0174.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0175.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0176.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0177.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0178.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0179.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0180.flac,fd-exchange-v2,,16750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0181.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0182.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0183.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0184.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0185.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0186.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0187.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0188.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0189.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0190.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0191.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0192.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0193.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0194.flac,fd-exchange-v2,,17500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0195.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0196.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0197.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0198.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0199.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0200.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0201.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0202.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0203.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0204.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0205.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0206.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0207.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0208.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0209.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0210.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0211.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0212.flac,fd-exchange-v2,,17500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0213.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0214.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0215.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0216.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0217.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.5 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0218.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0219.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0220.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0221.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0222.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0223.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0224.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0225.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0226.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0227.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0228.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0229.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0230.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0231.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0232.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0233.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0234.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0235.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0236.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0237.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0238.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0239.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0240.flac,fd-exchange-v2,,15750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0241.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0242.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0243.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0244.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0245.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0246.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0247.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0248.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0249.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0250.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0251.flac,fd-exchange-v2,,16000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0252.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0253.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0254.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0255.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0256.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0257.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0258.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0259.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0260.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0261.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0262.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0263.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0264.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0265.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0266.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0267.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0268.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0269.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0270.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0271.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0272.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0273.flac,fd-exchange-v2,,17500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0274.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0275.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0276.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0277.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0278.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0279.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0280.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0281.flac,fd-exchange-v2,,17500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0282.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0283.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0284.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0285.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0286.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0287.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0288.flac,fd-exchange-v2,,20750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0289.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0290.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0291.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0292.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0293.flac,fd-exchange-v2,,23500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0294.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0295.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0296.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0297.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0298.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0299.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0300.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0301.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0302.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0303.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0304.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0305.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0306.flac,fd-exchange-v2,,15500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0307.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0308.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0309.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0310.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0311.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0312.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0313.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0314.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0315.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0316.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0317.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0318.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0319.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0320.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0321.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0322.flac,fd-exchange-v2,,22750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0323.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0324.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0325.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0326.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0327.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0328.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0329.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0330.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0331.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0332.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0333.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0334.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0335.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0336.flac,fd-exchange-v2,,16500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0337.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0338.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0339.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0340.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0341.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0342.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0343.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0344.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0345.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0346.flac,fd-exchange-v2,,17500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0347.flac,fd-exchange-v2,,15500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0348.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0349.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0350.flac,fd-exchange-v2,,15500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0351.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0352.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0353.flac,fd-exchange-v2,,22500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0354.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0355.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0356.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-6.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0357.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0358.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0359.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0360.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0361.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0362.flac,fd-exchange-v2,,17500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0363.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0364.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0365.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0366.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0367.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0368.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0369.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0370.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0371.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0372.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0373.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0374.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0375.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0376.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0377.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0378.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0379.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0380.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0381.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0382.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.1 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0383.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0384.flac,fd-exchange-v2,,15750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0385.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0386.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0387.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0388.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0389.flac,fd-exchange-v2,,19000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0390.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0391.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0392.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0393.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0394.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0395.flac,fd-exchange-v2,,16750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0396.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0397.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0398.flac,fd-exchange-v2,,17000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.3 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0399.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0400.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0401.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0402.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0403.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.5 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0404.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.1 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0405.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0406.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0407.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0408.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0409.flac,fd-exchange-v2,,17750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.6 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0410.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0411.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0412.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0413.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0414.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0415.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0416.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0417.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0418.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0419.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0420.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0421.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0422.flac,fd-exchange-v2,,22000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0423.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0424.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0425.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0426.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0427.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0428.flac,fd-exchange-v2,,20750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0429.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0430.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0431.flac,fd-exchange-v2,,15500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.6 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0432.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0433.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0434.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0435.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0436.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0437.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0438.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0439.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0440.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0441.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0442.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0443.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0444.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0445.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0446.flac,fd-exchange-v2,,15500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0447.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0448.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0449.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0450.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0451.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0452.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.1 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0453.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0454.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0455.flac,fd-exchange-v2,,17500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0456.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0457.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0458.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0459.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0460.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0461.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0462.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0463.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0464.flac,fd-exchange-v2,,18250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.8 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0465.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0466.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0467.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0468.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0469.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0470.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0471.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0472.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0473.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0474.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0475.flac,fd-exchange-v2,,19750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0476.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0477.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0478.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0479.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0480.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0481.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0482.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0483.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0484.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0485.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0486.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0487.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0488.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0489.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0490.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0491.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0492.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0493.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0494.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0495.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0496.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0497.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0498.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0499.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0500.flac,fd-exchange-v2,,18000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.5 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0501.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0502.flac,fd-exchange-v2,,16250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0503.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-3.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0504.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0505.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0506.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0507.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0508.flac,fd-exchange-v2,,15500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0509.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0510.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0511.flac,fd-exchange-v2,,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0512.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0513.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0514.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0515.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0516.flac,fd-exchange-v2,,16000.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0517.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0518.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0519.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0520.flac,fd-exchange-v2,,19250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0521.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0522.flac,fd-exchange-v2,,16000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0523.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0524.flac,fd-exchange-v2,,48000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0525.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0526.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0527.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0528.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0529.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0530.flac,fd-exchange-v2,,21250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0531.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0532.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0533.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0534.flac,fd-exchange-v2,,16250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0535.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0536.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0537.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0538.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0539.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0540.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0541.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0542.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0543.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0544.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0545.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0546.flac,fd-exchange-v2,,21500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0547.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0548.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0549.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0550.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0551.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0552.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0553.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0554.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0555.flac,fd-exchange-v2,,19250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0556.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0557.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0558.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0559.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0560.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0561.flac,fd-exchange-v2,,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0562.flac,fd-exchange-v2,,17000.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0563.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0564.flac,fd-exchange-v2,,18750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.7 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0565.flac,fd-exchange-v2,,20500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0566.flac,fd-exchange-v2,,18750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0567.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0568.flac,fd-exchange-v2,,21000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0569.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0570.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0571.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0572.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0573.flac,fd-exchange-v2,,24000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0574.flac,fd-exchange-v2,,20250.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0575.flac,fd-exchange-v2,,15500.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0576.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0577.flac,fd-exchange-v2,,18500.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-4.2 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0578.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0579.flac,fd-exchange-v2,,22500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0580.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0581.flac,fd-exchange-v2,,19500.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0582.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0583.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0584.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0585.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0586.flac,fd-exchange-v2,,21750.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0587.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+fd-exchange-v2-2026-08-0588.flac,fd-exchange-v2,,20000.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0589.flac,fd-exchange-v2,,22050.0,0.0,0,0,0,0,0,0,
+fd-exchange-v2-2026-08-0590.flac,fd-exchange-v2,,17250.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+002-03-Hraach-Let-it-go.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+003-01-Thor-Dari-lullaby.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+005-17-Los-Seven-Del-Swing-Celoso.flac,audit_corpus,genuine,20250.0,0.0,0,0,0,0,0,0,
+006-09-Mahmoud-Ahmed-Tezeta.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,audit_corpus,genuine,19500.0,0.0,0,0,0,0,0,0,
+009-03-Ilya-Beshevli-To-solitude.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+010-06-Jon-Hassell-These-times.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,audit_corpus,genuine,21000.0,0.0,0,0,0,0,0,0,
+012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+015-08-Jos-Gonz-lez-Vissel.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+016-03-Memory-Tapes-Green-knight.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+017-13-Cafe-Del-Mar-Submariner.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+018-04-Bag-o-wire-Resovoir.flac,audit_corpus,genuine,21750.0,0.0,0,0,0,0,0,0,
+019-04-Kohi-Jadu.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+020-06-Bola-Tigantabame.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,audit_corpus,genuine,21750.0,0.0,0,0,0,0,0,0,
+023-01-Yusef-Lateef-Buddy-and-lou.flac,audit_corpus,genuine,21000.0,0.0,0,0,0,0,0,0,
+024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+025-07-Bolalar-Lola.flac,audit_corpus,genuine,21500.0,0.0,0,0,0,0,0,0,
+026-06-Oumou-Dioubat-Siyala.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+027-01-Dimlite-Kitty-Cradle-Fog.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+030-06-S-bastien-Tellier-Benny.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+031-07-Shkoon-Just-Emma-Id.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+032-05-2kilos-more-Cache-feu.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+033-01-Daylight-Rising.flac,audit_corpus,genuine,21500.0,0.0,0,0,0,0,0,0,
+034-09-Snow-Ghosts-Bowline.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+035-16-Slow-Air-In-Dropped-D.flac,audit_corpus,genuine,21000.0,0.0,0,0,0,0,0,0,
+036-08-Nicolas-Comment-Amaurose.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+039-13-Kat-Onoma-Change-blues.flac,audit_corpus,genuine,21000.0,0.0,0,0,0,0,0,0,
+040-11-Xploding-Plastix-Far-flung-tonic.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,audit_corpus,genuine,19000.0,0.0,0,0,0,0,0,0,
+042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+044-02-Various-Artists-Ka-mea-mea.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+045-08-DJ-Katapila-Trotro-instrumental.flac,audit_corpus,genuine,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+046-04-Clelia-Felix-Shine-so-bright.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+048-08-Gabriel-Romero-La-Piragua.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,audit_corpus,genuine,21500.0,0.0,0,0,0,0,0,0,
+050-08-Boubacar-Traor-Pierrette.flac,audit_corpus,genuine,21500.0,0.0,0,0,0,0,0,0,
+051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+052-06-Papa-Wemba-Efeka-mandundu.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+053-03-Jupiter-Okwess-Ofakombolo.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+054-10-George-Bruns-Two-dogs-and-a-cycle.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+056-14-Hlamalani.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,audit_corpus,genuine,20750.0,0.0,0,0,0,0,0,0,
+058-01-Piny-Runa-Woko.flac,audit_corpus,genuine,20750.0,0.0,0,0,0,0,0,0,
+059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+060-13-Naomi-The-Boys-Bad-loser.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+061-07-Black-Truth-Rhythm-Band-Imo.flac,audit_corpus,genuine,17750.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+062-03-Alpha-Blondy-Jah-glory.flac,audit_corpus,genuine,20500.0,0.0,0,0,0,0,0,0,
+063-09-Rodolphe-Burger-Billy-the-kid.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,audit_corpus,genuine,21250.0,0.0,0,0,0,0,0,0,
+065-05-Quizas-Quizas.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+066-04-Etoile-de-Dakar-My-wa-wa.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+067-03-The-Streets-Let-s-push-things-forward.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+069-02-Eden-Ahbez-The-wanderer.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+070-02-Guts-Good-morning.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,audit_corpus,genuine,16250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.9 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+072-05-Simo-Moumen-Samsara.flac,audit_corpus,genuine,19500.0,0.0,0,0,0,0,0,0,
+073-10-Vanilla-Fudge-Eleanor-rigby.flac,audit_corpus,genuine,20750.0,0.0,0,0,0,0,0,0,
+074-09-Koki-Nakano-Lift.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+076-20-Fran-ois-Couperin-O-salutaris.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+078-04-Kat-Onoma-La-chambre.flac,audit_corpus,genuine,21500.0,0.0,0,0,0,0,0,0,
+079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,audit_corpus,genuine,22050.0,0.0,0,0,0,0,0,0,
+000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+002-03-Hraach-Let-it-go.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+003-01-Thor-Dari-lullaby.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+005-17-Los-Seven-Del-Swing-Celoso.flac,audit_corpus,mp3_320,19750.0,0.0,0,0,0,0,0,0,
+006-09-Mahmoud-Ahmed-Tezeta.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,audit_corpus,mp3_320,19250.0,0.0,0,0,0,0,0,0,
+009-03-Ilya-Beshevli-To-solitude.flac,audit_corpus,mp3_320,22050.0,0.0,0,0,0,0,0,0,
+010-06-Jon-Hassell-These-times.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,audit_corpus,mp3_320,19750.0,0.0,0,0,0,0,0,0,
+013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,audit_corpus,mp3_320,22050.0,0.0,0,0,0,0,0,0,
+015-08-Jos-Gonz-lez-Vissel.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+016-03-Memory-Tapes-Green-knight.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+017-13-Cafe-Del-Mar-Submariner.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+018-04-Bag-o-wire-Resovoir.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+019-04-Kohi-Jadu.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+020-06-Bola-Tigantabame.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,audit_corpus,mp3_320,19750.0,0.0,0,0,0,0,0,0,
+022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+023-01-Yusef-Lateef-Buddy-and-lou.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+025-07-Bolalar-Lola.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+026-06-Oumou-Dioubat-Siyala.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+027-01-Dimlite-Kitty-Cradle-Fog.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,audit_corpus,mp3_320,22050.0,0.0,0,0,0,0,0,0,
+029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+030-06-S-bastien-Tellier-Benny.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+031-07-Shkoon-Just-Emma-Id.flac,audit_corpus,mp3_320,22050.0,0.0,0,0,0,0,0,0,
+032-05-2kilos-more-Cache-feu.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+033-01-Daylight-Rising.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+034-09-Snow-Ghosts-Bowline.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+035-16-Slow-Air-In-Dropped-D.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+036-08-Nicolas-Comment-Amaurose.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+039-13-Kat-Onoma-Change-blues.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+040-11-Xploding-Plastix-Far-flung-tonic.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,audit_corpus,mp3_320,19000.0,0.0,0,0,0,0,0,0,
+042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+044-02-Various-Artists-Ka-mea-mea.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+045-08-DJ-Katapila-Trotro-instrumental.flac,audit_corpus,mp3_320,17750.0,0.0,1,0,10,0,0,0,"R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+046-04-Clelia-Felix-Shine-so-bright.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+048-08-Gabriel-Romero-La-Piragua.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+050-08-Boubacar-Traor-Pierrette.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+052-06-Papa-Wemba-Efeka-mandundu.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+053-03-Jupiter-Okwess-Ofakombolo.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+054-10-George-Bruns-Two-dogs-and-a-cycle.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+056-14-Hlamalani.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+058-01-Piny-Runa-Woko.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+060-13-Naomi-The-Boys-Bad-loser.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+061-07-Black-Truth-Rhythm-Band-Imo.flac,audit_corpus,mp3_320,17250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-5.4 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+062-03-Alpha-Blondy-Jah-glory.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+063-09-Rodolphe-Burger-Billy-the-kid.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+065-05-Quizas-Quizas.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+066-04-Etoile-de-Dakar-My-wa-wa.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+067-03-The-Streets-Let-s-push-things-forward.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+069-02-Eden-Ahbez-The-wanderer.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+070-02-Guts-Good-morning.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,audit_corpus,mp3_320,16250.0,0.0,1,10,20,0,1,1,"R11B: Natural cassette roll-off (-6.0 dB/kHz) (likely cassette) | R11D: Cutoff very stable (0 Hz, suspect digital) (likely digital)"
+072-05-Simo-Moumen-Samsara.flac,audit_corpus,mp3_320,19500.0,0.0,0,0,0,0,0,0,
+073-10-Vanilla-Fudge-Eleanor-rigby.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+074-09-Koki-Nakano-Lift.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+076-20-Fran-ois-Couperin-O-salutaris.flac,audit_corpus,mp3_320,22050.0,0.0,0,0,0,0,0,0,
+077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,audit_corpus,mp3_320,20250.0,0.0,0,0,0,0,0,0,
+078-04-Kat-Onoma-La-chambre.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,
+079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,audit_corpus,mp3_320,20000.0,0.0,0,0,0,0,0,0,

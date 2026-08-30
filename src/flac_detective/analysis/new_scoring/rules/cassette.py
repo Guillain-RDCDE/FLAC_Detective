@@ -1,6 +1,7 @@
 """Cassette audio source detection (Rule 11)."""
 
 import logging
+import math
 from typing import List, Optional, Tuple, cast
 
 import numpy as np
@@ -8,6 +9,7 @@ import soundfile as sf
 from scipy import signal
 
 from ..audio_loader import load_audio_segment
+from ..constants import CUTOFF_VARIANCE_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
@@ -159,21 +161,56 @@ def apply_rule_11_cassette_detection(  # noqa: C901
 
         # TEST 11D: Cutoff Modulation (wow/flutter)
         # ===========================================
-        if 50 < cutoff_std < 300:  # Moderate variation
+        # Read on the reporting grid, not in raw Hz. ``detect_cutoff`` returns
+        # slice boundaries, so every cutoff is quantised to a 250 Hz cell and,
+        # with the three windows ``analyze_spectrum`` samples, the reachable
+        # values of the wander below 300 Hz are exactly 0.0 (one cell), 117.9
+        # (one window one cell away), 204.1 (three cells) and 235.7 (one window
+        # two cells away). Two consequences, both repaired in v1.13.1:
+        #
+        #   * the old lower bound of 50 Hz let 117.9 — the SMALLEST possible
+        #     non-zero value of a quantised statistic — earn +15 as "natural
+        #     cutoff variation (wow/flutter)". One grid cell is not tape
+        #     flutter. The bound is now CUTOFF_VARIANCE_THRESHOLD, the figure
+        #     Rule 1's gate A already uses as "the smallest round figure above
+        #     the one-cell wander" (ml/r1_gates_repricing.py). Two rules reading
+        #     one statistic now share one idea of what its quantum means.
+        #   * the old 30-50 Hz "neutral zone" was unreachable. Nothing can land
+        #     there. It is gone rather than left looking calibrated.
+        #
+        # And NaN — the wander was not computable, one window only — contributes
+        # NOTHING. Not +15, not -10. See spectrum.cutoff_wander: returning 0.0
+        # there made every file of 90 s or less read as "suspect digital" for
+        # -10, which is exactly enough to deny a roll-off-only file (11B alone,
+        # 20 points) the -40 cassette protection. An absence, scored, toward
+        # conviction.
+        # The "very stable, suspect digital" -10 is GONE, and CASSETTE_THRESHOLD
+        # rose by the same 10 so every other test keeps exactly the weight it
+        # had — the same move v1.8 made when 11C was removed. Two reasons, one
+        # of principle and one measured:
+        #
+        #   * on a 250 Hz grid, "std < 30" means "the windows landed in one
+        #     cell", which is the ordinary case for genuine and transcode alike.
+        #     It never separated anything; it applied a near-constant -10.
+        #   * removing it WITHOUT compensating was measured first, on 132 files
+        #     (74 movers + 58 controls, ml/r11d_absence_pass.py): 44 transcodes
+        #     lost their conviction against a registered bound of 5, because
+        #     roll-off-only files (11B alone, 20 points) started clearing a gate
+        #     of 15 and collecting -40 with Rule 1 disabled. The phantom had
+        #     been absorbed into the calibration. A constant belongs in the
+        #     gate, not in a reading that was never taken.
+        if math.isnan(cutoff_std):
+            logger.debug("RULE 11D: cutoff wander not computable (single window) - no contribution")
+        elif CUTOFF_VARIANCE_THRESHOLD < cutoff_std < 300:
             cassette_score += 15
             reasons.append(
                 f"R11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter) (likely cassette)"
             )
             logger.info(f"RULE 11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter)")
-        elif cutoff_std < 30:  # Very stable (digital silence/CBR)
-            cassette_score -= 10
-            reasons.append(
-                f"R11D: Cutoff very stable ({cutoff_std:.0f} Hz, suspect digital) (likely digital)"
-            )
-            logger.info(f"RULE 11D: Cutoff very stable ({cutoff_std:.0f} Hz, suspect digital)")
-        elif cutoff_std < 50:
-            # 30-50 Hz: Neutral zone (stable cassette deck is possible)
-            logger.debug(f"RULE 11D: Cutoff stable but acceptable ({cutoff_std:.0f} Hz) - Neutral")
+        else:
+            # A stable cutoff (0-130 Hz, i.e. up to one grid cell of wander) and
+            # anything at or above 300: measured, and evidence of nothing.
+            logger.debug(f"RULE 11D: wander {cutoff_std:.0f} Hz reads as neither - Neutral")
 
     except Exception as e:
         logger.error(f"RULE 11: Analysis error: {e}")

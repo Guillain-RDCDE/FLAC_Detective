@@ -1,3 +1,95 @@
+## v1.13.1 (2026-08-30) — an absence that was being scored, and the constant it had become
+
+Provir reported a defect in his own engine on 2026-08-29: a guard reading, in
+effect, `(edge_std or 999) < 160`, where a **measured** standard deviation of
+0.0 is falsy, becomes the sentinel, and the file leaves the stability window on
+the coercion rather than on the measurement. He was right about the principle,
+his was one-directional (it could only lose recall, never manufacture a fire),
+and the guard was not in this tree — `opus_edge` appears nowhere here except
+inside the archived copy of his own return CSV.
+
+Proving that negative produced the tripwire (`ml/typed_absence_audit.py`, AST,
+not grep, validated against its own control before being believed), and the
+tripwire's third shape produced **our** instance of the species, which was live,
+load-bearing, and pushed the other way:
+
+```python
+cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
+```
+
+`analyze_spectrum` samples `3 if total_duration > 90 else 1` windows, so for
+every file of 90 seconds or less the wander is **not computable** and the
+not-computable case was returned as `0.0`. Rule 11's TEST 11D read that zero as
+"cutoff very stable, suspect digital" and subtracted 10 — enough to deny a
+roll-off-only file (11B alone, 20 points) the `cassette_score >= 15` gate, its
+-40, and its Rule 1 exemption. An absence, scored, toward conviction, on every
+file in both measurement corpora (`cutoff_std_hz` reads 0.0 on 590 of 590 rows
+of the v2 column file: one distinct value).
+
+### The population, derived before it was measured, and measured exactly
+
+Criteria registered first in `ml/exchange/R11D_ABSENCE_REGISTRATION_2026-08-30.md`.
+From the weights alone (11A +30, 11B ±20, gate 15) the affected set had to be
+files with `cutoff < 19,000` whose only cassette evidence is the roll-off.
+Measured on 750 files: **74 movers, 74 of 74 with cassette 10 -> 20, 74 of 74
+roll-off-only, none outside the derived population.**
+
+### The registered repair was refused by its own criteria
+
+Full engine, before on v1.13.0 in a pristine worktree, after on the repair, 132
+files (74 movers + 58 controls): **A3 failed at 44 transcodes losing their
+conviction against a bound of 5** (52 verdicts moved in all; not one genuine
+file harmed — the damage was entirely recall).
+
+What that measured is the finding: **the phantom had been absorbed into the
+calibration.** `CASSETTE_THRESHOLD` was set to 15 in v1.8 in a world where every
+short file carried a silent -10, so the gate's effective height was 25. A defect
+that ships long enough stops being a defect and becomes a constant — and a
+constant belongs in the gate, not in a reading that was never taken.
+
+### What shipped
+
+The escape clause, with the precedent from this very rule: v1.8 removed test
+11C's flat +15 and dropped the threshold by the same 15 "so that every other
+test keeps exactly the weight it had".
+
+- `spectrum.cutoff_wander()` returns **NaN** below two windows. Absence typed.
+- An absent wander contributes **nothing** to Rule 11 — not +15, not -10.
+- The "very stable, suspect digital" **-10 is removed**: on the 250 Hz reporting
+  grid it means "the windows landed in one cell", the ordinary case for genuine
+  and transcode alike.
+- `CASSETTE_THRESHOLD` **15 -> 25**, the same 10 points, in the gate.
+- The wow/flutter band's floor moves **50 -> `CUTOFF_VARIANCE_THRESHOLD` (130)**,
+  now one shared constant: 117.9 Hz is the smallest non-zero value a 250 Hz grid
+  can produce over three windows, and it was earning +15 as tape flutter while
+  Rule 1's gate A had been treating the same figure as instrument noise since
+  v1.12. The two consumers finally agree about the quantum.
+- The `elif cutoff_std < 50` "neutral zone" is deleted: nothing can land in
+  [30, 50) on that grid. Dead since v1.8, and it read as calibration.
+- Rule 1's 20 kHz ambiguity skip becomes "not known to vary" (`0.0` **or** NaN),
+  so the conservative exit is kept rather than silently lost.
+- `hires.py` no longer fabricates a 1.0 Hz bin width for a one-bin spectrum
+  (shape C caught it too); the degenerate case returns unanalysable.
+
+**Cost, before against after on the same 132 files: 0 verdicts changed, 0 scores
+changed, A1/A2/A3/A4 all held at zero.** The compensation is exact wherever the
+input was an absence, which is every file of both corpora. What does change is
+elsewhere and is the point: files over 90 s whose measured wander is one grid
+cell no longer read as flutter, and no single Rule 11 test protects a file
+alone. `tests/test_rule11.py` pins the gate decision against the v1.13.0 table,
+input class by input class (25 tests; full suite 410 passed).
+
+### The rule, registered on both sides
+
+> An absence is typed. It is never a value, and never a falsy value. Test
+> `is None` (or `math.isnan`), never truthiness — 0.0, 0 and "" are readings.
+
+Enforced rather than asserted: `ml/typed_absence_audit.py` walks the AST of
+every module under `src/` and `ml/` for three shapes and exits non-zero on any
+of them. **150 modules, 0 findings**, control 6 of 6 caught with 0 false
+positives. Fifth instance of the species across the two engines in eleven days,
+and the first one a machine found.
+
 ## v1.13.0 (2026-08-22) — The residual window feeds gate C′; first true convictions in the wild
 
 One engine change, registered in v1.12.0's own changelog before it was made: the

@@ -38,9 +38,23 @@ shapes on any identifier that names a measurement:
     A.  ``measurement or <number>``      (truthiness coercion to a sentinel)
     B.  ``if not measurement``           (truthiness test on a reading)
 
+    C.  ``m = np.std(xs) if len(xs) > 1 else 0.0``   (an absence assigned a value)
+
 It is deliberately name-driven and therefore approximate in both directions: it
 cannot know that ``ok`` is a flag and ``occ`` is a count. It is a tripwire for
 the species, not a type checker.
+
+Shape C was added 2026-08-30, because shapes A and B did not catch our own
+fourth instance and Provir's letter did. ``analysis/spectrum.py`` read
+
+    cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
+
+with ``num_samples = 1`` for any file of 90 seconds or less: the
+**not-computable** case returned as the value ``0.0``, consumed by Rule 11's
+TEST 11D as "cutoff very stable, suspect digital" for -10, which is enough to
+deny a file the -40 cassette protection. An absence, scored, in the direction of
+conviction. A clean audit that misses the live instance is worse than no audit,
+so the shape that missed it is now part of the tripwire and part of its control.
 
 AUDIT RESULT, 2026-08-29, v1.13.0
 ---------------------------------
@@ -170,7 +184,29 @@ def _is_number(node: ast.AST) -> bool:
     return False
 
 
-def audit_source(path: Path, text: str) -> Iterator[Finding]:
+def _tests_computability(node: ast.AST) -> bool:
+    """True for a test that asks whether a statistic CAN be computed.
+
+    ``len(xs) > 1``, ``len(xs) >= 2``, ``xs.size > 0``, ``n > 1``. The point of
+    shape C is exactly this pairing: a guard that admits the statistic is
+    undefined, married to a numeric value in the else. Anything else -- a
+    threshold on a measurement, a flag -- is not it.
+    """
+    if not isinstance(node, ast.Compare):
+        return False
+    left = node.left
+    is_len = (
+        isinstance(left, ast.Call) and isinstance(left.func, ast.Name) and left.func.id == "len"
+    )
+    is_size = isinstance(left, ast.Attribute) and left.attr in ("size", "shape")
+    leaf = (_name_of(left) or "").rsplit(".", maxsplit=1)[-1].lower()
+    is_count = leaf in ("n", "count", "n_windows", "n_chunks", "nsamples", "num_samples")
+    if not (is_len or is_size or is_count):
+        return False
+    return any(isinstance(op, (ast.Gt, ast.GtE, ast.Lt, ast.LtE)) for op in node.ops)
+
+
+def audit_source(path: Path, text: str) -> Iterator[Finding]:  # noqa: C901
     try:
         tree = ast.parse(text)
     except SyntaxError:
@@ -193,6 +229,25 @@ def audit_source(path: Path, text: str) -> Iterator[Finding]:
             name = _name_of(node.operand)
             if _is_measurement(name):
                 yield Finding(path, node.lineno, "B: not-measurement", name or "?", src(node))
+        # Shape C: measurement = <expr> if <computability test> else <number>
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [_name_of(t) for t in targets]
+            if not any(_is_measurement(n) for n in names):
+                continue
+            value = node.value
+            if (
+                isinstance(value, ast.IfExp)
+                and _is_number(value.orelse)
+                and _tests_computability(value.test)
+            ):
+                yield Finding(
+                    path,
+                    node.lineno,
+                    "C: absence-as-value",
+                    next(n for n in names if _is_measurement(n)) or "?",
+                    src(node),
+                )
 
 
 def iter_modules(roots: List[Path]) -> Iterator[Path]:
@@ -215,6 +270,8 @@ window_ok = (edge_std or 999) < 160          # the guard Provir reported
 if not edge_std: return None                 # same coercion, other shape
 w = telemetry.width_hz or 1500.0             # his own sentinel, our spelling
 depth = residual_floor_db or -999
+cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
+seam_db = compute(x) if xs.size > 0 else -999
 """
 
 SELFTEST_MUST_NOT_FIRE = """
@@ -224,18 +281,21 @@ if not has_low_cutoff: return None           # a predicate
 if not running: return None                  # a flag that merely contains "run"
 if not r.stdout: return None
 name = label or "unknown"                    # a string default, not a reading
+cutoff_std = float(np.std(xs)) if len(xs) > 1 else float("nan")   # the repair
+width_hz = measure(xs) if cutoff_hz < 19000 else 0.0   # a domain gate, not computability
+labels = collect(xs) if len(xs) > 1 else []             # a collection default
 """
 
 
 def selftest() -> int:
     fired = list(audit_source(Path("<must-fire>"), SELFTEST_MUST_FIRE))
     quiet = list(audit_source(Path("<must-not-fire>"), SELFTEST_MUST_NOT_FIRE))
-    print(f"control: {len(fired)}/4 caught, {len(quiet)} false positive(s)")
+    print(f"control: {len(fired)}/6 caught, {len(quiet)} false positive(s)")
     for finding in fired:
         print(f"  caught  {finding.source.strip()}")
     for finding in quiet:
         print(f"  WRONGLY caught  {finding.source.strip()}")
-    ok = len(fired) == 4 and not quiet
+    ok = len(fired) == 6 and not quiet
     print("selftest: " + ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 

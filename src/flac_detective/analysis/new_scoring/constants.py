@@ -59,7 +59,31 @@ MIN_FAMILY_CONTRIBUTION = 20
 # essentially every file (it keyed off Rule 9C, which measured AUC 0.497), so
 # dropping the threshold by the same amount leaves the real tests' weights
 # untouched. See rules/cassette.py.
-CASSETTE_THRESHOLD = 15
+#
+# Raised 15 -> 25 in v1.13.1 by the identical argument, in the other direction.
+# TEST 11D subtracted 10 for a "very stable" cutoff, which on a 250 Hz reporting
+# grid means "the windows landed in one cell" — the ordinary case, and for every
+# file of 90 s or less it was not even a reading (the wander is not computable
+# from one window; it was returned as 0.0). That near-constant -10 had been
+# absorbed into this gate. Measured before it was touched: removing it alone
+# cost 44 of 132 files their conviction, against a registered bound of 5, so it
+# moves into the threshold instead. Every other test keeps exactly the weight it
+# had, and on both measurement corpora (every file 60 s, so every wander a NaN)
+# not one verdict moves. See ml/exchange/R11D_ABSENCE_REGISTRATION_2026-08-30.md.
+CASSETTE_THRESHOLD = 25
+
+# Cutoff wander below which the spectrum counts as stable, in Hz. ONE definition,
+# read by two rules that must not disagree about the instrument's quantum:
+# Rule 1's gate A (skip on a variable spectrum) and Rule 11's TEST 11D (tape
+# wow/flutter). ``detect_cutoff`` quantises to 250 Hz slice cells, so a
+# rock-stable wall sitting on a cell boundary oscillates one cell and reads up
+# to 125 Hz (50/50 between adjacent cells; 117.9 with the three windows
+# ``analyze_spectrum`` samples, measured on a wild wall that had not moved).
+# 130 is the smallest round figure above that one-cell wander: grid arithmetic,
+# not a corpus fit. Lived inside apply_rule_1 until v1.13.1, where 11D was found
+# reading the same statistic with a 50 Hz bound and calling one grid cell
+# "wow/flutter".
+CUTOFF_VARIANCE_THRESHOLD = 130.0
 
 # Variance threshold for authenticity (kbps)
 VARIANCE_THRESHOLD = 100
