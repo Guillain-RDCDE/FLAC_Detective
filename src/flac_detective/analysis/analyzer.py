@@ -29,12 +29,16 @@ def _optional_int(value: object) -> Optional[int]:
     registration: an absence coerced to a number at the point it is consumed is
     the defect that survives a correct fix upstream.
     """
-    if value is None:
+    if isinstance(value, bool):  # a bool is an int in Python and a lie here
         return None
-    try:
+    if isinstance(value, (int, float)):
         return int(value)
-    except (TypeError, ValueError):
-        return None
+    if isinstance(value, str):
+        try:
+            return int(value.strip())
+        except ValueError:
+            return None
+    return None
 
 
 class FLACAnalyzer:

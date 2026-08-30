@@ -123,3 +123,27 @@ whose header could not be read.
 Four tests pin the new contract, including one that pins the *other* direction:
 a file genuinely claiming 0 Hz still reads `NOT_HIRES`, because 0 and absent must
 not become synonyms in the repair.
+
+## One gate could not be run locally, and it was the one that failed
+
+`mypy` is a hard gate in CI and it does not run on this machine: the local numpy
+(2.5.0) ships stubs using `type` statements, which mypy refuses to parse under
+the configured `python_version = 3.10`, and it aborts before reaching our code.
+CI's numpy (2.4.6) has no such statement, so CI checks what the local run cannot.
+
+The first push of this repair was **red on mypy**: `int(value)` where
+`value: object` is not a valid overload, and `_optional_int` returned `Any`. Two
+errors, both mine, both in the helper this repair added, and both invisible here.
+
+The workaround, recorded so the gate stops being unrunnable::
+
+    python -m mypy src --config-file=pyproject.toml --python-version=3.12
+
+Not identical to CI — it targets a different Python — but it parses the local
+stubs and catches exactly this class of error. Under it the repair is clean:
+0 errors in `analyzer.py` and `hires.py`, the 6 that remain are pre-existing and
+belong to the local stub versions (PyQt, numpy), not to this change.
+
+The helper is now explicitly typed (`isinstance` on int/float/str, with `bool`
+excluded because a bool is an int in Python and a lie here) rather than leaning
+on a bare `try: int(value)`.
