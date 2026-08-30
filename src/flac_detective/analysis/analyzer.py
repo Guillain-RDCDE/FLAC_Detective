@@ -7,7 +7,7 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Set, Union
+from typing import Dict, Optional, Set, Union
 
 from .audio_cache import AudioCache
 from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
@@ -20,6 +20,21 @@ from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
 logger = logging.getLogger(__name__)
+
+
+def _optional_int(value: object) -> Optional[int]:
+    """An int, or None when the value is absent or unreadable — never 0.
+
+    0 is a reading ("this file claims 0 Hz"), and no file does. See the shape D
+    registration: an absence coerced to a number at the point it is consumed is
+    the defect that survives a correct fix upstream.
+    """
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 class FLACAnalyzer:
@@ -149,21 +164,23 @@ class FLACAnalyzer:
             # PADDED_DEPTH / …). NOT_HIRES for ordinary ≤48 kHz / ≤16-bit files.
             bd = quality_analysis["bit_depth"]
             up = quality_analysis["upsampling"]
-            try:
-                sr_int = int(metadata.get("sample_rate", 0) or 0)
-            except (TypeError, ValueError):
-                sr_int = 0
-            try:
-                depth_int = int(metadata.get("bit_depth", 0) or 0)
-            except (TypeError, ValueError):
-                depth_int = 0
+            # None, not 0, when the header could not be read. read_metadata
+            # returns {} on any exception, so an unreadable or corrupt file used
+            # to arrive here as a rate of 0 Hz — and classify_hires then read
+            # `is_high_rate = False` and returned NOT_HIRES with no reason, which
+            # tells a file whose header failed that the hi-res axis confidently
+            # does not apply to it. Shape D, from Provir 2026-08-30: the coercion
+            # that survives a correct fix, at the site where the absence is
+            # CONSUMED rather than created.
+            sr_int = _optional_int(metadata.get("sample_rate"))
+            depth_int = _optional_int(metadata.get("bit_depth"))
             hires_verdict, hires_reasons = classify_hires(
                 sample_rate=sr_int,
                 bit_depth=depth_int,
                 is_upsampled=up.get("is_upsampled", False),
-                suspected_original_rate=up.get("suspected_original_rate", sr_int),
+                suspected_original_rate=up.get("suspected_original_rate") or sr_int or 0,
                 is_fake_high_res=bd.get("is_fake_high_res", False),
-                estimated_depth=bd.get("estimated_depth", depth_int),
+                estimated_depth=bd.get("estimated_depth") or depth_int or 0,
                 floor_above_db=up.get("floor_above_db", float("nan")),
             )
 

@@ -475,7 +475,11 @@ class MainWindow(QMainWindow):
         cells = {
             _COL_VERDICT: verdict_item,
             _COL_FILE: file_item,
-            _COL_SCORE: _num_item(int(r.get("score", 0) or 0)),
+            # A missing score is not 0. 0 is AUTHENTIC, the most reassuring value in
+            # the table, so `or 0` displayed an absence as a clean bill of health.
+            _COL_SCORE: (
+                _num_item(int(r["score"])) if r.get("score") is not None else QTableWidgetItem("—")
+            ),
             _COL_HIRES: _text_item(_HIRES_LABEL.get(hires, hires), secondary=True),
         }
         for col, item in cells.items():

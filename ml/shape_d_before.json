@@ -1,0 +1,122 @@
+{
+ "fd-exchange-v2-2026-08-0554.flac": [
+  "AUTHENTIC",
+  0,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0181.flac": [
+  "FAKE_CERTAIN",
+  63,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0104.flac": [
+  "AUTHENTIC",
+  20,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0343.flac": [
+  "FAKE_CERTAIN",
+  93,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0362.flac": [
+  "FAKE_CERTAIN",
+  92,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0402.flac": [
+  "FAKE_CERTAIN",
+  87,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0425.flac": [
+  "FAKE_CERTAIN",
+  66,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0150.flac": [
+  "FAKE_CERTAIN",
+  93,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0018.flac": [
+  "FAKE_CERTAIN",
+  55,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0532.flac": [
+  "WARNING",
+  36,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0099.flac": [
+  "WARNING",
+  43,
+  "NOT_HIRES",
+  ""
+ ],
+ "fd-exchange-v2-2026-08-0350.flac": [
+  "WARNING",
+  52,
+  "NOT_HIRES",
+  ""
+ ],
+ "000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac": [
+  "AUTHENTIC",
+  0,
+  "NOT_HIRES",
+  ""
+ ],
+ "001-11-Gilbert-B-caud-Le-bain-de-minuit.flac": [
+  "AUTHENTIC",
+  0,
+  "NOT_HIRES",
+  ""
+ ],
+ "002-03-Hraach-Let-it-go.flac": [
+  "AUTHENTIC",
+  0,
+  "NOT_HIRES",
+  ""
+ ],
+ "003-01-Thor-Dari-lullaby.flac": [
+  "AUTHENTIC",
+  0,
+  "NOT_HIRES",
+  ""
+ ],
+ "src001.flac": [
+  "AUTHENTIC",
+  22,
+  "NOT_HIRES",
+  ""
+ ],
+ "src002.flac": [
+  "SUSPICIOUS",
+  72,
+  "NOT_HIRES",
+  ""
+ ],
+ "src003.flac": [
+  "AUTHENTIC",
+  23,
+  "NOT_HIRES",
+  ""
+ ],
+ "src004.flac": [
+  "AUTHENTIC",
+  22,
+  "NOT_HIRES",
+  ""
+ ]
+}

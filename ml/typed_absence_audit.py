@@ -206,6 +206,30 @@ def _tests_computability(node: ast.AST) -> bool:
     return any(isinstance(op, (ast.Gt, ast.GtE, ast.Lt, ast.LtE)) for op in node.ops)
 
 
+_NUMERIC_CASTS = frozenset({"float", "int", "round", "abs"})
+
+
+def _coerces_absence(node: ast.AST) -> bool:
+    """True for ``X or <literal>`` / ``X if X else <literal>`` — shape D's core.
+
+    Deliberately NOT name-driven, unlike shapes A to C, and that is the whole
+    point of it. Provir's instance was::
+
+        value = float(row.get(name) or 0.0)
+
+    There is no measurement identifier anywhere in that line: the quantity is
+    fetched by key, so every name-driven filter returns clean on the module that
+    contains it. What marks it is the CONTEXT — a numeric cast or comparison —
+    around an expression that turns None into a number.
+    """
+    if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
+        return _is_number(node.values[-1]) and len(node.values) >= 2
+    if isinstance(node, ast.IfExp):
+        # `X if X else 0.0` — the same coercion spelled out longhand.
+        return _is_number(node.orelse) and _name_of(node.test) is not None
+    return False
+
+
 def audit_source(path: Path, text: str) -> Iterator[Finding]:  # noqa: C901
     try:
         tree = ast.parse(text)
@@ -248,6 +272,17 @@ def audit_source(path: Path, text: str) -> Iterator[Finding]:  # noqa: C901
                     next(n for n in names if _is_measurement(n)) or "?",
                     src(node),
                 )
+        # Shape D: an absence coerced at the point it is CONSUMED.
+        elif isinstance(node, ast.Call) and _name_of(node.func) in _NUMERIC_CASTS:
+            for arg in node.args:
+                if _coerces_absence(arg):
+                    yield Finding(path, node.lineno, "D: consumer-coercion", "cast", src(node))
+                    break
+        elif isinstance(node, ast.Compare):
+            for operand in [node.left, *node.comparators]:
+                if _coerces_absence(operand):
+                    yield Finding(path, node.lineno, "D: consumer-coercion", "compare", src(node))
+                    break
 
 
 def iter_modules(roots: List[Path]) -> Iterator[Path]:
@@ -272,6 +307,8 @@ w = telemetry.width_hz or 1500.0             # his own sentinel, our spelling
 depth = residual_floor_db or -999
 cutoff_std = float(np.std(cutoff_freqs)) if len(cutoff_freqs) > 1 else 0.0
 seam_db = compute(x) if xs.size > 0 else -999
+value = float(row.get(name) or 0.0)            # Provir's shape D, consumer side
+if float(row.get("edge") or 0.0) < 160: pass   # same, inside a comparison
 """
 
 SELFTEST_MUST_NOT_FIRE = """
@@ -284,18 +321,28 @@ name = label or "unknown"                    # a string default, not a reading
 cutoff_std = float(np.std(xs)) if len(xs) > 1 else float("nan")   # the repair
 width_hz = measure(xs) if cutoff_hz < 19000 else 0.0   # a domain gate, not computability
 labels = collect(xs) if len(xs) > 1 else []             # a collection default
+name = str(row.get("title") or "untitled")             # a string default, not numeric
+count = len(items or [])                               # a collection, not a reading
 """
 
 
 def selftest() -> int:
-    fired = list(audit_source(Path("<must-fire>"), SELFTEST_MUST_FIRE))
+    # Counted by distinct LINE, not by finding: one line can match two shapes and
+    # legitimately does -- `(edge_std or 999) < 160` is both an or-sentinel (A)
+    # and a coercion inside a comparison (D). Counting findings would make the
+    # control drift every time a shape is added.
+    fired_all = list(audit_source(Path("<must-fire>"), SELFTEST_MUST_FIRE))
+    fired = sorted({f.line: f for f in fired_all}.values(), key=lambda f: f.line)
     quiet = list(audit_source(Path("<must-not-fire>"), SELFTEST_MUST_NOT_FIRE))
-    print(f"control: {len(fired)}/6 caught, {len(quiet)} false positive(s)")
+    print(
+        f"control: {len(fired)}/8 lines caught ({len(fired_all)} findings), "
+        f"{len(quiet)} false positive(s)"
+    )
     for finding in fired:
         print(f"  caught  {finding.source.strip()}")
     for finding in quiet:
         print(f"  WRONGLY caught  {finding.source.strip()}")
-    ok = len(fired) == 6 and not quiet
+    ok = len(fired) == 8 and not quiet
     print("selftest: " + ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 

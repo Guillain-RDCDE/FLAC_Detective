@@ -1,3 +1,74 @@
+## v1.13.2 (2026-08-31) — the shape that survives its own repair
+
+Provir, 2026-08-30, having run v1.13.1's shape C against his own tree: he found
+one latent instance, hardened it, and then **re-ran the check instead of assuming
+the fix had worked**. It had not. One module downstream the consumer read the
+now-correct `None` as `float(row.get(name) or 0.0)`, and the absence came
+straight back as a reading. The defect survived its own repair, in code that
+never mentions the statistic by name.
+
+**Shape D**, adopted verbatim from his rule: a numeric cast or comparison whose
+argument is `X or <literal>` (or `X if X else <literal>`). Deliberately **not**
+name-driven, unlike shapes A to C — his instance fetches the quantity by key, so
+there is no measurement identifier anywhere in the line, which is exactly why
+every name-driven filter returns clean on it. Shapes A-C inspect where an
+absence is *created*; D inspects where it is *consumed*, and the two sites live
+in different files.
+
+### What it found here: 6 instances that three shapes had missed
+
+Criteria registered first in `ml/exchange/SHAPE_D_REGISTRATION_2026-08-31.md`.
+
+The one that mattered: `analyzer.py` read `int(metadata.get("sample_rate", 0) or
+0)`, and `read_metadata` returns `{}` on any exception. So a file whose header
+could not be read arrived at `classify_hires` as **0 Hz**, which reads as "not
+high rate" and returned a confident `NOT_HIRES` **with no reason attached** — a
+verdict axis answering a question it could not evaluate. Also repaired: a missing
+score displaying as `0` in the GUI (which is AUTHENTIC, the most reassuring value
+in the table), two report columns taking `0.0` for an unmeasured cutoff in a
+column that is averaged downstream, and one line coercing a missing Rule 13 score
+back to `0` immediately after the code that exists to keep "did not run" and
+"scored 0" apart.
+
+### Cost: nothing, and that is the honest answer
+
+* **D1 — 0 of 750 files** on the measurement corpora have no `sample_rate` or
+  `bit_depth`; `read_metadata` returned `{}` on none of them. The path is
+  reachable but has never executed here.
+* **D2 / D3 — 0 changes.** Pristine worktree against the repaired tree, 20 files
+  across three strata, full engine, `deep=True`: verdict, score, hi-res verdict
+  and hi-res reason identical on every one.
+* **D4 — audit clean**: 153 modules, 0 findings across all four shapes, control
+  8 of 8 lines with 0 false positives.
+
+So this instance is **latent**, exactly as his was. No published number changes.
+
+`classify_hires` now takes `Optional[int]` and returns **`UNKNOWN`** — not a new
+label, it has meant "analysis unavailable" since the module was written and
+`gui/worker.py` already emits it — with a reason naming which field is missing.
+Four tests pin the contract, one of them in the other direction: a file that
+genuinely claims 0 Hz still reads `NOT_HIRES`, because the repair must not make
+`0` and *absent* synonyms.
+
+### Also from his letter, and both are corrections to us
+
+* **Our half-bin argument was vacuous.** We wrote that residuals reaching 2.92 Hz
+  — half a bin — proved his exported edges sit on {bin} ∪ {mid-bin}. An integer
+  is within half a bin of *some* bin on any grid, so that test passes for every
+  transform size from 2048 to 32768 and proves nothing. His version is the one to
+  use: if the true values sat on bins, integer rounding could displace them by at
+  most **0.5 Hz**, and **102 of 296 residuals exceed 0.5 Hz**. Same conclusion,
+  actual proof.
+* **Our collision instance was wrong; the mechanism was right.** We predicted
+  20003.9 at 48 kHz would also print 20004.0. No 48 kHz row prints 20004.0 at
+  all. But five values *do* collide across the two rates in his column — 20074.0,
+  20080.0, 20104.0, 21466.0, 21759.0 — so the merge we described is real and more
+  common than the single case we guessed. He now exports the unrounded value and
+  the chunk count alongside.
+
+Fifth and sixth instances of the species across the two engines in twelve days.
+The rule stands, with one more clause: **re-run the check after the fix.**
+
 ## v1.13.1 (2026-08-30) — an absence that was being scored, and the constant it had become
 
 Provir reported a defect in his own engine on 2026-08-29: a guard reading, in

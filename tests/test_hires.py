@@ -8,8 +8,10 @@ vs a genuine broadband hi-res file — so no real audio is needed).
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from flac_detective.analysis import hires
+from flac_detective.analysis.hires import NOT_HIRES, UNKNOWN, classify_hires
 
 # ---------------------------------------------------------------------------
 # classify_hires — pure label logic
@@ -102,3 +104,50 @@ def test_natural_rolloff_with_analog_floor_not_flagged():
     sig = np.fft.irfft(X, n=n).astype(np.float32)
     out = hires.detect_upsampling(sig, sr)
     assert out["is_upsampled"] is False
+
+
+# ---------------------------------------------------------------------------
+# Shape D (v1.13.2): an unknown rate or depth is not a rate of 0 Hz.
+#
+# read_metadata returns {} on any exception, so a file whose header could not be
+# read used to arrive here as 0 — which reads as "not high rate" and produced a
+# confident NOT_HIRES with no reason attached. Provir found the shape on
+# 2026-08-30: the coercion at the point an absence is CONSUMED, which survives a
+# correct fix upstream because it lives in another module and names nothing.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "sample_rate,bit_depth,unknown_word",
+    [(None, 16, "sample rate"), (44100, None, "bit depth"), (None, None, "sample rate")],
+)
+def test_unknown_rate_or_depth_is_unknown_not_not_hires(sample_rate, bit_depth, unknown_word):
+    """An unreadable header must not receive a confident verdict."""
+    verdict, reasons = classify_hires(
+        sample_rate=sample_rate,
+        bit_depth=bit_depth,
+        is_upsampled=False,
+        suspected_original_rate=44100,
+        is_fake_high_res=False,
+        estimated_depth=16,
+    )
+    assert verdict == UNKNOWN
+    assert reasons and unknown_word in reasons[0]
+
+
+def test_zero_is_still_a_reading_and_still_reads_not_hires():
+    """0 Hz is not the absence: if a file really claims it, the axis says N/A.
+
+    Pinned so the repair cannot drift into treating 0 as a synonym for None —
+    the whole point is that the two are different.
+    """
+    verdict, reasons = classify_hires(
+        sample_rate=0,
+        bit_depth=0,
+        is_upsampled=False,
+        suspected_original_rate=44100,
+        is_fake_high_res=False,
+        estimated_depth=16,
+    )
+    assert verdict == NOT_HIRES
+    assert reasons == []

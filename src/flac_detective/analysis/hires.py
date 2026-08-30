@@ -30,7 +30,7 @@ The verdict labels (analogous to the transcode traffic light):
 from __future__ import annotations
 
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -159,8 +159,8 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
 
 
 def classify_hires(
-    sample_rate: int,
-    bit_depth: int,
+    sample_rate: Optional[int],
+    bit_depth: Optional[int],
     is_upsampled: bool,
     suspected_original_rate: int,
     is_fake_high_res: bool,
@@ -180,8 +180,21 @@ def classify_hires(
 
     Returns:
         ``(verdict_label, reasons)``. ``NOT_HIRES`` when neither high rate nor high
-        depth is claimed (the axis doesn't apply).
+        depth is claimed (the axis doesn't apply), and also when either is
+        **unknown** — with a reason that says so, rather than silently.
+
+    ``sample_rate`` and ``bit_depth`` are Optional because ``read_metadata``
+    returns ``{}`` on any exception: a file whose header could not be read has no
+    rate, and until v1.13.2 the caller coerced that absence to ``0``, which reads
+    here as "not high rate" and produced a confident ``NOT_HIRES`` with no reason
+    attached. It now returns ``UNKNOWN``, which is what that label has always
+    meant — "analysis unavailable" — and which ``gui/worker.py`` already emits on
+    its own failure path, so no consumer meets a value it has not seen before.
     """
+    if sample_rate is None or bit_depth is None:
+        unknown = "sample rate" if sample_rate is None else "bit depth"
+        return UNKNOWN, [f"Hi-res axis not evaluated: {unknown} unknown (header unreadable)"]
+
     is_high_rate = sample_rate > 48000
     is_high_depth = bit_depth > 16
     if not is_high_rate and not is_high_depth:

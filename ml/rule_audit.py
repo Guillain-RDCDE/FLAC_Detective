@@ -69,6 +69,18 @@ RULES: Tuple[str, ...] = (
 )
 
 
+def _hz_cell(value: object) -> str:
+    """A frequency for a CSV cell, or an empty cell when it was never measured.
+
+    Empty, not 0.0: this column gets averaged, and a fabricated zero moves a mean
+    without anyone noticing, while a blank cell is skipped by every reader.
+    """
+    try:
+        return "" if value is None else f"{float(value):.1f}"
+    except (TypeError, ValueError):
+        return ""
+
+
 def auc(pos: Sequence[float], neg: Sequence[float]) -> float:
     """Mann-Whitney AUC of ``pos`` over ``neg`` (ties count as 0.5).
 
@@ -135,7 +147,10 @@ def _score_one(job: Tuple[str, int, str, str]) -> Optional[Dict[str, object]]:
         "codec": codec,
         "score": result["score"],
         "verdict": result["verdict"],
-        "cutoff_freq": round(float(result.get("cutoff_freq") or 0.0), 1),
+        # A cutoff that was never measured is not 0.0 Hz. This column is
+        # averaged downstream, and a fabricated zero drags a mean silently where
+        # an empty cell does not (shape D, 2026-08-31).
+        "cutoff_freq": _hz_cell(result.get("cutoff_freq")),
         # Independent evidence families — what a conviction is allowed to be made
         # of since v1.9. Recorded so the audit can score the corroboration gate
         # itself, not just the rules feeding it.

@@ -63,6 +63,18 @@ SCAN_RULES = (
 )
 
 
+def _hz_cell(value: object) -> str:
+    """A frequency for a CSV cell, or an empty cell when it was never measured.
+
+    Empty, not 0.0: this column gets averaged, and a fabricated zero moves a mean
+    without anyone noticing, while a blank cell is skipped by every reader.
+    """
+    try:
+        return "" if value is None else f"{float(value):.1f}"
+    except (TypeError, ValueError):
+        return ""
+
+
 def wilson(k: int, n: int, z: float = 1.96) -> Tuple[float, float]:
     """Wilson score interval — the honest reading of a clean run."""
     if n == 0:
@@ -116,7 +128,10 @@ def _scan_one(path: str) -> Optional[Dict[str, object]]:
         "file_id": hashlib.sha1(path.encode("utf-8", "replace")).hexdigest()[:12],
         "score": r["score"],
         "verdict": r["verdict"],
-        "cutoff_freq": round(float(r.get("cutoff_freq") or 0.0), 1),
+        # A cutoff that was never measured is not 0.0 Hz. This column is
+        # averaged downstream, and a fabricated zero drags a mean silently where
+        # an empty cell does not (shape D, 2026-08-31).
+        "cutoff_freq": _hz_cell(r.get("cutoff_freq")),
         "families": "+".join(r.get("evidence_families") or []),
     }
     # Full per-rule breakdown, not just Rule 13: choosing the corroborated
@@ -227,7 +242,10 @@ def cmd_scan(args: argparse.Namespace) -> int:
     # Conflating the two once made a clean 0/178 read as "Rule 13 contributed to
     # 162 files", which is the opposite of what happened.
     ran = [r for r in rows if str(r["Rule13MDCTAlignment"]) != ""]
-    scored = [r for r in ran if float(r["Rule13MDCTAlignment"] or 0) != 0]
+    # `or 0` here would merge "the rule did not run" back into "the rule scored
+    # 0" — the exact conflation the two lines above exist to prevent, undone one
+    # line later by a coercion at the point of consumption.
+    scored = [r for r in ran if float(r["Rule13MDCTAlignment"]) != 0]
     lo, hi = wilson(len(scored), len(ran)) if ran else (float("nan"), float("nan"))
     print(
         f"  Rule 13 ran on {len(ran)}, scored on {len(scored)} "
