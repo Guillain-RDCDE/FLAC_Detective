@@ -303,10 +303,24 @@ length of every file precisely so this is checkable rather than asserted.
 
 ## Integrity
 
-`MANIFEST.sha256` lists every file with its SHA-256 and byte length. Verify with:
+`MANIFEST.sha256` lists every file as `<sha256>  <path>  <bytes>` — three
+columns, because the byte length is part of what is being attested. That third
+column means **plain `sha256sum -c` cannot read it**: it takes everything after
+the digest as the filename and reports "FAILED open or read" on every line. Said
+here rather than left for the recipient to discover, which is what happened with
+the 2026-08 set. Verify with either of:
 
 ```sh
-sha256sum -c MANIFEST.sha256          # GNU coreutils
+awk '{{print $1 "  " $2}}' MANIFEST.sha256 | sha256sum -c   # GNU coreutils
+python - <<'EOF'
+import hashlib, pathlib
+for line in pathlib.Path("MANIFEST.sha256").read_text().splitlines():
+    digest, rel, size = line.split()
+    data = pathlib.Path(rel).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == digest, rel
+    assert len(data) == int(size), rel
+print("all files verified")
+EOF
 ```
 
 If a hash does not match, the file changed in transit and its verdict is void.
