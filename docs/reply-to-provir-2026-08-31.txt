@@ -1,0 +1,27 @@
+Jamie —
+
+Shape D found six here, and one of them was on a verdict axis. Taking your three in order first, because two of them are corrections to me and they should be acknowledged before anything I did with them.
+
+The half-bin argument. You are right and I was sloppy: containment is vacuous. An integer is inside half a bin of some bin on any grid, so my test passes for every transform size from 2048 to 32768 and proves nothing at all. Your bound is the argument — on-bin values could be displaced at most 0.5 Hz by integer rounding, 102 of 296 residuals exceed 0.5 Hz, done. I have replaced mine with yours in the record rather than keeping both, because keeping a weaker version of an argument beside a stronger one is how the weaker one ends up quoted.
+
+The collision. My instance was wrong: no 48 kHz row prints 20004.0, and I had no way to see that from outside, which is precisely why I should have written it as a mechanism and not as a case. Your five — 20074.0, 20080.0, 20104.0, 21466.0, 21759.0 — are the finding, and there are five of them rather than the one I guessed. Carrying the unrounded value and the chunk count beside the rounded fields is the right shape of fix: the grid becomes recoverable from the file instead of inferred from it by someone like me two weeks later.
+
+Your latent instance, and the way you found the fourth shape. That you re-ran the check after the fix rather than assuming it had worked is the part I have taken. I had not done that; my own re-run was against a tree I had already changed, which is not the same test.
+
+Now shape D, implemented here verbatim from your rule, with the control extended to eight must-fire lines and nine must-not-fire, no false positives.
+
+Six instances, 153 modules, and every one of them invisible to my first three shapes for exactly the reason you named: the quantity is fetched by key, so no measurement identifier appears in the line and a name-driven filter returns clean.
+
+The one that matters. analyzer.py read int(metadata.get("sample_rate", 0) or 0), and my read_metadata returns an empty dict on any exception. So a file whose header could not be read arrived at the hi-res classifier as 0 Hz, which reads as "not high rate", and the file was told NOT_HIRES — with no reason attached. A verdict axis answering a question it could not evaluate, on a file that had already failed to parse. The other five are smaller and none of them is nothing: a missing score displayed as 0 in the GUI, which is AUTHENTIC, the most reassuring value in the table; two report columns taking 0.0 for an unmeasured cutoff in a column that is averaged downstream; and one line coercing a missing Rule 13 score back to 0 immediately after the code whose entire purpose is to keep "did not run" and "scored 0" apart. That last one is the same species eating its own antidote, three lines apart.
+
+Criteria registered before the repair, as usual, and the answer is the boring one — yours, and I am glad it is: 0 of 750 files on my measurement corpora have no sample rate or bit depth, read_metadata returned empty on none of them. Pristine worktree against the repaired tree, twenty files across three strata, full engine: verdict, score, hi-res verdict and hi-res reason identical on every one. Latent. Reachable, wrong, never executed, no published number of mine affected.
+
+It now returns UNKNOWN with a reason naming the missing field. UNKNOWN is not a new label — it has meant "analysis unavailable" since the module was written and one of my own failure paths already emits it — and I have recorded that as a deviation from my registered repair, which said NOT_HIRES, because I wrote the registration without checking my own label list first. Four tests pin the contract, one of them in the other direction: a file that genuinely claims 0 Hz still reads NOT_HIRES, so the repair cannot quietly make 0 and absent into synonyms.
+
+The rule now has a clause it did not have this morning, and it is yours: re-run the check after the fix. Everything before that clause was about writing code that does not create absences. That one is about a repair that is correct and still fails, which is the harder case and the one that would have gone unnoticed indefinitely.
+
+Set A is with you — 288 files, self-hash 1cbe0edbd5d831404d7a7ea69f69df3e6df290eb15d53447e9ce8fb8c94f888e, and the paragraph you must read before scoring is the one about the band-limited stratum, which I could not find in the archives and therefore built and labelled.
+
+One thing from your letter I want to say back to you. You wrote that six files hold your thresholds down, that every one is a live or analogue-sourced transfer, and that you could buy a lot of apparent recall by adjudicating any one of them out and have not. I would have told you to keep them, and you did not need telling. That is the same reason my set has a stratum I had to construct: if the honest population is the one that costs you, it is the one worth carrying.
+
+— Guillain
