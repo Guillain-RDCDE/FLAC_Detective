@@ -1,0 +1,51 @@
+  1/44 AUTHENTIC    -> FAKE_CERTAIN run   3.10 ->   5.70  spectral+stereo
+  2/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   6.71  stereo
+  3/44 AUTHENTIC    -> AUTHENTIC    run    nan ->    nan  
+  4/44 AUTHENTIC    -> AUTHENTIC    run    nan ->    nan  spectral
+  5/44 AUTHENTIC    -> WARNING      run   0.00 ->   6.15  spectral+stereo
+  6/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   7.41  spectral+stereo
+  7/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   6.08  spectral+stereo
+  8/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   3.89  spectral+stereo
+  9/44 AUTHENTIC    -> WARNING      run   0.00 ->   6.51  spectral+stereo
+  10/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   1.72  spectral+temporal
+  11/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   2.11  spectral+stereo
+  12/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   3.50  spectral+stereo
+  13/44 AUTHENTIC    -> SUSPICIOUS   run   1.00 ->   1.85  spectral
+  14/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   3.19  spectral+stereo
+  15/44 AUTHENTIC    -> WARNING      run   0.00 ->   2.71  spectral+stereo
+  16/44 AUTHENTIC    -> FAKE_CERTAIN run   1.00 ->   3.90  spectral+stereo
+  17/44 AUTHENTIC    -> AUTHENTIC    run   1.00 ->   4.09  spectral+stereo
+  18/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   8.83  spectral+stereo
+  19/44 AUTHENTIC    -> WARNING      run    nan ->    nan  cnn+spectral
+  20/44 AUTHENTIC    -> FAKE_CERTAIN run    nan ->    nan  cnn+spectral
+  21/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   8.51  stereo
+  22/44 AUTHENTIC    -> AUTHENTIC    run    nan ->    nan  spectral
+  23/44 AUTHENTIC    -> FAKE_CERTAIN run    nan ->    nan  cnn+spectral
+  24/44 AUTHENTIC    -> FAKE_CERTAIN run    nan ->    nan  cnn+spectral
+  25/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   6.18  spectral+stereo
+  26/44 AUTHENTIC    -> WARNING      run   2.80 ->   9.84  spectral+stereo+temporal
+  27/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   2.35  spectral+stereo
+  28/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   3.38  spectral+stereo
+  29/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   2.59  spectral+stereo
+  30/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   2.38  spectral+stereo
+  31/44 AUTHENTIC    -> AUTHENTIC    run   1.71 ->   3.21  spectral+stereo
+  32/44 AUTHENTIC    -> AUTHENTIC    run   1.00 ->  13.09  spectral+stereo
+  33/44 AUTHENTIC    -> AUTHENTIC    run   1.00 ->   1.90  
+  34/44 AUTHENTIC    -> AUTHENTIC    run   1.00 ->   1.71  
+  35/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   1.25  
+  36/44 AUTHENTIC    -> AUTHENTIC    run   1.00 ->   1.69  
+  37/44 AUTHENTIC    -> AUTHENTIC    run    nan ->    nan  spectral
+  38/44 AUTHENTIC    -> SUSPICIOUS   run   0.00 ->   1.58  spectral
+  39/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   5.38  spectral+stereo
+  40/44 AUTHENTIC    -> AUTHENTIC    run   0.00 ->   7.93  spectral+stereo
+  41/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   3.49  spectral+stereo
+  42/44 AUTHENTIC    -> AUTHENTIC    run    nan ->    nan  spectral
+  43/44 AUTHENTIC    -> FAKE_CERTAIN run    nan ->    nan  cnn+spectral
+  44/44 AUTHENTIC    -> FAKE_CERTAIN run   0.00 ->   2.47  spectral+stereo
+AVANT filtre : Counter({'AUTHENTIC': 44})
+APRES filtre : Counter({'AUTHENTIC': 22, 'FAKE_CERTAIN': 15, 'WARNING': 5, 'SUSPICIOUS': 2})
+convictions apres filtre : 15/44
+signales apres filtre    : 22/44
+deux familles ou plus    : 31/44  (Counter({'spectral+stereo': 24, 'cnn+spectral': 5, 'spectral+temporal': 1, 'spectral+stereo+temporal': 1}))
+dead-run fini avant : 34/44 | apres : 34/44
+dead-run apres : median 3.50, max 13.09 (barre 2.0)

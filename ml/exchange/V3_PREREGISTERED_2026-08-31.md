@@ -71,3 +71,48 @@ avoid. They are reported when they arrive and adjudicated at the mechanism.
 
 Results appended below, dated after the fact. Nothing above may be edited once
 his manifest is in hand.
+
+---
+
+# SET A, OUR OWN HALF — scored 2026-08-31, diagnostics only, criteria unedited above
+
+Run before his set B arrived, deliberately: a defect on our own half is worth
+finding now rather than during his. 288 files, engine 1.13.2 @ `e176d103`,
+manifest verified at read time (288 of 288), verdict file SHA-256
+`a7b798b53c1a300c472dc1202c9713db1519be6305c6c6704c2279c370ed8e91`.
+
+| # | prediction | measured | |
+|---|---|---|---|
+| **A-i** | 0 false convictions on our own genuine | **1 of 36** | **FAILED** |
+| **A-ii** | mp2_256 convicted below mp3_320 | **47 % against 11 %** | failed, and in the opposite direction |
+| **A-iii** | band-limited genuine signalled more than full-band | **33.3 % against 4.2 %** | as predicted |
+
+    conviction rate by arm
+      mp2_256 47 %   aacmf_256 42 %   vorbis_q8 36 %   aac_ff256 11 %
+      mp3_320 11 %   opus_256 8 %     mp3_V0 6 %
+
+## A-ii failed in the informative direction
+
+Layer II was added as the arm both engines were blind to, and it is the arm this
+engine convicts **most**. The v2 blindness was in the MP3-family *idem and MDCT*
+instruments, which look for a filterbank Layer II does not have; conviction
+overall is another matter, and mp2_256 band-limits hard enough that the spectral
+rules do the work. The prediction was right about the mechanism and wrong about
+what it implies for the verdict, which is worth more than being right.
+
+## A-i failed, and it opened the worst finding of the round
+
+The convicted file is one of the twelve `band_limited_synthetic` sources, on
+`spectral+stereo` — two evidence families, which is what the corroboration gate
+asks for. Four of the five signalled genuine files are from the same stratum.
+
+Chasing it produced a measurement on material that is **not in the shipped set**:
+44 parked genuine sources, all AUTHENTIC, given a 14 kHz roll-off and nothing
+else — **15 convicted, 22 signalled**. Full write-up, the mechanism, a repair that
+was implemented and then **refused by its own preliminary check**, and what comes
+next: `ml/exchange/R15_BANDLIMIT_REGISTRATION_2026-08-31.md`.
+
+**This is the stratum earning its place before the round has even started.**
+Provir named band-limited genuine material as the hardest false positives in this
+space; the stratum had to be constructed because it could not be found; and the
+first thing it did was convict our own engine of a third of it.
