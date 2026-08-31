@@ -78,3 +78,56 @@ must not convict its own genuine files.
 
 Results appended below, dated after the fact. Nothing above may be edited once
 the sweep has run.
+
+---
+
+# RESULTS — appended 2026-08-31. The refusal clause fired.
+
+`ml/r15_sweep.py`, spectra computed once per file and every candidate floor read
+off the same spectra. 40 genuine, 160 arm files, 34 band-limited controls that
+survive the mono gate.
+
+| variant | AUC arms/genuine | median genuine | median arms | median band-limited | band-limited over the 2.0 bar |
+|---|---|---|---|---|---|
+| **absolute (shipped)** | **0.905** | 0.00 | 7.36 | 3.50 | **27 of 34** |
+| relative 0.02 | 0.805 | 0.00 | 1.30 | 0.00 | **0 of 34** |
+| relative 0.05 | 0.760 | 1.00 | 1.52 | 1.00 | 0 of 34 |
+| relative 0.10 | 0.703 | 1.12 | 1.72 | 1.00 | 0 of 34 |
+| relative 0.20 | 0.658 | 1.34 | 1.86 | 1.20 | 1 of 34 |
+| relative 0.30 | 0.614 | 1.53 | 1.88 | 1.50 | 2 of 34 |
+
+The guard was AUC within **0.03** of 0.905. The best candidate reaches **0.805**,
+ten points below. **No value clears it, so the relative test is refused**, as this
+document said it would be.
+
+## What the refusal teaches, and it is not nothing
+
+The relative test does exactly what it was designed to do — **0 of 34
+band-limited files above the bar, against 27 of 34** — and it costs a tenth of
+the separation the witness exists for. So the absolute bar is not an oversight
+that survived: **it is where the signal lives.** A coupled side channel is
+distinguishable from an uncoupled one mostly by being *quiet*, not by being
+*holey*, and a statistic that only sees structure sees a much weaker version of
+the thing.
+
+That also means the false positive is **intrinsic to the statistic as designed**,
+not a bug in it. Rule 15 cannot be made band-limit-blind from the inside without
+becoming a different and worse witness.
+
+## Where the repair has to go instead
+
+Two places, neither of them inside `side_dead_run`:
+
+1. **A domain gate**, on the same principle as `MONO_GATE`: the witness abstains
+   when the file has no top octave to have a stereo image in. That is a
+   restriction of where the statistic applies, not a change to what it measures —
+   which is the honest shape for an instrument whose signal really does live in
+   the absolute level.
+2. **An independence guard on the corroboration gate.** The conviction needed two
+   families and got `spectral` and `stereo` — both reading the missing top
+   octave. The gate counts families; it does not ask whether they are looking at
+   the same thing.
+
+The first is measurable immediately and gets its own registration. The second is
+the deeper fix and touches every rule pair, so it needs the priced corpus and a
+registration of its own.

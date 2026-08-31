@@ -72,7 +72,35 @@ logger = logging.getLogger(__name__)
 RUN_BAR = 2.0
 
 # Below this cutoff the file is band-limited and the 10 kHz band is empty anyway.
-MIN_CUTOFF_HZ = 12000.0
+#
+# Raised 12,000 -> 17,000 on 2026-08-31, and the reasoning above is why: it was
+# already right and the constant was in the wrong place. Measured on 44 parked
+# genuine sources given a 14 kHz roll-off and NOTHING else — no transcode, no
+# re-encode — the engine convicted 15 of them, because the side channel falls
+# under an absolute bar that the mid channel does not, the witness reports a dead
+# side channel, and `spectral` plus `stereo` is two evidence families, which is
+# what the corroboration gate asks for. Those files read a cutoff of 15,250 to
+# 15,500 Hz: above the old gate, so they walked through it.
+#
+# The gap the new value sits in, measured before it was chosen:
+#
+#     genuine                 min 19,500      band-limited controls  median 15,500
+#     mp3_320   min 19,250    aac_ff256 min 19,500
+#     opus_256  min 19,500    vorbis_q8 min 19,500
+#
+# 17,000 is the round figure inside 15,500-19,250, 2,250 Hz below the lowest arm
+# reading. Two repairs INSIDE the statistic were tried first and both were
+# refused: restricting to live-MID bins (the mid channel is not dead on these
+# files — live share 0.88-0.94, higher than a real mp3_320) and a dead test
+# relative to the file's own side level (removes the artefact completely and
+# costs 0.10 of arm-vs-genuine AUC against a 0.03 budget — the absolute bar is
+# where this witness's signal lives). See
+# ml/exchange/R15_DOMAIN_GATE_REGISTRATION_2026-08-31.md and its two predecessors.
+#
+# The cost, disclosed: the witness stops testifying about heavily band-limited
+# transcodes (mp3_192, aac_ff128), which is Rule 1's domain — they are convicted
+# on the wall itself.
+MIN_CUTOFF_HZ = 17000.0
 
 
 def apply_rule_15_stereo_seam(

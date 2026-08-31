@@ -1,3 +1,74 @@
+## v1.13.3 (2026-08-31) — Rule 15 was testifying about a band that was not there
+
+Scoring our own half of fd-exchange-v3 against our own key — a pre-registered
+diagnostic, run deliberately before Provir's half arrives — failed its floor:
+**one of our 36 genuine files was convicted**, on `spectral+stereo`, which is
+exactly the two evidence families the corroboration gate asks for. Four of the
+five signalled genuine files were the `band_limited_synthetic` stratum, the one
+that had to be constructed because it could not be found in any free archive.
+
+Chased on material that is **not in the shipped set**: 44 parked genuine sources,
+all AUTHENTIC, given a 14 kHz roll-off and nothing else — no transcode, no
+re-encode. **15 convicted, 22 signalled**, side dead-run median 3.50 against a
+bar of 2.0. Band-limiting an honest file convicted it a third of the time.
+
+### Two repairs written, implemented and refused before shipping
+
+* **Restrict the statistic to live-MID bins.** Refused: the MID channel is not
+  dead on these files. Live share 0.88-0.94, *higher* than a real mp3_320 at
+  0.84 — a shellac transfer's surface noise is loud and broadband and survives
+  normalisation. Reverted, and the revert verified by reproducing the original
+  reading exactly.
+* **A dead test relative to the file's own side level.** Refused by its own
+  registered guard: it removes the artefact completely (0 of 34 over the bar,
+  from 27 of 34) and costs **0.10 of arm-vs-genuine AUC against a 0.03 budget**.
+  The absolute bar is not an oversight that survived — it is where this witness's
+  signal lives.
+
+Both refusals are recorded with their numbers. The second one also settles
+something: the false positive is **intrinsic to the statistic as designed**, so
+the repair cannot live inside it.
+
+### What shipped: a constant that was already right, in the wrong place
+
+`rules/stereo_seam.py` already carried `MIN_CUTOFF_HZ = 12000.0` under the
+comment *"Below this cutoff the file is band-limited and the 10 kHz band is empty
+anyway"*. The reasoning was correct; the value let files with a 15,500 Hz cutoff
+walk through. Measured gap, before the value was chosen:
+
+    genuine min 19,500 · mp3_320 min 19,250 · aac_ff256 min 19,500
+    opus_256 min 19,500 · vorbis_q8 min 19,500 · band-limited controls median 15,500
+
+**`MIN_CUTOFF_HZ` 12,000 → 17,000**, the round figure in the gap, 2,250 Hz below
+the lowest arm reading.
+
+**Cost, measured before and after on 284 files plus set A's 288:**
+
+| | bound | measured |
+|---|---|---|
+| convictions on the band-limited controls | ≤ 2 | **15 → 4**, failed |
+| false convictions on our own 36 genuine | 0 | **1 → 0**, held |
+| convictions lost, four high-rate arms | ≤ 2 | **0**, held |
+| convictions lost, two low-rate arms | reported | **0** |
+| convictions lost on set A's 252 lossy | ≤ 8 | **2**, held |
+
+Not one conviction lost on any of the six arms. The witness goes silent on the
+band-limited population (27 files → 2) and nowhere else.
+
+### The bound that failed names the next defect
+
+The four surviving convictions all carry **`cnn+spectral`**. The CNN reads a
+spectrogram, so on a file whose top octave was removed it is reading the same
+roll-off Rule 1 is reading. `cnn` and `spectral` are no more independent there
+than `stereo` and `spectral` were: **the corroboration gate counts families, it
+does not ask whether they are looking at the same thing.** An independence guard
+touches every rule pair and gets its own registration and its own priced corpus —
+not the same evening that produced two refused repairs.
+
+Registrations: `ml/exchange/R15_BANDLIMIT_REGISTRATION_2026-08-31.md`,
+`R15_RELATIVE_DEAD_REGISTRATION_2026-08-31.md`,
+`R15_DOMAIN_GATE_REGISTRATION_2026-08-31.md`.
+
 ## v1.13.2 (2026-08-31) — the shape that survives its own repair
 
 Provir, 2026-08-30, having run v1.13.1's shape C against his own tree: he found
