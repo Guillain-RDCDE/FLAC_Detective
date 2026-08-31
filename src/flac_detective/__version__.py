@@ -4,7 +4,7 @@ This is the single source of truth for the version number.
 All other files should reference this file.
 """
 
-__version__ = "1.13.3"
+__version__ = "1.13.4"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information

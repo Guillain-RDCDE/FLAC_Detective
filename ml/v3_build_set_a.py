@@ -678,6 +678,47 @@ def bandlimit(out: Path, want: int = BAND_LIMITED_TARGET) -> int:
     return 0
 
 
+def trim(out: Path) -> int:
+    """Phase 4b: every file in the corpus to an IDENTICAL sample count.
+
+    Without this the set announces its own arms. An arm is built by
+    encode-then-decode and every codec adds its own delay and padding, so the
+    decoded length is characteristic of the codec: set A shipped on 2026-08-31
+    with 2,646,000 samples for genuine/mp3/opus/vorbis, **2,646,016 for the AAC
+    family and 2,646,144 for mp2_256** — 108 of 288 files naming their arm
+    without a byte decoded, and mp2 identified outright.
+
+    Provir found the same species in his own set B build the same evening, sent
+    the mechanism before scoring rather than after, and that is the only moment
+    it was worth anything to either of us.
+
+    The target is the MINIMUM count over the corpus, so trimming only ever
+    removes samples and never pads with invented ones.
+    """
+    import soundfile
+
+    corpus = out / "corpus"
+    files = sorted(corpus.glob("authentic/*.flac")) + sorted(corpus.glob("fake/*/*.flac"))
+    if not files:
+        print("corpus vide")
+        return 1
+    counts = {f: int(soundfile.info(str(f)).frames) for f in files}
+    target = min(counts.values())
+    print(f"{len(files)} fichiers, {len(set(counts.values()))} longueurs distinctes -> cible {target}")
+    trimmed = 0
+    for path, frames in counts.items():
+        if frames == target:
+            continue
+        data, rate = soundfile.read(str(path), dtype="int16", always_2d=True)
+        tmp = path.parent / "_trim.flac"
+        soundfile.write(str(tmp), data[:target], rate, subtype="PCM_16")
+        tmp.replace(path)
+        trimmed += 1
+    after = {int(soundfile.info(str(f)).frames) for f in files}
+    print(f"{trimmed} fichiers coupes | longueurs distinctes apres: {sorted(after)}")
+    return 0 if len(after) == 1 else 1
+
+
 def select(out: Path) -> int:
     """Phase 3b: keep exactly the registered composition, park the rest.
 
@@ -760,6 +801,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--stratify", action="store_true")
     ap.add_argument("--bandlimit", action="store_true")
     ap.add_argument("--select", action="store_true")
+    ap.add_argument("--trim", action="store_true")
     ap.add_argument("--arms", action="store_true")
     args = ap.parse_args(argv)
     repo = Path(__file__).resolve().parent.parent
@@ -782,6 +824,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return bandlimit(args.out)
     if args.select:
         return select(args.out)
+    if args.trim:
+        return trim(args.out)
     if args.arms:
         return arms(args.out)
     ap.error("choisir une phase: --discover / --fetch / --stratify / --select / --arms")

@@ -147,6 +147,7 @@ def audit_own_output(
     labels: Dict[str, Dict[str, str]],
     log: logging.Logger,
     sample_rates: Optional[Dict[str, int]] = None,
+    frame_counts: Optional[Dict[str, int]] = None,
 ) -> bool:
     """Check the frozen set against ITSELF. Returns False if it must not ship.
 
@@ -198,9 +199,58 @@ def audit_own_output(
             )
 
     if sample_rates:
+        if frame_counts and not _audit_frame_counts(labels, frame_counts, log):
+            ok = False
         if not _audit_sample_rates(labels, sample_rates, log):
             return False
     return True
+
+
+def _audit_frame_counts(
+    labels: Dict[str, Dict[str, str]],
+    frame_counts: Dict[str, int],
+    log: logging.Logger,
+) -> bool:
+    """Refuse a set whose LENGTH names its arm. Returns False if it must not ship.
+
+    The 2026-08-31 set A shipped with three distinct frame counts across eight
+    classes, and two of them were pure labels: 2,646,144 samples meant mp2_256
+    and nothing else, 2,646,016 meant the AAC family and nothing else. **108 of
+    288 files announced their arm without a byte being decoded.**
+
+    The cause is that an arm is built by encode-then-decode and every codec adds
+    its own delay and padding, so the decoded length is characteristic of the
+    codec. The README promised "all excerpts are the same length"; they were not,
+    and nobody checked because nothing checked.
+
+    Provir found the same species in his own set B build the same evening — his
+    partitioned six of eight classes by byte size — and sent the mechanism before
+    scoring rather than after, which is the only moment it is worth anything. It
+    is his warning that produced this function.
+    """
+    counts: Dict[int, set] = {}
+    for file_id, frames in frame_counts.items():
+        label = labels.get(file_id, {}).get("label", "?")
+        counts.setdefault(frames, set()).add(label)
+    if len(counts) == 1:
+        return True
+    log.error(
+        "%d distinct frame counts across the set — LENGTH IS A LABEL and the set "
+        "cannot ship:",
+        len(counts),
+    )
+    leaked = False
+    for frames, labs in sorted(counts.items()):
+        n = sum(1 for v in frame_counts.values() if v == frames)
+        marker = "  <-- identifies the arm outright" if len(labs) == 1 else ""
+        log.error("  %d samples: %s (%d files)%s", frames, sorted(labs), n, marker)
+        if len(labs) == 1:
+            leaked = True
+    log.error(
+        "Trim every file to an identical sample count before freezing. %s",
+        "At least one length is a single class." if leaked else "",
+    )
+    return False
 
 
 def _audit_sample_rates(
@@ -367,8 +417,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Every digest computed below, so the set can be checked against ITSELF before
     # it ships. See the audit at the end of this function.
     by_digest: Dict[str, List[str]] = {}
-    # Container properties leak too — see _audit_sample_rates.
+    # Container properties leak too — see _audit_sample_rates and
+    # _audit_frame_counts.
     sample_rates: Dict[str, int] = {}
+    frame_counts: Dict[str, int] = {}
 
     for index, (src, label, slug) in enumerate(items, 1):
         file_id = f"{args.name}-{index:04d}"
@@ -379,7 +431,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         digest = sha256(dst)
         by_digest.setdefault(digest, []).append(file_id)
         try:
-            sample_rates[file_id] = int(soundfile.info(str(dst)).samplerate)
+            info = soundfile.info(str(dst))
+            sample_rates[file_id] = int(info.samplerate)
+            frame_counts[file_id] = int(info.frames)
         except Exception:  # an unreadable rate must not abort the freeze
             pass
         manifest_lines.append(f"{digest}  audio/{file_id}.flac  {dst.stat().st_size}")
@@ -398,7 +452,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
         return 1
 
-    if not audit_own_output(by_digest, labels, log, sample_rates):
+    if not audit_own_output(by_digest, labels, log, sample_rates, frame_counts):
         return 1
 
     (args.out / "MANIFEST.sha256").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")

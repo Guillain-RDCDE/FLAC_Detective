@@ -1,3 +1,56 @@
+## v1.13.4 (2026-08-31) — on Windows, 1.13.0 did not start
+
+Both reported by Provir, against the shipped PyPI wheel, while running his own
+encoder panel — nothing to do with the exchange. Neither is visible on Linux,
+and neither was visible on our CI, which is the part that matters.
+
+### 1. FATAL — the tool would not start on a stock Windows console
+
+`parse_arguments()` printed the banner before parsing a single argument, and the
+banner carries box-drawing glyphs (`╔ ═ ║ █ ▊`). Python gives `sys.stdout` the
+console's ANSI codepage on Windows — cp1252, not UTF-8 — where those glyphs have
+no mapping, so `print` raised `UnicodeEncodeError` **before any argument was
+read**. `--version` and `--help` included. There was no path around it from the
+command line.
+
+Fixed by reconfiguring `stdout` and `stderr` to UTF-8 with `errors="replace"` at
+the very top of `main()`, before any output. A console that cannot draw a box
+now prints a replacement character and keeps going. `errors="replace"` rather
+than an ASCII fallback banner because the failure mode to remove is the raise,
+not the glyph.
+
+His workaround for anyone on 1.13.0 or earlier: `set PYTHONIOENCODING=utf-8`.
+
+### 2. FUNCTIONAL — `--format json` could not be piped
+
+Two things were wrong at once, and only the first was reported:
+
+* stdout began with the ANSI-coloured banner, then the summary;
+* **the report was never on stdout at all.** It went to a timestamped file in
+  the output directory, so `--format json file.flac | jq .` could not have
+  worked even without the banner — there was no JSON on the stream to parse.
+
+Now, when `--format` is not `text` and no `--output` is given, **the report is
+written to stdout** and every decorative print in `main.py` goes to stderr. The
+file is still written exactly as before: this adds a stream, it does not take
+one away. `sys.stdout` is rebound once after parsing, which makes all 44 prints
+in the module correct at once rather than by auditing each.
+
+### The CI job that would have caught it
+
+A stock Windows console, and nothing else new: `chcp 1252`, `PYTHONIOENCODING`
+cleared, `--version` and `--help` run against the installed wheel. Every
+existing job passed on 1.13.0 because GitHub runners default their console to
+UTF-8 — **the case that catches this is the one nobody tests.**
+
+Four regression tests pin both bugs, including the precondition (the banner
+really is unencodable in cp1252) so the guard can be removed if that ever stops
+being true.
+
+His own line about it, which is the right one: *a gate that does not start is
+not a green gate* — the same shape our mypy note made about the developer,
+pointed at the user instead.
+
 ## v1.13.3 (2026-08-31) — Rule 15 was testifying about a band that was not there
 
 Scoring our own half of fd-exchange-v3 against our own key — a pre-registered

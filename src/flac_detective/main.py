@@ -278,6 +278,7 @@ def setup_logging(output_dir: Path) -> Optional[Path]:
         root_log.addHandler(console_handler)
 
     logger = logging.getLogger(__name__)
+
     if log_file is None:
         warning = (
             "Could not create a console-log file (scan dir and temp dir both "
@@ -297,6 +298,11 @@ def setup_logging(output_dir: Path) -> Optional[Path]:
 
 
 logger = logging.getLogger(__name__)
+
+# The real stdout, captured before anything can redirect it. When --format asks
+# for machine-readable output and no --output path is given, the report goes
+# here and every decorative print goes to stderr instead — see main().
+_REAL_STDOUT = sys.stdout
 
 # Work directory chosen by main() — read by the KeyboardInterrupt handler so the
 # "progress saved in …" message names the real location (see resolve_work_dir).
@@ -359,6 +365,11 @@ def _validate_paths(raw_paths: list[str]) -> list[Path]:
             print(f"  {colorize('[!!]', Colors.YELLOW)} Ignored (does not exist) : {raw_path}")
 
     return valid_paths
+
+
+def _print_banner(machine_readable: bool = False) -> None:
+    """The logo, on stderr when stdout is carrying machine-readable output."""
+    print(LOGO, file=sys.stderr if machine_readable else sys.stdout)
 
 
 def get_user_input_path() -> list[Path]:
@@ -505,7 +516,11 @@ def parse_arguments() -> argparse.Namespace:
     if invalid_paths:
         logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
         sys.exit(1)
-    print(LOGO)
+    # The banner goes to stderr whenever stdout carries data rather than a
+    # report for a human. `--format json | jq .` failed on the first byte
+    # because the ANSI-coloured logo was in front of the JSON (Provir,
+    # 2026-08-31). stderr is what decoration is for; the data stream stays clean.
+    _print_banner(machine_readable=args.format != "text")
     return args
 
 
@@ -896,7 +911,7 @@ def _write_report(
         )
 
 
-def generate_final_report(
+def generate_final_report(  # noqa: C901
     results: list[dict],
     output_dir: Path,
     all_flac_files: list[Path],
@@ -938,6 +953,16 @@ def generate_final_report(
         all_non_flac_files,
         advanced=advanced,
     )
+
+    # …and onto the real stdout when that is where the caller is reading. Piping
+    # is the whole point of a machine-readable format; before this the report
+    # existed only as a file whose name the caller had to guess.
+    if report_format != "text" and output_path is None:
+        try:
+            _REAL_STDOUT.write(output_file.read_text(encoding="utf-8"))
+            _REAL_STDOUT.flush()
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("could not echo the report to stdout: %s", exc)
 
     # Generate diagnostic report if there were issues
     tracker = get_tracker()
@@ -1010,12 +1035,55 @@ def generate_final_report(
     print(colorize("=" * 70, Colors.CYAN))
 
 
+def _make_streams_utf8_safe() -> None:
+    """Stop a Windows console codepage from killing the process before it starts.
+
+    Reported by Provir 2026-08-31 against 1.13.0 from PyPI, Windows 11, stock
+    cmd/PowerShell: `flac-detective --version` dies with UnicodeEncodeError
+    before a single argument is parsed, because `parse_arguments()` prints a
+    banner containing box-drawing glyphs and Python gives `sys.stdout` the
+    console's ANSI codepage (cp1252), where those glyphs have no mapping.
+
+    **The tool did not start at all on a default Windows terminal.** No
+    invocation worked, `--help` included, and no CI job caught it because the
+    GitHub runners default to UTF-8 — the case that catches it is a stock user
+    console, which is the one case nobody tests.
+
+    `errors="replace"` rather than a fallback banner: a console that cannot draw
+    a box should print a question mark and keep going, never raise. Wrapped in
+    its own try/except because a stream that cannot be reconfigured (a pipe on
+    an old Python, a captured stream under pytest) is not a reason to fail
+    either.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:  # pragma: no cover - depends on the host console
+            pass
+
+
 def main():
     """Main function."""
+    # Before ANY output: see _make_streams_utf8_safe.
+    _make_streams_utf8_safe()
     # Reset diagnostic tracker at the start of analysis
     reset_tracker()
 
     args = parse_arguments()
+
+    # A machine-readable format with no --output means stdout carries DATA, so
+    # every decorative print in this module has to go somewhere else. Reported by
+    # Provir 2026-08-31: `--format json file.flac | jq .` failed on the first
+    # byte, because stdout held the banner and the summary and the report itself
+    # was quietly written to a timestamped file the caller never asked for.
+    #
+    # Rebinding sys.stdout is the surgical fix: 44 print() calls in this module
+    # become correct at once, without auditing each one, and the report is
+    # written to _REAL_STDOUT at the end. The file is still written as before —
+    # this adds a stream, it does not take one away.
+    machine_stdout = args.format != "text" and not args.output
+    if machine_stdout:
+        sys.stdout = sys.stderr
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)

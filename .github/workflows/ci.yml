@@ -224,3 +224,26 @@ jobs:
         & "$env:RUNNER_TEMP\smoke-wheel\Scripts\python.exe" -c "from flac_detective.main import main; print('main import OK')"
         & "$env:RUNNER_TEMP\smoke-wheel\Scripts\flac-detective.exe" --version
         Pop-Location
+
+    # The case that catches the bug nobody sees: a STOCK Windows console.
+    #
+    # 1.13.0 shipped to PyPI unable to start on cp1252 — the banner printed
+    # before argument parsing contains box-drawing glyphs with no cp1252
+    # mapping, so flac-detective died with UnicodeEncodeError before parsing a
+    # single argument. Every job above passed, because GitHub runners default
+    # their console to UTF-8. It was reported by a user, not by CI.
+    #
+    # chcp 1252 puts the console where a real user's is, and PYTHONIOENCODING is
+    # deliberately cleared: the point is the default.
+    - name: Smoke-test on a cp1252 console (the stock Windows case)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        chcp 1252 | Out-Null
+        $env:PYTHONIOENCODING = ""
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\flac-detective.exe" --version
+        if ($LASTEXITCODE -ne 0) { throw "--version failed on a cp1252 console" }
+        & "$env:RUNNER_TEMP\smoke-wheel\Scripts\flac-detective.exe" --help | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "--help failed on a cp1252 console" }
+        Write-Host "cp1252 console OK"
