@@ -73,3 +73,73 @@ field exists precisely so that a machine's guess never becomes a label.
 separate them should be disbelieved before it is celebrated.
 
 Results appended below, dated after the fact.
+
+---
+
+# RESULTS — appended 2026-08-31, criteria unedited above
+
+**All four predictions failed.** 36 rows, 180 probe reads, `ml/era_attribution_probe.csv`.
+
+| # | bound | measured | |
+|---|---|---|---|
+| E1 build exact | ≥ 20/30 | **12/30** (chance 6) | failed |
+| E2 siblings inseparable | pair ≥ 10/12, member ≤ 9/12 | pair **3/12**, member 2/12 | failed |
+| E3 era correct | ≥ 24/30 | **16/30** | failed |
+| E4 masters stay out | 0/6 below | **6/6 below** | failed |
+
+## But the matrix is not noise, and this is the finding
+
+    made_by        3.90.3   3.92  3.96.1  3.98.4  3.100
+    genuine             3      0       0       2      1
+    lame3.90.3          2      0       0       2      2
+    lame3.92            1      0       0       4      1
+    lame3.96.1          1      0       0       3      2
+    lame3.98.4          0      0       0       5      1
+    lame3.100           0      0       0       1      5
+
+**The late builds self-pair and the early ones do not.** 3.98.4 reads 5 of 6 and
+3.100 reads 5 of 6; 3.90.3 reads 2 of 6 and 3.92 and 3.96.1 read 0. And the
+reason is visible in the R values rather than inferred:
+
+    build        median R under its OWN probe
+    lame3.98.4        0.728      a sharp fixed point
+    lame3.100         0.902      a sharp fixed point
+    lame3.90.3        1.626
+    lame3.92          4.415
+    lame3.96.1       11.896      no fixed point at all
+
+**A re-encode fixed point that a second pass can find is a property of the
+build, not of the format.** The modern LAME encoders converge; 3.96.1 does not
+converge under itself at all. That is the same boundary the codec-level run
+found between MP3/Opus and AAC/Vorbis, one level down, and it was not visible
+from either side before today.
+
+`lame3.92` never wins a single file, including its own six — it is a dead column.
+E2 predicted the siblings would be confusable with each other; instead 3.92's
+files go to the *late* builds. The prediction was in the right spirit and wrong
+in its mechanism.
+
+## E4 was a badly formed criterion, and it is withdrawn as one
+
+"No genuine file reads below the **worst** encoded self-pair" put the bar at
+R = 15.5 — a number produced by 3.96.1's non-existent fixed point, not by any
+property of genuine audio. Every file of any kind is below it. The criterion
+measured nothing and it should have been caught while writing it, not after.
+
+What is true, and is the honest replacement, is that the separation is weak:
+median minimum-R is **1.12 on encoded files against 1.60 on masters**, and the
+masters get a build label 6 times out of 6. So the safety question stands
+exactly where layer one left it — **this instrument invents a provenance for a
+file that has none**, and no number from it goes near a wild file. The
+abstention rule being tested in the attribution layer-two run is the thing that
+has to come first; era work resumes on top of it or not at all.
+
+## One thing to send to Provir rather than resolve here
+
+His finding was 20 of 34 wild files sitting at the **lame3.90.3** fixed point.
+Ours says 3.90.3 has a comparatively weak self-pair (median R 1.626 against
+0.728 for 3.98.4) and self-identifies 2 times in 6. Both cannot be the whole
+story. Either his instrument reads a fixed point ours does not — different probe
+design, different decoder, different phase handling — or the wild files sit
+there for a reason that is not self-pairing. That is a question for two benches,
+not one, and it is the most interesting thing this run produced.
