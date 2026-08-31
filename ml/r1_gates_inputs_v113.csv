@@ -1,0 +1,1000 @@
+population,track,sample_rate,cutoff,energy_ratio,cutoff_std,residual_floor_db,container_kbps
+genuine_audit,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,22050.0,6.278e-08,0.0,nan,443
+genuine_audit,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,21250.0,3.257e-06,0.0,nan,1022
+genuine_audit,002-03-Hraach-Let-it-go.flac,44100,22050.0,2.609e-04,0.0,nan,736
+genuine_audit,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.528e-05,0.0,nan,882
+genuine_audit,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.300e-04,0.0,nan,964
+genuine_audit,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,20250.0,3.311e-07,0.0,-36.3,864
+genuine_audit,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,1.444e-07,0.0,nan,522
+genuine_audit,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,22050.0,1.739e-06,0.0,nan,912
+genuine_audit,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19500.0,2.173e-07,0.0,-56.7,846
+genuine_audit,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,3.657e-07,0.0,nan,593
+genuine_audit,010-06-Jon-Hassell-These-times.flac,44100,22050.0,8.014e-07,0.0,nan,668
+genuine_audit,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.519e-04,0.0,nan,519
+genuine_audit,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,20500.0,6.616e-06,0.0,-44.7,909
+genuine_audit,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,3.226e-06,0.0,nan,557
+genuine_audit,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,4.571e-08,0.0,nan,414
+genuine_audit,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,4.493e-07,0.0,nan,636
+genuine_audit,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,1.036e-04,0.0,nan,896
+genuine_audit,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.099e-04,0.0,nan,907
+genuine_audit,018-04-Bag-o-wire-Resovoir.flac,44100,21750.0,1.769e-05,0.0,nan,502
+genuine_audit,019-04-Kohi-Jadu.flac,44100,22050.0,8.186e-07,0.0,nan,799
+genuine_audit,020-06-Bola-Tigantabame.flac,44100,20500.0,2.912e-05,0.0,-38.0,962
+genuine_audit,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,20500.0,2.350e-06,0.0,-66.0,945
+genuine_audit,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,21750.0,7.243e-07,0.0,nan,764
+genuine_audit,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,21000.0,1.582e-05,0.0,nan,861
+genuine_audit,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,3.681e-05,0.0,nan,660
+genuine_audit,025-07-Bolalar-Lola.flac,44100,21500.0,1.451e-05,0.0,nan,976
+genuine_audit,026-06-Oumou-Dioubat-Siyala.flac,44100,20500.0,1.875e-04,0.0,-41.9,903
+genuine_audit,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.627e-05,0.0,nan,957
+genuine_audit,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,1.070e-07,0.0,nan,442
+genuine_audit,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,1.601e-06,0.0,nan,804
+genuine_audit,030-06-S-bastien-Tellier-Benny.flac,44100,22050.0,6.061e-05,0.0,nan,963
+genuine_audit,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.474e-08,0.0,nan,545
+genuine_audit,032-05-2kilos-more-Cache-feu.flac,44100,22050.0,5.188e-06,0.0,nan,865
+genuine_audit,033-01-Daylight-Rising.flac,44100,21500.0,7.490e-06,0.0,nan,863
+genuine_audit,034-09-Snow-Ghosts-Bowline.flac,44100,22050.0,1.975e-06,0.0,nan,791
+genuine_audit,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,9.869e-07,0.0,nan,529
+genuine_audit,036-08-Nicolas-Comment-Amaurose.flac,44100,21250.0,2.236e-05,0.0,nan,874
+genuine_audit,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.570e-04,0.0,nan,774
+genuine_audit,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.516e-05,0.0,nan,1046
+genuine_audit,039-13-Kat-Onoma-Change-blues.flac,44100,21000.0,1.901e-06,0.0,nan,890
+genuine_audit,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,21250.0,1.120e-04,0.0,nan,1048
+genuine_audit,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.494e-04,0.0,-54.0,875
+genuine_audit,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,4.954e-06,0.0,nan,473
+genuine_audit,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,22050.0,9.878e-06,0.0,nan,955
+genuine_audit,044-02-Various-Artists-Ka-mea-mea.flac,44100,22050.0,2.305e-07,0.0,nan,681
+genuine_audit,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17750.0,1.517e-04,0.0,nan,836
+genuine_audit,046-04-Clelia-Felix-Shine-so-bright.flac,44100,22050.0,9.983e-05,0.0,nan,988
+genuine_audit,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,21250.0,2.593e-04,0.0,nan,934
+genuine_audit,048-08-Gabriel-Romero-La-Piragua.flac,44100,22050.0,4.751e-07,0.0,nan,889
+genuine_audit,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,21500.0,1.633e-05,0.0,nan,948
+genuine_audit,050-08-Boubacar-Traor-Pierrette.flac,44100,21500.0,8.567e-07,0.0,nan,754
+genuine_audit,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21250.0,1.751e-06,0.0,nan,775
+genuine_audit,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,22050.0,2.833e-07,0.0,nan,601
+genuine_audit,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20500.0,6.520e-05,0.0,-32.7,974
+genuine_audit,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,22050.0,1.096e-06,0.0,nan,731
+genuine_audit,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,22050.0,4.923e-07,0.0,nan,872
+genuine_audit,056-14-Hlamalani.flac,44100,22050.0,1.208e-04,0.0,nan,937
+genuine_audit,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20750.0,4.526e-07,0.0,nan,658
+genuine_audit,058-01-Piny-Runa-Woko.flac,44100,20750.0,2.295e-06,0.0,nan,764
+genuine_audit,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,2.000e-05,0.0,nan,892
+genuine_audit,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,4.874e-05,0.0,nan,1031
+genuine_audit,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,17750.0,1.396e-08,0.0,nan,762
+genuine_audit,062-03-Alpha-Blondy-Jah-glory.flac,44100,20500.0,1.590e-05,0.0,-49.5,768
+genuine_audit,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,9.375e-07,0.0,nan,692
+genuine_audit,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21250.0,1.478e-05,0.0,nan,869
+genuine_audit,065-05-Quizas-Quizas.flac,44100,22050.0,1.267e-05,0.0,nan,842
+genuine_audit,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,22050.0,3.614e-06,0.0,nan,868
+genuine_audit,067-03-The-Streets-Let-s-push-things-forward.flac,44100,22050.0,4.424e-06,0.0,nan,963
+genuine_audit,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,22050.0,2.479e-07,0.0,nan,926
+genuine_audit,069-02-Eden-Ahbez-The-wanderer.flac,44100,22050.0,2.303e-07,0.0,nan,696
+genuine_audit,070-02-Guts-Good-morning.flac,44100,22050.0,1.383e-05,0.0,nan,869
+genuine_audit,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,2.827e-07,0.0,nan,864
+genuine_audit,072-05-Simo-Moumen-Samsara.flac,44100,19500.0,2.867e-05,0.0,-54.2,1087
+genuine_audit,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20750.0,4.013e-06,0.0,nan,466
+genuine_audit,074-09-Koki-Nakano-Lift.flac,44100,22050.0,1.038e-07,0.0,nan,673
+genuine_audit,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,22050.0,4.248e-07,0.0,nan,650
+genuine_audit,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,2.589e-08,0.0,nan,468
+genuine_audit,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,4.033e-05,0.0,nan,950
+genuine_audit,078-04-Kat-Onoma-La-chambre.flac,44100,21500.0,1.866e-06,0.0,nan,754
+genuine_audit,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,22050.0,2.880e-05,0.0,nan,886
+genuine_wild,AstralProject2000-06-10.flac16__astralproject2000-06-10t01.flac,44100,22050.0,2.672e-05,0.0,nan,627
+genuine_wild,AstralProject2000-06-10.flac16__astralproject2000-06-10t02.flac,44100,22050.0,4.082e-04,0.0,nan,679
+genuine_wild,AstralProject2000-06-10.flac16__astralproject2000-06-10t03.flac,44100,22050.0,7.336e-07,0.0,nan,606
+genuine_wild,AstralProject2000-06-10.flac16__astralproject2000-06-10t04.flac,44100,22050.0,8.880e-05,0.0,nan,661
+genuine_wild,BAC2026-08-12.RODENT5-ZOOMH6-FLAC8__101. Brick House.flac,96000,48000.0,2.301e-05,0.0,nan,1378
+genuine_wild,BAC2026-08-12.RODENT5-ZOOMH6-FLAC8__107. Burning Down The House.flac,96000,48000.0,1.504e-05,0.0,nan,1348
+genuine_wild,BG2026-08-09__BG2026-08-09t01.flac,44100,22050.0,7.253e-06,0.0,nan,426
+genuine_wild,BG2026-08-09__BG2026-08-09t02.flac,44100,22050.0,5.640e-06,0.0,nan,396
+genuine_wild,OBF2026-08-06.ca-14.flac__01-Just Around The Corner .flac,48000,24000.0,4.448e-08,0.0,nan,650
+genuine_wild,OBF2026-08-06.ca-14.flac__02-If You See Their Lips Moving.flac,48000,24000.0,4.548e-08,0.0,nan,644
+genuine_wild,OBF2026-08-07.ca-14.flac__01-Just Around The Corner .flac,48000,23250.0,8.846e-07,353.6,nan,773
+genuine_wild,OBF2026-08-07.ca-14.flac__02-The Way We Rise.flac,48000,24000.0,9.995e-07,0.0,nan,752
+genuine_wild,RFTS2026-08-08.Beverly__01 Althea.flac,44100,22050.0,2.036e-06,0.0,nan,756
+genuine_wild,RFTS2026-08-08.Beverly__02 Tennessee Jed.flac,44100,22050.0,2.741e-06,0.0,nan,784
+genuine_wild,SRB2026-08-08__01. When The Circus Comes To Time (Los Lobos).flac,44100,22050.0,2.540e-07,0.0,nan,726
+genuine_wild,SRB2026-08-08__01.02. Ramble On Rose.flac,44100,21250.0,2.743e-06,377.1,nan,812
+genuine_wild,TST2026-08-08.2__02 Hotel Columbo.flac,48000,24000.0,5.552e-06,0.0,nan,1690
+genuine_wild,TST2026-08-08.2__03 Flight.flac,48000,24000.0,5.967e-06,0.0,nan,1693
+genuine_wild,ToddSnider2013-05-09.KM-140.OldNeumanntapr.flac1644__ToddSnider2013-05-09set1t01.flac,44100,22050.0,8.381e-08,0.0,nan,1010
+genuine_wild,ToddSnider2013-05-09.KM-140.OldNeumanntapr.flac1644__ToddSnider2013-05-09set1t02.flac,44100,22050.0,1.028e-07,0.0,nan,769
+genuine_wild,ToddSnider2013-05-09.KM-140.OldNeumanntapr.flac1644__ToddSnider2013-05-09set1t03.flac,44100,22050.0,3.608e-07,0.0,nan,736
+genuine_wild,ToddSnider2013-05-09.KM-140.OldNeumanntapr.flac1644__ToddSnider2013-05-09set1t04.flac,44100,22050.0,1.327e-06,0.0,nan,735
+genuine_wild,ToddSnider2015-01-30.mk41.skaggs.flac16__Todd Snider2015-01-30S1t01.flac,44100,22050.0,4.773e-07,0.0,nan,711
+genuine_wild,ToddSnider2015-01-30.mk41.skaggs.flac16__Todd Snider2015-01-30S1t02.flac,44100,22050.0,1.442e-07,0.0,nan,719
+genuine_wild,ToddSnider2015-01-30.mk41.skaggs.flac16__Todd Snider2015-01-30S1t03.flac,44100,20750.0,1.062e-07,555.8,nan,701
+genuine_wild,ToddSnider2015-06-21.ca-14.flac16__toddSnider01.flac,44100,22050.0,6.599e-08,0.0,nan,505
+genuine_wild,ToddSnider2015-06-21.ca-14.flac16__toddSnider02.flac,44100,19250.0,4.536e-08,1319.9,-23.7,548
+genuine_wild,ToddSnider2015-10-24.schoeps.flac16__schoeps ts 10 24 15 d01 t01.flac,44100,22050.0,4.684e-06,0.0,nan,663
+genuine_wild,ToddSnider2015-10-24.schoeps.flac16__schoeps ts 10 24 15 d01 t02.flac,44100,22050.0,5.207e-06,0.0,nan,666
+genuine_wild,bellarayneband2026-08-13.ca-14.flac__01-Hard To Handle.flac,96000,48000.0,7.242e-09,0.0,nan,1038
+genuine_wild,bellarayneband2026-08-13.ca-14.flac__02-Stand Back.flac,96000,48000.0,1.245e-08,0.0,nan,1016
+genuine_wild,bellarayneband2026-08-13.ca-14.flac__03-They Love Each Other.flac,96000,48000.0,1.836e-08,0.0,nan,981
+genuine_wild,bt2026-08-11__01 Stand.flac,44100,20750.0,6.944e-07,612.8,nan,458
+genuine_wild,bt2026-08-11__02 Run-Around.flac,44100,20750.0,1.543e-07,612.8,nan,434
+genuine_wild,bt2026-08-11__03 Dropping Some NYC.flac,44100,20750.0,2.051e-06,563.2,nan,450
+genuine_wild,bt2026-08-11__04 Keyboard Solo.flac,44100,22050.0,1.397e-06,0.0,nan,382
+genuine_wild,calexico2006-07-10__Calexico_2006-07-10t01.flac,44000,20500.0,4.820e-06,0.0,-44.4,609
+genuine_wild,calexico2006-07-10__Calexico_2006-07-10t02.flac,44000,20500.0,3.623e-05,0.0,-47.6,552
+genuine_wild,calexico2008-11-17__Calexico_2008-11-17t01.flac,44100,22050.0,1.204e-06,0.0,nan,641
+genuine_wild,calexico2008-11-17__Calexico_2008-11-17t02.flac,44100,22050.0,3.520e-06,0.0,nan,721
+genuine_wild,calexico2010-02-18__Calexico_2010-02-18t01.flac,44100,22050.0,2.746e-07,0.0,nan,690
+genuine_wild,calexico2010-02-18__Calexico_2010-02-18t02.flac,44100,22050.0,1.098e-06,0.0,nan,742
+genuine_wild,calexico2016-07-17__Calexico_2016-07-17t01.flac,44100,22050.0,1.603e-06,0.0,nan,656
+genuine_wild,calexico2016-07-17__Calexico_2016-07-17t02.flac,44100,22050.0,1.025e-06,0.0,nan,737
+genuine_wild,calexico2023-11-02__Calexico_2023-11-02t01.flac,44100,22050.0,8.970e-07,0.0,nan,531
+genuine_wild,calexico2023-11-02__Calexico_2023-11-02t02.flac,44100,22050.0,5.105e-06,0.0,nan,725
+genuine_wild,crisjacobs2026-06-13__cris2026-06-13d01t01.flac,44100,22050.0,2.788e-07,0.0,nan,490
+genuine_wild,crisjacobs2026-06-13__cris2026-06-13d01t02.flac,44100,22050.0,5.138e-08,0.0,nan,607
+genuine_wild,dknowles2009-07-02.BSC1-K3.setboy.flac1644__backdoorslam2009-07-02d1t01.flac,44100,22050.0,5.083e-08,0.0,nan,373
+genuine_wild,dknowles2009-07-02.BSC1-K3.setboy.flac1644__backdoorslam2009-07-02d1t02.flac,44100,19500.0,3.542e-08,540.1,-34.4,667
+genuine_wild,dknowles2009-07-02.BSC1-K3.setboy.flac1644__backdoorslam2009-07-02d1t03.flac,44100,20500.0,4.529e-08,589.3,-27.4,661
+genuine_wild,dknowles2009-07-02.BSC1-K3.setboy.flac1644__backdoorslam2009-07-02d1t04.flac,44100,20750.0,3.513e-08,424.9,nan,650
+genuine_wild,dknowles2015-11-11.ZoomH5.Toddjun.flac16__01-Intro.flac,96000,48000.0,9.634e-06,0.0,nan,942
+genuine_wild,dknowles2015-11-11.ZoomH5.Toddjun.flac16__02-Ain't Much of Nothin'.flac,96000,48000.0,4.816e-06,0.0,nan,1395
+genuine_wild,dknowles2015-11-12.ZoomH5.Toddjun.flac16__01-Intro.flac,96000,48000.0,4.342e-05,0.0,nan,908
+genuine_wild,dknowles2015-11-12.ZoomH5.Toddjun.flac16__02-Catch the Moon.flac,96000,48000.0,2.411e-06,0.0,nan,1357
+genuine_wild,dknowles2016-01-13.mk-4.edtyre.flac16__davyknowles2016-01-13.mk4.edtyre.t01.flac,44100,22050.0,3.112e-07,0.0,nan,929
+genuine_wild,dknowles2016-01-13.mk-4.edtyre.flac16__davyknowles2016-01-13.mk4.edtyre.t02.flac,44100,22050.0,6.970e-07,0.0,nan,885
+genuine_wild,dknowles2016-01-13.mk-4.edtyre.flac16__davyknowles2016-01-13.mk4.edtyre.t03.flac,44100,22050.0,2.036e-07,0.0,nan,810
+genuine_wild,dknowles2016-01-13.mk-4.edtyre.flac16__davyknowles2016-01-13.mk4.edtyre.t04.flac,44100,22050.0,2.560e-07,0.0,nan,922
+genuine_wild,dknowles2017-07-29.ZoomH5.Toddjun.flac1644__01-Intro.flac,96000,48000.0,1.505e-07,0.0,nan,910
+genuine_wild,dknowles2017-07-29.ZoomH5.Toddjun.flac1644__02-Catch the Moon.flac,96000,48000.0,4.154e-08,0.0,nan,1183
+genuine_wild,dknowles2018-02-11.CCM4V.Z-Man.flac16__davy2018-02-11d01t01.flac,44100,18750.0,1.424e-06,1555.6,-28.3,696
+genuine_wild,dknowles2018-02-11.CCM4V.Z-Man.flac16__davy2018-02-11d01t02.flac,44100,22050.0,4.834e-06,0.0,nan,885
+genuine_wild,dknowles2021-10-16.SP-CMC-8c.Farve4.flac1644__101 Aint Much of Nothin.flac,44100,22050.0,6.276e-06,0.0,nan,852
+genuine_wild,dknowles2021-10-16.SP-CMC-8c.Farve4.flac1644__102 Riverbed.flac,44100,22050.0,4.346e-06,0.0,nan,861
+genuine_wild,dknowles2021-10-20.mk41.dude.flac16__davyknowles2021-10-20.mk41.dude.t01.flac,44100,22050.0,7.304e-06,0.0,nan,893
+genuine_wild,dknowles2021-10-20.mk41.dude.flac16__davyknowles2021-10-20.mk41.dude.t02.flac,44100,22050.0,1.315e-06,0.0,nan,760
+genuine_wild,dknowles2022-07-21.mk41v.edtyre.flac16__davyknowles2022-07-21.mk41v.edtyre.t01.flac,48000,24000.0,1.102e-05,0.0,nan,985
+genuine_wild,dknowles2022-07-21.mk41v.edtyre.flac16__davyknowles2022-07-21.mk41v.edtyre.t02.flac,48000,24000.0,1.102e-05,0.0,nan,1018
+genuine_wild,dknowles2024-11-13.mk41v.edtyre.flac16__davyknowles2024-11-13.mk41v.edtyre.t01.flac,44100,21000.0,8.235e-06,117.9,nan,875
+genuine_wild,dknowles2024-11-13.mk41v.edtyre.flac16__davyknowles2024-11-13.mk41v.edtyre.t02.flac,44100,21250.0,1.901e-06,0.0,nan,804
+genuine_wild,ginblossoms2026-08-11__01 Follow You Down.flac,44100,20750.0,1.394e-05,117.9,nan,482
+genuine_wild,ginblossoms2026-08-11__02 Hold Me Down.flac,44100,20500.0,1.875e-06,117.9,-43.0,459
+genuine_wild,ginblossoms2026-08-11__03 Learning The Hard Way.flac,44100,20500.0,9.542e-06,730.7,-46.3,493
+genuine_wild,ginblossoms2026-08-11__04 Mrs_ Rita.flac,44100,20750.0,7.987e-05,0.0,nan,469
+genuine_wild,jcommon2008-11-09.flac16__jcommon2008-11-09t01.flac,44100,22050.0,7.362e-07,0.0,nan,672
+genuine_wild,jcommon2008-11-09.flac16__jcommon2008-11-09t02.flac,44100,22050.0,4.036e-06,0.0,nan,826
+genuine_wild,jcommon2009-01-10.dpa4060.flac16__jcommon2009-01-10dpa4060_t01.flac,44100,22050.0,8.590e-06,0.0,nan,933
+genuine_wild,jcommon2009-01-10.dpa4060.flac16__jcommon2009-01-10dpa4060_t02.flac,44100,22050.0,4.676e-06,0.0,nan,891
+genuine_wild,jcommon2009-01-10.m300.flac16__jcommon2009-01-10mg300_t01.flac,44100,21250.0,1.579e-07,377.1,nan,793
+genuine_wild,jcommon2009-01-10.m300.flac16__jcommon2009-01-10mg300_t02.flac,44100,19000.0,1.238e-07,1291.2,-19.8,750
+genuine_wild,joecirotti2026-08-01.matrix2__01 intro.flac,48000,24000.0,1.869e-07,0.0,nan,611
+genuine_wild,joecirotti2026-08-01.matrix2__02 My Sisters and Brothers.flac,48000,24000.0,2.949e-06,0.0,nan,723
+genuine_wild,joecirotti2026-08-01.matrix__01 intro.flac,48000,24000.0,1.869e-07,0.0,nan,611
+genuine_wild,joecirotti2026-08-01.matrix__02 My Sisters and Brothers.flac,48000,24000.0,2.949e-06,0.0,nan,723
+genuine_wild,kgb2026-08-08__06 Band Intros.flac,44100,22050.0,5.028e-06,0.0,nan,1355
+genuine_wild,kgb2026-08-08__07 My Sisters and Brothers.flac,44100,22050.0,3.177e-05,0.0,nan,1591
+genuine_wild,lettuce2026-06-13__lettuce2026-06-13d01t01.flac,44100,22050.0,1.737e-07,0.0,nan,633
+genuine_wild,lettuce2026-06-13__lettuce2026-06-13d01t02.flac,44100,22050.0,9.593e-08,0.0,nan,665
+genuine_wild,lettuce2026-06-13__lettuce2026-06-13d01t03.flac,44100,22050.0,2.791e-07,0.0,nan,710
+genuine_wild,lettuce2026-06-13__lettuce2026-06-13d01t04.flac,44100,22050.0,1.583e-07,0.0,nan,619
+genuine_wild,lf2025-05-10.AUD-MTX.Cafiero.Doctorzap.flac1648__LF_00001.flac,48000,21750.0,7.022e-07,117.9,-40.3,860
+genuine_wild,lf2025-05-10.AUD-MTX.Cafiero.Doctorzap.flac1648__LF_00002.flac,48000,22000.0,2.190e-06,117.9,-57.5,920
+genuine_wild,lf2025-05-28.AUD-MTX.Cafiero.Doctorzap.flac1648__LF_0001.flac,48000,20750.0,9.498e-08,0.0,-22.9,878
+genuine_wild,lf2025-05-28.AUD-MTX.Cafiero.Doctorzap.flac1648__LF_0002.flac,48000,21000.0,6.491e-07,0.0,-38.1,862
+genuine_wild,mc2026-08-09.-KM140-B30mni__MC_20260809_KM140-B2_S01-01.flac,44100,22050.0,4.055e-06,0.0,nan,766
+genuine_wild,mc2026-08-09.-KM140-B30mni__MC_20260809_KM140-B2_S01-02.flac,44100,22050.0,5.024e-07,0.0,nan,724
+genuine_wild,mc2026-08-09.RODENT5-ZOOMH6-FLAC8__101. Don't Do It.flac,96000,48000.0,1.392e-05,0.0,nan,1308
+genuine_wild,mc2026-08-09.RODENT5-ZOOMH6-FLAC8__105. Dream.flac,96000,48000.0,4.059e-07,0.0,nan,1247
+genuine_wild,mdgogojungle2009-10-29.mk012.flac16__gogojungle2009-10-29t01.flac,44100,22050.0,1.773e-07,0.0,nan,753
+genuine_wild,mdgogojungle2009-10-29.mk012.flac16__gogojungle2009-10-29t02.flac,44100,22050.0,1.475e-06,0.0,nan,798
+genuine_wild,mdgogojungle2009-10-29.mk012.flac16__gogojungle2009-10-29t03.flac,44100,22050.0,3.440e-06,0.0,nan,802
+genuine_wild,mdgogojungle2009-10-29.mk012.flac16__gogojungle2009-10-29t04.flac,44100,22050.0,1.874e-06,0.0,nan,763
+genuine_wild,moe2026-08-13.neumann__moe2026-08-13d1t01.flac,44100,20250.0,8.100e-07,117.9,-19.8,807
+genuine_wild,moe2026-08-13.neumann__moe2026-08-13d1t02.flac,44100,20250.0,3.342e-07,738.2,-31.1,800
+genuine_wild,mofro2026-08-07.at853.f3__01)  Higher You Climb.flac,48000,24000.0,1.439e-07,0.0,nan,767
+genuine_wild,mofro2026-08-07.at853.f3__02)  War.flac,48000,24000.0,9.265e-08,0.0,nan,813
+genuine_wild,pachy2025-04-25__pachy2025-04-25d1t01.flac,44100,22050.0,1.225e-05,0.0,nan,942
+genuine_wild,pachy2025-04-25__pachy2025-04-25d1t02.flac,44100,22050.0,3.626e-05,0.0,nan,1050
+genuine_wild,pachy2025-07-31__pachy2025-07-31d1t01.flac,44100,18750.0,1.244e-06,0.0,-28.9,567
+genuine_wild,pachy2025-07-31__pachy2025-07-31d1t02.flac,44100,18500.0,1.669e-06,1617.8,nan,571
+genuine_wild,"rad2000-04-08.dsb.mossa.flac1644__rads 2000-04-08. dsb. Irving Plaza, NYC.s01t01.flac",44100,22050.0,2.215e-06,0.0,nan,466
+genuine_wild,"rad2000-04-08.dsb.mossa.flac1644__rads 2000-04-08. dsb. Irving Plaza, NYC.s01t03.flac",44100,22050.0,6.964e-06,0.0,nan,718
+genuine_wild,"rad2000-04-28.dsb.mossa.flac1644__rads 2000-04-28. dsb. Tips, NO, LA.s01t01.flac",44100,22050.0,2.010e-07,0.0,nan,501
+genuine_wild,"rad2000-04-28.dsb.mossa.flac1644__rads 2000-04-28. dsb. Tips, NO, LA.s01t02.flac",44100,22050.0,1.057e-05,0.0,nan,818
+genuine_wild,"rad2001-03-08.dsb.nutmeg.mossa.flac1644__rads2001-03-08. dsb. Winter Park, CO.s01t01.flac",44100,21500.0,8.936e-05,224.8,nan,806
+genuine_wild,"rad2001-03-08.dsb.nutmeg.mossa.flac1644__rads2001-03-08. dsb. Winter Park, CO.s01t02.flac",44100,21750.0,1.276e-04,0.0,nan,758
+genuine_wild,spin2026-08-11__01 Rock 'N' Roll Heaven.flac,44100,20750.0,3.982e-06,563.2,nan,460
+genuine_wild,spin2026-08-11__02 What Time Is It.flac,44100,19750.0,5.977e-07,957.7,-39.1,468
+genuine_wild,spin2026-08-11__03 She Stands Alone.flac,44100,20250.0,1.481e-05,848.5,-23.5,468
+genuine_wild,spin2026-08-11__04 How Could You Want Him (When You Know You Could Have Me).flac,44100,20500.0,2.467e-06,204.1,-30.8,423
+genuine_wild,swellseason2010-02-10.cm30.Hoegert.flac16__the swell season - vienna-100210-CD1-01 this low.flac,44100,20500.0,4.853e-06,730.7,-17.0,844
+genuine_wild,swellseason2010-02-10.cm30.Hoegert.flac16__the swell season - vienna-100210-CD1-02 blue eyes crying.flac,44100,22050.0,1.721e-05,0.0,nan,727
+genuine_wild,swellseason2010-02-10.cm30.Hoegert.flac16__the swell season - vienna-100210-CD1-03 felling the pull.flac,44100,20250.0,2.310e-05,0.0,-31.5,979
+genuine_wild,swellseason2010-02-10.cm30.Hoegert.flac16__the swell season - vienna-100210-CD1-04 low rising.flac,44100,20500.0,2.110e-06,730.7,-17.0,855
+genuine_wild,tha2026-06-13__thehip2026-06-13d01t01.flac,44100,22050.0,4.026e-06,0.0,nan,434
+genuine_wild,tha2026-06-13__thehip2026-06-13d01t02.flac,44100,22050.0,2.796e-07,0.0,nan,701
+genuine_wild,tha2026-06-13__thehip2026-06-13d01t03.flac,44100,17750.0,2.457e-07,2027.0,nan,674
+genuine_wild,tha2026-06-13__thehip2026-06-13d01t04.flac,44100,21250.0,5.374e-07,235.7,nan,720
+genuine_wild,tsp1996-05-11.aud1__Smashing Pumpkins 1996-05-11 AUD1 t01 Mellon Collie and the Infinite Sadness.flac,32000,16000.0,0.000e+00,0.0,nan,504
+genuine_wild,tsp1996-05-11.aud1__Smashing Pumpkins 1996-05-11 AUD1 t02 Where Boys Fear to Tread.flac,32000,16000.0,0.000e+00,0.0,nan,643
+genuine_wild,um2026-08-13.neumann__um2026-08-13d1t01.flac,44100,22050.0,9.136e-08,0.0,nan,757
+genuine_wild,um2026-08-13.neumann__um2026-08-13d1t02.flac,44100,21250.0,1.621e-07,377.1,nan,808
+genuine_wild,uproot2026-08-07.sbd.spyder9.flac16__uproot2026-08-07s1t01.sbd.spyder9.flac16.flac,44100,22050.0,1.573e-06,0.0,nan,658
+genuine_wild,uproot2026-08-07.sbd.spyder9.flac16__uproot2026-08-07s1t02.sbd.spyder9.flac16.flac,44100,22050.0,8.907e-07,0.0,nan,615
+genuine_wild,watt2000-10-20__watt2000-10-20t01.flac,44100,22050.0,7.187e-06,0.0,nan,811
+genuine_wild,watt2000-10-20__watt2000-10-20t02.flac,44100,22050.0,4.740e-05,0.0,nan,864
+genuine_wild,ween1996-05-04__ween1996-05-04t01.flac,44100,22050.0,1.459e-06,0.0,nan,799
+genuine_wild,ween1996-05-04__ween1996-05-04t02.flac,44100,22050.0,1.355e-06,0.0,nan,913
+genuine_wild,woods2011-02-04.nyctaper__Woods2011-02-04_nyctaper_t01.flac,44100,22050.0,4.814e-06,0.0,nan,789
+genuine_wild,woods2011-02-04.nyctaper__Woods2011-02-04_nyctaper_t02.flac,44100,22050.0,2.492e-06,0.0,nan,813
+genuine_wild,yarn2026-08-02.matrix__01 intro.flac,48000,24000.0,3.509e-07,0.0,nan,607
+genuine_wild,yarn2026-08-02.matrix__02 Heaven In You.flac,48000,24000.0,9.690e-06,0.0,nan,835
+genuine_wild,younganddead.aud2026-07-30.3__01-The Music Never Stopped.flac,48000,23250.0,1.154e-05,311.8,nan,679
+genuine_wild,younganddead.aud2026-07-30.3__03-Jack Straw.flac,48000,23500.0,6.822e-06,235.7,nan,655
+arm_mp3_192,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,18750.0,3.043e-08,0.0,-47.8,434
+arm_mp3_192,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,18500.0,1.283e-06,0.0,nan,988
+arm_mp3_192,002-03-Hraach-Let-it-go.flac,44100,18750.0,2.364e-04,0.0,-69.6,712
+arm_mp3_192,003-01-Thor-Dari-lullaby.flac,44100,18750.0,5.815e-05,0.0,-67.0,843
+arm_mp3_192,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,18750.0,1.834e-04,0.0,-62.2,923
+arm_mp3_192,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,18500.0,1.656e-07,0.0,nan,845
+arm_mp3_192,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,18750.0,1.443e-08,0.0,-40.5,486
+arm_mp3_192,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,18000.0,8.014e-07,0.0,nan,897
+arm_mp3_192,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,17250.0,4.652e-08,0.0,nan,830
+arm_mp3_192,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,3.178e-08,0.0,nan,519
+arm_mp3_192,010-06-Jon-Hassell-These-times.flac,44100,18750.0,4.905e-08,0.0,-38.4,606
+arm_mp3_192,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,18750.0,1.037e-04,0.0,-54.7,488
+arm_mp3_192,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,18750.0,3.278e-06,0.0,-59.1,882
+arm_mp3_192,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,19000.0,8.339e-07,0.0,-39.0,502
+arm_mp3_192,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,7.929e-09,0.0,nan,394
+arm_mp3_192,015-08-Jos-Gonz-lez-Vissel.flac,44100,18750.0,1.390e-07,0.0,-36.1,591
+arm_mp3_192,016-03-Memory-Tapes-Green-knight.flac,44100,18750.0,8.516e-05,0.0,-55.9,863
+arm_mp3_192,017-13-Cafe-Del-Mar-Submariner.flac,44100,18750.0,7.856e-05,0.0,-55.9,875
+arm_mp3_192,018-04-Bag-o-wire-Resovoir.flac,44100,18750.0,1.514e-05,0.0,-66.1,503
+arm_mp3_192,019-04-Kohi-Jadu.flac,44100,18750.0,2.724e-07,0.0,-51.4,747
+arm_mp3_192,020-06-Bola-Tigantabame.flac,44100,18750.0,2.727e-05,0.0,-64.5,950
+arm_mp3_192,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,16000.0,3.273e-08,0.0,nan,898
+arm_mp3_192,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,18750.0,4.022e-07,0.0,-45.1,729
+arm_mp3_192,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,18750.0,1.098e-05,0.0,-60.7,821
+arm_mp3_192,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,19000.0,1.036e-05,0.0,-37.7,619
+arm_mp3_192,025-07-Bolalar-Lola.flac,44100,18750.0,7.364e-06,0.0,-68.4,945
+arm_mp3_192,026-06-Oumou-Dioubat-Siyala.flac,44100,18750.0,1.598e-04,0.0,-65.8,886
+arm_mp3_192,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,18750.0,1.765e-05,0.0,-62.5,922
+arm_mp3_192,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,6.253e-08,0.0,nan,410
+arm_mp3_192,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,18750.0,3.664e-07,0.0,-48.3,754
+arm_mp3_192,030-06-S-bastien-Tellier-Benny.flac,44100,18750.0,4.799e-05,0.0,-68.4,929
+arm_mp3_192,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,2.503e-09,0.0,nan,513
+arm_mp3_192,032-05-2kilos-more-Cache-feu.flac,44100,18750.0,3.862e-06,0.0,-46.6,778
+arm_mp3_192,033-01-Daylight-Rising.flac,44100,18750.0,5.785e-06,0.0,-66.0,825
+arm_mp3_192,034-09-Snow-Ghosts-Bowline.flac,44100,18750.0,1.136e-06,0.0,-68.0,725
+arm_mp3_192,035-16-Slow-Air-In-Dropped-D.flac,44100,18750.0,6.875e-07,0.0,-40.9,502
+arm_mp3_192,036-08-Nicolas-Comment-Amaurose.flac,44100,18750.0,1.646e-05,0.0,-66.4,828
+arm_mp3_192,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,18750.0,3.678e-04,0.0,-59.3,739
+arm_mp3_192,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,18750.0,9.381e-06,0.0,-41.8,1007
+arm_mp3_192,039-13-Kat-Onoma-Change-blues.flac,44100,18750.0,9.319e-07,0.0,-62.8,832
+arm_mp3_192,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,18750.0,9.928e-05,0.0,-74.4,1024
+arm_mp3_192,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.436e-04,0.0,-65.4,873
+arm_mp3_192,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,18750.0,2.850e-06,0.0,-64.1,468
+arm_mp3_192,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,18750.0,6.820e-06,0.0,-61.6,914
+arm_mp3_192,044-02-Various-Artists-Ka-mea-mea.flac,44100,18750.0,6.158e-09,0.0,-39.3,620
+arm_mp3_192,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,16750.0,1.503e-04,0.0,nan,816
+arm_mp3_192,046-04-Clelia-Felix-Shine-so-bright.flac,44100,18750.0,6.044e-05,0.0,-71.1,958
+arm_mp3_192,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,18750.0,1.597e-04,0.0,-61.4,896
+arm_mp3_192,048-08-Gabriel-Romero-La-Piragua.flac,44100,17250.0,2.637e-08,0.0,nan,858
+arm_mp3_192,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,18750.0,1.167e-05,0.0,-65.0,917
+arm_mp3_192,050-08-Boubacar-Traor-Pierrette.flac,44100,18750.0,7.135e-07,0.0,-57.1,715
+arm_mp3_192,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,18750.0,1.351e-06,0.0,-66.7,738
+arm_mp3_192,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,18750.0,2.157e-07,0.0,-43.7,569
+arm_mp3_192,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,18750.0,4.819e-05,0.0,-66.3,946
+arm_mp3_192,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,18000.0,3.770e-07,0.0,nan,694
+arm_mp3_192,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,18750.0,6.869e-08,0.0,-48.8,828
+arm_mp3_192,056-14-Hlamalani.flac,44100,18750.0,8.950e-05,0.0,-68.5,900
+arm_mp3_192,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,18750.0,1.629e-07,0.0,-45.2,622
+arm_mp3_192,058-01-Piny-Runa-Woko.flac,44100,18750.0,1.226e-06,0.0,-51.0,724
+arm_mp3_192,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,18750.0,1.298e-05,0.0,-60.8,842
+arm_mp3_192,060-13-Naomi-The-Boys-Bad-loser.flac,44100,18750.0,3.314e-05,0.0,-68.8,1001
+arm_mp3_192,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,16000.0,5.837e-10,0.0,nan,717
+arm_mp3_192,062-03-Alpha-Blondy-Jah-glory.flac,44100,18500.0,6.063e-06,0.0,nan,731
+arm_mp3_192,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,18750.0,4.029e-07,0.0,-52.7,613
+arm_mp3_192,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,18750.0,1.322e-05,0.0,-63.3,818
+arm_mp3_192,065-05-Quizas-Quizas.flac,44100,18750.0,1.058e-05,0.0,-54.7,795
+arm_mp3_192,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,18750.0,7.960e-07,0.0,-56.0,821
+arm_mp3_192,067-03-The-Streets-Let-s-push-things-forward.flac,44100,18750.0,1.776e-06,0.0,-50.8,915
+arm_mp3_192,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,18750.0,6.162e-08,0.0,-58.8,869
+arm_mp3_192,069-02-Eden-Ahbez-The-wanderer.flac,44100,18500.0,2.896e-08,0.0,nan,647
+arm_mp3_192,070-02-Guts-Good-morning.flac,44100,18500.0,1.051e-05,0.0,nan,829
+arm_mp3_192,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,1.386e-07,0.0,nan,861
+arm_mp3_192,072-05-Simo-Moumen-Samsara.flac,44100,18750.0,5.545e-06,0.0,-71.5,1061
+arm_mp3_192,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,18750.0,3.348e-06,0.0,-50.2,474
+arm_mp3_192,074-09-Koki-Nakano-Lift.flac,44100,18750.0,1.662e-08,0.0,-42.7,622
+arm_mp3_192,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,18750.0,1.165e-07,0.0,-38.2,586
+arm_mp3_192,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,2.062e-09,0.0,nan,438
+arm_mp3_192,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,18750.0,2.298e-05,0.0,-68.2,902
+arm_mp3_192,078-04-Kat-Onoma-La-chambre.flac,44100,18750.0,9.778e-07,0.0,-60.4,703
+arm_mp3_192,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,18750.0,2.674e-05,0.0,-65.7,857
+arm_mp3_320,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,20250.0,5.195e-08,0.0,-47.9,443
+arm_mp3_320,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,20000.0,4.209e-06,0.0,-63.9,1021
+arm_mp3_320,002-03-Hraach-Let-it-go.flac,44100,20000.0,2.636e-04,0.0,-65.0,737
+arm_mp3_320,003-01-Thor-Dari-lullaby.flac,44100,20250.0,6.881e-05,0.0,-60.5,875
+arm_mp3_320,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,20250.0,2.883e-04,0.0,-55.9,961
+arm_mp3_320,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,19750.0,3.122e-07,0.0,-59.8,851
+arm_mp3_320,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,20250.0,6.741e-08,0.0,-40.2,538
+arm_mp3_320,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,20000.0,1.477e-06,0.0,-42.8,906
+arm_mp3_320,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19250.0,1.907e-07,0.0,-61.3,837
+arm_mp3_320,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,1.637e-07,0.0,nan,578
+arm_mp3_320,010-06-Jon-Hassell-These-times.flac,44100,20250.0,6.131e-07,0.0,-38.4,658
+arm_mp3_320,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,20250.0,1.471e-04,0.0,-54.9,512
+arm_mp3_320,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,19750.0,5.982e-06,0.0,-57.4,902
+arm_mp3_320,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,20250.0,1.620e-06,0.0,-39.0,593
+arm_mp3_320,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,3.203e-08,0.0,nan,417
+arm_mp3_320,015-08-Jos-Gonz-lez-Vissel.flac,44100,20250.0,2.440e-07,0.0,-36.2,623
+arm_mp3_320,016-03-Memory-Tapes-Green-knight.flac,44100,20250.0,9.752e-05,0.0,-47.3,889
+arm_mp3_320,017-13-Cafe-Del-Mar-Submariner.flac,44100,20250.0,9.919e-05,0.0,-59.6,903
+arm_mp3_320,018-04-Bag-o-wire-Resovoir.flac,44100,20000.0,1.708e-05,0.0,-66.2,510
+arm_mp3_320,019-04-Kohi-Jadu.flac,44100,20250.0,6.276e-07,0.0,-51.4,790
+arm_mp3_320,020-06-Bola-Tigantabame.flac,44100,20000.0,2.907e-05,0.0,-70.5,961
+arm_mp3_320,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,19750.0,1.497e-06,0.0,-68.2,937
+arm_mp3_320,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,20000.0,7.610e-07,0.0,-45.3,755
+arm_mp3_320,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,20250.0,1.466e-05,0.0,-60.7,858
+arm_mp3_320,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,20250.0,2.222e-05,0.0,-37.5,648
+arm_mp3_320,025-07-Bolalar-Lola.flac,44100,20250.0,1.286e-05,0.0,-68.4,964
+arm_mp3_320,026-06-Oumou-Dioubat-Siyala.flac,44100,20000.0,1.868e-04,0.0,-65.8,907
+arm_mp3_320,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,20250.0,2.418e-05,0.0,-63.2,955
+arm_mp3_320,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,9.478e-08,0.0,nan,438
+arm_mp3_320,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,20250.0,1.315e-06,0.0,-48.1,793
+arm_mp3_320,030-06-S-bastien-Tellier-Benny.flac,44100,20250.0,5.708e-05,0.0,-68.3,959
+arm_mp3_320,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.113e-08,0.0,nan,539
+arm_mp3_320,032-05-2kilos-more-Cache-feu.flac,44100,20250.0,4.935e-06,0.0,-46.7,850
+arm_mp3_320,033-01-Daylight-Rising.flac,44100,20250.0,7.190e-06,0.0,-66.2,854
+arm_mp3_320,034-09-Snow-Ghosts-Bowline.flac,44100,20250.0,1.777e-06,0.0,-68.1,776
+arm_mp3_320,035-16-Slow-Air-In-Dropped-D.flac,44100,20250.0,9.317e-07,0.0,-41.0,526
+arm_mp3_320,036-08-Nicolas-Comment-Amaurose.flac,44100,20250.0,2.194e-05,0.0,-65.4,863
+arm_mp3_320,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,20250.0,5.025e-04,0.0,-58.9,767
+arm_mp3_320,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,20250.0,1.363e-05,0.0,-41.3,1035
+arm_mp3_320,039-13-Kat-Onoma-Change-blues.flac,44100,20000.0,1.778e-06,0.0,-62.9,877
+arm_mp3_320,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,20000.0,1.128e-04,0.0,-74.4,1047
+arm_mp3_320,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.522e-04,0.0,-65.2,877
+arm_mp3_320,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,20250.0,3.723e-06,0.0,-63.2,474
+arm_mp3_320,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,20250.0,9.899e-06,0.0,-60.4,945
+arm_mp3_320,044-02-Various-Artists-Ka-mea-mea.flac,44100,20250.0,1.293e-07,0.0,-39.4,670
+arm_mp3_320,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17750.0,1.511e-04,0.0,nan,833
+arm_mp3_320,046-04-Clelia-Felix-Shine-so-bright.flac,44100,20250.0,8.618e-05,0.0,-70.3,984
+arm_mp3_320,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,20250.0,2.554e-04,0.0,-62.8,933
+arm_mp3_320,048-08-Gabriel-Romero-La-Piragua.flac,44100,20000.0,2.297e-07,0.0,-60.3,869
+arm_mp3_320,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,20000.0,1.745e-05,0.0,-59.7,943
+arm_mp3_320,050-08-Boubacar-Traor-Pierrette.flac,44100,20250.0,8.011e-07,0.0,-57.2,743
+arm_mp3_320,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,20000.0,1.632e-06,0.0,-67.3,762
+arm_mp3_320,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,20250.0,2.663e-07,0.0,-43.8,596
+arm_mp3_320,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20250.0,6.565e-05,0.0,-64.5,974
+arm_mp3_320,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,20000.0,1.026e-06,0.0,-49.4,717
+arm_mp3_320,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,20000.0,3.086e-07,0.0,-48.8,851
+arm_mp3_320,056-14-Hlamalani.flac,44100,20250.0,1.141e-04,0.0,-68.6,937
+arm_mp3_320,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20250.0,3.893e-07,0.0,-45.3,656
+arm_mp3_320,058-01-Piny-Runa-Woko.flac,44100,20250.0,2.078e-06,0.0,-51.1,765
+arm_mp3_320,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,20250.0,1.689e-05,0.0,-60.9,880
+arm_mp3_320,060-13-Naomi-The-Boys-Bad-loser.flac,44100,20250.0,4.321e-05,0.0,-67.8,1024
+arm_mp3_320,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,17250.0,4.914e-09,0.0,nan,729
+arm_mp3_320,062-03-Alpha-Blondy-Jah-glory.flac,44100,20000.0,1.524e-05,0.0,-60.3,763
+arm_mp3_320,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,20250.0,7.297e-07,0.0,-52.9,665
+arm_mp3_320,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,20000.0,1.446e-05,0.0,-56.2,858
+arm_mp3_320,065-05-Quizas-Quizas.flac,44100,20250.0,1.179e-05,0.0,-51.1,833
+arm_mp3_320,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,20250.0,2.948e-06,0.0,-56.1,861
+arm_mp3_320,067-03-The-Streets-Let-s-push-things-forward.flac,44100,20250.0,5.554e-06,0.0,-51.6,958
+arm_mp3_320,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,20000.0,1.793e-07,0.0,-58.8,908
+arm_mp3_320,069-02-Eden-Ahbez-The-wanderer.flac,44100,20000.0,2.105e-07,0.0,-44.2,689
+arm_mp3_320,070-02-Guts-Good-morning.flac,44100,20000.0,1.267e-05,0.0,-69.7,859
+arm_mp3_320,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,2.189e-07,0.0,nan,865
+arm_mp3_320,072-05-Simo-Moumen-Samsara.flac,44100,19500.0,2.998e-05,0.0,-71.5,1087
+arm_mp3_320,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20250.0,3.958e-06,0.0,-50.0,479
+arm_mp3_320,074-09-Koki-Nakano-Lift.flac,44100,20000.0,6.594e-08,0.0,-42.7,661
+arm_mp3_320,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,20250.0,3.578e-07,0.0,-38.2,635
+arm_mp3_320,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,9.659e-09,0.0,nan,452
+arm_mp3_320,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,20250.0,3.535e-05,0.0,-68.2,946
+arm_mp3_320,078-04-Kat-Onoma-La-chambre.flac,44100,20000.0,1.607e-06,0.0,-60.5,746
+arm_mp3_320,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,20000.0,2.894e-05,0.0,-65.9,885
+arm_mp3_V0,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,22050.0,3.623e-08,0.0,nan,402
+arm_mp3_V0,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,19750.0,3.620e-06,0.0,-42.6,1016
+arm_mp3_V0,002-03-Hraach-Let-it-go.flac,44100,20750.0,2.674e-04,0.0,nan,720
+arm_mp3_V0,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.983e-05,0.0,nan,867
+arm_mp3_V0,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.347e-04,0.0,nan,964
+arm_mp3_V0,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,19500.0,2.839e-07,0.0,-55.8,853
+arm_mp3_V0,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,1.064e-07,0.0,nan,533
+arm_mp3_V0,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,21750.0,1.421e-06,0.0,nan,908
+arm_mp3_V0,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19250.0,1.520e-07,0.0,-60.0,837
+arm_mp3_V0,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,2.447e-07,0.0,nan,572
+arm_mp3_V0,010-06-Jon-Hassell-These-times.flac,44100,18250.0,9.247e-09,0.0,nan,599
+arm_mp3_V0,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.509e-04,0.0,nan,511
+arm_mp3_V0,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,20000.0,6.417e-06,0.0,-54.4,901
+arm_mp3_V0,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,3.818e-06,0.0,nan,570
+arm_mp3_V0,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,1.131e-09,0.0,nan,393
+arm_mp3_V0,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,1.214e-08,0.0,nan,563
+arm_mp3_V0,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,1.076e-04,0.0,nan,878
+arm_mp3_V0,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.139e-04,0.0,nan,902
+arm_mp3_V0,018-04-Bag-o-wire-Resovoir.flac,44100,21500.0,1.855e-05,0.0,nan,496
+arm_mp3_V0,019-04-Kohi-Jadu.flac,44100,21250.0,3.987e-07,0.0,nan,766
+arm_mp3_V0,020-06-Bola-Tigantabame.flac,44100,20500.0,3.010e-05,0.0,-49.7,960
+arm_mp3_V0,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,17000.0,7.685e-07,0.0,nan,936
+arm_mp3_V0,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,20250.0,3.490e-07,0.0,-45.0,749
+arm_mp3_V0,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,21000.0,1.564e-05,0.0,nan,850
+arm_mp3_V0,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,3.645e-05,0.0,nan,650
+arm_mp3_V0,025-07-Bolalar-Lola.flac,44100,21250.0,1.622e-05,0.0,nan,969
+arm_mp3_V0,026-06-Oumou-Dioubat-Siyala.flac,44100,20500.0,1.904e-04,0.0,-59.9,904
+arm_mp3_V0,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.587e-05,0.0,nan,958
+arm_mp3_V0,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,9.445e-08,0.0,nan,427
+arm_mp3_V0,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,3.708e-07,0.0,nan,755
+arm_mp3_V0,030-06-S-bastien-Tellier-Benny.flac,44100,21500.0,6.269e-05,0.0,nan,956
+arm_mp3_V0,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.098e-08,0.0,nan,529
+arm_mp3_V0,032-05-2kilos-more-Cache-feu.flac,44100,22050.0,5.659e-06,0.0,nan,846
+arm_mp3_V0,033-01-Daylight-Rising.flac,44100,21250.0,7.936e-06,0.0,nan,849
+arm_mp3_V0,034-09-Snow-Ghosts-Bowline.flac,44100,22050.0,2.021e-06,0.0,nan,786
+arm_mp3_V0,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,9.032e-07,0.0,nan,503
+arm_mp3_V0,036-08-Nicolas-Comment-Amaurose.flac,44100,21000.0,2.338e-05,0.0,nan,851
+arm_mp3_V0,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.736e-04,0.0,nan,749
+arm_mp3_V0,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.615e-05,0.0,nan,1048
+arm_mp3_V0,039-13-Kat-Onoma-Change-blues.flac,44100,20750.0,1.974e-06,0.0,nan,874
+arm_mp3_V0,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,20750.0,1.154e-04,0.0,nan,1046
+arm_mp3_V0,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.562e-04,0.0,-65.2,877
+arm_mp3_V0,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,5.614e-06,0.0,nan,442
+arm_mp3_V0,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,20750.0,1.078e-05,0.0,nan,943
+arm_mp3_V0,044-02-Various-Artists-Ka-mea-mea.flac,44100,21000.0,9.360e-09,0.0,nan,622
+arm_mp3_V0,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17500.0,1.562e-04,0.0,nan,821
+arm_mp3_V0,046-04-Clelia-Felix-Shine-so-bright.flac,44100,21750.0,1.040e-04,0.0,nan,986
+arm_mp3_V0,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,21250.0,2.693e-04,0.0,nan,936
+arm_mp3_V0,048-08-Gabriel-Romero-La-Piragua.flac,44100,20000.0,2.374e-07,0.0,-51.8,864
+arm_mp3_V0,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,20750.0,1.753e-05,0.0,nan,938
+arm_mp3_V0,050-08-Boubacar-Traor-Pierrette.flac,44100,20500.0,5.372e-07,0.0,-51.4,714
+arm_mp3_V0,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21250.0,1.820e-06,0.0,nan,753
+arm_mp3_V0,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,21000.0,8.902e-08,0.0,nan,542
+arm_mp3_V0,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20250.0,6.900e-05,0.0,-59.2,970
+arm_mp3_V0,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,20000.0,9.494e-07,0.0,-47.4,706
+arm_mp3_V0,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,21750.0,3.246e-07,0.0,nan,845
+arm_mp3_V0,056-14-Hlamalani.flac,44100,21750.0,1.239e-04,0.0,nan,935
+arm_mp3_V0,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20500.0,3.548e-07,0.0,-45.2,638
+arm_mp3_V0,058-01-Piny-Runa-Woko.flac,44100,20500.0,1.793e-06,0.0,-51.1,737
+arm_mp3_V0,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,2.161e-05,0.0,nan,867
+arm_mp3_V0,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,5.307e-05,0.0,nan,1036
+arm_mp3_V0,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,16250.0,2.006e-09,0.0,nan,722
+arm_mp3_V0,062-03-Alpha-Blondy-Jah-glory.flac,44100,20500.0,1.517e-05,0.0,-60.1,745
+arm_mp3_V0,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,9.250e-07,0.0,nan,641
+arm_mp3_V0,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21000.0,1.513e-05,0.0,nan,851
+arm_mp3_V0,065-05-Quizas-Quizas.flac,44100,22050.0,1.243e-05,0.0,nan,821
+arm_mp3_V0,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,21750.0,4.151e-06,0.0,nan,870
+arm_mp3_V0,067-03-The-Streets-Let-s-push-things-forward.flac,44100,21500.0,3.240e-06,0.0,nan,962
+arm_mp3_V0,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,22050.0,2.404e-07,0.0,nan,923
+arm_mp3_V0,069-02-Eden-Ahbez-The-wanderer.flac,44100,21000.0,1.698e-07,0.0,nan,642
+arm_mp3_V0,070-02-Guts-Good-morning.flac,44100,21500.0,1.394e-05,0.0,nan,842
+arm_mp3_V0,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,3.232e-07,0.0,nan,867
+arm_mp3_V0,072-05-Simo-Moumen-Samsara.flac,44100,19500.0,2.743e-05,0.0,-69.4,1086
+arm_mp3_V0,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20500.0,3.961e-06,0.0,-50.4,468
+arm_mp3_V0,074-09-Koki-Nakano-Lift.flac,44100,22050.0,3.050e-08,0.0,nan,625
+arm_mp3_V0,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,21750.0,2.476e-07,0.0,nan,591
+arm_mp3_V0,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,1.459e-09,0.0,nan,439
+arm_mp3_V0,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,4.089e-05,0.0,nan,940
+arm_mp3_V0,078-04-Kat-Onoma-La-chambre.flac,44100,21500.0,1.807e-06,0.0,nan,725
+arm_mp3_V0,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,20750.0,2.962e-05,0.0,nan,886
+arm_aac_ff128,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,17250.0,2.133e-08,0.0,nan,417
+arm_aac_ff128,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,17250.0,4.125e-06,0.0,nan,1007
+arm_aac_ff128,002-03-Hraach-Let-it-go.flac,44100,17500.0,1.212e-04,0.0,nan,728
+arm_aac_ff128,003-01-Thor-Dari-lullaby.flac,44100,17250.0,3.011e-05,0.0,nan,845
+arm_aac_ff128,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,17250.0,1.019e-04,0.0,nan,935
+arm_aac_ff128,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,17250.0,2.618e-07,0.0,nan,859
+arm_aac_ff128,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,17250.0,1.159e-08,0.0,nan,471
+arm_aac_ff128,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,17250.0,1.181e-06,0.0,nan,904
+arm_aac_ff128,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,17250.0,1.798e-07,0.0,nan,844
+arm_aac_ff128,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,4.401e-08,0.0,nan,514
+arm_aac_ff128,010-06-Jon-Hassell-These-times.flac,44100,17250.0,5.076e-07,0.0,nan,624
+arm_aac_ff128,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,17250.0,4.476e-05,0.0,nan,482
+arm_aac_ff128,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,17250.0,3.939e-06,0.0,nan,899
+arm_aac_ff128,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,17250.0,1.753e-07,0.0,nan,459
+arm_aac_ff128,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,1.065e-08,0.0,nan,359
+arm_aac_ff128,015-08-Jos-Gonz-lez-Vissel.flac,44100,17250.0,7.759e-08,0.0,nan,580
+arm_aac_ff128,016-03-Memory-Tapes-Green-knight.flac,44100,17250.0,5.192e-05,0.0,nan,857
+arm_aac_ff128,017-13-Cafe-Del-Mar-Submariner.flac,44100,17250.0,4.184e-05,0.0,nan,858
+arm_aac_ff128,018-04-Bag-o-wire-Resovoir.flac,44100,17250.0,7.298e-06,0.0,nan,492
+arm_aac_ff128,019-04-Kohi-Jadu.flac,44100,17250.0,4.542e-07,0.0,nan,762
+arm_aac_ff128,020-06-Bola-Tigantabame.flac,44100,17250.0,1.879e-05,0.0,nan,955
+arm_aac_ff128,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,17250.0,1.514e-06,0.0,nan,919
+arm_aac_ff128,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,17250.0,4.549e-07,0.0,nan,733
+arm_aac_ff128,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,17250.0,8.822e-06,0.0,nan,833
+arm_aac_ff128,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,17250.0,6.591e-06,0.0,nan,591
+arm_aac_ff128,025-07-Bolalar-Lola.flac,44100,17250.0,8.093e-06,0.0,nan,961
+arm_aac_ff128,026-06-Oumou-Dioubat-Siyala.flac,44100,17500.0,7.620e-05,0.0,nan,885
+arm_aac_ff128,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,17250.0,8.303e-06,0.0,nan,932
+arm_aac_ff128,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,2.903e-08,0.0,nan,384
+arm_aac_ff128,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,17250.0,1.199e-06,0.0,nan,766
+arm_aac_ff128,030-06-S-bastien-Tellier-Benny.flac,44100,17250.0,2.668e-05,0.0,nan,938
+arm_aac_ff128,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,6.532e-09,0.0,nan,531
+arm_aac_ff128,032-05-2kilos-more-Cache-feu.flac,44100,17250.0,2.489e-06,0.0,nan,759
+arm_aac_ff128,033-01-Daylight-Rising.flac,44100,17250.0,3.382e-06,0.0,nan,831
+arm_aac_ff128,034-09-Snow-Ghosts-Bowline.flac,44100,17250.0,9.310e-07,0.0,nan,719
+arm_aac_ff128,035-16-Slow-Air-In-Dropped-D.flac,44100,17250.0,4.418e-07,0.0,nan,501
+arm_aac_ff128,036-08-Nicolas-Comment-Amaurose.flac,44100,17250.0,6.979e-06,0.0,nan,816
+arm_aac_ff128,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,17500.0,1.437e-04,0.0,nan,695
+arm_aac_ff128,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,17250.0,6.951e-06,0.0,nan,1014
+arm_aac_ff128,039-13-Kat-Onoma-Change-blues.flac,44100,17250.0,8.648e-07,0.0,nan,843
+arm_aac_ff128,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,17250.0,9.607e-05,0.0,nan,1034
+arm_aac_ff128,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,17500.0,1.946e-04,0.0,nan,866
+arm_aac_ff128,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,17250.0,1.551e-06,0.0,nan,453
+arm_aac_ff128,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,17250.0,4.024e-06,0.0,nan,931
+arm_aac_ff128,044-02-Various-Artists-Ka-mea-mea.flac,44100,17250.0,8.265e-08,0.0,nan,636
+arm_aac_ff128,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,16750.0,1.568e-04,0.0,nan,796
+arm_aac_ff128,046-04-Clelia-Felix-Shine-so-bright.flac,44100,17250.0,3.918e-05,0.0,nan,962
+arm_aac_ff128,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,17250.0,1.024e-04,0.0,nan,902
+arm_aac_ff128,048-08-Gabriel-Romero-La-Piragua.flac,44100,17250.0,3.411e-07,0.0,nan,879
+arm_aac_ff128,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,17250.0,1.139e-05,0.0,nan,929
+arm_aac_ff128,050-08-Boubacar-Traor-Pierrette.flac,44100,17250.0,5.893e-07,0.0,nan,719
+arm_aac_ff128,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,17250.0,9.383e-07,0.0,nan,735
+arm_aac_ff128,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,17250.0,1.333e-07,0.0,nan,481
+arm_aac_ff128,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,17250.0,2.916e-05,0.0,nan,936
+arm_aac_ff128,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,17250.0,8.271e-07,0.0,nan,710
+arm_aac_ff128,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,17250.0,2.918e-07,0.0,nan,843
+arm_aac_ff128,056-14-Hlamalani.flac,44100,17250.0,3.364e-05,0.0,nan,891
+arm_aac_ff128,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,17250.0,2.056e-07,0.0,nan,640
+arm_aac_ff128,058-01-Piny-Runa-Woko.flac,44100,17250.0,1.231e-06,0.0,nan,738
+arm_aac_ff128,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,17250.0,6.800e-06,0.0,nan,819
+arm_aac_ff128,060-13-Naomi-The-Boys-Bad-loser.flac,44100,17250.0,2.336e-05,0.0,nan,1010
+arm_aac_ff128,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,17250.0,1.141e-08,0.0,nan,736
+arm_aac_ff128,062-03-Alpha-Blondy-Jah-glory.flac,44100,17250.0,1.017e-05,0.0,nan,752
+arm_aac_ff128,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,17250.0,1.828e-07,0.0,nan,643
+arm_aac_ff128,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,17250.0,9.443e-06,0.0,nan,823
+arm_aac_ff128,065-05-Quizas-Quizas.flac,44100,17250.0,5.303e-06,0.0,nan,801
+arm_aac_ff128,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,17250.0,2.380e-06,0.0,nan,827
+arm_aac_ff128,067-03-The-Streets-Let-s-push-things-forward.flac,44100,17250.0,2.322e-06,0.0,nan,926
+arm_aac_ff128,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,17250.0,1.756e-07,0.0,nan,895
+arm_aac_ff128,069-02-Eden-Ahbez-The-wanderer.flac,44100,17250.0,2.034e-07,0.0,nan,656
+arm_aac_ff128,070-02-Guts-Good-morning.flac,44100,17250.0,7.105e-06,0.0,nan,841
+arm_aac_ff128,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,1.567e-07,0.0,nan,879
+arm_aac_ff128,072-05-Simo-Moumen-Samsara.flac,44100,17250.0,1.450e-05,0.0,nan,1068
+arm_aac_ff128,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,17250.0,2.026e-06,0.0,nan,386
+arm_aac_ff128,074-09-Koki-Nakano-Lift.flac,44100,17250.0,5.585e-08,0.0,nan,637
+arm_aac_ff128,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,17250.0,3.008e-07,0.0,nan,605
+arm_aac_ff128,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,2.178e-08,0.0,nan,445
+arm_aac_ff128,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,17250.0,2.023e-05,0.0,nan,902
+arm_aac_ff128,078-04-Kat-Onoma-La-chambre.flac,44100,17250.0,9.064e-07,0.0,nan,718
+arm_aac_ff128,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,17250.0,2.137e-05,0.0,nan,853
+arm_aac_ff256,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,22050.0,6.225e-08,0.0,nan,418
+arm_aac_ff256,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,21250.0,3.688e-06,0.0,nan,1021
+arm_aac_ff256,002-03-Hraach-Let-it-go.flac,44100,22050.0,2.568e-04,0.0,nan,740
+arm_aac_ff256,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.153e-05,0.0,nan,886
+arm_aac_ff256,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.199e-04,0.0,nan,968
+arm_aac_ff256,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,20250.0,3.294e-07,0.0,-35.8,866
+arm_aac_ff256,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,1.390e-07,0.0,nan,542
+arm_aac_ff256,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,22050.0,1.706e-06,0.0,nan,913
+arm_aac_ff256,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19500.0,2.059e-07,0.0,-56.0,847
+arm_aac_ff256,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,3.806e-07,0.0,nan,594
+arm_aac_ff256,010-06-Jon-Hassell-These-times.flac,44100,22050.0,8.692e-07,0.0,nan,669
+arm_aac_ff256,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.500e-04,0.0,nan,519
+arm_aac_ff256,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,20500.0,6.785e-06,0.0,-42.9,912
+arm_aac_ff256,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,3.037e-06,0.0,nan,557
+arm_aac_ff256,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,4.461e-08,0.0,nan,415
+arm_aac_ff256,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,4.364e-07,0.0,nan,633
+arm_aac_ff256,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,9.817e-05,0.0,nan,899
+arm_aac_ff256,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.050e-04,0.0,nan,908
+arm_aac_ff256,018-04-Bag-o-wire-Resovoir.flac,44100,21750.0,1.697e-05,0.0,nan,474
+arm_aac_ff256,019-04-Kohi-Jadu.flac,44100,22050.0,8.221e-07,0.0,nan,800
+arm_aac_ff256,020-06-Bola-Tigantabame.flac,44100,20500.0,2.822e-05,0.0,-37.8,963
+arm_aac_ff256,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,20750.0,2.334e-06,0.0,nan,944
+arm_aac_ff256,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,21500.0,7.706e-07,0.0,nan,764
+arm_aac_ff256,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,21000.0,1.513e-05,0.0,nan,862
+arm_aac_ff256,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,3.518e-05,0.0,nan,658
+arm_aac_ff256,025-07-Bolalar-Lola.flac,44100,21250.0,1.417e-05,0.0,nan,977
+arm_aac_ff256,026-06-Oumou-Dioubat-Siyala.flac,44100,20500.0,1.778e-04,0.0,-42.7,908
+arm_aac_ff256,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.459e-05,0.0,nan,959
+arm_aac_ff256,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,1.015e-07,0.0,nan,440
+arm_aac_ff256,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,1.717e-06,0.0,nan,805
+arm_aac_ff256,030-06-S-bastien-Tellier-Benny.flac,44100,22050.0,5.698e-05,0.0,nan,965
+arm_aac_ff256,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.513e-08,0.0,nan,550
+arm_aac_ff256,032-05-2kilos-more-Cache-feu.flac,44100,22050.0,4.979e-06,0.0,nan,864
+arm_aac_ff256,033-01-Daylight-Rising.flac,44100,21750.0,6.996e-06,0.0,nan,865
+arm_aac_ff256,034-09-Snow-Ghosts-Bowline.flac,44100,22050.0,1.869e-06,0.0,nan,792
+arm_aac_ff256,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,9.498e-07,0.0,nan,531
+arm_aac_ff256,036-08-Nicolas-Comment-Amaurose.flac,44100,21250.0,2.175e-05,0.0,nan,872
+arm_aac_ff256,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.269e-04,0.0,nan,776
+arm_aac_ff256,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.439e-05,0.0,nan,1044
+arm_aac_ff256,039-13-Kat-Onoma-Change-blues.flac,44100,21000.0,1.784e-06,0.0,nan,892
+arm_aac_ff256,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,21250.0,1.102e-04,0.0,nan,1049
+arm_aac_ff256,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19500.0,6.382e-04,0.0,-51.0,877
+arm_aac_ff256,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,4.622e-06,0.0,nan,448
+arm_aac_ff256,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,22050.0,9.285e-06,0.0,nan,954
+arm_aac_ff256,044-02-Various-Artists-Ka-mea-mea.flac,44100,22050.0,2.508e-07,0.0,nan,683
+arm_aac_ff256,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17750.0,1.507e-04,0.0,nan,843
+arm_aac_ff256,046-04-Clelia-Felix-Shine-so-bright.flac,44100,22050.0,9.566e-05,0.0,nan,989
+arm_aac_ff256,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,22050.0,2.533e-04,0.0,nan,935
+arm_aac_ff256,048-08-Gabriel-Romero-La-Piragua.flac,44100,22050.0,4.738e-07,0.0,nan,891
+arm_aac_ff256,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,21500.0,1.628e-05,0.0,nan,948
+arm_aac_ff256,050-08-Boubacar-Traor-Pierrette.flac,44100,21500.0,8.002e-07,0.0,nan,756
+arm_aac_ff256,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21250.0,1.820e-06,0.0,nan,774
+arm_aac_ff256,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,22050.0,2.699e-07,0.0,nan,582
+arm_aac_ff256,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20500.0,6.036e-05,0.0,-31.6,974
+arm_aac_ff256,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,22050.0,1.070e-06,0.0,nan,730
+arm_aac_ff256,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,22050.0,4.763e-07,0.0,nan,873
+arm_aac_ff256,056-14-Hlamalani.flac,44100,22050.0,1.151e-04,0.0,nan,941
+arm_aac_ff256,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20750.0,4.451e-07,0.0,nan,666
+arm_aac_ff256,058-01-Piny-Runa-Woko.flac,44100,20750.0,2.197e-06,0.0,nan,767
+arm_aac_ff256,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,1.910e-05,0.0,nan,895
+arm_aac_ff256,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,4.657e-05,0.0,nan,1033
+arm_aac_ff256,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,20000.0,1.583e-08,0.0,-33.3,766
+arm_aac_ff256,062-03-Alpha-Blondy-Jah-glory.flac,44100,21000.0,1.580e-05,0.0,nan,773
+arm_aac_ff256,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,9.027e-07,0.0,nan,696
+arm_aac_ff256,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21000.0,1.453e-05,0.0,nan,870
+arm_aac_ff256,065-05-Quizas-Quizas.flac,44100,22050.0,1.233e-05,0.0,nan,842
+arm_aac_ff256,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,22050.0,3.582e-06,0.0,nan,867
+arm_aac_ff256,067-03-The-Streets-Let-s-push-things-forward.flac,44100,22050.0,4.882e-06,0.0,nan,963
+arm_aac_ff256,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,22050.0,2.685e-07,0.0,nan,928
+arm_aac_ff256,069-02-Eden-Ahbez-The-wanderer.flac,44100,22050.0,2.321e-07,0.0,nan,697
+arm_aac_ff256,070-02-Guts-Good-morning.flac,44100,22050.0,1.349e-05,0.0,nan,871
+arm_aac_ff256,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,2.884e-07,0.0,nan,872
+arm_aac_ff256,072-05-Simo-Moumen-Samsara.flac,44100,19750.0,2.805e-05,0.0,-53.3,1084
+arm_aac_ff256,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20750.0,3.886e-06,0.0,nan,407
+arm_aac_ff256,074-09-Koki-Nakano-Lift.flac,44100,22050.0,1.081e-07,0.0,nan,675
+arm_aac_ff256,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,22050.0,4.352e-07,0.0,nan,653
+arm_aac_ff256,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,2.807e-08,0.0,nan,469
+arm_aac_ff256,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,3.837e-05,0.0,nan,950
+arm_aac_ff256,078-04-Kat-Onoma-La-chambre.flac,44100,21500.0,1.746e-06,0.0,nan,759
+arm_aac_ff256,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,22050.0,2.710e-05,0.0,nan,887
+arm_aac_ff320,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,22050.0,6.223e-08,0.0,nan,420
+arm_aac_ff320,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,21500.0,3.241e-06,0.0,nan,1020
+arm_aac_ff320,002-03-Hraach-Let-it-go.flac,44100,22050.0,2.576e-04,0.0,nan,737
+arm_aac_ff320,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.291e-05,0.0,nan,884
+arm_aac_ff320,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.205e-04,0.0,nan,966
+arm_aac_ff320,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,20250.0,3.222e-07,0.0,-35.5,864
+arm_aac_ff320,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,1.390e-07,0.0,nan,541
+arm_aac_ff320,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,22050.0,1.701e-06,0.0,nan,911
+arm_aac_ff320,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19500.0,2.094e-07,0.0,-55.9,845
+arm_aac_ff320,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,3.661e-07,0.0,nan,592
+arm_aac_ff320,010-06-Jon-Hassell-These-times.flac,44100,22050.0,8.003e-07,0.0,nan,667
+arm_aac_ff320,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.492e-04,0.0,nan,518
+arm_aac_ff320,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,20500.0,6.764e-06,0.0,-44.2,909
+arm_aac_ff320,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,3.034e-06,0.0,nan,557
+arm_aac_ff320,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,4.429e-08,0.0,nan,415
+arm_aac_ff320,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,4.302e-07,0.0,nan,632
+arm_aac_ff320,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,9.850e-05,0.0,nan,896
+arm_aac_ff320,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.056e-04,0.0,nan,907
+arm_aac_ff320,018-04-Bag-o-wire-Resovoir.flac,44100,21750.0,1.699e-05,0.0,nan,480
+arm_aac_ff320,019-04-Kohi-Jadu.flac,44100,22050.0,7.992e-07,0.0,nan,799
+arm_aac_ff320,020-06-Bola-Tigantabame.flac,44100,20500.0,2.827e-05,0.0,-37.6,961
+arm_aac_ff320,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,20500.0,2.246e-06,0.0,-61.1,943
+arm_aac_ff320,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,21500.0,7.325e-07,0.0,nan,763
+arm_aac_ff320,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,21000.0,1.531e-05,0.0,nan,860
+arm_aac_ff320,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,3.492e-05,0.0,nan,657
+arm_aac_ff320,025-07-Bolalar-Lola.flac,44100,21500.0,1.391e-05,0.0,nan,975
+arm_aac_ff320,026-06-Oumou-Dioubat-Siyala.flac,44100,20500.0,1.800e-04,0.0,-42.5,905
+arm_aac_ff320,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.451e-05,0.0,nan,957
+arm_aac_ff320,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,1.020e-07,0.0,nan,439
+arm_aac_ff320,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,1.569e-06,0.0,nan,804
+arm_aac_ff320,030-06-S-bastien-Tellier-Benny.flac,44100,22050.0,5.765e-05,0.0,nan,963
+arm_aac_ff320,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.475e-08,0.0,nan,548
+arm_aac_ff320,032-05-2kilos-more-Cache-feu.flac,44100,22050.0,5.012e-06,0.0,nan,866
+arm_aac_ff320,033-01-Daylight-Rising.flac,44100,21500.0,6.911e-06,0.0,nan,863
+arm_aac_ff320,034-09-Snow-Ghosts-Bowline.flac,44100,22050.0,1.866e-06,0.0,nan,790
+arm_aac_ff320,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,9.480e-07,0.0,nan,531
+arm_aac_ff320,036-08-Nicolas-Comment-Amaurose.flac,44100,21250.0,2.157e-05,0.0,nan,874
+arm_aac_ff320,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.422e-04,0.0,nan,776
+arm_aac_ff320,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.445e-05,0.0,nan,1042
+arm_aac_ff320,039-13-Kat-Onoma-Change-blues.flac,44100,21000.0,1.808e-06,0.0,nan,891
+arm_aac_ff320,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,21250.0,1.053e-04,0.0,nan,1047
+arm_aac_ff320,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19500.0,6.343e-04,0.0,-51.3,876
+arm_aac_ff320,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,4.750e-06,0.0,nan,448
+arm_aac_ff320,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,22050.0,9.302e-06,0.0,nan,953
+arm_aac_ff320,044-02-Various-Artists-Ka-mea-mea.flac,44100,22050.0,2.226e-07,0.0,nan,679
+arm_aac_ff320,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17750.0,1.521e-04,0.0,nan,841
+arm_aac_ff320,046-04-Clelia-Felix-Shine-so-bright.flac,44100,22050.0,9.552e-05,0.0,nan,987
+arm_aac_ff320,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,21250.0,2.527e-04,0.0,nan,933
+arm_aac_ff320,048-08-Gabriel-Romero-La-Piragua.flac,44100,22050.0,4.619e-07,0.0,nan,890
+arm_aac_ff320,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,21500.0,1.567e-05,0.0,nan,946
+arm_aac_ff320,050-08-Boubacar-Traor-Pierrette.flac,44100,21500.0,8.146e-07,0.0,nan,754
+arm_aac_ff320,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21250.0,1.686e-06,0.0,nan,775
+arm_aac_ff320,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,22050.0,2.712e-07,0.0,nan,586
+arm_aac_ff320,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20500.0,6.105e-05,0.0,-31.6,973
+arm_aac_ff320,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,22050.0,1.049e-06,0.0,nan,731
+arm_aac_ff320,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,21750.0,4.763e-07,0.0,nan,872
+arm_aac_ff320,056-14-Hlamalani.flac,44100,22050.0,1.170e-04,0.0,nan,939
+arm_aac_ff320,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20750.0,4.337e-07,0.0,nan,661
+arm_aac_ff320,058-01-Piny-Runa-Woko.flac,44100,20750.0,2.187e-06,0.0,nan,765
+arm_aac_ff320,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,1.921e-05,0.0,nan,894
+arm_aac_ff320,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,4.642e-05,0.0,nan,1030
+arm_aac_ff320,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,19750.0,1.514e-08,0.0,-32.9,765
+arm_aac_ff320,062-03-Alpha-Blondy-Jah-glory.flac,44100,20750.0,1.519e-05,0.0,nan,769
+arm_aac_ff320,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,9.221e-07,0.0,nan,692
+arm_aac_ff320,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21000.0,1.430e-05,0.0,nan,869
+arm_aac_ff320,065-05-Quizas-Quizas.flac,44100,22050.0,1.241e-05,0.0,nan,841
+arm_aac_ff320,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,22050.0,3.434e-06,0.0,nan,866
+arm_aac_ff320,067-03-The-Streets-Let-s-push-things-forward.flac,44100,22050.0,4.397e-06,0.0,nan,961
+arm_aac_ff320,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,22050.0,2.513e-07,0.0,nan,926
+arm_aac_ff320,069-02-Eden-Ahbez-The-wanderer.flac,44100,22050.0,2.231e-07,0.0,nan,695
+arm_aac_ff320,070-02-Guts-Good-morning.flac,44100,22050.0,1.346e-05,0.0,nan,869
+arm_aac_ff320,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,2.821e-07,0.0,nan,869
+arm_aac_ff320,072-05-Simo-Moumen-Samsara.flac,44100,19750.0,2.717e-05,0.0,-53.8,1084
+arm_aac_ff320,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20750.0,3.878e-06,0.0,nan,445
+arm_aac_ff320,074-09-Koki-Nakano-Lift.flac,44100,22050.0,1.002e-07,0.0,nan,673
+arm_aac_ff320,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,22050.0,4.170e-07,0.0,nan,650
+arm_aac_ff320,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,2.701e-08,0.0,nan,469
+arm_aac_ff320,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,3.850e-05,0.0,nan,948
+arm_aac_ff320,078-04-Kat-Onoma-La-chambre.flac,44100,21500.0,1.769e-06,0.0,nan,755
+arm_aac_ff320,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,22050.0,2.729e-05,0.0,nan,885
+arm_aacmf_256,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,22050.0,5.126e-08,0.0,nan,414
+arm_aacmf_256,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,18750.0,1.707e-06,0.0,-52.5,1000
+arm_aacmf_256,002-03-Hraach-Let-it-go.flac,44100,21000.0,2.465e-04,0.0,nan,722
+arm_aacmf_256,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.179e-05,0.0,nan,852
+arm_aacmf_256,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.205e-04,0.0,nan,945
+arm_aacmf_256,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,19250.0,1.699e-07,0.0,-58.8,846
+arm_aacmf_256,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,1.375e-07,0.0,nan,540
+arm_aacmf_256,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,22050.0,1.315e-06,0.0,nan,899
+arm_aacmf_256,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,17750.0,1.022e-07,0.0,nan,831
+arm_aacmf_256,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,3.451e-07,0.0,nan,591
+arm_aacmf_256,010-06-Jon-Hassell-These-times.flac,44100,22050.0,5.231e-07,0.0,nan,649
+arm_aacmf_256,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.249e-04,0.0,nan,512
+arm_aacmf_256,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,19500.0,4.696e-06,0.0,-47.5,893
+arm_aacmf_256,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,3.109e-06,0.0,nan,557
+arm_aacmf_256,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,4.383e-08,0.0,nan,414
+arm_aacmf_256,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,4.111e-07,0.0,nan,632
+arm_aacmf_256,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,9.762e-05,0.0,nan,874
+arm_aacmf_256,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.031e-04,0.0,nan,891
+arm_aacmf_256,018-04-Bag-o-wire-Resovoir.flac,44100,21500.0,1.518e-05,0.0,nan,430
+arm_aacmf_256,019-04-Kohi-Jadu.flac,44100,21500.0,5.384e-07,0.0,nan,776
+arm_aacmf_256,020-06-Bola-Tigantabame.flac,44100,20500.0,2.648e-05,0.0,-46.8,954
+arm_aacmf_256,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,16500.0,2.563e-07,0.0,nan,912
+arm_aacmf_256,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,18750.0,3.687e-07,0.0,-45.2,742
+arm_aacmf_256,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,20750.0,1.304e-05,0.0,nan,839
+arm_aacmf_256,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,3.380e-05,0.0,nan,657
+arm_aacmf_256,025-07-Bolalar-Lola.flac,44100,21250.0,1.208e-05,0.0,nan,957
+arm_aacmf_256,026-06-Oumou-Dioubat-Siyala.flac,44100,20000.0,1.765e-04,0.0,-60.7,895
+arm_aacmf_256,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.419e-05,0.0,nan,937
+arm_aacmf_256,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,1.016e-07,0.0,nan,429
+arm_aacmf_256,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,1.011e-06,0.0,nan,783
+arm_aacmf_256,030-06-S-bastien-Tellier-Benny.flac,44100,21750.0,5.632e-05,0.0,nan,941
+arm_aacmf_256,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.274e-08,0.0,nan,537
+arm_aacmf_256,032-05-2kilos-more-Cache-feu.flac,44100,22050.0,4.332e-06,0.0,nan,840
+arm_aacmf_256,033-01-Daylight-Rising.flac,44100,21000.0,6.126e-06,0.0,nan,840
+arm_aacmf_256,034-09-Snow-Ghosts-Bowline.flac,44100,22050.0,1.394e-06,0.0,nan,772
+arm_aacmf_256,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,8.421e-07,0.0,nan,516
+arm_aacmf_256,036-08-Nicolas-Comment-Amaurose.flac,44100,21000.0,2.049e-05,0.0,nan,843
+arm_aacmf_256,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.383e-04,0.0,nan,744
+arm_aacmf_256,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.261e-05,0.0,nan,1030
+arm_aacmf_256,039-13-Kat-Onoma-Change-blues.flac,44100,20750.0,1.405e-06,0.0,nan,852
+arm_aacmf_256,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,21000.0,1.005e-04,0.0,nan,1033
+arm_aacmf_256,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.321e-04,0.0,-53.2,873
+arm_aacmf_256,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,4.251e-06,0.0,nan,439
+arm_aacmf_256,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,20750.0,8.510e-06,0.0,nan,930
+arm_aacmf_256,044-02-Various-Artists-Ka-mea-mea.flac,44100,21250.0,8.761e-08,0.0,nan,655
+arm_aacmf_256,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17500.0,1.497e-04,0.0,nan,790
+arm_aacmf_256,046-04-Clelia-Felix-Shine-so-bright.flac,44100,21750.0,9.545e-05,0.0,nan,978
+arm_aacmf_256,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,21250.0,2.409e-04,0.0,nan,919
+arm_aacmf_256,048-08-Gabriel-Romero-La-Piragua.flac,44100,18000.0,1.913e-07,0.0,nan,862
+arm_aacmf_256,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,20750.0,1.428e-05,0.0,nan,933
+arm_aacmf_256,050-08-Boubacar-Traor-Pierrette.flac,44100,21000.0,6.919e-07,0.0,nan,728
+arm_aacmf_256,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21000.0,1.474e-06,0.0,nan,749
+arm_aacmf_256,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,21500.0,2.356e-07,0.0,nan,547
+arm_aacmf_256,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20250.0,6.053e-05,0.0,-58.6,954
+arm_aacmf_256,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,18000.0,7.437e-07,0.0,nan,706
+arm_aacmf_256,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,19250.0,2.839e-07,0.0,-48.8,838
+arm_aacmf_256,056-14-Hlamalani.flac,44100,22050.0,1.148e-04,0.0,nan,913
+arm_aacmf_256,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20750.0,3.432e-07,0.0,nan,644
+arm_aacmf_256,058-01-Piny-Runa-Woko.flac,44100,20500.0,1.796e-06,0.0,-50.9,744
+arm_aacmf_256,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,1.815e-05,0.0,nan,859
+arm_aacmf_256,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,4.183e-05,0.0,nan,1015
+arm_aacmf_256,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,17250.0,4.504e-09,0.0,nan,728
+arm_aacmf_256,062-03-Alpha-Blondy-Jah-glory.flac,44100,20500.0,1.069e-05,0.0,-50.6,748
+arm_aacmf_256,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,7.859e-07,0.0,nan,682
+arm_aacmf_256,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21000.0,1.362e-05,0.0,nan,837
+arm_aacmf_256,065-05-Quizas-Quizas.flac,44100,22050.0,1.157e-05,0.0,nan,829
+arm_aacmf_256,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,21500.0,2.406e-06,0.0,nan,855
+arm_aacmf_256,067-03-The-Streets-Let-s-push-things-forward.flac,44100,20750.0,2.142e-06,0.0,nan,943
+arm_aacmf_256,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,22050.0,1.541e-07,0.0,nan,913
+arm_aacmf_256,069-02-Eden-Ahbez-The-wanderer.flac,44100,20500.0,1.265e-07,0.0,-41.6,678
+arm_aacmf_256,070-02-Guts-Good-morning.flac,44100,21500.0,1.124e-05,0.0,nan,852
+arm_aacmf_256,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,1.093e-07,0.0,nan,861
+arm_aacmf_256,072-05-Simo-Moumen-Samsara.flac,44100,19250.0,1.620e-05,0.0,-71.6,1070
+arm_aacmf_256,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20500.0,3.602e-06,0.0,-47.3,375
+arm_aacmf_256,074-09-Koki-Nakano-Lift.flac,44100,22050.0,6.250e-08,0.0,nan,650
+arm_aacmf_256,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,22050.0,2.818e-07,0.0,nan,637
+arm_aacmf_256,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,9.722e-09,0.0,nan,453
+arm_aacmf_256,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,3.234e-05,0.0,nan,923
+arm_aacmf_256,078-04-Kat-Onoma-La-chambre.flac,44100,21250.0,1.415e-06,0.0,nan,728
+arm_aacmf_256,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,21250.0,2.607e-05,0.0,nan,875
+arm_opus_256,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,48000,20250.0,4.386e-08,0.0,nan,433
+arm_opus_256,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,48000,20000.0,2.717e-06,0.0,nan,1069
+arm_opus_256,002-03-Hraach-Let-it-go.flac,48000,20250.0,2.271e-04,0.0,nan,757
+arm_opus_256,003-01-Thor-Dari-lullaby.flac,48000,20250.0,5.931e-05,0.0,nan,911
+arm_opus_256,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,48000,20250.0,2.492e-04,0.0,nan,1007
+arm_opus_256,005-17-Los-Seven-Del-Swing-Celoso.flac,48000,20000.0,2.862e-07,0.0,nan,891
+arm_opus_256,006-09-Mahmoud-Ahmed-Tezeta.flac,48000,20500.0,5.639e-08,0.0,-34.6,557
+arm_opus_256,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,48000,20000.0,1.411e-06,0.0,nan,939
+arm_opus_256,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,48000,19500.0,1.866e-07,0.0,nan,869
+arm_opus_256,009-03-Ilya-Beshevli-To-solitude.flac,48000,24000.0,1.359e-07,0.0,nan,597
+arm_opus_256,010-06-Jon-Hassell-These-times.flac,48000,20250.0,5.425e-07,0.0,nan,679
+arm_opus_256,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,48000,20250.0,1.278e-04,0.0,nan,530
+arm_opus_256,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,48000,20000.0,5.764e-06,0.0,nan,946
+arm_opus_256,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,48000,20500.0,1.394e-06,0.0,-37.2,636
+arm_opus_256,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,48000,24000.0,2.722e-08,0.0,nan,429
+arm_opus_256,015-08-Jos-Gonz-lez-Vissel.flac,48000,20250.0,2.060e-07,0.0,nan,652
+arm_opus_256,016-03-Memory-Tapes-Green-knight.flac,48000,20250.0,8.518e-05,0.0,nan,928
+arm_opus_256,017-13-Cafe-Del-Mar-Submariner.flac,48000,20250.0,8.729e-05,0.0,nan,946
+arm_opus_256,018-04-Bag-o-wire-Resovoir.flac,48000,20250.0,1.472e-05,0.0,nan,498
+arm_opus_256,019-04-Kohi-Jadu.flac,48000,20250.0,6.286e-07,0.0,nan,826
+arm_opus_256,020-06-Bola-Tigantabame.flac,48000,20000.0,2.515e-05,0.0,nan,997
+arm_opus_256,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,48000,20000.0,1.883e-06,0.0,nan,986
+arm_opus_256,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,48000,20000.0,5.841e-07,0.0,nan,791
+arm_opus_256,023-01-Yusef-Lateef-Buddy-and-lou.flac,48000,20250.0,1.340e-05,0.0,nan,895
+arm_opus_256,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,48000,20500.0,1.901e-05,0.0,-37.2,677
+arm_opus_256,025-07-Bolalar-Lola.flac,48000,20250.0,1.040e-05,0.0,nan,1014
+arm_opus_256,026-06-Oumou-Dioubat-Siyala.flac,48000,20000.0,1.631e-04,0.0,nan,939
+arm_opus_256,027-01-Dimlite-Kitty-Cradle-Fog.flac,48000,20250.0,2.087e-05,0.0,nan,995
+arm_opus_256,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,48000,24000.0,8.263e-08,0.0,nan,450
+arm_opus_256,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,48000,20250.0,1.125e-06,0.0,nan,825
+arm_opus_256,030-06-S-bastien-Tellier-Benny.flac,48000,20250.0,5.020e-05,0.0,nan,1002
+arm_opus_256,031-07-Shkoon-Just-Emma-Id.flac,48000,24000.0,1.095e-08,0.0,nan,563
+arm_opus_256,032-05-2kilos-more-Cache-feu.flac,48000,20250.0,4.248e-06,0.0,nan,892
+arm_opus_256,033-01-Daylight-Rising.flac,48000,20250.0,6.137e-06,0.0,nan,894
+arm_opus_256,034-09-Snow-Ghosts-Bowline.flac,48000,20000.0,1.589e-06,0.0,nan,815
+arm_opus_256,035-16-Slow-Air-In-Dropped-D.flac,48000,20250.0,8.032e-07,0.0,nan,542
+arm_opus_256,036-08-Nicolas-Comment-Amaurose.flac,48000,20250.0,1.889e-05,0.0,nan,903
+arm_opus_256,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,48000,20500.0,4.349e-04,0.0,-59.4,804
+arm_opus_256,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,48000,20250.0,1.158e-05,0.0,nan,1096
+arm_opus_256,039-13-Kat-Onoma-Change-blues.flac,48000,20250.0,1.580e-06,0.0,nan,924
+arm_opus_256,040-11-Xploding-Plastix-Far-flung-tonic.flac,48000,20000.0,9.734e-05,0.0,nan,1098
+arm_opus_256,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,48000,19250.0,5.687e-04,0.0,nan,910
+arm_opus_256,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,48000,20000.0,3.208e-06,0.0,nan,463
+arm_opus_256,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,48000,20250.0,8.274e-06,0.0,nan,996
+arm_opus_256,044-02-Various-Artists-Ka-mea-mea.flac,48000,20250.0,1.612e-07,0.0,nan,698
+arm_opus_256,045-08-DJ-Katapila-Trotro-instrumental.flac,48000,17750.0,1.332e-04,0.0,nan,855
+arm_opus_256,046-04-Clelia-Felix-Shine-so-bright.flac,48000,20250.0,7.459e-05,0.0,nan,1036
+arm_opus_256,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,48000,20250.0,2.179e-04,0.0,nan,978
+arm_opus_256,048-08-Gabriel-Romero-La-Piragua.flac,48000,20000.0,3.880e-07,0.0,nan,917
+arm_opus_256,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,48000,20000.0,1.399e-05,0.0,nan,987
+arm_opus_256,050-08-Boubacar-Traor-Pierrette.flac,48000,20000.0,6.956e-07,0.0,nan,778
+arm_opus_256,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,48000,20000.0,1.420e-06,0.0,nan,794
+arm_opus_256,052-06-Papa-Wemba-Efeka-mandundu.flac,48000,20250.0,2.326e-07,0.0,nan,608
+arm_opus_256,053-03-Jupiter-Okwess-Ofakombolo.flac,48000,20250.0,5.628e-05,0.0,nan,1023
+arm_opus_256,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,48000,20000.0,9.363e-07,0.0,nan,742
+arm_opus_256,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,48000,20000.0,3.957e-07,0.0,nan,900
+arm_opus_256,056-14-Hlamalani.flac,48000,20250.0,9.873e-05,0.0,nan,979
+arm_opus_256,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,48000,20250.0,3.825e-07,0.0,nan,676
+arm_opus_256,058-01-Piny-Runa-Woko.flac,48000,20250.0,1.954e-06,0.0,nan,791
+arm_opus_256,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,48000,20250.0,1.459e-05,0.0,nan,923
+arm_opus_256,060-13-Naomi-The-Boys-Bad-loser.flac,48000,20250.0,3.626e-05,0.0,nan,1081
+arm_opus_256,061-07-Black-Truth-Rhythm-Band-Imo.flac,48000,17750.0,1.060e-08,0.0,nan,776
+arm_opus_256,062-03-Alpha-Blondy-Jah-glory.flac,48000,20250.0,1.385e-05,0.0,nan,794
+arm_opus_256,063-09-Rodolphe-Burger-Billy-the-kid.flac,48000,20250.0,6.231e-07,0.0,nan,704
+arm_opus_256,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,48000,20000.0,1.266e-05,0.0,nan,900
+arm_opus_256,065-05-Quizas-Quizas.flac,48000,20250.0,1.025e-05,0.0,nan,869
+arm_opus_256,066-04-Etoile-de-Dakar-My-wa-wa.flac,48000,20250.0,2.572e-06,0.0,nan,902
+arm_opus_256,067-03-The-Streets-Let-s-push-things-forward.flac,48000,20000.0,3.309e-06,0.0,nan,1005
+arm_opus_256,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,48000,20250.0,1.811e-07,0.0,nan,959
+arm_opus_256,069-02-Eden-Ahbez-The-wanderer.flac,48000,20250.0,1.896e-07,0.0,nan,717
+arm_opus_256,070-02-Guts-Good-morning.flac,48000,20000.0,1.095e-05,0.0,nan,899
+arm_opus_256,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,48000,16250.0,2.904e-07,0.0,nan,891
+arm_opus_256,072-05-Simo-Moumen-Samsara.flac,48000,19750.0,2.499e-05,0.0,nan,1140
+arm_opus_256,073-10-Vanilla-Fudge-Eleanor-rigby.flac,48000,20250.0,3.418e-06,0.0,nan,484
+arm_opus_256,074-09-Koki-Nakano-Lift.flac,48000,20250.0,7.352e-08,0.0,nan,685
+arm_opus_256,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,48000,20250.0,3.163e-07,0.0,nan,658
+arm_opus_256,076-20-Fran-ois-Couperin-O-salutaris.flac,48000,24000.0,1.971e-08,0.0,nan,475
+arm_opus_256,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,48000,20250.0,3.039e-05,0.0,nan,992
+arm_opus_256,078-04-Kat-Onoma-La-chambre.flac,48000,20000.0,1.494e-06,0.0,nan,777
+arm_opus_256,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,48000,20000.0,2.477e-05,0.0,nan,928
+arm_vorbis_q8,000-03-Balla-et-ses-Balladins-Moi-ca-ma-fout.flac,44100,20000.0,3.127e-08,0.0,-46.8,427
+arm_vorbis_q8,001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,44100,20250.0,3.565e-06,0.0,-41.5,1019
+arm_vorbis_q8,002-03-Hraach-Let-it-go.flac,44100,20750.0,2.516e-04,0.0,nan,734
+arm_vorbis_q8,003-01-Thor-Dari-lullaby.flac,44100,22050.0,7.011e-05,0.0,nan,886
+arm_vorbis_q8,004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,44100,22050.0,3.263e-04,0.0,nan,966
+arm_vorbis_q8,005-17-Los-Seven-Del-Swing-Celoso.flac,44100,19750.0,3.256e-07,0.0,-59.7,856
+arm_vorbis_q8,006-09-Mahmoud-Ahmed-Tezeta.flac,44100,22050.0,2.398e-08,0.0,nan,556
+arm_vorbis_q8,007-07-Wax-Tailor-Positively-inclined-featuring-main.flac,44100,21000.0,1.643e-06,0.0,nan,909
+arm_vorbis_q8,008-06-The-Mebusas-Mr-bull-dog-original-45-version.flac,44100,19500.0,2.089e-07,0.0,-60.8,841
+arm_vorbis_q8,009-03-Ilya-Beshevli-To-solitude.flac,44100,22050.0,7.259e-08,0.0,nan,549
+arm_vorbis_q8,010-06-Jon-Hassell-These-times.flac,44100,21250.0,5.106e-07,0.0,nan,647
+arm_vorbis_q8,011-07-Ensemble-National-des-Percussions-de-Guin-e-K.flac,44100,21000.0,1.498e-04,0.0,nan,500
+arm_vorbis_q8,012-07-A-La-Carte-Brass-And-Percussion-Papa-was-a-ro.flac,44100,20500.0,6.479e-06,0.0,-57.3,905
+arm_vorbis_q8,013-22-Roswell-Sacred-Harp-Quartet-Weeping-mary.flac,44100,22050.0,1.829e-06,0.0,nan,629
+arm_vorbis_q8,014-26-Dock-Walsh-Bathe-in-that-beautiful-pool.flac,44100,22050.0,1.172e-08,0.0,nan,451
+arm_vorbis_q8,015-08-Jos-Gonz-lez-Vissel.flac,44100,22050.0,1.441e-07,0.0,nan,607
+arm_vorbis_q8,016-03-Memory-Tapes-Green-knight.flac,44100,22050.0,9.637e-05,0.0,nan,900
+arm_vorbis_q8,017-13-Cafe-Del-Mar-Submariner.flac,44100,22050.0,1.039e-04,0.0,nan,909
+arm_vorbis_q8,018-04-Bag-o-wire-Resovoir.flac,44100,21750.0,1.727e-05,0.0,nan,598
+arm_vorbis_q8,019-04-Kohi-Jadu.flac,44100,21000.0,6.159e-07,0.0,nan,786
+arm_vorbis_q8,020-06-Bola-Tigantabame.flac,44100,20500.0,2.858e-05,0.0,-49.0,962
+arm_vorbis_q8,021-13-Colombiafrica-The-Mystic-Orchestra-Rey-de-roc.flac,44100,20000.0,2.120e-06,0.0,-68.3,939
+arm_vorbis_q8,022-17-Michel-Legrand-It-s-good-to-be-alive-the-chas.flac,44100,19750.0,7.420e-07,0.0,-45.2,755
+arm_vorbis_q8,023-01-Yusef-Lateef-Buddy-and-lou.flac,44100,21000.0,1.498e-05,0.0,nan,855
+arm_vorbis_q8,024-15-Jordi-Savall-Concert-li-la-rougeville-gigue.flac,44100,22050.0,2.508e-05,0.0,nan,648
+arm_vorbis_q8,025-07-Bolalar-Lola.flac,44100,21250.0,1.465e-05,0.0,nan,970
+arm_vorbis_q8,026-06-Oumou-Dioubat-Siyala.flac,44100,20250.0,1.789e-04,0.0,-62.3,905
+arm_vorbis_q8,027-01-Dimlite-Kitty-Cradle-Fog.flac,44100,22050.0,2.502e-05,0.0,nan,954
+arm_vorbis_q8,028-04-Lisu-Yue-phue-alcool-de-ma-s.flac,44100,22050.0,4.128e-08,0.0,nan,427
+arm_vorbis_q8,029-05-Kuusow-Kurtunwaarey-Amin-Xaaji-Cusmaan-Cabdul.flac,44100,22050.0,1.195e-06,0.0,nan,789
+arm_vorbis_q8,030-06-S-bastien-Tellier-Benny.flac,44100,21500.0,5.598e-05,0.0,nan,960
+arm_vorbis_q8,031-07-Shkoon-Just-Emma-Id.flac,44100,22050.0,1.220e-08,0.0,nan,534
+arm_vorbis_q8,032-05-2kilos-more-Cache-feu.flac,44100,21000.0,4.520e-06,0.0,nan,861
+arm_vorbis_q8,033-01-Daylight-Rising.flac,44100,21250.0,7.064e-06,0.0,nan,860
+arm_vorbis_q8,034-09-Snow-Ghosts-Bowline.flac,44100,20250.0,1.589e-06,0.0,-65.8,763
+arm_vorbis_q8,035-16-Slow-Air-In-Dropped-D.flac,44100,21000.0,9.069e-07,0.0,nan,515
+arm_vorbis_q8,036-08-Nicolas-Comment-Amaurose.flac,44100,21000.0,2.129e-05,0.0,nan,877
+arm_vorbis_q8,037-02-Super-Cayor-De-Dakar-Emboutaieillage.flac,44100,22050.0,5.425e-04,0.0,nan,786
+arm_vorbis_q8,038-11-Red-Hot-Chili-Peppers-This-velvet-glove.flac,44100,22050.0,1.380e-05,0.0,nan,1045
+arm_vorbis_q8,039-13-Kat-Onoma-Change-blues.flac,44100,20750.0,1.645e-06,0.0,nan,886
+arm_vorbis_q8,040-11-Xploding-Plastix-Far-flung-tonic.flac,44100,21000.0,1.057e-04,0.0,nan,1044
+arm_vorbis_q8,041-07-Mondkopf-Summer-afternoon-on-the-carribean-se.flac,44100,19000.0,6.394e-04,0.0,-64.8,875
+arm_vorbis_q8,042-04-Keletigui-et-ses-Tambourinis-Nadia.flac,44100,22050.0,4.394e-06,0.0,nan,459
+arm_vorbis_q8,043-03-Massive-Attack-Inertia-Creeps-Manic-Street-Pr.flac,44100,20750.0,9.376e-06,0.0,nan,947
+arm_vorbis_q8,044-02-Various-Artists-Ka-mea-mea.flac,44100,20500.0,1.108e-07,0.0,-39.1,658
+arm_vorbis_q8,045-08-DJ-Katapila-Trotro-instrumental.flac,44100,17750.0,1.512e-04,0.0,nan,855
+arm_vorbis_q8,046-04-Clelia-Felix-Shine-so-bright.flac,44100,21750.0,9.576e-05,0.0,nan,984
+arm_vorbis_q8,047-03-Lemma-Souad-Asla-Maachouk-Nbi.flac,44100,21250.0,2.562e-04,0.0,nan,931
+arm_vorbis_q8,048-08-Gabriel-Romero-La-Piragua.flac,44100,19750.0,3.941e-07,0.0,-59.4,876
+arm_vorbis_q8,049-Nigeria-70-vol-1-Lagos-jump-09-Chief-Checker-Afr.flac,44100,21000.0,1.573e-05,0.0,nan,940
+arm_vorbis_q8,050-08-Boubacar-Traor-Pierrette.flac,44100,20000.0,6.811e-07,0.0,-57.1,742
+arm_vorbis_q8,051-07-Coldcut-x-On-U-Sound-Kajra-mohobbat-wala-feat.flac,44100,21000.0,1.607e-06,0.0,nan,778
+arm_vorbis_q8,052-06-Papa-Wemba-Efeka-mandundu.flac,44100,19750.0,1.936e-07,0.0,-43.7,613
+arm_vorbis_q8,053-03-Jupiter-Okwess-Ofakombolo.flac,44100,20250.0,6.190e-05,0.0,-58.8,979
+arm_vorbis_q8,054-10-George-Bruns-Two-dogs-and-a-cycle.flac,44100,19750.0,9.192e-07,0.0,-49.1,728
+arm_vorbis_q8,055-01-Godspeed-You-Black-Emperor-Undoing-a-luciferi.flac,44100,20500.0,3.822e-07,0.0,-48.6,856
+arm_vorbis_q8,056-14-Hlamalani.flac,44100,21750.0,1.134e-04,0.0,nan,940
+arm_vorbis_q8,057-02-Nass-El-Ghiwan-El-Mekkaoui-le-mecquois.flac,44100,20500.0,4.090e-07,0.0,-45.2,652
+arm_vorbis_q8,058-01-Piny-Runa-Woko.flac,44100,20500.0,2.086e-06,0.0,-50.9,757
+arm_vorbis_q8,059-01-Genesis-Gospel-Singers-Momma-mo-akoma-ntutu.flac,44100,22050.0,1.769e-05,0.0,nan,911
+arm_vorbis_q8,060-13-Naomi-The-Boys-Bad-loser.flac,44100,22050.0,4.686e-05,0.0,nan,1029
+arm_vorbis_q8,061-07-Black-Truth-Rhythm-Band-Imo.flac,44100,17250.0,8.962e-09,0.0,nan,724
+arm_vorbis_q8,062-03-Alpha-Blondy-Jah-glory.flac,44100,20500.0,1.523e-05,0.0,-59.9,760
+arm_vorbis_q8,063-09-Rodolphe-Burger-Billy-the-kid.flac,44100,22050.0,8.959e-07,0.0,nan,644
+arm_vorbis_q8,064-01-Blank-Jones-Feat-Mike-Francis-Someone-like-yo.flac,44100,21000.0,1.378e-05,0.0,nan,859
+arm_vorbis_q8,065-05-Quizas-Quizas.flac,44100,22050.0,1.227e-05,0.0,nan,823
+arm_vorbis_q8,066-04-Etoile-de-Dakar-My-wa-wa.flac,44100,21500.0,2.962e-06,0.0,nan,860
+arm_vorbis_q8,067-03-The-Streets-Let-s-push-things-forward.flac,44100,22050.0,5.454e-06,0.0,nan,959
+arm_vorbis_q8,068-08-Eddie-Palmieri-Cal-Tjader-Bamboleate.flac,44100,21000.0,2.018e-07,0.0,nan,904
+arm_vorbis_q8,069-02-Eden-Ahbez-The-wanderer.flac,44100,20750.0,2.005e-07,0.0,nan,675
+arm_vorbis_q8,070-02-Guts-Good-morning.flac,44100,21500.0,1.287e-05,0.0,nan,853
+arm_vorbis_q8,071-01-Jaipur-Kawa-Brass-Band-Piya-tu-ab-aaja.flac,44100,16250.0,3.150e-07,0.0,nan,875
+arm_vorbis_q8,072-05-Simo-Moumen-Samsara.flac,44100,19500.0,2.788e-05,0.0,-71.6,1086
+arm_vorbis_q8,073-10-Vanilla-Fudge-Eleanor-rigby.flac,44100,20500.0,3.621e-06,0.0,-50.0,574
+arm_vorbis_q8,074-09-Koki-Nakano-Lift.flac,44100,20750.0,5.967e-08,0.0,nan,646
+arm_vorbis_q8,075-03-Jordi-Savall-El-rey-de-francia-esmirna.flac,44100,21000.0,3.293e-07,0.0,nan,610
+arm_vorbis_q8,076-20-Fran-ois-Couperin-O-salutaris.flac,44100,22050.0,1.214e-08,0.0,nan,444
+arm_vorbis_q8,077-01-Jaga-Jazzist-All-i-know-is-tonight.flac,44100,22050.0,3.673e-05,0.0,nan,943
+arm_vorbis_q8,078-04-Kat-Onoma-La-chambre.flac,44100,21000.0,1.639e-06,0.0,nan,736
+arm_vorbis_q8,079-04-Gwen-McCrae-Let-s-straighten-it-out.flac,44100,21250.0,2.712e-05,0.0,nan,881
+wild_owner,01 Sunlight (Breeze & Styles remix).wav,44100,20250.0,3.203e-05,117.9,-57.8,1411
+wild_owner,02 Feeling Fine (Darren Styles mix).wav,44100,18500.0,1.839e-06,117.9,nan,1411
+wild_owner,03 Blue Anthem.wav,44100,19750.0,2.527e-05,0.0,-67.4,1411
+wild_owner,04 Chemical Love (Hardcore mix).wav,44100,20000.0,8.920e-06,235.7,-71.0,1411
+wild_owner,05 Taking Me Higher.wav,44100,20000.0,3.381e-05,0.0,-63.8,1411
+wild_owner,06 Aurora.wav,44100,20250.0,2.208e-06,204.1,-66.8,1411
+wild_owner,07 Heartbeatz (Scott Brown remix).wav,44100,19500.0,2.063e-06,117.9,-70.1,1411
+wild_owner,08 I Would Stay (Scott Brown Hardcore mix).wav,44100,18500.0,6.137e-06,589.3,nan,1411
+wild_owner,09 Drop the Beats.wav,44100,19750.0,7.346e-06,117.9,-67.9,1411
+wild_owner,10 Suck My…!.wav,44100,19500.0,7.791e-06,117.9,-66.7,1411
+wild_owner,11 You’re My Angel.wav,44100,20000.0,3.035e-05,0.0,-73.0,1411
+wild_owner,12 Cokane (Back to Basics mix).wav,44100,18250.0,2.323e-06,117.9,nan,1411
+wild_owner,"13 24,7 (Breeze & Styles remix).wav",44100,19250.0,4.208e-06,235.7,-70.3,1411
+wild_owner,14 The Craft.wav,44100,19750.0,1.638e-06,0.0,-67.2,1411
+wild_owner,15 Free Again.wav,44100,19750.0,3.184e-06,117.9,-68.6,1411
+wild_owner,16 Dancing the Night Away (Gammer remix).wav,44100,15750.0,1.327e-08,1885.6,nan,1411
+wild_owner,17 Injected With a Poison (Hixxy’s HTID remix (Harcode Til I Die)).wav,44100,19500.0,4.789e-06,117.9,-63.6,1411
+wild_owner,01 Won’t Forget These Days.wav,44100,19250.0,3.375e-05,0.0,-71.5,1411
+wild_owner,02 Fell From the Stars.wav,44100,20000.0,1.887e-05,117.9,-72.3,1411
+wild_owner,03 Make the Beat Drop.wav,44100,19500.0,4.325e-06,471.4,-71.1,1411
+wild_owner,04 The Way (Put Your Hand in My Hand) (Breeze & Styles remix).wav,44100,20500.0,7.355e-05,0.0,-70.8,1411
+wild_owner,05 Be Cool (Dougal & Gammer remix).wav,44100,20250.0,9.624e-05,0.0,-74.1,1411
+wild_owner,06 Pretty Green Eyes (hardcore remix).wav,44100,19500.0,5.082e-06,117.9,-69.1,1411
+wild_owner,07 Fly With You.wav,44100,20000.0,7.440e-05,117.9,-76.0,1411
+wild_owner,08 One and Only.wav,44100,20500.0,1.565e-04,0.0,-70.8,1411
+wild_owner,09 Star Tonight.wav,44100,20000.0,5.154e-05,117.9,-71.6,1411
+wild_owner,10 The Piano Song.wav,44100,20250.0,4.740e-05,117.9,-73.2,1411
+wild_owner,11 Yo DJ.wav,44100,20250.0,5.115e-05,117.9,-75.1,1411
+wild_owner,12 Through the Darkness.wav,44100,19750.0,1.895e-05,235.7,-72.4,1411
+wild_owner,13 Angel Eyes.wav,44100,19500.0,1.127e-05,235.7,-69.0,1411
+wild_owner,14 Stomp.wav,44100,20250.0,8.506e-05,0.0,-71.1,1411
+wild_owner,15 No More Joking (Sy & Unknown remix).wav,44100,20000.0,1.463e-05,117.9,-66.2,1411
+wild_owner,16 Eternal Darkness.wav,44100,20500.0,5.487e-05,117.9,-74.6,1411
+wild_owner,17 Know the Score.wav,44100,20250.0,2.331e-05,117.9,-70.5,1411
+wild_eye,01 Groove Control.wav,44100,20250.0,3.446e-05,117.9,-61.8,1411
+wild_eye,02 Discoland.wav,44100,20250.0,1.778e-05,117.9,-59.9,1411
+wild_eye,03 Feel Real Free.wav,44100,20000.0,7.723e-06,117.9,-61.6,1411
+wild_eye,04 Samplemania.wav,44100,20250.0,9.547e-05,0.0,-63.7,1411
+wild_eye,05 In Complete Darkness (Slipmatt remix).wav,44100,20250.0,1.962e-05,117.9,-64.5,1411
+wild_eye,06 Take Me Away (Slipmatt remix).wav,44100,20250.0,1.047e-04,0.0,-70.0,1411
+wild_eye,07 Perfect Dreams.wav,44100,20250.0,1.983e-05,0.0,-69.0,1411
+wild_eye,08 Let the Music.wav,44100,20250.0,5.601e-05,117.9,-65.0,1411
+wild_eye,09 On Top (Hixxy remix).wav,44100,20250.0,1.687e-05,117.9,-64.8,1411
+wild_eye,10 Love of My Life.wav,44100,20500.0,2.124e-05,0.0,-60.6,1411
+wild_eye,11 Pacific Sun.wav,44100,20250.0,2.778e-05,117.9,-58.5,1411
+wild_eye,12 Devotion.wav,44100,20000.0,3.671e-05,117.9,-69.6,1411
+wild_eye,13 Luv U More.wav,44100,19750.0,3.842e-06,117.9,-69.3,1411
+wild_eye,14 Six Days.wav,44100,20250.0,7.649e-05,0.0,-56.5,1411
+wild_eye,15 Party Time (remix).wav,44100,20500.0,1.735e-04,0.0,-66.6,1411
+wild_eye,16 Really Love You.wav,44100,20250.0,3.238e-05,0.0,-71.8,1411
+wild_eye,17 Power of Love.wav,44100,20250.0,8.780e-05,117.9,-67.9,1411
+wild_eye,18 Rainbow Islands.wav,44100,20500.0,4.038e-04,0.0,-73.0,1411
+wild_eye,19 Paradise in Dreams.wav,44100,20250.0,2.983e-05,117.9,-65.0,1411
