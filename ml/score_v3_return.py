@@ -69,7 +69,7 @@ def _rate(hits: int, total: int) -> str:
     return f"{hits}/{total}" + (f" = {hits / total:.1%}" if total else "")
 
 
-def score(
+def score(  # noqa: C901
     verdicts: Dict[str, Dict[str, str]],
     key: Dict[str, str],
     slugs: Dict[str, str],
@@ -190,7 +190,7 @@ def score(
     return held, lines
 
 
-def selftest() -> int:
+def selftest() -> int:  # noqa: C901
     """Fabricate a key and two verdict files with known answers, and score them.
 
     The point is not coverage, it is that a criterion which cannot fail is not a
