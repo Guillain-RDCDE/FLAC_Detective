@@ -1,0 +1,37 @@
+Jamie — you were right to send the mechanism before scoring, and set A had it. Do not score the set you have.
+
+Not size in my case. Length. Every arm is encode-then-decode, every codec adds its own delay and padding, and the decoded sample count came out characteristic of the codec:
+
+2,646,000 samples — genuine, mp3_320, mp3_V0, opus_256, vorbis_q8 (180 files)
+2,646,016 samples — the AAC family, and nothing else (72 files)
+2,646,144 samples — mp2_256, and nothing else (36 files)
+
+108 of 288 files announced their arm without a byte being decoded, and two of the eight classes were identified outright. My README told you every excerpt was the same length. It was not, and nothing in my freezer checked, which is the part I mind.
+
+Rebuilt: fd-exchange-v3-setA-r2, every file trimmed to an identical 2,646,000 samples — the minimum over the corpus, so the trim only ever removes and never invents. New self-hash 925da8b345cd61323f12d9c7d8de4815cf5e718d6d968b1e29f21631c5b436c9. Verified 288 of 288 against the manifest, one frame count shared by all eight classes, and the residual byte-size signal — which I disclose rather than hide — now reads AUC 0.469 for lossy against genuine, below the coin flip and down from the 0.557 I quoted you on the August set. Link follows.
+
+The old folder now carries a WITHDRAWN.txt naming the leak, so a stray copy cannot be scored by accident.
+
+The check that will not let it happen again is in the freezer rather than in my attention. It already audited its own output for duplicate digests, for surviving metadata tags and for sample-rate leakage; it now audits frame counts too and refuses to ship a set with more than one, naming any length that identifies a single class. I ran it against the withdrawn set and it refuses it. The builder gained a trim phase so the corpus is uniform before the freezer ever sees it.
+
+Your other two leaks: filenames were already opaque ids and metadata was already stripped and re-checked with ffprobe after freezing, so those two did not bite here. Yours partitioned six of eight by byte size; mine partitioned three of eight by an exact integer, which is worse — a statistical tell can be argued about, an exact match cannot.
+
+And thank you for not looking. "Once I have seen a size pattern I cannot unsee it and any score I produced afterwards would be compromised whether I used it or not" is the reason this set is fixable at all. If you had checked mine and told me, we would both have been in the position of trusting your memory not to have registered anything.
+
+Now the two bugs, because you are owed an answer on those too and both are fixed.
+
+The fatal one is worse than your traceback shows: not only did it not start, it could not have been caught by my CI, because GitHub's Windows runners default their console to UTF-8 and every job I have was passing. It was reported by a user, which is the failure I actually want to fix. stdout and stderr are now reconfigured to UTF-8 with errors="replace" at the very top of main(), before any output — a console that cannot draw a box prints a replacement character and keeps going. errors="replace" rather than an ASCII fallback banner, because the thing to remove is the raise and not the glyph. There is a new CI job that runs chcp 1252 with PYTHONIOENCODING cleared and calls --version and --help against the installed wheel. That is the case nobody tests, and it now fails the build.
+
+The JSON one was worse than you reported, and you could not have known from outside. The banner was on stdout, yes — but the report was never on stdout at all. It went to a timestamped file in the output directory, so --format json | jq . could not have worked even with the banner gone, because there was no JSON on the stream to parse. Your --output workaround was not a workaround, it was the only path that ever existed. Now a machine-readable format with no --output writes the report to stdout and every decorative print goes to stderr. The file is still written exactly as before: this adds a stream, it does not take one away.
+
+Both shipped in 1.13.4 with four regression tests, one of which pins the precondition — that the banner really is unencodable in cp1252 — so the guard can be removed if that ever stops being true.
+
+Your line lands, and I am keeping it: a gate that does not start is not a green gate. I said that about mypy on my own machine yesterday and did not think to point it at the user.
+
+On Qobuz: yes, send me the release and the track. A shop refunding the same track as MP3-320 across six separate links is not goodwill, and a paper trail from a party with every commercial reason to argue is worth more than either of our engines. I would want to be careful about what we do with it and slow about saying it in public, but I want to see it.
+
+And take the time on the band-limited note. One of sixty-eight is the result, and it cost me more than a rebuild: scoring my own half against my own key before your set arrives — which I did deliberately, so a defect on my side would surface now rather than during yours — the constructed stratum convicted one of my own genuine files. Chasing it on parked material that is not in the set: 44 authentic sources, a 14 kHz roll-off and nothing else, 15 convicted. My engine convicted honest band-limited files a third of the time. Two repairs written and refused before shipping, a third that removes eleven of the fifteen at zero cost on six arms, and the four survivors are the CNN and the spectral rules reading one roll-off twice. That stratum earned its place before the round started, and it was your condition.
+
+Set B whenever it is ready. I have not touched anything of yours.
+
+— Guillain
