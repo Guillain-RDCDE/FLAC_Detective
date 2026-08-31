@@ -53,3 +53,53 @@ different question than it asked. That is worth knowing before the numbers
 arrive rather than after.
 
 Results appended below, dated after the fact.
+
+---
+
+# RESULTS — appended 2026-08-31, criteria unedited above
+
+96 measurements, 24 sources, 72 phases per read instead of 3.
+`ml/generation_v2_probe.csv`.
+
+| # | bound | layer one | layer two | |
+|---|---|---|---|---|
+| H1 monotone per file | ≥ 16/24 | 11/24 | **11/24** | failed |
+| H2 AUC(gen1 vs gen2) | ≥ 0.75 | 0.644 | **0.644** | failed |
+| H3 medians stay put | ≤ 0.15 drift | — | **0.000 on all four** | held |
+| H4 a non-zero phase is chosen | ≥ 25 % | 0 % | **0 of 96** | failed |
+
+    median R by generation, layer two:  0.877  0.486  0.311  0.227
+    median R by generation, layer one:  0.877  0.486  0.311  0.227
+
+## The question is closed, and the control is what closes it
+
+**Twenty-four times more phases and not one number moved.** The AUC is identical
+to three decimals, the medians to three decimals, the monotone count to the file.
+
+H4 is why, and it was written as the control precisely so this could not be
+mistaken for something else: **the search chose phase 0 on 96 reads out of 96**.
+The 69 extra phases had nothing to find. A clean re-encode chain never leaves the
+grid — each decode is delay-trimmed back to the start — so the phase search is
+answering a question this ladder does not pose. It is the right instrument for a
+*wild* file, which sits wherever its editing left it; it is a no-op for a chain
+built in a temp directory.
+
+So the suspicion the registration was written to test is **refused**: the
+per-file noise in generation counting is not the phase grid. It is in the files.
+
+## What that leaves, stated as narrowly as it deserves
+
+Generation counting on this instrument is a **population statistic**. The median
+falls cleanly at every step and it will keep doing so; on a single file, one
+generation against two reads AUC 0.644 and no amount of phase resolution will
+improve it, because phase resolution was never the limit. Two generations apart
+remains readable (0.807 and 0.835 from layer one).
+
+Nothing here may be quoted as "the engine counts generations". What can be
+quoted is that **the fixed point converges monotonically in a population, on
+MP3, and that a per-file read needs a second instrument rather than a finer
+version of this one** — the residual floor being the obvious candidate, and its
+own registration the next step if it is ever worth taking.
+
+Layer one asked whether the instrument was the limit. Layer two answered no, in
+one run, and that is what a control is for.
