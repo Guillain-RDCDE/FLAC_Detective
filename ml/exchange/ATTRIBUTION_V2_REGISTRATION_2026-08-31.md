@@ -68,3 +68,52 @@ well B2 and B3 read.
 don't know" is worse than nothing, and that is what layer one did.
 
 Results appended below, dated after the fact.
+
+---
+
+# RESULTS — appended 2026-08-31, criteria unedited above
+
+**All five held.** 72 held-out files, 360 probe reads, none of which contributed
+to the calibration. `ml/attribution_v2_probe.csv`.
+
+| # | bound | measured | |
+|---|---|---|---|
+| B1 genuine attributed instead of abstaining | ≤ 2/12 | **1/12** | **held** |
+| B2 mp3_320 → mp3 | ≥ 10/12 | **10/12** | **held** |
+| B3 opus_256 → opus | ≥ 10/12 | **12/12** | **held** |
+| B4 abstains more than it attributes on AAC/Vorbis | abstentions > attributions | **31 against 5** | **held** |
+| B5 no accidental Layer II | ≤ 2/60 | **0/60** | **held** |
+
+    population           mp3    aac  vorbis   opus    mp2  abstain
+    authentic              0      0       0      1      0       11
+    fake/mp3_320          10      0       0      0      0        2
+    fake/aac_ff256         1      0       0      1      0       10
+    fake/aacmf_256         0      0       0      1      0       11
+    fake/opus_256          0      0       0     12      0        0
+    fake/vorbis_q8         0      0       1      1      0       10
+
+## What changed, and it was not the measurement
+
+The R values are the same statistic layer one computed. What was added is a null
+each probe is measured against — its own median and spread over genuine material
+— and a rule that refuses to answer when the best z is not below −1.0 or the
+runner-up is within 1.0 of it. Both constants were frozen by the registration
+before the held-out files were read.
+
+Layer one attributed something to every file and was wrong most of the time.
+This one **says "mp3" or "opus" and otherwise says nothing**, and it is right
+when it speaks: 22 of 24 on the two families it can do, 11 of 12 abstentions on
+genuine, 31 of 36 abstentions on the three families it cannot.
+
+**The safety criterion that failed in layer one now holds.** One genuine file in
+twelve receives a label — against twelve in twelve before — and that one is
+recorded rather than rounded away: an instrument that invents provenance once in
+twelve is still not fit to be pointed at a single wild file on its own, but it
+is now fit to be one witness among several, which is the standard every other
+family in this engine is held to.
+
+## What it does not do, said plainly
+
+AAC and Vorbis remain unattributable — 1 hit and 1 hit out of 36 — and the
+instrument now knows it rather than guessing. That is the whole difference
+between layer one and layer two, and it cost nothing but a null and a bar.
