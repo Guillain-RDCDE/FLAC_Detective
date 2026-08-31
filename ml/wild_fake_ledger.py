@@ -110,6 +110,8 @@ BASES = {
                          "knowledge and ownership, no instrument involved",
     "listening": "adjudicated by ear, by someone who does this competently",
     "spectrogram": "adjudicated by looking at a spectrogram",
+    "metadata_contradiction": "the file's own tags contradict its provenance "
+                              "claim, checkable by anyone with ffprobe",
 }
 
 # The bases that do NOT come from a human's eyes or ears. Only these are ground
@@ -120,7 +122,34 @@ BASES = {
 # corpus with the evidence hidden. Provir's ledger records 16 of 34 fakes settled
 # this way and 9 more by ear, leaving 6 referee-grade rows out of 34.
 REFEREE_BASES = frozenset({"tracker_staff", "provenance_pair", "uploader_admission",
-                           "byte_identity", "owner_attestation"})
+                           "byte_identity", "owner_attestation",
+                           "metadata_contradiction"})
+
+# `metadata_contradiction` was added 2026-08-31 for a case of Provir's that no
+# existing value could hold, and it is referee-grade for the strongest possible
+# reason: nobody has to be believed. A Beatport purchase, Mat Silver vs. Tony
+# Burt — Teardrops (S.H.O.K.K. Remix), carries
+#
+#     TDOR release date        2002-05-01
+#     publisher / grouping     DistroKid          founded 2013
+#     TSRC                     QZK6H2193408       QZ self-serve block, year 21
+#
+# An ISRC's fifth and sixth characters are its year of reference — the year the
+# identifier was assigned — so this is a 2002 release, distributed by a company
+# that did not exist until 2013, under an identifier minted in 2021. The
+# provenance claim is false on the file's own metadata, before a sample is
+# analysed, and any reader can check every part of it.
+#
+# It is not an accusation of the distributor: an aggregator ingests what is
+# uploaded to it and can no more see inside a lossy-sourced master than the shop
+# downstream. It is a pipe, not a source.
+#
+# THE OTHER HALF OF THAT CASE IS A WARNING ABOUT WITNESSES, not a basis. The
+# Bandcamp copy of the same track is PCM-identical to the Beatport one — the same
+# sha256 over decoded samples. **Two shop copies of one master are one witness,
+# not two**, so "I bought it twice from different stores and they agree" is
+# corroboration of nothing. Only a carrier that never passed through the same
+# delivery chain — a pressing, a disc — is a second witness.
 
 # How the file ENTERED the candidate pool — a different question from how it was
 # settled, and the one this ledger nearly failed to ask.
