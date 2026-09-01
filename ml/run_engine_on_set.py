@@ -127,7 +127,11 @@ def run(set_dir: Path, out_path: Path, deep: bool) -> int:
                     "score": result.get("score", ""),
                     "confidence": result.get("confidence", ""),
                     "hires_verdict": result.get("hires_verdict", ""),
-                    "evidence_families": "+".join(result.get("evidence_families") or []),
+                    # "|" and not "+": since v1.13.5 a collapsed pair is itself named
+                    # "cnn+spectral", so a "+"-joined column cannot be read back
+                    # and the merged witness silently becomes two again — in the
+                    # very file the other party scores us on.
+                    "evidence_families": "|".join(result.get("evidence_families") or []),
                     "engine_version": __version__,
                     "engine_sha": sha,
                 }
