@@ -84,6 +84,37 @@ population expected to abstain.
 **Refusal clause.** If B1 or B2 fails, `NOT_ASSESSED` is not shipped and the
 conflation stays documented and open.
 
+## Amendment, 1 September 2026 — Q4 was mis-specified, found by Q4 itself
+
+Building Q4 and running the trigger conditions over it, before the real
+measurement, three of its four files did **not** abstain. That is a defect in this
+document, not in the engine, and it is recorded rather than quietly repaired.
+
+* **`mono` is withdrawn from Q4.** A mono file loses the stereo and temporal
+  witnesses, but the spectral family, the CNN and the MDCT statistic all run on it
+  normally. It is assessable, with fewer witnesses — which the corroboration
+  barrier already handles by requiring two families. Listing it as unreadable was
+  wrong. **B3 as originally written cannot be met and is amended, not deleted.**
+* **`rate8k` and `silent` should abstain and did not**, because the two trigger
+  conditions declared above do not cover them. An 8 kHz file has a perfectly
+  readable cutoff at 4 kHz; it is simply that every accusing instrument in this
+  engine reads a band that does not exist in the file. A silent file likewise
+  yields a cutoff without yielding anything to measure.
+
+Two trigger conditions are therefore **added** here, before the measurement, with
+their reasons:
+
+* **sample rate below 32 kHz.** Below that there is no content above 16 kHz at
+  all, which is the band every accusing rule reads. The floor is declared rather
+  than swept: it is not a tuning parameter, it is the point below which the
+  instruments have no domain.
+* **no measurable signal** — a file whose energy is at or below the silence floor.
+  There is nothing for any instrument to be right or wrong about.
+
+Revised **B3**: every file in Q4 minus `mono` abstains, and `mono` does **not**.
+That is a stricter test than the original, because it now requires the trigger to
+be wrong in neither direction.
+
 ## Results
 
 *(to be appended, dated, after the measurement runs)*
