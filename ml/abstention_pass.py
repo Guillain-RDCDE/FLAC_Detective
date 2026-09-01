@@ -185,7 +185,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not pop.startswith("Q4"):
             real += n
             real_abstain += a
-    print(f"\nB2  materiel reel : {real_abstain}/{real} = {100.0*real_abstain/max(real,1):.2f} %")
+    print(f"\nB2  materiel reel : {real_abstain}/{real} = {100.0*real_abstain/max(real, 1):.2f} %")
     print(
         f"B3  Q4 : {abstain.get('Q4 unreadable', 0)}/{totals.get('Q4 unreadable', 0)} (attendu 3/4, mono NON)"
     )
