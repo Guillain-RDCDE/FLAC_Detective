@@ -49,9 +49,11 @@ def test_one_family_of_the_pair_alone_is_untouched():
 
 
 def test_an_independent_third_family_still_corroborates():
-    """The point is not to stop convicting band-limited files, only to stop
-    convicting them on one observation counted twice. A stereo or MDCT witness
-    that read something else still supplies the second family."""
+    """A witness that read something else still corroborates.
+
+    The point is not to stop convicting band-limited files, only to stop
+    convicting them on one observation counted twice.
+    """
     got = collapse_dependent_families({"cnn", "spectral", "mdct"}, LOW)
     assert len(got) == CONVICTION_MIN_FAMILIES
     assert "mdct" in got

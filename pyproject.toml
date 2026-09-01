@@ -62,9 +62,9 @@ dev = [
     "black==26.5.1",
     "isort==9.0.1",
     "flake8==7.3.0",
-    "flake8-docstrings>=1.7.0",
-    "flake8-bugbear>=23.0.0",
-    "flake8-comprehensions>=3.14.0",
+    "flake8-docstrings==1.7.0",
+    "flake8-bugbear==25.11.29",
+    "flake8-comprehensions==3.17.0",
     # "flake8-simplify>=0.21.0",  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
     "mypy==2.3.1",
     "pylint>=2.17.0",
