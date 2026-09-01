@@ -48,6 +48,7 @@ FIELDS = [
 
 
 def engine_sha() -> str:
+    """The commit this engine is running from, or "unknown" — never a guess."""
     try:
         out = subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -93,6 +94,7 @@ def verify_manifest(set_dir: Path) -> List[Path]:
 
 
 def run(set_dir: Path, out_path: Path, deep: bool) -> int:
+    """Score a verified set, stamping version and commit on every row."""
     from flac_detective.__version__ import __version__
     from flac_detective.analysis.analyzer import FLACAnalyzer
 
