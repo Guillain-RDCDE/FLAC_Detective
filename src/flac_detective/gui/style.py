@@ -26,6 +26,7 @@ VERDICT_THEME = {
     "WARNING": ("#8a7400", "#faf4dc", "Warning"),
     "AUTHENTIC": ("#1a7f37", "#e7f7ec", "Authentic"),
     "NON_FLAC": ("#6f42c1", "#f1ecfb", "Non-FLAC"),
+    "NOT_ASSESSED": ("#495057", "#eef1f4", "Not assessed"),
     "ERROR": ("#6e6e73", "#eeeef0", "Error"),
 }
 

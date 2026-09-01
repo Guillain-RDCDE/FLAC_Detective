@@ -35,6 +35,7 @@ LOW_RATE_CODECS = (
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """Build both low-rate arms. Returns a process exit code."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--corpus", type=Path, default=Path(r"C:\Users\loutr\audit_corpus"))
     args = ap.parse_args(argv)

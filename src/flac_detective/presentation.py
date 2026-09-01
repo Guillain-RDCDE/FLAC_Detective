@@ -25,6 +25,9 @@ _VERDICT_PLAIN: Dict[str, Tuple[str, str, str]] = {
     "SUSPICIOUS": ("⚠️", "Likely fake", "Likely a transcode — give it a listen."),
     "FAKE_CERTAIN": ("❌", "Fake", "Replace it with a real lossless copy."),
     "NON_FLAC": ("🚫", "Not lossless", "Replace it with a real lossless file."),
+    # Not a pass and not an accusation: the rules could not run. Distinct from
+    # ERROR, which is a failure to read the file at all.
+    "NOT_ASSESSED": ("🔍", "Not assessed", "The rules could not run on this file."),
     "ERROR": ("⁉️", "Couldn't read", "This file couldn't be analysed."),
 }
 

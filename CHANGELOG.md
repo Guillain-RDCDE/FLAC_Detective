@@ -1,3 +1,46 @@
+## v1.13.6 (2026-09-01) — a pass the engine had no standing to issue
+
+`AUTHENTIC` meant two different things: the instruments ran and found nothing,
+and the instruments could not run. The second is not a finding, it is the absence
+of one, and reporting it in the same word as a clean bill of health is the
+typed-absence defect of v1.13.1 one level up — at the verdict rather than at a
+float. Provir's ATRAC3+ arm, built as an abstain test, is what made us look.
+
+New verdict `NOT_ASSESSED`, returned only where `AUTHENTIC` would have been. A
+conviction — or anything signalled — is proof the instruments ran, so this can
+never withdraw an accusation. Four conditions, each reported as a specific
+sentence naming the value that triggered it: an unreadable sample rate, a rate
+below 32 kHz (no band for any rule to read), no measurable signal, an
+unanalysable spectrum, and fewer samples than the frame-based witness needs.
+
+Found while verifying: on an 8 kHz file Rule 11's bandpass design **raises**. The
+exception is caught and logged, and the file then reached the verdict looking
+clean. The engine was answering AUTHENTIC to a file it had just failed to analyse.
+
+### What this does NOT do
+
+It gives the engine no instrument for a codec outside its panel. An ATRAC3+
+transcode has every rule run on it and every rule find nothing, and still reads
+`AUTHENTIC`. That is a real limit and it stays one.
+
+### Measured, and the result is that nothing on real material changes
+
+1,248 files — 80 authentic, 880 arms across 13 codec configurations, the 288 of
+exchange set A: **not one abstains**. The registration's B5 clause was written in
+advance to force that outcome into writing rather than let it be dressed up. This
+repairs no observed failure; it removes a verdict the engine had no standing to
+issue, on files the shipped corpora happen not to contain.
+
+### The duration floor was invented, and the existing tests caught it
+
+It shipped in draft at 10 seconds, chosen because it sounded reasonable. Two
+tests that build 2-second synthetic WAVs and assert `AUTHENTIC` failed on it, and
+they were right: a 2-second file is read perfectly well by the spectral family,
+the CNN and the MDCT statistic. The real floor is Rule 15's own arithmetic —
+2048 + 1024 x 15 = 17,408 samples, **0.39 s at 44.1 kHz**, twenty-five times
+smaller — and it is now derived from those constants in code and applied in
+samples, so it cannot drift from the instrument it describes.
+
 ## v1.13.5 (2026-09-01) — two evidence families that read one observation
 
 The corroboration barrier requires two independent evidence families before it

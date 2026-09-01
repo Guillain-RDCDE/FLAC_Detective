@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Optional, Set, Union
 
+from .assessability import unassessable_reason
 from .audio_cache import AudioCache
 from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
 from .diagnostic_tracker import get_tracker
@@ -39,6 +40,40 @@ def _optional_int(value: object) -> Optional[int]:
         except ValueError:
             return None
     return None
+
+
+def _optional_float(value: object) -> Optional[float]:
+    """A float, or None when the value is absent or unreadable — never 0.0."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value.strip())
+        except ValueError:
+            return None
+    return None
+
+
+def _sampled_rms(cache: AudioCache) -> Optional[float]:
+    """RMS of a short segment, or None if it could not be measured.
+
+    A segment rather than the whole file: this only has to separate "there is
+    signal here" from "there is not", and loading the full audio to answer that
+    would be the most expensive step in the pipeline run for the cheapest
+    question. None on any failure — an unmeasurable level must not read as
+    silence, which would abstain on a file the engine could have assessed.
+    """
+    try:
+        import numpy as np
+
+        data, rate = cache.get_segment(0, int(30 * 44100))
+        if data is None or getattr(data, "size", 0) == 0:
+            return None
+        return float(np.sqrt(np.mean(np.asarray(data, dtype=np.float64) ** 2)))
+    except Exception:
+        return None
 
 
 class FLACAnalyzer:
@@ -161,6 +196,23 @@ class FLACAnalyzer:
             # Add note if analysis was partial
             if is_partial_analysis:
                 reason += " (analysed from a partial read of the file)"
+
+            # A pass the engine had no standing to issue is not a pass. Only
+            # AUTHENTIC is ever downgraded: a conviction, or anything signalled,
+            # is proof the instruments ran, so this can never withdraw an
+            # accusation. See analysis/assessability.py.
+            if verdict == "AUTHENTIC":
+                not_assessed = unassessable_reason(
+                    _optional_int(metadata.get("sample_rate")),
+                    _optional_float(metadata.get("duration")),
+                    cutoff_freq,
+                    _sampled_rms(cache),
+                )
+                if not_assessed:
+                    verdict = "NOT_ASSESSED"
+                    confidence = "🔍 Not assessed — the rules could not run on this file"
+                    reason = f"Not assessed: {not_assessed}"
+                    logger.info("NOT ASSESSED %s: %s", filepath.name, not_assessed)
 
             # Fake hi-res verdict (#1): a SEPARATE axis from the transcode verdict.
             # Combines the upsampling (spectral cliff + silent floor) and bit-depth

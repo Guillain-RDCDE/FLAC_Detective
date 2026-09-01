@@ -44,6 +44,9 @@ _VERDICT_META: Dict[str, Tuple[str, str]] = {
     "WARNING": ("Warning", "v-warning"),
     "AUTHENTIC": ("Authentic", "v-authentic"),
     "NON_FLAC": ("Non-FLAC", "v-fake"),
+    # Reuses the error badge on purpose: like an error, it is the absence of a
+    # reading rather than a reading. Unlike an error, the file was read fine.
+    "NOT_ASSESSED": ("Not assessed", "v-error"),
     "ERROR": ("Error", "v-error"),
 }
 
@@ -135,7 +138,15 @@ class HTMLReporter:
             counts[self._verdict_of(r)] = counts.get(self._verdict_of(r), 0) + 1
 
         # Order the cards worst-first; only show verdicts that occur.
-        order = ["FAKE_CERTAIN", "SUSPICIOUS", "WARNING", "NON_FLAC", "ERROR", "AUTHENTIC"]
+        order = [
+            "FAKE_CERTAIN",
+            "SUSPICIOUS",
+            "WARNING",
+            "NON_FLAC",
+            "NOT_ASSESSED",
+            "ERROR",
+            "AUTHENTIC",
+        ]
         cards = [
             f'<div class="card total"><span class="n">{total}</span><span class="l">files</span></div>'
         ]
@@ -156,7 +167,15 @@ class HTMLReporter:
 
         # Filter buttons: one per verdict present, plus "All".
         present = []
-        for verdict in ("FAKE_CERTAIN", "SUSPICIOUS", "WARNING", "AUTHENTIC", "NON_FLAC", "ERROR"):
+        for verdict in (
+            "FAKE_CERTAIN",
+            "SUSPICIOUS",
+            "WARNING",
+            "AUTHENTIC",
+            "NON_FLAC",
+            "NOT_ASSESSED",
+            "ERROR",
+        ):
             if any(self._verdict_of(r) == verdict for r in results):
                 present.append(verdict)
         filters = ['<button class="flt active" data-f="all">All</button>']

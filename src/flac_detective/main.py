@@ -584,6 +584,7 @@ _VERDICT_DISPLAY = {
     "WARNING": ("❓", "warning", "WARNING"),
     "AUTHENTIC": ("✅", "authentic", "AUTHENTIC"),
     "NON_FLAC": ("🚫", "fake", "NON_FLAC"),
+    "NOT_ASSESSED": ("🔍", "warning", "NOT ASSESSED"),
     "ERROR": ("⁉️ ", "warning", "ERROR"),
 }
 

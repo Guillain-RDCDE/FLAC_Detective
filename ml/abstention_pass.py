@@ -35,6 +35,7 @@ SET_A = Path(
 # accusing rule reads. Declared, not swept: it is the edge of the instruments'
 # domain, not a tuning parameter. See the 1 September amendment.
 MIN_ASSESSABLE_RATE = 32000
+MIN_ASSESSABLE_SAMPLES = 17408
 SILENCE_FLOOR_RMS = 1e-6
 
 # Q4. ``mono`` is kept and expected NOT to abstain: it loses the stereo and
@@ -43,7 +44,7 @@ SILENCE_FLOOR_RMS = 1e-6
 # this document's own error, caught by building the population.
 UNREADABLE = (
     ("mono", ("-ac", "1")),  # assessable — the control that must NOT abstain
-    ("short", ("-t", "3")),  # too few frames for the frame-based witnesses
+    ("short", ("-t", "0.2")),  # under the 17408 samples the frame witness needs
     ("rate8k", ("-ar", "8000")),  # no band for the rules to read
     ("silent", ("-af", "volume=0")),  # nothing to measure anywhere
 )
@@ -99,7 +100,7 @@ def assessability(path: Path) -> Dict[str, object]:
     return {
         "cutoff_known": bool(cutoff_known),
         "stereo": info.channels >= 2,
-        "long_enough": (info.frames / info.samplerate) >= 10.0 if info.samplerate else False,
+        "long_enough": info.frames >= MIN_ASSESSABLE_SAMPLES,
         "rate_known": bool(info.samplerate),
         "rate_in_domain": bool(info.samplerate and info.samplerate >= MIN_ASSESSABLE_RATE),
         "has_signal": rms > SILENCE_FLOOR_RMS,
@@ -121,11 +122,12 @@ def unassessable_reason(signals: Dict[str, object]) -> Optional[str]:
     if not signals["cutoff_known"]:
         return "spectrum unanalysable — no cutoff to read"
     if not signals["long_enough"]:
-        return "too short for the frame-based witnesses"
+        return "too short for the frame-based witness"
     return None
 
 
 def populations() -> List[Tuple[Path, str]]:
+    """Q1 to Q3: every real file the abstention is priced against."""
     out: List[Tuple[Path, str]] = []
     for path in sorted((CORPUS / "authentic").glob("*.flac")):
         out.append((path, "Q1 authentic"))
@@ -139,6 +141,7 @@ def populations() -> List[Tuple[Path, str]]:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """Run the pass and report B2 and B3. Returns a process exit code."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--limit", type=int, default=0, help="cap per population (0 = all)")
     args = ap.parse_args(argv)

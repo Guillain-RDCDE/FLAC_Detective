@@ -115,6 +115,70 @@ Revised **B3**: every file in Q4 minus `mono` abstains, and `mono` does **not**.
 That is a stricter test than the original, because it now requires the trigger to
 be wrong in neither direction.
 
-## Results
+## Second amendment, 1 September 2026 — the duration floor was invented, and the existing tests caught it
 
-*(to be appended, dated, after the measurement runs)*
+The trigger "too short for the frame-based witnesses" shipped with a threshold of
+**10 seconds**, which I chose because it sounded reasonable. It is not a measured
+value and it should never have been written next to three conditions that are.
+
+Two tests in `tests/test_wav_support.py` failed on it. They build **2-second**
+synthetic WAVs and assert `AUTHENTIC`, and under the new verdict they abstained.
+The tests were right. A 2-second file is read perfectly well by the spectral
+family, by the CNN and by the MDCT statistic; nothing about it is unassessable.
+
+The real floor is the frame witness's own arithmetic. Rule 15 needs `MIN_FRAMES`
+(16) frames of a 2048-point STFT hopped by 1024:
+
+    2048 + 1024 x 15 = 17,408 samples = 0.39 s at 44.1 kHz
+
+Twenty-five times smaller than what I wrote. The constant is now **derived from
+those three values in code** rather than stated, so it cannot drift from the
+instrument it describes and cannot be quietly tuned, and it is applied in samples
+rather than seconds so it stays correct at any sample rate.
+
+Consequences, recorded rather than absorbed:
+
+* Q4's `short` case was built at 3 seconds, which is **above** the real floor, so
+  it should never have abstained either. It is rebuilt at 0.2 s. My original Q4
+  was wrong about two of its four files, for the same underlying reason both
+  times: I described the instruments from memory instead of reading them.
+* **Revised B3, second time**: `rate8k`, `silent` and a genuinely sub-frame
+  `short` abstain; `mono` and any file of ordinary length do not.
+* B2's measurement is unaffected — every file in Q1–Q3 is a 30-second excerpt or
+  longer, so neither the old threshold nor the new one was ever exercised on real
+  material. That is stated plainly here so no later reading can treat the 0 % as
+  evidence that this particular trigger is well calibrated. It is evidence about
+  the other three.
+
+## Results — 1 September 2026
+
+1,248 real files: 80 authentic, 880 arms across 13 codec configurations, and the
+288 of exchange set A.
+
+| criterion | outcome |
+|---|---|
+| **B1** convictions untouched | **HELD** — by construction: only `AUTHENTIC` is ever downgraded, so no accusation can be withdrawn |
+| **B2** abstention rare on real material | **HELD** — **0 of 1,248**, 0.00 % against a 1 % bound |
+| **B3** right on the control population | **HELD** as twice amended — `rate8k`, `silent`, sub-frame `short` abstain; `mono` does not |
+| **B4** every abstention names its reason | **HELD** — each is a specific sentence naming the condition and the measured value |
+| **B5** measured first, shipped second | **APPLIES** — see below |
+
+**B5 is the honest headline: this repairs nothing that was observed failing.**
+Not one file in any shipped corpus abstains. The clause was written in advance
+precisely so this outcome would be recorded rather than dressed up: no later
+document may cite `NOT_ASSESSED` as the repair of a measured failure. What it
+removes is a verdict the engine had no standing to issue — on files the corpora
+happen not to contain and a user's disk certainly does.
+
+One concrete case found while verifying: on the 8 kHz file, Rule 11's bandpass
+design **raises** (`Digital filter critical frequencies must be 0 < Wn < fs/2`).
+The exception is caught and logged, and the file then arrives at the verdict
+looking clean. Before this change the engine answered `AUTHENTIC` to a file it
+had just failed to analyse.
+
+### Still not claimed
+
+Nothing here gives the engine an instrument for a codec outside its panel. An
+ATRAC3+ transcode has every rule run on it and every rule find nothing, and will
+still read `AUTHENTIC`. That limit was stated to Provir in the letter of
+1 September, before either half was scored, and it stands.
