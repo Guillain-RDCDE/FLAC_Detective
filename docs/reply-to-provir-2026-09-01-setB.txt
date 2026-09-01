@@ -1,0 +1,41 @@
+Jamie — set A r2 is re-shared, same folder, link below. Nothing in it changed since the rebuild: 288 files, self-hash 925da8b345cd61323f12d9c7d8de4815cf5e718d6d968b1e29f21631c5b436c9, one frame count for all eight classes.
+
+Set B: I have your description and your manifest self-hash b0bb5410cde39caa3ac33ecd0254275a1ff750accd3364b98d5072607946eaea. I do not have the folder yet — send the link whenever suits and I will verify 280 of 280 at read time before anything else happens.
+
+Three things you should have before either of us scores. Two are disclosures against my own engine, and one is a warning about your vinyl.
+
+FIRST, THE VINYL. Read this before you rip Teardrops, and read it about the three vinyl rips already sitting in your genuine class.
+
+I scored my own half against my own key before your set arrived, deliberately, so a defect on my side would surface now rather than during yours. It surfaced. Chasing it on parked material that is not in the shipped set: 44 authentic sources, all reading AUTHENTIC, then a 14 kHz roll-off and nothing else applied to each — 15 convicted, 22 signalled. Band-limiting an honest file made my engine convict it a third of the time.
+
+Two repairs written, implemented and refused by their own registered clause before shipping. The third worked and it was not new code: Rule 15 already had a domain guard with the right reasoning in the comment, sitting at 12 kHz, which is below where the artefact lives. Raised to 17 kHz — the round number inside the measured gap between the lowest arm at 19,250 Hz and the band-limited controls at a median 15,500. Result: 15 convictions down to 4 on the controls, 1 down to 0 on my own genuine, and zero convictions lost across six arms. Shipped as 1.13.3.
+
+It is reduced, not closed, and here is the part that matters to you. The four survivors all carry cnn+spectral. The CNN reads a spectrogram, so on a file whose top octave has been removed it reads the same roll-off Rule 1 reads. My corroboration barrier counts evidence families without ever asking whether the two families looked at the same thing. That is a real hole, it is registered, and it is not fixed.
+
+So: if I convict one of your three vinyl rips, that is the single most likely reason, it is on my side, and I am telling you the number in advance rather than explaining it afterwards. And when you rip Teardrops, expect me to be wrong about it.
+
+One request that follows from this. If your key can mark which three of the 35 are vinyl — or any band-limited stratum at all — K2 becomes evaluable. Without a stratum map my scorer prints "K2 not evaluable" and we lose the one prediction that was written specifically about this failure. Marking a stratum you already named in plain text costs you nothing and does not leak a label.
+
+SECOND, YOUR ATRAC3+ ARM. You built it as an abstain test, and you should know before you score that my engine cannot pass it, for a reason that has nothing to do with ATRAC.
+
+My transcode axis has exactly three outputs: AUTHENTIC, SUSPICIOUS, FAKE_CERTAIN. There is no UNREADABLE and no abstention. AUTHENTIC is not a claim of authenticity — it is what the engine says when nothing fired. On a codec I have no instrument for, nothing will fire and I will hand you a pass. That is a vocabulary limit, not a measurement, and reading it as a false negative would be reading it too kindly: it is worse than a false negative, because it is a pass my engine had no standing to issue.
+
+It is the second time in a week that the right to say "I don't know" turns out to be the missing piece. My family-attribution layer failed all five registered predictions in its first form. What fixed it was not a better statistic — it was a null calibrated per probe plus an abstention rule. With those, all five held on a held-out set: mp3 10 of 12, opus 12 of 12, and on AAC and Vorbis 31 abstentions against 5 attributions. The instrument became usable at the moment it was allowed to decline. Your ATRAC class is the same lesson pointed at the verdict itself, one level up from where I applied it, and I had not seen that.
+
+THIRD, WHAT YOUR COMPOSITION DOES TO MY REGISTERED PREDICTIONS. They were committed before your set existed, at a named commit, K1 to K5 blind on your half and A-i to A-iii diagnostic on mine.
+
+Your half carries no Layer II arm, so K3 will report not evaluable. I wrote it conditionally — "if his half carries an MP2 arm" — so nothing is invalidated and I am not asking you to add one. My half has the MP2 arm and it is already scored, which is where that question gets answered. K1, K4 and K5 are evaluable on your set as it stands. I ran my scorer today, unmodified, against a fabricated key using your eight class names: it runs, matches 280 of 280, and declares the right non-evaluations. Any edit to that script after your manifest arrives goes in as a dated amendment.
+
+On your weaker genuine class: disclosing it is the right call and it changes how I will read a false conviction rather than whether I report one. In v2 the key itself was wrong 3 times in 59 genuine — one documented MP2 and two unverifiable lineages. If I convict one of your 35, the two live possibilities are my false positive and your label, and the only honest way through is adjudicating at the mechanism. Your two exclusions are right for the same reason I ran a one-item-per-performer filter: a partly-convicted release cannot sit in a negative class.
+
+Your LAME 3.100 against BladeEnc 0.94.2 is the sharpest thing in your set for me, and it is a pair I could not build. I ran your encoder collection for the first time this week, five LAME builds verified byte-exact against your own SHA256SUMS.txt. Median R under each build's own probe: 3.98.4 at 0.728, 3.100 at 0.902, 3.90.3 at 1.626, 3.92 at 4.415, 3.96.1 at 11.896 with no fixed point at all. Self-pairing 5 of 6, 5 of 6, 2 of 6, 0 of 6, 0 of 6. A findable re-encode fixed point is a property of the build, not of the format.
+
+Which raises the one divergence I want to put to you, because two benches disagree and only one of us can be right. You reported 20 of your 34 wilds sitting at the LAME 3.90.3 fixed point. My bench reads 3.90.3 as one of the weak ones — 1.626 median, self-pairing 2 of 6. Those cannot both be true. Either your instrument sees a fixed point mine does not, in which case the difference is in the probe, the decoder or the phase handling, or your wilds are there for a reason other than self-pairing. I would rather find out which than quietly keep my number.
+
+Last thing, on your length leak: you and I produced the same three integers independently, 2,646,000 and 2,646,016 and 2,646,144. Two builders, two corpora, one arithmetic. That is as clean a confirmation as we are going to get that the tell is codec-intrinsic and not an accident of either build. And you put the check in the freezer rather than in your attention, which is the only version of it that survives being tired.
+
+Your Qobuz case is in my wild-fake ledger now as a basis in its own right, metadata_contradiction, with your DistroKid and ISRC reading written up as the worked example. It carries one warning: two PCM-identical copies from different shops are one witness, not two. Send the release and the track when you have a moment.
+
+Set A r2: https://www.dropbox.com/scl/fo/1g798jmgciq4oji06qitt/AHu70-uqxg_etS6a8kMHlTY?rlkey=2iry58p3u5z0zvmou1mkcyl4q&dl=0
+
+— Guillain
