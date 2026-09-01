@@ -116,3 +116,55 @@ next: `ml/exchange/R15_BANDLIMIT_REGISTRATION_2026-08-31.md`.
 Provir named band-limited genuine material as the hardest false positives in this
 space; the stratum had to be constructed because it could not be found; and the
 first thing it did was convict our own engine of a third of it.
+
+## AMENDMENT, 1 September 2026 — declared BEFORE set B is in hand
+
+Provir wrote today that set A r2 is verified on his side and that he scores it
+tonight, and he described two things this document must answer before his files
+or his verdicts arrive. Written now, while we still have nothing of his.
+
+### 1. Which engine scores his half
+
+Our engine has changed twice since these predictions were registered against
+v1.13.4: **v1.13.5** (the independence guard — `cnn` and `spectral` count as one
+witness below a 16 kHz cutoff) and **v1.13.6** (`NOT_ASSESSED`). Both were priced
+on `audit_corpus` and on parked material, both are public, and neither has seen a
+byte of set B.
+
+Changing the engine between registering a prediction and evaluating it is only
+legitimate if it is declared before the data arrives. So:
+
+* **K1 to K5 are evaluated on v1.13.6**, at the commit named in the verdict file.
+* **v1.13.4's verdicts are reported alongside, as a second column**, from the
+  same audio in the same run. Not to choose the better number afterwards — the
+  registered criteria are read off v1.13.6 and off nothing else — but because his
+  half is the only corpus neither of us built, and it is the only honest place to
+  see what the band-limited repair did.
+* Both columns go into one verdict file, and its SHA-256 is published before any
+  key moves, exactly as the method section already requires.
+
+If v1.13.4 scores better on K1, that is reported in those words.
+
+### 2. His two columns, and which one our predictions are about
+
+He is sending column **A** (his shipped engine, what a user gets today) and
+column **B** (a research instrument not wired into it). On his own small bench —
+twelve masters, one per release, constructed rather than wild — A convicts 5 of
+12 at MP3-320 where B convicts 12 of 12, with nothing going the other way.
+
+**Our registered criteria are read off column A.** A shipped engine is what K1's
+safety bound is about, and scoring our product against his laboratory would be
+comparing two different things and calling it a result. Column B is scored
+separately against the same key and reported as its own line.
+
+We have no equivalent second column. Our attribution layer answers a different
+question — which codec family, not whether — and wiring it in as a detector to
+match his format would be inventing a symmetry that does not exist.
+
+### 3. Tier mapping, restated so there is no ambiguity later
+
+He prices *flagged* and *convicted* separately. That is already our declared
+operating point and it does not move: **convicted = `FAKE_CERTAIN`**, **flagged =
+`WARNING` or above**. `NOT_ASSESSED` (new in v1.13.6) is neither: it is counted
+and reported in its own line, and it is never folded into either tier.
+
