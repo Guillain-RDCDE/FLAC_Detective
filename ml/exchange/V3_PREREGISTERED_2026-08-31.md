@@ -168,3 +168,64 @@ operating point and it does not move: **convicted = `FAKE_CERTAIN`**, **flagged 
 `WARNING` or above**. `NOT_ASSESSED` (new in v1.13.6) is neither: it is counted
 and reported in its own line, and it is never folded into either tier.
 
+
+## SECOND AMENDMENT, 2 September 2026 — before his verdicts arrived
+
+Provir sent his state ahead of his verdicts, deliberately unfixed, with four
+limits declared before he sees any answer. Two things follow for this document.
+
+### 1. A blank is not a miss — the scorer is changed, and it is a change
+
+His column B covers MP3 and Vorbis only. On AAC, Opus and ATRAC it returns blank,
+and he asked that a blank be read as "no instrument ran" rather than as a failure
+to convict, symmetrically with how he will read our `NOT_ASSESSED`.
+
+He is right, and our scorer was wrong in a way that mattered: a blank fell through
+`!= FAKE_CERTAIN` and was silently counted as a miss, so a **coverage** limit
+would have been reported as a **detection rate**. An instrument that did not run
+has made no claim, and a claim never made cannot be scored — the same reasoning
+that put `NOT_ASSESSED` in our engine yesterday.
+
+`ml/score_v3_return.py` now removes non-evaluable rows from the denominator of
+every rate and reports them on their own line, never as a conviction and never as
+a miss. A criterion whose rows are all non-evaluable reports as not evaluable
+rather than as held.
+
+This is a change to the scoring script, made **after** registration and **before**
+his verdicts existed, and it is recorded here as required rather than made
+quietly. It is covered by a selftest case that **fails on the previous version**
+of the scorer, which is the only reason the case is worth having.
+
+### 2. Our limits on his half, declared before we see any answer
+
+He listed four of his. Symmetry is not a courtesy here, it is the only thing that
+makes either list worth reading.
+
+* **BladeEnc 0.94.2 is an encoder house we have never seen.** Our build bench runs
+  five LAME builds back to 3.90.3 and ffmpeg's AAC, and our own finding is that a
+  findable re-encode fixed point is a property of the **build**, not the format.
+  BladeEnc is a different codebase entirely. We have no prior on it, exactly as he
+  has none on etree.
+* **ATRAC3+: no instrument at all.** Every rule will run and find nothing, and the
+  engine will return `AUTHENTIC`. Stated before scoring, twice, and it is a limit
+  and not a result.
+* **His three vinyl rips sit in our worst measured population.** Band-limiting an
+  authentic file convicted it 15 times in 44 before v1.13.3, 4 in 44 after, and 0
+  in 44 after v1.13.5. Better is not the same as fixed.
+* **Our `NOT_ASSESSED` will almost certainly be zero on his half.** It read 0 of
+  1,248 on real material. He should not expect it to absorb anything.
+* **Our corpus is CD-sourced throughout** — EAC and XLD logs — plus live archive
+  material. His half is modern studio and commercial releases. The domain shift
+  runs in both directions and it is not only his problem.
+
+### 3. How his two columns will be reported
+
+Column A carries our registered criteria. Column B is reported as its own line,
+with its blanks excluded as above, and **its interpretation is held** until his
+second processing test lands — he has already measured one common post-encode
+operation that silences column B on 0 of 6 constructed cases, and is running a
+second on processing that is routine on live archive material. Our half is live
+archive material. If that test says his Vorbis numbers on our set mean less than
+he would like, that is a fact about the measurement and it will be reported in
+his words, not smoothed.
+

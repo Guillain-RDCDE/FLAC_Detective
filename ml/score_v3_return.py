@@ -42,6 +42,23 @@ CONVICTION = "FAKE_CERTAIN"
 SIGNALED = ("FAKE_CERTAIN", "SUSPICIOUS", "WARNING")
 GENUINE = "genuine"
 
+# AMENDMENT 2026-09-02, written before his verdicts arrived.
+#
+# Provir's column B covers MP3 and Vorbis only; on AAC, Opus and ATRAC it returns
+# BLANK, and he asked that a blank be read as "no instrument ran" rather than as a
+# miss — symmetrically with how he will read our NOT_ASSESSED.
+#
+# He is right, and the old behaviour was wrong in a way that mattered: a blank
+# fell through ``!= FAKE_CERTAIN`` and was silently counted as a failure to
+# convict, so a coverage limit would have been reported as a detection rate.
+# An instrument that did not run has made no claim, and a claim that was never
+# made cannot be scored — the same reasoning that put NOT_ASSESSED in our engine.
+#
+# So a non-evaluable row is removed from the DENOMINATOR of every rate and
+# counted on its own line. It is never counted as a conviction, and never as a
+# miss.
+NOT_EVALUABLE = ("", "-", "BLANK", "NOT_EVALUABLE", "NOT_ASSESSED", "N/A", "NA")
+
 
 def load_key(path: Path) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
     """(label by file id, source_slug by file id, stratum by source_slug)."""
@@ -54,6 +71,7 @@ def load_key(path: Path) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]
 
 
 def load_verdicts(path: Path) -> Dict[str, Dict[str, str]]:
+    """Verdict rows keyed by file id, stem only — extensions must not decide a match."""
     with open(path, newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
     out: Dict[str, Dict[str, str]] = {}
@@ -93,12 +111,26 @@ def score(  # noqa: C901
     def is_sig(f: str) -> bool:
         return verdicts[f].get("verdict", "").strip() in SIGNALED
 
+    def evaluable(f: str) -> bool:
+        """False when no instrument ran on this row. See NOT_EVALUABLE."""
+        return verdicts[f].get("verdict", "").strip().upper() not in NOT_EVALUABLE
+
+    skipped = [f for f in common if not evaluable(f)]
+    common = [f for f in common if evaluable(f)]
+
     genuine = [f for f in common if key[f] == GENUINE]
     lossy = [f for f in common if key[f] != GENUINE]
     conv_genuine = [f for f in genuine if is_conv(f)]
     held: Dict[str, bool] = {}
 
     lines.append("")
+    if skipped:
+        by_label = Counter(key[f] for f in skipped)
+        lines.append(
+            f"NOT EVALUABLE — {len(skipped)} rows where no instrument ran, removed from "
+            f"every denominator and counted as neither conviction nor miss: "
+            + ", ".join(f"{lab} {n}" for lab, n in sorted(by_label.items()))
+        )
     lines.append(f"genuine rows {len(genuine)}, lossy rows {len(lossy)}")
     lines.append(f"false convictions: {_rate(len(conv_genuine), len(genuine))}")
     lines.append(f"genuine signaled : {_rate(sum(1 for f in genuine if is_sig(f)), len(genuine))}")
@@ -304,11 +336,38 @@ def selftest() -> int:  # noqa: C901
             print("  SELFTEST FAIL partial run: missing rows were not reported")
             ok = False
 
+        # Case 6 — a column that did not run on half the arms must not be scored
+        # as if it had missed them. Every mp3 row is convicted; every mp2 row is
+        # BLANK because no instrument covers that codec. K3 must therefore be
+        # NOT evaluable, not "0 % convicted, held". This case fails on the
+        # pre-amendment scorer, which is the only reason it is worth having.
+        def blank_on_mp2(fid: str) -> str:
+            label = labels[fid]["label"]
+            if label == "genuine":
+                return "AUTHENTIC"
+            if label == "mp3_320":
+                return CONVICTION
+            return ""  # no instrument ran
+
+        held6, lines6 = score(
+            load_verdicts(write("blank.csv", blank_on_mp2)), by_file, slugs, strata_map, "B"
+        )
+        if "K3" in held6:
+            print("  SELFTEST FAIL blank column: K3 was scored on rows no instrument read")
+            ok = False
+        if not any("NOT EVALUABLE" in line and "mp2_256 10" in line for line in lines6):
+            print("  SELFTEST FAIL blank column: the 10 unread rows were not reported")
+            ok = False
+        if not any("genuine rows 20, lossy rows 20" in line for line in lines6):
+            print("  SELFTEST FAIL blank column: unread rows stayed in a denominator")
+            ok = False
+
     print("selftest: " + ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """Score a return, or run the selftest. Returns a process exit code."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--verdicts", type=Path)
     ap.add_argument("--key", type=Path)
