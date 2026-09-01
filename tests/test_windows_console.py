@@ -54,7 +54,7 @@ def test_streams_are_made_utf8_safe(monkeypatch):
 
 
 def test_banner_goes_to_stderr_when_the_output_is_machine_readable(capsys):
-    """stdout carries data in that mode, so decoration belongs on stderr."""
+    """In that mode stdout carries data, so decoration belongs on stderr."""
     _print_banner(machine_readable=True)
     captured = capsys.readouterr()
     assert captured.out == ""
