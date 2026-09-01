@@ -147,7 +147,7 @@ def _segment_to_input(y, sr):
                 rolloff = float(freqs[np.searchsorted(cumulative, 0.95 * cumulative[-1])])
         mel = librosa.feature.melspectrogram(S=mag**2, sr=sr, n_mels=_N_MELS, fmax=sr // 2)
         mel_db = librosa.power_to_db(mel, ref=np.max).astype(np.float32)
-        mn, mx = mel_db.min(), mel_db.max()
+        mn, mx = float(mel_db.min()), float(mel_db.max())
         chans.append(2 * (mel_db - mn) / max(mx - mn, 1e-6) - 1.0)
     # Shape (1, 2, n_mels, T)
     return np.stack(chans, axis=0)[None, :, :, :], rolloff

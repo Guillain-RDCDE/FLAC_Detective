@@ -72,7 +72,11 @@ def main() -> int:
         )
         return 1
 
-    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication.instance()
+    if not isinstance(app, QtWidgets.QApplication):
+        # instance() also returns a bare QCoreApplication, which has no
+        # setFont/setWindowIcon/setStyleSheet — accepting one would raise below.
+        app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("FLAC Detective")
 
     icon_file = _RESOURCES / "app_icon.png"

@@ -242,7 +242,7 @@ class DCOffsetDetector(QualityDetector):
 
             # Use sf_blocks to iterate
             for chunk in sf_blocks(str(filepath), dtype="float32"):
-                sum_of_samples += np.sum(chunk)
+                sum_of_samples += float(np.sum(chunk))
 
             dc_offset = sum_of_samples / total_samples if total_samples > 0 else 0.0
             abs_offset = abs(dc_offset)
