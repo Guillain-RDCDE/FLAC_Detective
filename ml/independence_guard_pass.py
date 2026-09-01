@@ -142,7 +142,7 @@ def run(out_path: Path, shard: int = 0, shards: int = 1) -> int:
                         "verdict": result.get("verdict", ""),
                         "score": result.get("score", ""),
                         "cutoff": result.get("cutoff_freq", ""),
-                        "families": "+".join(result.get("evidence_families") or []),
+                        "families": "|".join(result.get("evidence_families") or []),
                         "breakdown": json.dumps(result.get("score_breakdown") or {}),
                     }
                 )
@@ -203,7 +203,14 @@ def _load(paths: Sequence[Path]) -> List[dict]:
                 rows.append(row)
     for row in rows:
         row["score_i"] = int(float(row["score"] or 0))
-        row["families_s"] = {f for f in (row["families"] or "").split("+") if f}
+        # "|" and not "+". Once the guard ships, a collapsed family is literally
+        # named "cnn+spectral": a "+"-joined column cannot be read back, and the
+        # merged witness silently becomes two again — which is exactly the bug
+        # this whole registration exists to remove, reintroduced in the tooling.
+        # No fallback to "+": a lone "cnn+spectral" would be indistinguishable
+        # from a genuine pair, and guessing is worse than refusing. Shard files
+        # written before v1.13.5 are superseded, not re-readable.
+        row["families_s"] = {f for f in (row["families"] or "").split("|") if f}
         row["breakdown_d"] = json.loads(row["breakdown"] or "{}")
         try:
             cut = float(row["cutoff"])

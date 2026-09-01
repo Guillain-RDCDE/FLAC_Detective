@@ -11,7 +11,7 @@ from .bitrate import (
     calculate_real_bitrate,
 )
 from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES
-from .evidence import evidence_families
+from .evidence import collapse_dependent_families, evidence_families
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .rules.mdct_alignment import should_run_rule_13
@@ -141,11 +141,16 @@ def _is_corroborated(context: ScoringContext) -> bool:
 
     Used to decide whether an early exit is safe. A high score from one family is
     exactly the case that still needs the remaining rules to run.
+
+    The dependency guard is applied HERE too, not only at the verdict: a file that
+    exits early believing it has two witnesses would never reach the collapse, and
+    the guard would silently stop working on exactly the files that exit fastest.
     """
-    return (
-        len(evidence_families(context.rule_scores, witnesses=context.witness_families))
-        >= CONVICTION_MIN_FAMILIES
+    families = collapse_dependent_families(
+        evidence_families(context.rule_scores, witnesses=context.witness_families),
+        context.cutoff_freq,
     )
+    return len(families) >= CONVICTION_MIN_FAMILIES
 
 
 def _apply_scoring_rules(  # noqa: C901
@@ -514,8 +519,12 @@ def new_calculate_score(
         # ScoringContext.add_score.
         score = max(0, raw_score)
 
-        # Conviction needs independent sources, not just a big number.
-        families = evidence_families(context.rule_scores, witnesses=context.witness_families)
+        # Conviction needs independent sources, not just a big number — and
+        # independence is a property of THIS file, not of the rule grouping.
+        families = collapse_dependent_families(
+            evidence_families(context.rule_scores, witnesses=context.witness_families),
+            context.cutoff_freq,
+        )
         verdict, confidence = determine_verdict(score, families)
 
         if uncorroborated_conviction_blocked(score, families):

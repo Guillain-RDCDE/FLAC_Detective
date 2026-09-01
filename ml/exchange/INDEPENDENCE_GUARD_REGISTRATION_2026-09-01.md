@@ -107,6 +107,55 @@ better outcome than a repair whose price was measured somewhere it could not be
 charged. Two repairs have already been refused this way (`R15_RELATIVE_DEAD`, and
 the live-MID-bins attempt inside `R15_BANDLIMIT`); this is the same clause.
 
-## Results
+## Results — 1 September 2026
 
-*(to be appended, dated, after the measurement runs)*
+524 files, one engine pass at commit `9199d45` (v1.13.4), the working tree
+verified unmodified under `src/` for the whole run. Every candidate was then
+evaluated offline against those records, so the sixteen rows below differ only in
+a constant, never in an execution. Three disjoint shards, `--evaluate` refusing
+any `(file, population)` seen twice; none was.
+
+Baseline convictions: authentic **0**, band-limited **4**, high-rate arms **99**,
+low-rate arms **45**.
+
+| candidate | authentic | band-limited | high-rate | low-rate | I1 | I2 | I3 | I4 |
+|---|---|---|---|---|---|---|---|---|
+| A 14000 | 0 | 4 | 99 | 45 | FAIL | OK | OK | OK |
+| A 15000 | 0 | 2 | 99 | 45 | FAIL | OK | OK | OK |
+| **A 16000** | **0** | **0** | **99** | **45** | **OK** | **OK** | **OK** | **OK** |
+| A 17000 | 0 | 0 | 99 | **42** | OK | OK | OK | **FAIL** |
+| B 16000/40 | 0 | 0 | 99 | 45 | OK | OK | OK | OK |
+| B 17000/40 | 0 | 0 | 99 | 42 | OK | OK | OK | FAIL |
+
+(The remaining B rows at 20 and 30 points left all four band-limited convictions
+standing and failed I1: the CNN is not hesitant on those files, which is the
+point — it is confident, about the roll-off.)
+
+**Chosen by the pre-written rule** — smallest `GUARD_HZ` satisfying I1 among those
+satisfying I3 and I4, ties toward A: **Mechanism A at 16,000 Hz.** All four
+criteria hold. The four surviving band-limited false convictions go to zero, and
+nothing else moves anywhere: not one conviction is lost on ten codec arms.
+
+### The bound that was written to be hard did its job
+
+**I4 refused 17,000 Hz** — the value Rule 15's domain gate uses, and the value
+this repair would have taken if the low-rate arms had not been declared in
+advance. At 17,000 the guard destroys **three true convictions** on
+`mp3_128` / `mp3_V2` / `aac_ff128` (45 → 42, 6.7 % against a 3 % budget), because
+there `cnn` + `spectral` is exactly how a correct conviction is made.
+
+Priced on set A's arms alone — all 256 kbps and above, all reading 19 kHz or
+higher — 17,000 would have shown **zero cost**, and the wrong constant would have
+shipped with a clean measurement behind it. The population that pays a cost has to
+be in the corpus before the constant is chosen, or the corpus is just a corpus
+that cannot object.
+
+16,000 is not a round number either: the band-limited controls read 15,250–15,500
+and the low-rate arms sit above 16,000. The constant is the gap between two
+measured populations.
+
+### What this does not fix
+
+The table has one entry. Every other pair of families is still assumed independent
+because it was assumed independent at design time, and nothing has asked. The
+mechanism now exists to ask; the asking is unpriced work.

@@ -15,7 +15,7 @@ from .diagnostic_tracker import get_tracker
 from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
-from .new_scoring.evidence import evidence_families
+from .new_scoring.evidence import collapse_dependent_families, evidence_families
 from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
@@ -236,8 +236,13 @@ class FLACAnalyzer:
                 "score_breakdown": score_breakdown,
                 # Independent evidence families accusing this file. A conviction
                 # requires two of them; see analysis/new_scoring/evidence.py.
+                # The dependency collapse is applied here as well, or the report
+                # would name two witnesses where the verdict counted one.
                 "evidence_families": sorted(
-                    evidence_families(score_breakdown, witnesses=witness_families)
+                    collapse_dependent_families(
+                        evidence_families(score_breakdown, witnesses=witness_families),
+                        cutoff_freq,
+                    )
                 ),
             }
 

@@ -54,6 +54,17 @@ CONVICTION_MIN_SCORE = 55
 # A witness that mumbles is not a second witness.
 MIN_FAMILY_CONTRIBUTION = 20
 
+# Below this cutoff, `cnn` and `spectral` are no longer independent witnesses and
+# count as one (v1.13.5). See ``evidence.collapse_dependent_families`` for the
+# mechanism and the measured price.
+#
+# Why 16,000 and not the 17,000 Rule 15's domain gate uses: this guard was priced
+# on LOW-BITRATE arms as well, where that same pair is how a *correct* conviction
+# is made. At 17,000 it destroyed three true convictions on mp3_128 / mp3_V2 /
+# aac_ff128 and failed its registered 3 % bound. 16,000 sits in the measured gap:
+# band-limited controls read 15,250-15,500, the low-rate arms sit above 16,000.
+FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ = 16000.0
+
 # Rule 11 cassette evidence needed to protect a file (cancel Rule 1, apply -40).
 # Lowered 30 -> 15 in v1.8 when test 11C was removed: 11C awarded a flat +15 to
 # essentially every file (it keyed off Rule 9C, which measured AUC 0.497), so

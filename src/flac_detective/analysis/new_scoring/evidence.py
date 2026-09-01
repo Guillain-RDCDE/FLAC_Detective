@@ -50,9 +50,10 @@ Deliberately absent:
 
 from __future__ import annotations
 
-from typing import Dict, Mapping, Optional, Set
+import math
+from typing import Callable, Dict, FrozenSet, Mapping, NamedTuple, Optional, Set, Tuple
 
-from .constants import MIN_FAMILY_CONTRIBUTION
+from .constants import FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ, MIN_FAMILY_CONTRIBUTION
 
 # Rule class name -> evidence family. A rule absent from this map contributes no
 # family, which is the safe default: a new rule cannot silently earn conviction
@@ -91,6 +92,71 @@ POINTLESS_WITNESS_RULES: Dict[str, str] = {
     # family rather than a variant of any of them.
     "Rule15StereoSeam": "stereo",
 }
+
+
+class FamilyDependency(NamedTuple):
+    """Two families that stop being independent under a named condition.
+
+    ``condition`` is evaluated on the file being scored, not at design time. That
+    is the whole point: the grouping in ``RULE_FAMILY`` answers "what does this
+    rule measure in general", and until v1.13.5 nothing ever asked whether two
+    families, **on this file**, ended up reading the same observation.
+    """
+
+    pair: FrozenSet[str]
+    condition: Callable[[Optional[float]], bool]
+    why: str
+
+
+def _cutoff_is_low(cutoff_freq: Optional[float]) -> bool:
+    """True when the top of the band is gone. An unknown cutoff is not a low one."""
+    if cutoff_freq is None or math.isnan(cutoff_freq):
+        return False
+    return cutoff_freq < FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ
+
+
+# One entry, because one pair has measurement behind it. The defect is general —
+# this table has never been consulted for any other pair either — but a declared
+# dependency with no corpus price is a guess wearing a mechanism's clothes.
+FAMILY_DEPENDENCIES: Tuple[FamilyDependency, ...] = (
+    FamilyDependency(
+        pair=frozenset({"cnn", "spectral"}),
+        condition=_cutoff_is_low,
+        why=(
+            "Rule 12 reads a mid/side mel-spectrogram; on a file whose top octave "
+            "is gone its dominant feature IS the roll-off Rules 1/2/4 read"
+        ),
+    ),
+)
+
+
+def collapse_dependent_families(families: Set[str], cutoff_freq: Optional[float]) -> Set[str]:
+    """Merge families that this file's condition makes dependent.
+
+    Measured price, registered before the sweep in
+    ``ml/exchange/INDEPENDENCE_GUARD_REGISTRATION_2026-09-01.md`` and run on 524
+    files at a single engine commit:
+
+        band-limited controls convicted      4 -> 0
+        authentic null                       0 -> 0
+        six high-rate arms                  99 -> 99   (zero convictions lost)
+        four low-rate arms                  45 -> 45   (zero convictions lost)
+
+    The constant is 16,000 Hz and not 17,000 — the value Rule 15's domain gate
+    uses — because the registration priced the guard on **low-bitrate** arms as
+    well, where `cnn` + `spectral` is how a *correct* conviction is made. At
+    17,000 the same guard destroys three true convictions on mp3_128/mp3_V2/
+    aac_ff128, which failed the registered 3 % bound and refused that value. The
+    band-limited controls read 15,250-15,500 and the low-rate arms sit above
+    16,000: the constant is the gap between two measured populations, not a
+    round number that looked reasonable.
+    """
+    out = set(families)
+    for dependency in FAMILY_DEPENDENCIES:
+        if dependency.pair <= out and dependency.condition(cutoff_freq):
+            out -= dependency.pair
+            out.add("+".join(sorted(dependency.pair)))
+    return out
 
 
 def family_totals(rule_scores: Mapping[str, int]) -> Dict[str, int]:

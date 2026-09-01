@@ -1,3 +1,64 @@
+## v1.13.5 (2026-09-01) — two evidence families that read one observation
+
+The corroboration barrier requires two independent evidence families before it
+convicts. It established that independence once, at design time, by asking what
+each rule measures in general. It never asked whether two families, **on this
+file**, ended up reading the same thing.
+
+They can. A file whose top octave has been removed — an analogue transfer, a
+vinyl rip, a cassette — makes Rule 12 (a classifier over a mid/side
+mel-spectrogram) read the same roll-off Rules 1, 2 and 4 read. Two names, one
+observation, and the barrier counted two.
+
+Measured on 44 authentic sources given a 14 kHz roll-off and nothing else:
+v1.13.3 had already brought false convictions from 15 to 4, and **all four
+survivors carried `cnn` + `spectral`**.
+
+### What changed
+
+`evidence.py` gains a declared table of family pairs that stop being independent
+under a named condition, evaluated on the file rather than at design time. One
+entry, because one pair has measurement behind it: `cnn` and `spectral` count as
+a single witness when the cutoff falls below `FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ`.
+
+Applied at all three places that count families — the verdict, the early-exit
+check (a file that exits early would otherwise never reach the collapse) and the
+report (which would otherwise name two witnesses where the verdict counted one).
+
+### Price, registered before the sweep and measured on 524 files
+
+    band-limited controls convicted      4 -> 0
+    authentic null                       0 -> 0
+    six high-rate arms                  99 -> 99    zero convictions lost
+    four low-rate arms                  45 -> 45    zero convictions lost
+
+Four verdicts change in total, all `FAKE_CERTAIN` -> `SUSPICIOUS`, all of them
+band-limited authentic files. They stay signalled; they stop being convicted on
+one observation counted twice.
+
+### Why 16,000 Hz and not 17,000
+
+Rule 15's domain gate uses 17,000, and taking the same value by symmetry would
+have been wrong. This guard was priced on **low-bitrate arms** as well, where
+`cnn` + `spectral` is exactly how a *correct* conviction is made: a 128 kbps
+transcode and a band-limited authentic file both live around 15-16 kHz. At
+17,000 the guard destroys three true convictions on `mp3_128`, `mp3_V2` and
+`aac_ff128` — 6.7 % against a registered 3 % bound — and that value was refused.
+
+Priced on the exchange set's arms alone, all 256 kbps and above, 17,000 would
+have reported zero cost. The population that pays has to be in the corpus before
+the constant is chosen. `ml/build_lowrate_arms.py` builds it;
+`ml/exchange/INDEPENDENCE_GUARD_REGISTRATION_2026-09-01.md` declared it first.
+
+16,000 is the gap between two measured populations: band-limited controls read
+15,250-15,500, the low-rate arms sit above 16,000.
+
+### Still open
+
+The table has one entry. Every other pair of families is still assumed
+independent because it was assumed independent at design time. The mechanism to
+ask now exists; the asking is unpriced.
+
 ## v1.13.4 (2026-08-31) — on Windows, 1.13.0 did not start
 
 Both reported by Provir, against the shipped PyPI wheel, while running his own
