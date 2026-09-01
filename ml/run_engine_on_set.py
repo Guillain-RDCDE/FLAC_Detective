@@ -148,6 +148,7 @@ def run(set_dir: Path, out_path: Path, deep: bool) -> int:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """Run the engine over a set. Returns a process exit code."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--set", dest="set_dir", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
