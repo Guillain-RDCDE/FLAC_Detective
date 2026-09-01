@@ -69,13 +69,20 @@ def populations() -> List[Tuple[Path, str, bool]]:
     return out
 
 
-def run(out_path: Path) -> int:
-    """One engine pass over every population, resumable."""
+def run(out_path: Path, shard: int = 0, shards: int = 1) -> int:
+    """One engine pass over every population, resumable.
+
+    ``--shard i/n`` takes every n-th item, so several processes can share the work
+    on disjoint slices. Each writes its OWN file and they are concatenated
+    afterwards: two processes appending to one CSV is a corruption this project
+    has already paid for once. The populations themselves are unchanged — the
+    split is over the work, never over the sample.
+    """
     from v3_build_set_a import BAND_LIMIT_FILTER
 
     from flac_detective.analysis.analyzer import FLACAnalyzer
 
-    items = populations()
+    items = populations()[shard::shards]
     done: Set[Tuple[str, str]] = set()
     if out_path.exists():
         with open(out_path, newline="", encoding="utf-8") as fh:
@@ -182,9 +189,18 @@ def _convicted(score: int, families: Set[str]) -> bool:
     return verdict == "FAKE_CERTAIN"
 
 
-def _load(path: Path) -> List[dict]:
-    with open(path, newline="", encoding="utf-8") as fh:
-        rows = list(csv.DictReader(fh))
+def _load(paths: Sequence[Path]) -> List[dict]:
+    """Read one or more shard files, refusing any (file, population) seen twice."""
+    rows: List[dict] = []
+    seen: Set[Tuple[str, str]] = set()
+    for path in paths:
+        with open(path, newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                key = (row["file"], row["population"])
+                if key in seen:
+                    raise SystemExit(f"doublon entre shards: {key} — mesure non fiable")
+                seen.add(key)
+                rows.append(row)
     for row in rows:
         row["score_i"] = int(float(row["score"] or 0))
         row["families_s"] = {f for f in (row["families"] or "").split("+") if f}
@@ -212,8 +228,8 @@ def _counts(rows: Sequence[dict], guard) -> Dict[str, int]:
     return groups
 
 
-def evaluate(path: Path) -> int:
-    rows = _load(path)
+def evaluate(paths: Sequence[Path]) -> int:
+    rows = _load(paths)
     print(f"{len(rows)} fichiers lus\n")
     base = _counts(rows, None)
     print(
@@ -266,12 +282,18 @@ def evaluate(path: Path) -> int:
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path)
-    ap.add_argument("--evaluate", type=Path)
+    ap.add_argument("--evaluate", type=Path, nargs="+")
+    ap.add_argument(
+        "--shard",
+        default="0/1",
+        help="i/n — take every n-th item, so shards run on disjoint slices",
+    )
     args = ap.parse_args(argv)
     if args.evaluate:
         return evaluate(args.evaluate)
     if args.out:
-        return run(args.out)
+        shard, shards = (int(x) for x in args.shard.split("/"))
+        return run(args.out, shard, shards)
     ap.error("either --out or --evaluate")
     return 2
 
