@@ -37,6 +37,7 @@ def benchmark_audio_file():
 
     # Create temporary FLAC file
     temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+    temp_file.close()  # Windows will not unlink a file the process still holds open
     temp_path = Path(temp_file.name)
 
     sf.write(temp_path, audio, sample_rate, subtype="PCM_16")
@@ -58,6 +59,7 @@ def benchmark_small_audio():
     audio = np.random.randn(samples, 2) * 0.3
 
     temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+    temp_file.close()  # Windows will not unlink a file the process still holds open
     temp_path = Path(temp_file.name)
 
     sf.write(temp_path, audio, sample_rate, subtype="PCM_16")

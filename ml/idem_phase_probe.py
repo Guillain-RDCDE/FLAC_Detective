@@ -242,7 +242,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--selftest", action="store_true")
     parser.add_argument("--out", default="")
     parser.add_argument("--populations", nargs="*", default=list(POPULATIONS))
-    parser.add_argument("--step", type=int, default=1, help="phase search step (1 = exact; the period has zero tolerance)")
+    parser.add_argument(
+        "--step",
+        type=int,
+        default=1,
+        help="phase search step (1 = exact; the period has zero tolerance)",
+    )
     args = parser.parse_args(argv)
     ffmpeg = require_ffmpeg()
     if args.selftest:
@@ -257,7 +262,16 @@ def main(argv: Optional[List[str]] = None) -> int:
             done = {(r["population"], r["path"]) for r in csv.DictReader(fh)}
         print(f"reprise: {len(done)} lignes deja mesurees", flush=True)
 
-    fields = ["population", "path", "rate", "R_phase0", "R_best", "best_phase", "searched_phase", "searched_d1"]
+    fields = [
+        "population",
+        "path",
+        "rate",
+        "R_phase0",
+        "R_best",
+        "best_phase",
+        "searched_phase",
+        "searched_d1",
+    ]
     with open(out, "a" if done else "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields)
         if not done:

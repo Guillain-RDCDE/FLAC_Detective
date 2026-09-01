@@ -124,7 +124,12 @@ def idem_columns(path: Path, ffmpeg: str) -> Optional[dict]:
     except Exception:
         return None
     if rate not in (44100, 48000):
-        return {"file": path.name, "idem_R_phase0": "nan", "idem_R_best_canonical": "nan", "idem_best_phase": ""}
+        return {
+            "file": path.name,
+            "idem_R_phase0": "nan",
+            "idem_R_best_canonical": "nan",
+            "idem_best_phase": "",
+        }
     reads = {}
     for k in CANONICAL:
         try:
@@ -145,7 +150,9 @@ def idem_columns(path: Path, ffmpeg: str) -> Optional[dict]:
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", required=True)
-    parser.add_argument("--idem", action="store_true", help="the idem pass instead of the engine pass")
+    parser.add_argument(
+        "--idem", action="store_true", help="the idem pass instead of the engine pass"
+    )
     parser.add_argument("--limit", type=int, default=0, help="smoke test on the first N files")
     args = parser.parse_args(argv)
     out = Path(args.out)
@@ -172,10 +179,23 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         analyzer = FLACAnalyzer(deep=True)
         fields = [
-            "file", "bytes", "engine_version", "score", "verdict", "evidence_families",
-            "score_breakdown", "hires_verdict", "sample_rate", "bit_depth", "cutoff_hz",
-            "cutoff_std_hz", "energy_ratio", "residual_floor_db", "container_kbps",
-            "stereo_run", "seam",
+            "file",
+            "bytes",
+            "engine_version",
+            "score",
+            "verdict",
+            "evidence_families",
+            "score_breakdown",
+            "hires_verdict",
+            "sample_rate",
+            "bit_depth",
+            "cutoff_hz",
+            "cutoff_std_hz",
+            "energy_ratio",
+            "residual_floor_db",
+            "container_kbps",
+            "stereo_run",
+            "seam",
         ]
 
     with open(out, "a" if done else "w", newline="", encoding="utf-8") as fh:
@@ -185,7 +205,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         for i, path in enumerate(files, 1):
             if path.name in done:
                 continue
-            row = idem_columns(path, ffmpeg) if args.idem else engine_and_measurements(path, analyzer)
+            row = (
+                idem_columns(path, ffmpeg) if args.idem else engine_and_measurements(path, analyzer)
+            )
             if row is None:
                 continue
             writer.writerow(row)

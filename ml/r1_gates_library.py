@@ -26,19 +26,19 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
 import soundfile as sf
 
-import sys
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from flac_detective.analysis.spectrum import analyze_spectrum  # noqa: E402
 from r1_gates_repricing import new_r1_plus50, old_r1_plus50  # noqa: E402
 from recert_admission_pass import build_hash_map  # noqa: E402
+
+from flac_detective.analysis.spectrum import analyze_spectrum  # noqa: E402
 
 
 def main(argv: Optional[List[str]] = None) -> int:

@@ -49,8 +49,10 @@ def main(npz_path: Path, output_dir: Path) -> int:
     with open(output_dir / "config.json", "w") as f:
         json.dump(dict(config), f, indent=2, default=str)
 
-    total = sum((output_dir / f).stat().st_size for f in
-                ("X.npy", "y.npy", "paths.npy", "labels.npy")) / 1024**3
+    total = (
+        sum((output_dir / f).stat().st_size for f in ("X.npy", "y.npy", "paths.npy", "labels.npy"))
+        / 1024**3
+    )
     print(f"Done. Total on-disk: {total:.2f} GB.")
     print(f"\nLoad in train.py with:")
     print(f"  X = np.load('{output_dir}/X.npy', mmap_mode='r')")

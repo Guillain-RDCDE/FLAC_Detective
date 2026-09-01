@@ -91,8 +91,9 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from flac_detective.analysis.spectrum import _welch_magnitude_db  # noqa: E402
 from edge_width_probe import auc  # noqa: E402
+
+from flac_detective.analysis.spectrum import _welch_magnitude_db  # noqa: E402
 
 AUDIT = Path(r"C:\Users\loutr\audit_corpus")
 V2 = Path(r"C:\Users\loutr\remaster_arm_v2")

@@ -1,0 +1,3 @@
+file,population,verdict,score,cutoff,families,breakdown
+001-11-Gilbert-B-caud-Le-bain-de-minuit.flac,authentic,AUTHENTIC,0,21250,,"{""Rule8NyquistException"": -30, ""Rule1MP3Bitrate"": 0, ""Rule2Cutoff"": 0, ""Rule424BitSuspect"": 0, ""Rule5HighVariance"": 0, ""Rule6HighQualityProtection"": 0, ""Rule13MDCTAlignment"": 0, ""Rule14TemporalSeam"": 0, ""Rule15StereoSeam"": 0, ""Rule12MLClassifier"": 0}"
+004-01-Thiossane-Ablaye-Ndiaye-Aminata-ndiaye.flac,authentic,AUTHENTIC,0,22050.0,,"{""Rule8NyquistException"": -50, ""Rule1MP3Bitrate"": 0, ""Rule2Cutoff"": 0, ""Rule424BitSuspect"": 0, ""Rule5HighVariance"": 0, ""Rule6HighQualityProtection"": 0, ""Rule13MDCTAlignment"": 0, ""Rule14TemporalSeam"": 0, ""Rule15StereoSeam"": 0, ""Rule12MLClassifier"": 0}"

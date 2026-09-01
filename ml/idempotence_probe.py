@@ -77,8 +77,9 @@ def _run(cmd: List[str]) -> bool:
     return subprocess.run(cmd, capture_output=True).returncode == 0
 
 
-def encode_decode(pcm: np.ndarray, rate: int, work: Path, tag: str,
-                  bitrate: str, use_pipe: bool = False) -> Optional[np.ndarray]:
+def encode_decode(
+    pcm: np.ndarray, rate: int, work: Path, tag: str, bitrate: str, use_pipe: bool = False
+) -> Optional[np.ndarray]:
     """One LAME round trip. ``use_pipe`` reproduces the failure deliberately."""
     source = work / f"{tag}_in.wav"
     encoded = work / f"{tag}.mp3"
@@ -90,19 +91,59 @@ def encode_decode(pcm: np.ndarray, rate: int, work: Path, tag: str,
         # cannot recover the encoder delay.
         with open(encoded, "wb") as fh:
             proc = subprocess.run(
-                ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(source),
-                 "-c:a", "libmp3lame", "-b:a", bitrate, "-f", "mp3", "-"],
-                stdout=fh, stderr=subprocess.DEVNULL)
+                [
+                    "ffmpeg",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    str(source),
+                    "-c:a",
+                    "libmp3lame",
+                    "-b:a",
+                    bitrate,
+                    "-f",
+                    "mp3",
+                    "-",
+                ],
+                stdout=fh,
+                stderr=subprocess.DEVNULL,
+            )
         if proc.returncode != 0:
             return None
     else:
-        if not _run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                     "-i", str(source), "-c:a", "libmp3lame", "-b:a", bitrate,
-                     str(encoded)]):
+        if not _run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-y",
+                "-i",
+                str(source),
+                "-c:a",
+                "libmp3lame",
+                "-b:a",
+                bitrate,
+                str(encoded),
+            ]
+        ):
             return None
 
-    if not _run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                 "-i", str(encoded), "-c:a", "pcm_s16le", str(decoded)]):
+    if not _run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-i",
+            str(encoded),
+            "-c:a",
+            "pcm_s16le",
+            str(decoded),
+        ]
+    ):
         return None
     data, _rate = sf.read(str(decoded), dtype="float32")
     return data
@@ -149,8 +190,7 @@ def distance(a: np.ndarray, b: np.ndarray, rate: int) -> float:
 def idempotence(path: Path, bitrate: str = "192k", use_pipe: bool = False) -> float:
     """``R = 20*log10(d1/d2)`` in dB; NaN when it cannot be measured."""
     info = sf.info(str(path))
-    pcm, rate = sf.read(str(path), dtype="float32",
-                        frames=int(EXCERPT_SEC * info.samplerate))
+    pcm, rate = sf.read(str(path), dtype="float32", frames=int(EXCERPT_SEC * info.samplerate))
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         first = encode_decode(pcm, rate, work, "p1", bitrate, use_pipe)
@@ -204,10 +244,18 @@ def run_control(corpus: Path) -> int:
     collapses = bool(np.isfinite(piped) and np.isfinite(proper) and piped < proper * 0.5)
 
     print("\n  VERDICT:")
-    print("   ", "genuine sits above the fakes OK" if separates
-          else "DOES NOT SEPARATE on this material")
-    print("   ", "the pipe trap is reproduced OK" if collapses
-          else "pipe made no difference here — check the encoder path")
+    print(
+        "   ",
+        "genuine sits above the fakes OK" if separates else "DOES NOT SEPARATE on this material",
+    )
+    print(
+        "   ",
+        (
+            "the pipe trap is reproduced OK"
+            if collapses
+            else "pipe made no difference here — check the encoder path"
+        ),
+    )
     return 0 if separates else 1
 
 
@@ -264,8 +312,10 @@ def report(rows: List[dict]) -> None:
         values = values[np.isfinite(values)]
         if not values.size:
             continue
-        print(f"{arm:14}{values.size:>5}{np.median(values):>11.2f}{values.min():>8.2f}"
-              f"{100 * (values < THETA).mean():>8.0f}%")
+        print(
+            f"{arm:14}{values.size:>5}{np.median(values):>11.2f}{values.min():>8.2f}"
+            f"{100 * (values < THETA).mean():>8.0f}%"
+        )
     print(f"\ngenuine floor {genuine.min():.2f} dB — a transcode should sit well below it.")
 
 
@@ -279,8 +329,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--corpus", type=Path, default=Path(r"C:/Users/loutr/audit_corpus"))
     parser.add_argument("--out", type=Path, default=Path("ml/idempotence_probe.csv"))
     parser.add_argument("--limit", type=int, default=12)
-    parser.add_argument("--arms", nargs="+",
-                        default=["mp3_192", "mp3_320", "opus_256", "aac_ff256"])
+    parser.add_argument(
+        "--arms", nargs="+", default=["mp3_192", "mp3_320", "opus_256", "aac_ff256"]
+    )
     args = parser.parse_args(argv)
 
     if args.control:

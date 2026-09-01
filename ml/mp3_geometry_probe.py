@@ -257,8 +257,14 @@ def run_control(sample_rate: int = 44100, seconds: float = 20.0) -> int:
 
     baseline, _ = peak_ratio(clean, sample_rate, *GEOMETRIES[0][1:4])
     print(f"\n  un-holed control at {GEOMETRIES[0][0]}: {baseline:.2f}  (should sit near 1)")
-    print("\n  VERDICT:", "probe detects grid structure, geometry-specific ✓" if ok
-          else "PROBE FAILS ITS OWN CONTROL — a null on real MP3 would be meaningless ✗")
+    print(
+        "\n  VERDICT:",
+        (
+            "probe detects grid structure, geometry-specific ✓"
+            if ok
+            else "PROBE FAILS ITS OWN CONTROL — a null on real MP3 would be meaningless ✗"
+        ),
+    )
     return 0 if ok else 1
 
 
@@ -297,8 +303,13 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str], n_frames: i
                     continue
                 for gname, win, hop, kind in GEOMETRIES:
                     ratio, offset = peak_ratio(audio, rate, win, hop, kind, n_frames)
-                    row = {"arm": arm, "file": path.name, "geometry": gname,
-                           "ratio": f"{ratio:.4f}", "offset": offset}
+                    row = {
+                        "arm": arm,
+                        "file": path.name,
+                        "geometry": gname,
+                        "ratio": f"{ratio:.4f}",
+                        "offset": offset,
+                    }
                     writer.writerow(row)
                     rows.append({**row, "ratio": ratio})
                 fh.flush()
@@ -427,16 +438,45 @@ def run_gradient(corpus: Path, limit: int, n_frames: int) -> int:
             for bitrate in rates:
                 encoded, decoded = tmp / f"a_{bitrate}.mp3", tmp / f"b_{bitrate}.wav"
                 subprocess.run(
-                    ["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav),
-                     "-c:a", "libmp3lame", "-b:a", bitrate, str(encoded)], check=True)
+                    [
+                        "ffmpeg",
+                        "-y",
+                        "-loglevel",
+                        "error",
+                        "-i",
+                        str(wav),
+                        "-c:a",
+                        "libmp3lame",
+                        "-b:a",
+                        bitrate,
+                        str(encoded),
+                    ],
+                    check=True,
+                )
                 subprocess.run(
-                    ["ffmpeg", "-y", "-loglevel", "error", "-i", str(encoded),
-                     "-c:a", "pcm_s16le", str(decoded)], check=True)
+                    [
+                        "ffmpeg",
+                        "-y",
+                        "-loglevel",
+                        "error",
+                        "-i",
+                        str(encoded),
+                        "-c:a",
+                        "pcm_s16le",
+                        str(decoded),
+                    ],
+                    check=True,
+                )
                 back, back_rate = sf.read(str(decoded), dtype="float32")
                 mono = back if back.ndim == 1 else np.mean(back, axis=1)
                 value, _ = peak_ratio(
                     np.ascontiguousarray(mono, dtype=np.float32),
-                    back_rate, window_len, hop, kind, n_frames)
+                    back_rate,
+                    window_len,
+                    hop,
+                    kind,
+                    n_frames,
+                )
                 by_rate[bitrate].append(value)
             print(f"  [{index}/{len(sources)}]", flush=True)
 
@@ -467,9 +507,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # 12 is plenty for a comparative probe: every arm pays the same sampling
     # noise, and the shipped rule triages on 3 frames before refining.
     parser.add_argument("--frames", type=int, default=12)
-    parser.add_argument(
-        "--arms", nargs="+", default=["mp3_320", "mp3_V0", "mp3_192", "aac_ff256"]
-    )
+    parser.add_argument("--arms", nargs="+", default=["mp3_320", "mp3_V0", "mp3_192", "aac_ff256"])
     args = parser.parse_args(argv)
 
     if args.control:
@@ -478,8 +516,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         return run_gradient(args.corpus, args.limit, args.frames)
     status = run_control()
     if status != 0:
-        print("\nAborting: the probe failed its own control, so corpus numbers would "
-              "not be interpretable.")
+        print(
+            "\nAborting: the probe failed its own control, so corpus numbers would "
+            "not be interpretable."
+        )
         return status
     return run_corpus(args.corpus, args.out, args.limit, args.arms, args.frames)
 

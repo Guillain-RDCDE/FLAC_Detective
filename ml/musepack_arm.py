@@ -172,6 +172,12 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+# Sibling ml/ import: sys.path[0] is ml/ when run as `python ml/musepack_arm.py`,
+# which is how both the workflow and the usage line invoke it. The self-anchored
+# edge is the off-grid instrument: last crossing of ref-6 dB on the fine curve,
+# so its output is NOT a multiple of 250 Hz and its sentinel is typed.
+from edge_width_selfanchored_probe import self_anchored  # noqa: E402
+
 from flac_detective.analysis.new_scoring.mdct import best_alignment_stat  # noqa: E402
 from flac_detective.analysis.new_scoring.stereo_image import side_dead_run  # noqa: E402
 from flac_detective.analysis.spectrum import (  # noqa: E402
@@ -179,12 +185,6 @@ from flac_detective.analysis.spectrum import (  # noqa: E402
     detect_cutoff,
     detect_cutoff_detailed,
 )
-
-# Sibling ml/ import: sys.path[0] is ml/ when run as `python ml/musepack_arm.py`,
-# which is how both the workflow and the usage line invoke it. The self-anchored
-# edge is the off-grid instrument: last crossing of ref-6 dB on the fine curve,
-# so its output is NOT a multiple of 250 Hz and its sentinel is typed.
-from edge_width_selfanchored_probe import self_anchored  # noqa: E402
 
 # Musepack quality presets, by name rather than by bitrate — mpcenc is inherently
 # VBR and its presets are the interface people actually use. Approximate rates:
@@ -225,8 +225,7 @@ def _run(cmd: List[str]) -> None:
         raise RuntimeError(f"{cmd[0]} failed ({proc.returncode}): {proc.stderr.strip()[:300]}")
 
 
-def musepack_roundtrip(src_wav: Path, work: Path, profile: str,
-                       mpcenc: str, mpcdec: str) -> Path:
+def musepack_roundtrip(src_wav: Path, work: Path, profile: str, mpcenc: str, mpcdec: str) -> Path:
     """Encode ``src_wav`` to Musepack at ``profile`` and decode it straight back."""
     encoded = work / f"enc_{profile}.mpc"
     decoded = work / f"dec_{profile}.wav"
@@ -342,8 +341,9 @@ def main(argv: Optional[List[str]] = None) -> int:
             try:
                 base = statistics(src_wav)
             except Exception as exc:
-                print(f"  [{index}/{len(sources)}] {source.name}: baseline failed ({exc})",
-                      flush=True)
+                print(
+                    f"  [{index}/{len(sources)}] {source.name}: baseline failed ({exc})", flush=True
+                )
                 continue
             rows.append({"source": source.name, "arm": "genuine", "profile": "-", **base})
 
@@ -354,20 +354,32 @@ def main(argv: Optional[List[str]] = None) -> int:
                 except Exception as exc:
                     print(f"      {profile}: failed ({exc})", flush=True)
                     continue
-                rows.append({"source": source.name, "arm": "musepack",
-                             "profile": profile, **stats})
+                rows.append({"source": source.name, "arm": "musepack", "profile": profile, **stats})
 
-        print(f"  [{index}/{len(sources)}] {source.name}  "
-              f"baseline mdct={base['mdct']:.2f} run={base['stereo_run']:.1f} "
-              f"cut={base['cutoff']:.0f} edge={base['edge_offgrid']:.0f}"
-              f" ({base['edge_status']})",
-              flush=True)
+        print(
+            f"  [{index}/{len(sources)}] {source.name}  "
+            f"baseline mdct={base['mdct']:.2f} run={base['stereo_run']:.1f} "
+            f"cut={base['cutoff']:.0f} edge={base['edge_offgrid']:.0f}"
+            f" ({base['edge_status']})",
+            flush=True,
+        )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
-            fh, fieldnames=["source", "arm", "profile", "mdct", "stereo_run", "cutoff",
-                            "cutoff_found", "edge_offgrid", "edge_status"])
+            fh,
+            fieldnames=[
+                "source",
+                "arm",
+                "profile",
+                "mdct",
+                "stereo_run",
+                "cutoff",
+                "cutoff_found",
+                "edge_offgrid",
+                "edge_status",
+            ],
+        )
         writer.writeheader()
         writer.writerows(rows)
     print(f"\n{len(rows)} rows -> {args.out}", flush=True)
@@ -390,8 +402,13 @@ def report(rows: List[dict], profiles: List[str]) -> None:
     def edges(rowset: List[dict]) -> np.ndarray:
         """Off-grid edges that ARE measurements ("ok"/"no_floor" carry an edge)."""
         vals = np.array(
-            [float(r["edge_offgrid"]) for r in rowset
-             if r.get("edge_status") in ("ok", "no_floor")], dtype=float)
+            [
+                float(r["edge_offgrid"])
+                for r in rowset
+                if r.get("edge_status") in ("ok", "no_floor")
+            ],
+            dtype=float,
+        )
         return vals[np.isfinite(vals)]
 
     g_mdct = np.array([r["mdct"] for r in genuine], dtype=float)
@@ -399,15 +416,19 @@ def report(rows: List[dict], profiles: List[str]) -> None:
     g_cut = np.array([r["cutoff"] for r in genuine], dtype=float)
     g_edge = edges(genuine)
 
-    print(f"\ngenuine baseline (n={len(genuine)}): "
-          f"mdct median {np.nanmedian(g_mdct):.2f} · "
-          f"stereo run median {np.nanmedian(g_run):.1f} · "
-          f"cutoff median {np.nanmedian(g_cut):.0f} Hz (grid cell) · "
-          f"edge median {np.median(g_edge) if g_edge.size else float('nan'):.0f} Hz "
-          f"({g_edge.size} measured)")
+    print(
+        f"\ngenuine baseline (n={len(genuine)}): "
+        f"mdct median {np.nanmedian(g_mdct):.2f} · "
+        f"stereo run median {np.nanmedian(g_run):.1f} · "
+        f"cutoff median {np.nanmedian(g_cut):.0f} Hz (grid cell) · "
+        f"edge median {np.median(g_edge) if g_edge.size else float('nan'):.0f} Hz "
+        f"({g_edge.size} measured)"
+    )
 
-    print(f"\n{'profile':12}{'n':>4}{'mdct AUC':>11}{'stereo AUC':>12}"
-          f"{'cutoff AUC':>12}{'cell med':>10}{'edge med':>10}{'n edge':>8}")
+    print(
+        f"\n{'profile':12}{'n':>4}{'mdct AUC':>11}{'stereo AUC':>12}"
+        f"{'cutoff AUC':>12}{'cell med':>10}{'edge med':>10}{'n edge':>8}"
+    )
     for profile in profiles:
         arm = [r for r in rows if r["profile"] == profile]
         if not arm:
@@ -419,9 +440,11 @@ def report(rows: List[dict], profiles: List[str]) -> None:
         edge_med = np.median(a_edge) if a_edge.size else float("nan")
         # Cutoff runs the other way: a transcode's cutoff is LOWER than genuine, so
         # the discriminating direction is the negated statistic.
-        print(f"{profile:12}{len(arm):>4}{auc(a_mdct, g_mdct):>11.2f}"
-              f"{auc(a_run, g_run):>12.2f}{auc(-a_cut, -g_cut):>12.2f}"
-              f"{np.nanmedian(a_cut):>10.0f}{edge_med:>10.0f}{a_edge.size:>8}")
+        print(
+            f"{profile:12}{len(arm):>4}{auc(a_mdct, g_mdct):>11.2f}"
+            f"{auc(a_run, g_run):>12.2f}{auc(-a_cut, -g_cut):>12.2f}"
+            f"{np.nanmedian(a_cut):>10.0f}{edge_med:>10.0f}{a_edge.size:>8}"
+        )
 
     print("\n'cell med' is detect_cutoff's output and is a 250 Hz grid cell.")
     print("'edge med' is the self-anchored off-grid measurement (last crossing of")

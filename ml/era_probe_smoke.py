@@ -94,15 +94,23 @@ def lame392_roundtrip(audio: np.ndarray, work: Path, ffmpeg: str) -> Optional[np
     enc = work / "out.mp3"
     dec = work / "dec.wav"
     sf.write(str(src), audio, RATE, subtype="PCM_16")
-    r = subprocess.run([str(LAME392), "-b", "320", str(src), str(enc)],
-                       capture_output=True, text=True, timeout=120, cwd=str(work))
+    r = subprocess.run(
+        [str(LAME392), "-b", "320", str(src), str(enc)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        cwd=str(work),
+    )
     if r.returncode != 0 or not enc.exists() or enc.stat().st_size < 1000:
         print(f"  lame3.92 failed: rc={r.returncode} {r.stderr[-200:]}")
         return None
     banner = [ln for ln in (r.stderr or r.stdout).splitlines() if "LAME" in ln][:1]
     print(f"  lame3.92 banner: {banner[0].strip() if banner else '(none printed)'}")
-    r2 = subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
-                         "-i", str(enc), str(dec)], capture_output=True, text=True)
+    r2 = subprocess.run(
+        [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(enc), str(dec)],
+        capture_output=True,
+        text=True,
+    )
     if r2.returncode != 0:
         return None
     out, rate = sf.read(str(dec), dtype="float32")
@@ -159,16 +167,19 @@ def run_cell(fresh: np.ndarray, ffmpeg: str, label: str) -> None:
     contrast_3100 = r_fresh_3100 - r_t392_3100
     contrast_392 = r_fresh_392 - r_t392_392
     print(f"{'within-probe contrast':24}{contrast_3100:>13.2f}{contrast_392:>13.2f}")
-    e1p = np.isfinite(contrast_392) and np.isfinite(contrast_3100) \
+    e1p = (
+        np.isfinite(contrast_392)
+        and np.isfinite(contrast_3100)
         and contrast_392 >= contrast_3100 + 3.0
-    print(f"E1'  paired contrast >= 3.100 contrast + 3 dB: "
-          f"{'HELD' if e1p else 'FAILED'}")
+    )
+    print(f"E1'  paired contrast >= 3.100 contrast + 3 dB: " f"{'HELD' if e1p else 'FAILED'}")
 
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--cell2", action="store_true",
-                   help="run the E1-prime cell on the fresh excerpt")
+    p.add_argument(
+        "--cell2", action="store_true", help="run the E1-prime cell on the fresh excerpt"
+    )
     args = p.parse_args(argv)
     if not LAME392.exists():
         raise SystemExit(f"missing {LAME392}")
@@ -195,11 +206,12 @@ def main(argv=None) -> int:
     print(f"{'fresh source':24}{r_fresh_3100:>13.2f}{r_fresh_392:>13.2f}")
     print(f"{'lame3.92 transcode':24}{r_t392_3100:>13.2f}{r_t392_392:>13.2f}")
 
-    e1 = np.isfinite(r_t392_392) and np.isfinite(r_t392_3100) \
-        and r_t392_392 < r_t392_3100 - 1.0
+    e1 = np.isfinite(r_t392_392) and np.isfinite(r_t392_3100) and r_t392_392 < r_t392_3100 - 1.0
     e2 = r_fresh_3100 > 2.0 and r_fresh_392 > 2.0
-    print(f"\nE1  era pairing recovers the tell (paired < 3.100 - 1 dB): "
-          f"{'HELD' if e1 else 'FAILED'}")
+    print(
+        f"\nE1  era pairing recovers the tell (paired < 3.100 - 1 dB): "
+        f"{'HELD' if e1 else 'FAILED'}"
+    )
     print(f"E2  both probes read fresh high (> 2 dB): {'HELD' if e2 else 'FAILED'}")
     return 0
 

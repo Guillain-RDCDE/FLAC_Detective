@@ -94,6 +94,21 @@ POINTLESS_WITNESS_RULES: Dict[str, str] = {
 }
 
 
+# The character that joins two merged families into one name.
+#
+# NOT "+", and this is not cosmetic. Nine places in this repository serialise the
+# evidence set as a "+"-joined string, and one of them is the CI-gated guard in
+# tests/test_rule_audit_guard.py that asserts no file is convicted on fewer than
+# two families. Naming the merged family "cnn+spectral" made that guard split it
+# back into two and pass — the mechanism added to stop one observation counting
+# twice would have disabled the test that checks for exactly that.
+#
+# Also not "|", which ml/run_engine_on_set.py and ml/independence_guard_pass.py
+# now use as their column separator. "&" is used by no serialiser here and reads
+# as what it means. ``test_family_name_contains_no_separator`` pins it.
+MERGED_FAMILY_SEPARATOR = "&"
+
+
 class FamilyDependency(NamedTuple):
     """Two families that stop being independent under a named condition.
 
@@ -155,7 +170,7 @@ def collapse_dependent_families(families: Set[str], cutoff_freq: Optional[float]
     for dependency in FAMILY_DEPENDENCIES:
         if dependency.pair <= out and dependency.condition(cutoff_freq):
             out -= dependency.pair
-            out.add("+".join(sorted(dependency.pair)))
+            out.add(MERGED_FAMILY_SEPARATOR.join(sorted(dependency.pair)))
     return out
 
 

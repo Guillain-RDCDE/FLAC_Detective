@@ -187,14 +187,20 @@ def lame_roundtrip(audio: np.ndarray, exe: Path, ffmpeg: str) -> Optional[np.nda
         src, enc, dec = work / "in.wav", work / "out.mp3", work / "dec.wav"
         sf.write(str(src), audio, RATE, subtype="PCM_16")
         try:
-            subprocess.run([str(exe), "-b", "320", str(src), str(enc)],
-                           capture_output=True, timeout=300, cwd=str(work))
+            subprocess.run(
+                [str(exe), "-b", "320", str(src), str(enc)],
+                capture_output=True,
+                timeout=300,
+                cwd=str(work),
+            )
         except (subprocess.TimeoutExpired, OSError):
             return None
         if not enc.exists() or enc.stat().st_size < 4096:
             return None
-        r = subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
-                            "-i", str(enc), str(dec)], capture_output=True)
+        r = subprocess.run(
+            [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(enc), str(dec)],
+            capture_output=True,
+        )
         if r.returncode != 0 or not dec.exists():
             return None
         out, rate = sf.read(str(dec), dtype="float32")
@@ -306,21 +312,34 @@ def evaluate(out: Path) -> int:
         below = sum(a < bar for a in arms)
         wb = {path for path, v in wild.items() if v < bar}
         wild_below[p] = wb
-        print(f"{p:12}{bar:>11.2f}{above:>7}/{len(arms):<2}{below:>7}/{len(arms):<2}{len(wb):>7}/{len(wild):<2}")
+        print(
+            f"{p:12}{bar:>11.2f}{above:>7}/{len(arms):<2}{below:>7}/{len(arms):<2}{len(wb):>7}/{len(wild):<2}"
+        )
 
     era = [p for p in probes if p != "lame3.100" and p in bars]
     eb2_era = all(
-        sum(v[p] > bars[p] for (pop, _), v in reads.items() if pop == "arms_control" and p in v) >= 7
+        sum(v[p] > bars[p] for (pop, _), v in reads.items() if pop == "arms_control" and p in v)
+        >= 7
         for p in era
     )
-    arms100 = [v["lame3.100"] for (pop, _), v in reads.items() if pop == "arms_control" and "lame3.100" in v]
+    arms100 = [
+        v["lame3.100"]
+        for (pop, _), v in reads.items()
+        if pop == "arms_control" and "lame3.100" in v
+    ]
     eb2_100 = sum(a < bars.get("lame3.100", float("inf")) for a in arms100) >= 6
-    print(f"\nEB2 era probes blind to Lavc-3.100 arms (>=7/8 above bar, every era rung): {'HELD' if eb2_era else 'FAILED'}")
-    print(f"EB2 lame.exe-3.100 probe sees them (>=6/8 below its bar): {'HELD' if eb2_100 else 'FAILED'}")
+    print(
+        f"\nEB2 era probes blind to Lavc-3.100 arms (>=7/8 above bar, every era rung): {'HELD' if eb2_era else 'FAILED'}"
+    )
+    print(
+        f"EB2 lame.exe-3.100 probe sees them (>=6/8 below its bar): {'HELD' if eb2_100 else 'FAILED'}"
+    )
 
     recovered = set().union(*wild_below.values()) if wild_below else set()
-    print(f"\nEB3 wilds below SOME probe's bar at best phase: {len(recovered)}/34 (bar >= 2): "
-          f"{'HELD' if len(recovered) >= 2 else 'FAILED'}")
+    print(
+        f"\nEB3 wilds below SOME probe's bar at best phase: {len(recovered)}/34 (bar >= 2): "
+        f"{'HELD' if len(recovered) >= 2 else 'FAILED'}"
+    )
     for path in sorted(recovered):
         v = reads[("wild_owner", path)]
         best_p = min((p for p in v if p in bars), key=lambda p: v[p] - bars[p])
@@ -332,8 +351,10 @@ def evaluate(out: Path) -> int:
             rungs[min((p for p in v if p in bars), key=lambda p: v[p] - bars[p])] += 1
         top = rungs.most_common(2)
         share = sum(c for _, c in top) / len(recovered)
-        print(f"EB4 rung clustering (top two rungs {top} = {share:.0%}, bar >= 60 %): "
-              f"{'HELD' if share >= 0.6 else 'FAILED'}")
+        print(
+            f"EB4 rung clustering (top two rungs {top} = {share:.0%}, bar >= 60 %): "
+            f"{'HELD' if share >= 0.6 else 'FAILED'}"
+        )
 
     # His one-phase claim, checked in passing: does the best canonical phase
     # agree across probes on the same file?
@@ -395,11 +416,16 @@ def main(argv: Optional[List[str]] = None) -> int:
                     full = probe == FULL_SEARCH_PROBE and pop == "wild_owner"
                     row = read_probe(audio, exe, ffmpeg, full)
                     row.update({"population": pop, "path": name, "probe": probe})
-                    row["R_phase0"] = f"{row['R_phase0']:.2f}" if np.isfinite(row["R_phase0"]) else "nan"
+                    row["R_phase0"] = (
+                        f"{row['R_phase0']:.2f}" if np.isfinite(row["R_phase0"]) else "nan"
+                    )
                     row["R_best"] = f"{row['R_best']:.2f}" if np.isfinite(row["R_best"]) else "nan"
                     writer.writerow(row)
                     fh.flush()
-                    print(f"[{pop}] {name[:40]:40} {probe:11} R0={row['R_phase0']:>6} Rbest={row['R_best']:>6} ph={row['best_phase']}", flush=True)
+                    print(
+                        f"[{pop}] {name[:40]:40} {probe:11} R0={row['R_phase0']:>6} Rbest={row['R_best']:>6} ph={row['best_phase']}",
+                        flush=True,
+                    )
     print("done", flush=True)
     return 0
 

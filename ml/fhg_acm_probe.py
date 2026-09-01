@@ -207,12 +207,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     av2 = ar.size >= 4 and np.median(ar) >= np.median(fx) + 1.5
     av3 = fl.size >= 4 and np.median(fl - fx[: fl.size]) >= 1.0
 
-    print(f"\nAV1 auto-appariement (max fixture {fx.max():.2f} < min genuine {ge.min():.2f}): "
-          f"{'HELD' if av1 else 'FAILED'}")
-    print(f"AV2 verrou de famille (med bras {np.median(ar):.2f} >= med fixture {np.median(fx):.2f} + 1.5): "
-          f"{'HELD' if av2 else 'FAILED'}")
-    print(f"AV3 diagonale (med LAME-ACM {np.median(fl - fx[: fl.size]):.2f} >= 1.0): "
-          f"{'HELD' if av3 else 'FAILED'}")
+    print(
+        f"\nAV1 auto-appariement (max fixture {fx.max():.2f} < min genuine {ge.min():.2f}): "
+        f"{'HELD' if av1 else 'FAILED'}"
+    )
+    print(
+        f"AV2 verrou de famille (med bras {np.median(ar):.2f} >= med fixture {np.median(fx):.2f} + 1.5): "
+        f"{'HELD' if av2 else 'FAILED'}"
+    )
+    print(
+        f"AV3 diagonale (med LAME-ACM {np.median(fl - fx[: fl.size]):.2f} >= 1.0): "
+        f"{'HELD' if av3 else 'FAILED'}"
+    )
     return 0
 
 

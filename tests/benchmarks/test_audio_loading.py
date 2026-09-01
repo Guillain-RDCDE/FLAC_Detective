@@ -37,10 +37,10 @@ class TestAudioLoadingBenchmarks:
 
     def test_audio_cache_reuse(self, benchmark, benchmark_audio_file):
         """Benchmark repeated access to cached audio."""
-        cache = AudioCache(benchmark_audio_file, 30.0)
+        cache = AudioCache(benchmark_audio_file)
 
         def access_cache():
-            return cache.get_audio()
+            return cache.get_full_audio()
 
         result = benchmark(access_cache)
         assert result is not None
@@ -72,10 +72,10 @@ class TestCachePerformance:
 
     def test_cache_hit_performance(self, benchmark, benchmark_audio_file):
         """Benchmark cache hit (already loaded)."""
-        cache = AudioCache(benchmark_audio_file, 30.0)
-        _ = cache.get_audio()  # Warm up cache
+        cache = AudioCache(benchmark_audio_file)
+        _ = cache.get_full_audio()  # Warm up cache
 
-        benchmark(cache.get_audio)
+        benchmark(cache.get_full_audio)
 
     def test_cache_miss_performance(self, benchmark):
         """Benchmark cache miss (new file each time)."""
@@ -88,12 +88,13 @@ class TestCachePerformance:
             # Create temp file
             audio = np.random.randn(44100, 2) * 0.5
             temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+            temp_file.close()  # Windows will not unlink a file the process still holds open
             temp_path = Path(temp_file.name)
             sf.write(temp_path, audio, 44100)
 
             # Create cache
-            cache = AudioCache(temp_path, 5.0)
-            result = cache.get_audio()
+            cache = AudioCache(temp_path)
+            result = cache.get_full_audio()
 
             # Cleanup
             temp_path.unlink(missing_ok=True)

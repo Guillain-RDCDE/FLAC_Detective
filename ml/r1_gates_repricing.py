@@ -245,12 +245,12 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from flac_detective.analysis.spectrum import analyze_spectrum  # noqa: E402
 from flac_detective.analysis.new_scoring.rules.spectral import (  # noqa: E402
     NEARNYQ_FLOOR_DB,
     apply_rule_1_mp3_bitrate,
     estimate_mp3_bitrate,
 )
+from flac_detective.analysis.spectrum import analyze_spectrum  # noqa: E402
 
 NEW_VARIANCE_THRESHOLD = 130.0
 PCM_CONTAINER_FACTOR = 0.90

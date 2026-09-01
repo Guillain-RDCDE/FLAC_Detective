@@ -92,8 +92,22 @@ import numpy as np
 HIS = Path("ml/exchange/provir_return_v2_2026-08.csv")
 OURS = Path("ml/exchange/fd-exchange-v2_columns_flacdetective.csv")
 KEY = Path(r"C:\Users\loutr\fd-exchange-v2-2026-08-LABELS.json")
-EXCLUDED = {"fd-exchange-v2-2026-08-0197.flac", "fd-exchange-v2-2026-08-0386.flac", "fd-exchange-v2-2026-08-0469.flac"}
-ARMS = ["mp3_192", "mp3_320", "mp3_V0", "aac_ff128", "aac_ff256", "aac_ff320", "aacmf_256", "opus_256", "vorbis_q8"]
+EXCLUDED = {
+    "fd-exchange-v2-2026-08-0197.flac",
+    "fd-exchange-v2-2026-08-0386.flac",
+    "fd-exchange-v2-2026-08-0469.flac",
+}
+ARMS = [
+    "mp3_192",
+    "mp3_320",
+    "mp3_V0",
+    "aac_ff128",
+    "aac_ff256",
+    "aac_ff320",
+    "aacmf_256",
+    "opus_256",
+    "vorbis_q8",
+]
 
 
 def f(x):
@@ -140,33 +154,46 @@ def main() -> int:
         files = [x for x in his if lab[x] == arm]
         row = ""
         for name, col in probes.items():
-            n_below = sum(1 for x in files if np.isfinite(f(his[x][col])) and f(his[x][col]) < bars[name])
+            n_below = sum(
+                1 for x in files if np.isfinite(f(his[x][col])) and f(his[x][col]) < bars[name]
+            )
             below[arm][name] = n_below
             row += f"{n_below:>7}/59"
         print(f"  {arm:10}" + row)
 
     m1_frac = below["mp3_320"]["LAME-320"] / 59
     m1 = 0.2 <= m1_frac <= 0.8
-    print(f"\nM1 mp3_320 (Lavc) below his LAME-320 bar: {below['mp3_320']['LAME-320']}/59 = {m1_frac:.0%} "
-          f"(band [20 %, 80 %]): {'HELD' if m1 else 'FAILED'}")
+    print(
+        f"\nM1 mp3_320 (Lavc) below his LAME-320 bar: {below['mp3_320']['LAME-320']}/59 = {m1_frac:.0%} "
+        f"(band [20 %, 80 %]): {'HELD' if m1 else 'FAILED'}"
+    )
     non_mp3 = ["aac_ff128", "aac_ff256", "aac_ff320", "aacmf_256", "opus_256", "vorbis_q8"]
     worst = max((below[a]["LAME-320"] / 59, a) for a in non_mp3)
     m2 = worst[0] <= 0.10
-    print(f"M2 non-MP3 arms below his LAME-320 bar (each <= 10 %): worst {worst[1]} at {worst[0]:.0%}: "
-          f"{'HELD' if m2 else 'FAILED'}")
+    print(
+        f"M2 non-MP3 arms below his LAME-320 bar (each <= 10 %): worst {worst[1]} at {worst[0]:.0%}: "
+        f"{'HELD' if m2 else 'FAILED'}"
+    )
 
     # M3: what the search added over phase 0 (his LAME-320 columns)
-    print("\nM3 (exploratory) phase search gain, R_mp3_320_phase0 - R_mp3_320_bestphase, median per label:")
+    print(
+        "\nM3 (exploratory) phase search gain, R_mp3_320_phase0 - R_mp3_320_bestphase, median per label:"
+    )
     for arm in ["genuine"] + ARMS:
         files = [x for x in his if lab[x] == arm and x not in EXCLUDED]
-        gain = [f(his[x]["idem.R_mp3_320_phase0"]) - f(his[x]["idem.R_mp3_320_bestphase"]) for x in files]
+        gain = [
+            f(his[x]["idem.R_mp3_320_phase0"]) - f(his[x]["idem.R_mp3_320_bestphase"])
+            for x in files
+        ]
         gain = [g for g in gain if np.isfinite(g)]
         full = [f(his[x]["idem.R_mp3_320_full_bestphase"]) for x in files]
         quick = [f(his[x]["idem.R_mp3_320_bestphase"]) for x in files]
         both = [(q, fl) for q, fl in zip(quick, full) if np.isfinite(q) and np.isfinite(fl)]
         dfull = [abs(q - fl) for q, fl in both]
-        print(f"  {arm:10} median gain {np.median(gain):6.3f}  max {max(gain):6.3f}   "
-              f"|bestphase - full_bestphase| median {np.median(dfull) if dfull else float('nan'):.3f}")
+        print(
+            f"  {arm:10} median gain {np.median(gain):6.3f}  max {max(gain):6.3f}   "
+            f"|bestphase - full_bestphase| median {np.median(dfull) if dfull else float('nan'):.3f}"
+        )
 
     # M4: AAC_LATTICE flag rate per arm
     print("\nM4 (exploratory) AAC_LATTICE flag rate per arm (his flags column):")
@@ -176,26 +203,41 @@ def main() -> int:
         print(f"  {arm:10} {n:3}/{len(files)}")
 
     # M5: stereo axes + bit depth, AUC vs genuine, paired with ours
-    print("\nM5 (exploratory) his stereo/bit axes, AUC arm-vs-genuine (negated where lower = more suspect):")
+    print(
+        "\nM5 (exploratory) his stereo/bit axes, AUC arm-vs-genuine (negated where lower = more suspect):"
+    )
     axes = [
-        ("telemetry.hf_stereo_corr", -1), ("telemetry.mid_stereo_corr", -1), ("telemetry.ms_cond", +1),
-        ("telemetry.lsb_entropy", -1), ("telemetry.bit_effective", -1),
+        ("telemetry.hf_stereo_corr", -1),
+        ("telemetry.mid_stereo_corr", -1),
+        ("telemetry.ms_cond", +1),
+        ("telemetry.lsb_entropy", -1),
+        ("telemetry.bit_effective", -1),
     ]
-    hdr = f"  {'arm':10}" + "".join(f"{c.split('.')[-1][:14]:>16}" for c, _ in axes) + f"{'our stereo_run':>16}"
+    hdr = (
+        f"  {'arm':10}"
+        + "".join(f"{c.split('.')[-1][:14]:>16}" for c, _ in axes)
+        + f"{'our stereo_run':>16}"
+    )
     print(hdr)
     for arm in ARMS:
         files = [x for x in his if lab[x] == arm]
         row = f"  {arm:10}"
         for col, sign in axes:
-            a = auc([sign * f(his[x][col]) for x in files], [sign * f(his[x][col]) for x in genuine])
+            a = auc(
+                [sign * f(his[x][col]) for x in files], [sign * f(his[x][col]) for x in genuine]
+            )
             row += f"{a:>16.2f}"
-        a_ours = auc([f(ours[x]["stereo_run"]) for x in files], [f(ours[x]["stereo_run"]) for x in genuine])
+        a_ours = auc(
+            [f(ours[x]["stereo_run"]) for x in files], [f(ours[x]["stereo_run"]) for x in genuine]
+        )
         row += f"{a_ours:>16.2f}"
         print(row)
 
     # bonus: his best_phase clusters outside phase 0 (the constant-delay diagnostic on our arms)
     print("\nbest_phase distribution on non-MP3 arms (top 5):")
-    c = Counter(his[x]["idem.best_phase"] for x in his if lab[x] not in {"mp3_192", "mp3_320", "mp3_V0"})
+    c = Counter(
+        his[x]["idem.best_phase"] for x in his if lab[x] not in {"mp3_192", "mp3_320", "mp3_V0"}
+    )
     print(" ", c.most_common(5))
     return 0
 

@@ -704,7 +704,9 @@ def trim(out: Path) -> int:
         return 1
     counts = {f: int(soundfile.info(str(f)).frames) for f in files}
     target = min(counts.values())
-    print(f"{len(files)} fichiers, {len(set(counts.values()))} longueurs distinctes -> cible {target}")
+    print(
+        f"{len(files)} fichiers, {len(set(counts.values()))} longueurs distinctes -> cible {target}"
+    )
     trimmed = 0
     for path, frames in counts.items():
         if frames == target:

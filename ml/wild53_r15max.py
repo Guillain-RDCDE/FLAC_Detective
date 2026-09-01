@@ -75,6 +75,9 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from edge_width_probe import auc  # noqa: E402
+
+from flac_detective.analysis.new_scoring.rules.stereo_seam import RUN_BAR  # noqa: E402
 from flac_detective.analysis.new_scoring.stereo_image import (  # noqa: E402
     MIN_FRAMES,
     MONO_GATE,
@@ -83,8 +86,6 @@ from flac_detective.analysis.new_scoring.stereo_image import (  # noqa: E402
     _restore,
     _spectra,
 )
-from flac_detective.analysis.new_scoring.rules.stereo_seam import RUN_BAR  # noqa: E402
-from edge_width_probe import auc  # noqa: E402
 
 WILD = Path(r"C:\Users\loutr\wild53\21-08-26\Original Hardcore The Nu Breed (2004)")
 TIERS = {

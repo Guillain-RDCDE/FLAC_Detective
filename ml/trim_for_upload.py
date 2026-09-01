@@ -49,12 +49,20 @@ def _trim_one(args: tuple[Path, Path, Path]) -> tuple[str, bool, str]:
     # the file is shorter; we accept that — short tracks (intros, interludes)
     # are rare in the dataset.
     cmd = [
-        "ffmpeg", "-y", "-loglevel", "error",
-        "-ss", "30",
-        "-i", str(src),
-        "-t", "30",
-        "-c:a", "flac",
-        "-compression_level", "8",
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-ss",
+        "30",
+        "-i",
+        str(src),
+        "-t",
+        "30",
+        "-c:a",
+        "flac",
+        "-compression_level",
+        "8",
         str(dst),
     ]
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -62,11 +70,18 @@ def _trim_one(args: tuple[Path, Path, Path]) -> tuple[str, bool, str]:
         # Maybe the file is shorter than 30s — retry without -ss to capture whatever exists
         dst.unlink(missing_ok=True)
         cmd_short = [
-            "ffmpeg", "-y", "-loglevel", "error",
-            "-i", str(src),
-            "-t", "30",
-            "-c:a", "flac",
-            "-compression_level", "8",
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-i",
+            str(src),
+            "-t",
+            "30",
+            "-c:a",
+            "flac",
+            "-compression_level",
+            "8",
             str(dst),
         ]
         r2 = subprocess.run(cmd_short, capture_output=True, text=True)
@@ -79,8 +94,9 @@ def _trim_one(args: tuple[Path, Path, Path]) -> tuple[str, bool, str]:
     return (str(rel), True, "ok")
 
 
-def main(manifest_path: Path, source_root: Path, output_root: Path,
-         workers: int, clean: bool) -> int:
+def main(
+    manifest_path: Path, source_root: Path, output_root: Path, workers: int, clean: bool
+) -> int:
     if shutil.which("ffmpeg") is None:
         log.error("ffmpeg not found on PATH")
         return 1
@@ -104,6 +120,7 @@ def main(manifest_path: Path, source_root: Path, output_root: Path,
 
     try:
         from tqdm import tqdm
+
         progress = tqdm(total=len(jobs), unit="file")
     except ImportError:
         progress = None
@@ -143,5 +160,8 @@ if __name__ == "__main__":
     p.add_argument("--workers", type=int, default=min(16, mp.cpu_count()))
     p.add_argument("--clean", action="store_true", help="Delete output dir first")
     args = p.parse_args()
-    sys.exit(main(Path(args.manifest), Path(args.source_root),
-                  Path(args.output), args.workers, args.clean))
+    sys.exit(
+        main(
+            Path(args.manifest), Path(args.source_root), Path(args.output), args.workers, args.clean
+        )
+    )

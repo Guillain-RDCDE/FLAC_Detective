@@ -64,10 +64,10 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from flac_detective.analysis.new_scoring.stereo_image import side_dead_run  # noqa: E402
-from flac_detective.analysis.new_scoring.temporal import temporal_seam  # noqa: E402
 from flac_detective.analysis.new_scoring.rules.stereo_seam import RUN_BAR  # noqa: E402
 from flac_detective.analysis.new_scoring.rules.temporal_seam import SEAM_BAR  # noqa: E402
+from flac_detective.analysis.new_scoring.stereo_image import side_dead_run  # noqa: E402
+from flac_detective.analysis.new_scoring.temporal import temporal_seam  # noqa: E402
 
 POPULATIONS = {
     "clean": [

@@ -157,9 +157,13 @@ def side_dead_runs(path: Path) -> dict:
     mid_raw, side_raw = mid_side(data)
     ratio = stereo_ratio(mid_raw, side_raw)
 
-    out: dict = {"stereo_ratio": ratio, "mono_gated": ratio < MONO_GATE,
-                 "max_run": float("nan"), "mean_run": float("nan"),
-                 "max_run_rel": float("nan")}
+    out: dict = {
+        "stereo_ratio": ratio,
+        "mono_gated": ratio < MONO_GATE,
+        "max_run": float("nan"),
+        "mean_run": float("nan"),
+        "max_run_rel": float("nan"),
+    }
     if out["mono_gated"]:
         # No stereo image: the statistic would be measuring its own absence.
         return out
@@ -234,27 +238,40 @@ def run_control(rate: int = 44100) -> int:
             return side_dead_runs(path)
 
         live = measure(_stereo_noise(rate, 12.0), "live")
-        print(f"  {'live stereo, nothing killed':>30} {live['max_run']:>9.1f} "
-              f"{live['stereo_ratio']:>11.2e} {str(live['mono_gated']):>7}")
+        print(
+            f"  {'live stereo, nothing killed':>30} {live['max_run']:>9.1f} "
+            f"{live['stereo_ratio']:>11.2e} {str(live['mono_gated']):>7}"
+        )
 
         killed = measure(
-            _kill_side_band(_stereo_noise(rate, 12.0), rate, 12000.0, 18000.0), "killed")
-        print(f"  {'side killed 12-18 kHz':>30} {killed['max_run']:>9.1f} "
-              f"{killed['stereo_ratio']:>11.2e} {str(killed['mono_gated']):>7}")
+            _kill_side_band(_stereo_noise(rate, 12.0), rate, 12000.0, 18000.0), "killed"
+        )
+        print(
+            f"  {'side killed 12-18 kHz':>30} {killed['max_run']:>9.1f} "
+            f"{killed['stereo_ratio']:>11.2e} {str(killed['mono_gated']):>7}"
+        )
 
         mono_data = _stereo_noise(rate, 12.0)
         mono_data[:, 1] = mono_data[:, 0]
         mono = measure(mono_data, "mono")
-        print(f"  {'MONO (identical channels)':>30} {mono['max_run']:>9.1f} "
-              f"{mono['stereo_ratio']:>11.2e} {str(mono['mono_gated']):>7}")
+        print(
+            f"  {'MONO (identical channels)':>30} {mono['max_run']:>9.1f} "
+            f"{mono['stereo_ratio']:>11.2e} {str(mono['mono_gated']):>7}"
+        )
 
     finds = np.isfinite(killed["max_run"]) and killed["max_run"] > max(live["max_run"], 1.0) * 2
     gates = bool(mono["mono_gated"])
 
     print("\n  VERDICT:")
     print("   ", "finds a killed side band OK" if finds else "MISSES the killed side band")
-    print("   ", "gates mono OK" if gates
-          else "DOES NOT GATE MONO — this convicts masters for having no stereo image")
+    print(
+        "   ",
+        (
+            "gates mono OK"
+            if gates
+            else "DOES NOT GATE MONO — this convicts masters for having no stereo image"
+        ),
+    )
     return 0 if (finds and gates) else 1
 
 
@@ -292,8 +309,18 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
     rows: List[dict] = []
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=[
-            "arm", "file", "max_run", "mean_run", "max_run_rel", "stereo_ratio", "mono_gated"])
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=[
+                "arm",
+                "file",
+                "max_run",
+                "mean_run",
+                "max_run_rel",
+                "stereo_ratio",
+                "mono_gated",
+            ],
+        )
         writer.writeheader()
         for arm, paths in groups.items():
             for index, path in enumerate(paths, 1):
@@ -302,9 +329,15 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
                 except Exception as exc:
                     print(f"  skip {path.name}: {exc}", flush=True)
                     continue
-                writer.writerow({"arm": arm, "file": path.name, **{
-                    k: (f"{v:.4f}" if isinstance(v, float) else v)
-                    for k, v in stats.items()}})
+                writer.writerow(
+                    {
+                        "arm": arm,
+                        "file": path.name,
+                        **{
+                            k: (f"{v:.4f}" if isinstance(v, float) else v) for k, v in stats.items()
+                        },
+                    }
+                )
                 rows.append({"arm": arm, **stats})
                 if index % 10 == 0:
                     print(f"  {arm} [{index}/{len(paths)}]", flush=True)
@@ -341,8 +374,10 @@ def report(rows: List[dict]) -> None:
             if not values.size:
                 continue
             area = "-" if arm == "genuine" else f"{auc(values, genuine):.2f}"
-            print(f"{arm:14}{values.size:>5}{np.median(values):>10.2f}{area:>7}"
-                  f"{100 * (values >= bar).mean():>8.0f}%")
+            print(
+                f"{arm:14}{values.size:>5}{np.median(values):>10.2f}{area:>7}"
+                f"{100 * (values >= bar).mean():>8.0f}%"
+            )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -352,8 +387,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--corpus", type=Path, default=Path(r"C:/Users/loutr/audit_corpus"))
     parser.add_argument("--out", type=Path, default=Path("ml/side_dead_run_probe.csv"))
     parser.add_argument("--limit", type=int, default=40)
-    parser.add_argument("--arms", nargs="+", default=[
-        "mp3_320", "mp3_V0", "aacmf_256", "opus_256", "aac_ff320", "vorbis_q8"])
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        default=["mp3_320", "mp3_V0", "aacmf_256", "opus_256", "aac_ff320", "vorbis_q8"],
+    )
     args = parser.parse_args(argv)
 
     if args.control:

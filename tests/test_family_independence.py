@@ -11,7 +11,11 @@ from flac_detective.analysis.new_scoring.constants import (
     CONVICTION_MIN_FAMILIES,
     FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ,
 )
-from flac_detective.analysis.new_scoring.evidence import collapse_dependent_families
+from flac_detective.analysis.new_scoring.evidence import (
+    FAMILY_DEPENDENCIES,
+    MERGED_FAMILY_SEPARATOR,
+    collapse_dependent_families,
+)
 
 LOW = FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ - 500.0
 HIGH = FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ + 500.0
@@ -63,3 +67,27 @@ def test_families_outside_the_table_are_never_merged():
     """A rule absent from the dependency table keeps its independence by default."""
     got = collapse_dependent_families({"mdct", "stereo", "silence"}, LOW)
     assert got == {"mdct", "stereo", "silence"}
+
+
+def test_a_merged_family_name_contains_no_serialiser_separator():
+    """The merged name must not split back into two under any serialiser here.
+
+    Nine places in this repository join the evidence set into a string. One is
+    the CI-gated guard asserting no file is convicted on fewer than two
+    families, and it splits on "+". A merged family named with a "+" made that
+    guard count one witness as two and pass — the mechanism meant to stop one
+    observation counting twice would have switched off the test for it.
+    """
+    merged = collapse_dependent_families({"cnn", "spectral"}, LOW)
+    (name,) = merged
+    for separator in ("+", "|", ",", ";"):
+        assert separator not in name, f"{name!r} splits on {separator!r}"
+    assert len(name.split(MERGED_FAMILY_SEPARATOR)) == 2
+
+
+def test_no_declared_family_name_can_collide_with_a_merged_one():
+    """Every merged name is built from the pair it merges, and nothing else."""
+    for dependency in FAMILY_DEPENDENCIES:
+        expected = MERGED_FAMILY_SEPARATOR.join(sorted(dependency.pair))
+        got = collapse_dependent_families(set(dependency.pair), LOW)
+        assert got == {expected}

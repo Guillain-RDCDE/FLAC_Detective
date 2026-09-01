@@ -57,13 +57,11 @@ import soundfile as sf
 # The algorithm itself lives in the package, not here: this file is a measurement
 # harness on top of the shipped implementation. Two copies would drift, and the
 # whole point of the exercise is that what gets measured is what gets shipped.
-from flac_detective.analysis.new_scoring.mdct import (  # noqa: E402
+from flac_detective.analysis.new_scoring.mdct import (
     WINDOW_LEN,
-    alignment_curve as _alignment_curve,
-    alignment_stat,
-    kbd_window,
-    sine_window,
 )
+from flac_detective.analysis.new_scoring.mdct import alignment_curve as _alignment_curve  # noqa: E402
+from flac_detective.analysis.new_scoring.mdct import alignment_stat, kbd_window, sine_window
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)

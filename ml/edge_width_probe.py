@@ -84,8 +84,10 @@ from flac_detective.analysis.spectrum import (  # noqa: E402
 EXCERPT_SEC = 30.0
 
 ARMS = {
-    "genuine": ["C:/Users/loutr/audit_corpus/authentic/*.flac",
-                "C:/Users/loutr/wild_authentic/**/*.flac"],
+    "genuine": [
+        "C:/Users/loutr/audit_corpus/authentic/*.flac",
+        "C:/Users/loutr/wild_authentic/**/*.flac",
+    ],
     "mp3_320": ["C:/Users/loutr/audit_corpus/fake/mp3_320/*.flac"],
     "mp3_V0": ["C:/Users/loutr/audit_corpus/fake/mp3_V0/*.flac"],
     "aac_ff320": ["C:/Users/loutr/audit_corpus/fake/aac_ff320/*.flac"],
@@ -160,14 +162,15 @@ def report(rows: List[dict]) -> None:
     print(f"\n{'arm':12}{'n':>5}{'largeur ok':>12}{'med':>9}{'p05':>9}{'p95':>9}")
     widths = {}
     for arm in ARMS:
-        w = np.array([r["width"] for r in rows
-                      if r["arm"] == arm and r["found"]], dtype=float)
+        w = np.array([r["width"] for r in rows if r["arm"] == arm and r["found"]], dtype=float)
         w = w[np.isfinite(w)]
         widths[arm] = w
         rowset = [r for r in rows if r["arm"] == arm and r["found"]]
         if w.size:
-            print(f"{arm:12}{len(rowset):>5}{w.size:>12}{np.median(w):>9.0f}"
-                  f"{np.percentile(w, 5):>9.0f}{np.percentile(w, 95):>9.0f}")
+            print(
+                f"{arm:12}{len(rowset):>5}{w.size:>12}{np.median(w):>9.0f}"
+                f"{np.percentile(w, 5):>9.0f}{np.percentile(w, 95):>9.0f}"
+            )
         else:
             print(f"{arm:12}{len(rowset):>5}{0:>12}")
 
@@ -188,15 +191,16 @@ def report(rows: List[dict]) -> None:
         return
     for pct in (1, 5, 10):
         bar = float(np.percentile(gen, pct))
-        print(f"\nbarre = p{pct} des authentiques = {bar:.0f} Hz  "
-              f"(cout authentique {pct} %)")
+        print(f"\nbarre = p{pct} des authentiques = {bar:.0f} Hz  " f"(cout authentique {pct} %)")
         for arm in ARMS:
             if arm == "genuine" or not widths[arm].size:
                 continue
             fires = int((widths[arm] <= bar).sum())
             total = sum(1 for r in rows if r["arm"] == arm)
-            print(f"    {arm:12} {fires:3d}/{widths[arm].size:3d} des bords trouves"
-                  f"   = {100*fires/total:5.1f} % de l'arme entiere ({total})")
+            print(
+                f"    {arm:12} {fires:3d}/{widths[arm].size:3d} des bords trouves"
+                f"   = {100*fires/total:5.1f} % de l'arme entiere ({total})"
+            )
 
     print("\nLecture : le taux 'de l'arme entiere' est le seul honnete — un fichier")
     print("sans bord trouve ne peut pas temoigner, et l'exclure du denominateur")
@@ -230,8 +234,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     rows = collect(args.genuine, args.arm)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(
-            fh, fieldnames=["arm", "path", "rate", "cutoff", "found", "width"])
+        writer = csv.DictWriter(fh, fieldnames=["arm", "path", "rate", "cutoff", "found", "width"])
         writer.writeheader()
         writer.writerows(rows)
     print(f"\n{len(rows)} lignes -> {args.out}", flush=True)

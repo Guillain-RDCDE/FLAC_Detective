@@ -266,7 +266,7 @@ def report(rows: List[dict]) -> None:
         lat_gen = lat_gen[np.isfinite(lat_gen)]
         lat_txt = (f"  lattice={auc(lat, lat_gen):.2f}") if lat.size and lat_gen.size else ""
 
-        def _auc_of(field: str) -> str:
+        def _auc_of(field: str, arm: str = arm) -> str:
             fake = np.array([r[field] for r in rows if r["arm"] == arm], dtype=np.float64)
             gen = np.array([r[field] for r in rows if r["arm"] == "genuine"], dtype=np.float64)
             fake, gen = fake[np.isfinite(fake)], gen[np.isfinite(gen)]

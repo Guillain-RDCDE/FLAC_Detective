@@ -107,11 +107,11 @@ BASES = {
     "uploader_admission": "the uploader or distributor acknowledged the source",
     "byte_identity": "byte-identical to a known lossy source",
     "owner_attestation": "the release's physical owner attests its source from "
-                         "knowledge and ownership, no instrument involved",
+    "knowledge and ownership, no instrument involved",
     "listening": "adjudicated by ear, by someone who does this competently",
     "spectrogram": "adjudicated by looking at a spectrogram",
     "metadata_contradiction": "the file's own tags contradict its provenance "
-                              "claim, checkable by anyone with ffprobe",
+    "claim, checkable by anyone with ffprobe",
 }
 
 # The bases that do NOT come from a human's eyes or ears. Only these are ground
@@ -121,9 +121,16 @@ BASES = {
 # using it — it only forces them to mislabel it as `listening`, which is the same
 # corpus with the evidence hidden. Provir's ledger records 16 of 34 fakes settled
 # this way and 9 more by ear, leaving 6 referee-grade rows out of 34.
-REFEREE_BASES = frozenset({"tracker_staff", "provenance_pair", "uploader_admission",
-                           "byte_identity", "owner_attestation",
-                           "metadata_contradiction"})
+REFEREE_BASES = frozenset(
+    {
+        "tracker_staff",
+        "provenance_pair",
+        "uploader_admission",
+        "byte_identity",
+        "owner_attestation",
+        "metadata_contradiction",
+    }
+)
 
 # `metadata_contradiction` was added 2026-08-31 for a case of Provir's that no
 # existing value could hold, and it is referee-grade for the strongest possible
@@ -224,9 +231,15 @@ def cmd_add(args: argparse.Namespace) -> int:
                 "bytes": path.stat().st_size,
                 "source": args.source,
                 "added": _now(),
-                "adjudication": {"label": "undecided", "basis": None,
-                                 "selection": None, "referee": False,
-                                 "by": None, "at": None, "note": None},
+                "adjudication": {
+                    "label": "undecided",
+                    "basis": None,
+                    "selection": None,
+                    "referee": False,
+                    "by": None,
+                    "at": None,
+                    "note": None,
+                },
                 "verdicts": [],
             }
             records[key] = record
@@ -236,23 +249,30 @@ def cmd_add(args: argparse.Namespace) -> int:
 
         try:
             result = analyzer.analyze_file(str(path))
-            record["verdicts"].append({
-                "version": __version__,
-                "at": _now(),
-                "verdict": result["verdict"],
-                "score": result["score"],
-                "families": sorted(result.get("evidence_families") or []),
-            })
+            record["verdicts"].append(
+                {
+                    "version": __version__,
+                    "at": _now(),
+                    "verdict": result["verdict"],
+                    "score": result["score"],
+                    "families": sorted(result.get("evidence_families") or []),
+                }
+            )
         except Exception as exc:
             print(f"  {path.name}: analysis failed ({exc})")
 
-        print(f"  {path.name}  {key[:12]}  {record['verdicts'][-1]['verdict']}"
-              if record["verdicts"] else f"  {path.name}  {key[:12]}")
+        print(
+            f"  {path.name}  {key[:12]}  {record['verdicts'][-1]['verdict']}"
+            if record["verdicts"]
+            else f"  {path.name}  {key[:12]}"
+        )
 
     save(records)
     print(f"\n{added} new, {updated} already known. Ledger: {LEDGER}")
-    print("Nothing is labelled yet — run `adjudicate`, and note that the engine's "
-          "own verdict must never be the label.")
+    print(
+        "Nothing is labelled yet — run `adjudicate`, and note that the engine's "
+        "own verdict must never be the label."
+    )
     return 0
 
 
@@ -266,8 +286,10 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
     key = matches[0]
 
     if args.label == "fake" and args.basis is None:
-        print("a 'fake' label needs --basis; guessing is what this ledger exists to "
-              "prevent.\n  " + "\n  ".join(f"{k}: {v}" for k, v in BASES.items()))
+        print(
+            "a 'fake' label needs --basis; guessing is what this ledger exists to "
+            "prevent.\n  " + "\n  ".join(f"{k}: {v}" for k, v in BASES.items())
+        )
         return 1
     if args.basis and args.basis not in BASES:
         print(f"unknown basis {args.basis!r}. Accepted: {', '.join(BASES)}")
@@ -276,29 +298,35 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
     # label chosen by eye biases a spectral axis exactly as hard, in the other
     # direction, and the ledger is empty so there is no legacy row to grandfather.
     if args.label in ("fake", "genuine") and args.selection is None:
-        print("a decided label needs --selection: how did this file enter the pool?\n  "
-              + "\n  ".join(f"{k}: {v}" for k, v in SELECTIONS.items())
-              + "\n\nThis is not the same question as --basis. Basis says how it was "
-                "settled;\nselection says how it was chosen, and the choosing is what "
-                "biases any\nstatistic computed over the survivors.\n\nA pipeline is "
-                "written with '+': a metric shortlisted and an eye ruled is\n"
-                "'detector+human_eye' (Provir's CD3 tier).")
+        print(
+            "a decided label needs --selection: how did this file enter the pool?\n  "
+            + "\n  ".join(f"{k}: {v}" for k, v in SELECTIONS.items())
+            + "\n\nThis is not the same question as --basis. Basis says how it was "
+            "settled;\nselection says how it was chosen, and the choosing is what "
+            "biases any\nstatistic computed over the survivors.\n\nA pipeline is "
+            "written with '+': a metric shortlisted and an eye ruled is\n"
+            "'detector+human_eye' (Provir's CD3 tier)."
+        )
         return 1
     # A selection may be a pipeline — validate every link, not the joined string.
     if args.selection is not None:
         links = args.selection.split("+")
         bad = [link for link in links if link not in SELECTIONS]
         if bad:
-            print(f"unknown selection link(s) {bad}. Accepted links: "
-                  f"{', '.join(sorted(SELECTIONS))}, chained with '+'.")
+            print(
+                f"unknown selection link(s) {bad}. Accepted links: "
+                f"{', '.join(sorted(SELECTIONS))}, chained with '+'."
+            )
             return 1
     # Scope: was THIS file examined, or does its ruling extend from a group?
     # Provir's CD3 examined 5 tracks and ruled 19; a ledger that cannot say so
     # presents 19 rulings as 19 examinations.
     if args.scope == "group" and not args.note:
-        print("a group-scope ruling needs --note saying what was actually examined "
-              "and how far the ruling was extended (e.g. '5 of 19 tracks examined, "
-              "one master per disc').")
+        print(
+            "a group-scope ruling needs --note saying what was actually examined "
+            "and how far the ruling was extended (e.g. '5 of 19 tracks examined, "
+            "one master per disc')."
+        )
         return 1
 
     records[key]["adjudication"] = {
@@ -312,8 +340,9 @@ def cmd_adjudicate(args: argparse.Namespace) -> int:
         "note": args.note,
     }
     save(records)
-    print(f"{records[key]['filename']} -> {args.label}"
-          + (f" ({args.basis})" if args.basis else ""))
+    print(
+        f"{records[key]['filename']} -> {args.label}" + (f" ({args.basis})" if args.basis else "")
+    )
     return 0
 
 
@@ -338,13 +367,14 @@ def _print_selection_breakdown(fakes: List[dict], rate) -> None:
     eyeball = [r for r in fakes if links(r) & {"human_eye", "human_ear"}]
 
     print("\n  BROKEN OUT — the headline above averages these and means little:")
-    print(f"    referee-grade labels only  {rate(referee, lambda v: v == 'FAKE_CERTAIN')}"
-          "   <- the only rows valid for a spectral axis")
+    print(
+        f"    referee-grade labels only  {rate(referee, lambda v: v == 'FAKE_CERTAIN')}"
+        "   <- the only rows valid for a spectral axis"
+    )
     for selection in sorted(SELECTIONS):
         rows = [r for r in fakes if selection in links(r)]
         if rows:
-            print(f"    selected by {selection:12} "
-                  f"{rate(rows, lambda v: v == 'FAKE_CERTAIN')}")
+            print(f"    selected by {selection:12} " f"{rate(rows, lambda v: v == 'FAKE_CERTAIN')}")
 
     if len(eyeball) == len(fakes):
         print("\n  WARNING: every fake here was chosen by a human's eyes or ears. Any")
@@ -363,8 +393,9 @@ def cmd_status(args: argparse.Namespace) -> int:
         return 0
 
     labels = Counter(r["adjudication"]["label"] for r in records.values())
-    bases = Counter(r["adjudication"]["basis"] for r in records.values()
-                    if r["adjudication"]["basis"])
+    bases = Counter(
+        r["adjudication"]["basis"] for r in records.values() if r["adjudication"]["basis"]
+    )
     print(f"{len(records)} files in the ledger")
     for label in LABELS:
         print(f"  {label:10} {labels.get(label, 0)}")
@@ -374,8 +405,11 @@ def cmd_status(args: argparse.Namespace) -> int:
             print(f"  {basis:20} {count}")
 
     # The only number that matters, and only over ADJUDICATED files.
-    judged = [r for r in records.values()
-              if r["adjudication"]["label"] in ("fake", "genuine") and r["verdicts"]]
+    judged = [
+        r
+        for r in records.values()
+        if r["adjudication"]["label"] in ("fake", "genuine") and r["verdicts"]
+    ]
     if not judged:
         print("\nnothing adjudicated yet — no performance number can be quoted.")
         return 0
@@ -392,15 +426,16 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(f"\nON ADJUDICATED FILES ONLY (n={len(judged)}):")
     print(f"  wild fakes flagged     {rate(fakes, lambda v: v != 'AUTHENTIC')}")
     print(f"  wild fakes convicted   {rate(fakes, lambda v: v == 'FAKE_CERTAIN')}")
-    print(f"  genuine wrongly convicted "
-          f"{rate(genuine, lambda v: v == 'FAKE_CERTAIN')}")
+    print(f"  genuine wrongly convicted " f"{rate(genuine, lambda v: v == 'FAKE_CERTAIN')}")
 
     _print_selection_breakdown(fakes, rate)
 
     if len(fakes) < 30:
-        print(f"\n  n={len(fakes)} fakes is too few to quote publicly. Provir's wild "
-              "row is 53 — of which only 6 are referee-grade, so the honest target is "
-              "referee rows, not files.")
+        print(
+            f"\n  n={len(fakes)} fakes is too few to quote publicly. Provir's wild "
+            "row is 53 — of which only 6 are referee-grade, so the honest target is "
+            "referee rows, not files."
+        )
     return 0
 
 
@@ -410,24 +445,38 @@ def cmd_export(args: argparse.Namespace) -> int:
     rows = [r for r in records.values() if r["adjudication"]["label"] != "undecided"]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=[
-            "sha256", "label", "basis", "referee", "selection", "scope",
-            "verdict", "score", "families", "version"])
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=[
+                "sha256",
+                "label",
+                "basis",
+                "referee",
+                "selection",
+                "scope",
+                "verdict",
+                "score",
+                "families",
+                "version",
+            ],
+        )
         writer.writeheader()
         for record in sorted(rows, key=lambda r: r["sha256"]):
             last = record["verdicts"][-1] if record["verdicts"] else {}
-            writer.writerow({
-                "sha256": record["sha256"],
-                "label": record["adjudication"]["label"],
-                "basis": record["adjudication"]["basis"] or "",
-                "referee": int(bool(record["adjudication"].get("referee"))),
-                "selection": record["adjudication"].get("selection") or "",
-                "scope": record["adjudication"].get("scope") or "file",
-                "verdict": last.get("verdict", ""),
-                "score": last.get("score", ""),
-                "families": "+".join(last.get("families", [])),
-                "version": last.get("version", ""),
-            })
+            writer.writerow(
+                {
+                    "sha256": record["sha256"],
+                    "label": record["adjudication"]["label"],
+                    "basis": record["adjudication"]["basis"] or "",
+                    "referee": int(bool(record["adjudication"].get("referee"))),
+                    "selection": record["adjudication"].get("selection") or "",
+                    "scope": record["adjudication"].get("scope") or "file",
+                    "verdict": last.get("verdict", ""),
+                    "score": last.get("score", ""),
+                    "families": "+".join(last.get("families", [])),
+                    "version": last.get("version", ""),
+                }
+            )
     # Filenames are deliberately absent: the ledger is committed, and a private
     # library's track titles are not ours to publish.
     print(f"{len(rows)} adjudicated rows -> {args.out}")
@@ -448,12 +497,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     adj.add_argument("sha", help="sha256 prefix")
     adj.add_argument("--label", required=True, choices=LABELS)
     adj.add_argument("--basis", choices=sorted(BASES))
-    adj.add_argument("--selection",
-                     help="how the file entered the pool — NOT how it was settled. "
-                          "A pipeline chains with '+', e.g. detector+human_eye")
-    adj.add_argument("--scope", choices=("file", "group"), default="file",
-                     help="was THIS file examined, or does the ruling extend from "
-                          "a group? group requires --note")
+    adj.add_argument(
+        "--selection",
+        help="how the file entered the pool — NOT how it was settled. "
+        "A pipeline chains with '+', e.g. detector+human_eye",
+    )
+    adj.add_argument(
+        "--scope",
+        choices=("file", "group"),
+        default="file",
+        help="was THIS file examined, or does the ruling extend from "
+        "a group? group requires --note",
+    )
     adj.add_argument("--by")
     adj.add_argument("--note")
     adj.set_defaults(func=cmd_adjudicate)

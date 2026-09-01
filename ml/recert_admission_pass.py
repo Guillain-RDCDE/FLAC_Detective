@@ -37,17 +37,17 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from flac_detective.analysis.spectrum import (  # noqa: E402
-    _welch_magnitude_db,
-    detect_cutoff,
+from flac_detective.analysis.new_scoring.mdct import (  # noqa: E402
+    CERTIFIED_GENUINE_P999,
 )
 from flac_detective.analysis.new_scoring.rules.mdct_alignment import (  # noqa: E402
     MIN_CUTOFF_HZ,
     RATIO_HARD,
     RATIO_REVIEW,
 )
-from flac_detective.analysis.new_scoring.mdct import (  # noqa: E402
-    CERTIFIED_GENUINE_P999,
+from flac_detective.analysis.spectrum import (  # noqa: E402
+    _welch_magnitude_db,
+    detect_cutoff,
 )
 
 EXCERPT_SEC = 30.0
@@ -150,15 +150,19 @@ def report(rows: List[dict]) -> None:
     print("=" * 74)
     print(f"\nall certified   {quantiles(ratio)}")
     print(f"admitted only   {quantiles(ratio[admitted])}")
-    print(f"\nadmission floor {MIN_CUTOFF_HZ:.0f} Hz: "
-          f"{int((~admitted).sum())}/{len(rows)} certified files "
-          f"({100 * (~admitted).mean():.1f} %) are ones the rule never reads")
+    print(
+        f"\nadmission floor {MIN_CUTOFF_HZ:.0f} Hz: "
+        f"{int((~admitted).sum())}/{len(rows)} certified files "
+        f"({100 * (~admitted).mean():.1f} %) are ones the rule never reads"
+    )
     print(f"\npublished CERTIFIED_GENUINE_P999 = {CERTIFIED_GENUINE_P999}")
     for name, bar in (("review", RATIO_REVIEW), ("hard", RATIO_HARD)):
         for label, vals in (("all", ratio), ("admitted", ratio[admitted])):
             k = int((vals >= bar).sum())
-            print(f"  exceedance of {name} bar ({bar}) on {label:9}: "
-                  f"{k}/{vals.size} = {100 * k / vals.size:.2f} %")
+            print(
+                f"  exceedance of {name} bar ({bar}) on {label:9}: "
+                f"{k}/{vals.size} = {100 * k / vals.size:.2f} %"
+            )
 
 
 def main(argv: Optional[List[str]] = None) -> int:

@@ -38,9 +38,16 @@ def to_msys_path(windows_path: Path) -> str:
     return f"/{drive}/{rest}".rstrip("/") + "/"
 
 
-def main(manifest_path: str, source_root_str: str, list_output: str,
-         execute: bool, key_path: str, dest_host: str, dest_path: str,
-         dry_run: bool):
+def main(
+    manifest_path: str,
+    source_root_str: str,
+    list_output: str,
+    execute: bool,
+    key_path: str,
+    dest_host: str,
+    dest_path: str,
+    dry_run: bool,
+):
     manifest_p = Path(manifest_path)
     if not manifest_p.is_file():
         print(f"ERROR: manifest not found at {manifest_p}", file=sys.stderr)
@@ -85,8 +92,10 @@ def main(manifest_path: str, source_root_str: str, list_output: str,
     rsync_cmd = [
         "rsync",
         "-avhP",
-        "--files-from", str(list_p).replace("\\", "/"),
-        "-e", f"ssh -i {key_msys} -o StrictHostKeyChecking=accept-new",
+        "--files-from",
+        str(list_p).replace("\\", "/"),
+        "-e",
+        f"ssh -i {key_msys} -o StrictHostKeyChecking=accept-new",
         source_msys,
         f"{dest_host}:{dest_path}",
     ]
@@ -110,11 +119,24 @@ if __name__ == "__main__":
     p.add_argument("--key", default=str(Path.home() / ".ssh" / "secours_madactylo_2026-05-11"))
     p.add_argument("--dest-host", default="root@144.76.203.6")
     p.add_argument("--dest-path", default="/root/flac-detective-ml/dataset/authentic/")
-    p.add_argument("--execute", action="store_true",
-                   help="Actually run rsync; otherwise just print the command")
-    p.add_argument("--dry-run", action="store_true",
-                   help="Pass --dry-run to rsync (no actual transfer)")
+    p.add_argument(
+        "--execute",
+        action="store_true",
+        help="Actually run rsync; otherwise just print the command",
+    )
+    p.add_argument(
+        "--dry-run", action="store_true", help="Pass --dry-run to rsync (no actual transfer)"
+    )
     args = p.parse_args()
-    sys.exit(main(args.manifest, args.source_root, args.list_output,
-                  args.execute, args.key, args.dest_host, args.dest_path,
-                  args.dry_run))
+    sys.exit(
+        main(
+            args.manifest,
+            args.source_root,
+            args.list_output,
+            args.execute,
+            args.key,
+            args.dest_host,
+            args.dest_path,
+            args.dry_run,
+        )
+    )

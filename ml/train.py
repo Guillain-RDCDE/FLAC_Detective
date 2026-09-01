@@ -179,7 +179,7 @@ class TranscodeCNN(nn.Module):
             from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
 
             backbone = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
-        except (ImportError, Exception):
+        except Exception:
             from torchvision.models import efficientnet_b0
 
             backbone = efficientnet_b0(weights=None)

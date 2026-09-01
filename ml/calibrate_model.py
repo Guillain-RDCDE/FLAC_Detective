@@ -36,7 +36,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Tuple

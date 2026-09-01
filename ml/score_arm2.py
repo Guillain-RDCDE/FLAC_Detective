@@ -101,7 +101,9 @@ def main() -> int:
     # read as 44000 = his 179). The registration wrote "48000" — a premise
     # error caught on the first run, recorded in the results block.
     converted = {f for f, r in run1.items() if r["sample_rate"] != "44100"}
-    print(f"converted (run-1 rate != 44.1 kHz): {len(converted)}  byte-copied: {599 - len(converted)}")
+    print(
+        f"converted (run-1 rate != 44.1 kHz): {len(converted)}  byte-copied: {599 - len(converted)}"
+    )
     rate_now = Counter(r["sample_rate"] for r in arm2.values())
     print(f"ARM-2 sample rates: {dict(rate_now)}")
 
@@ -126,9 +128,15 @@ def main() -> int:
             f"{'now correct' if correct_now else 'now wrong'}"
         )
 
-    print(f"\nA2-1 zero movers among byte-copied: {'HELD' if among_copied == 0 else 'FAILED'} ({among_copied})")
-    print(f"A2-2 >= 5 movers labelled opus_256: {'HELD' if opus >= 5 else 'FAILED'} ({opus}/{len(movers)})")
-    print(f"A2-3 >= 5 movers toward clear: {'HELD' if toward_clear >= 5 else 'FAILED'} ({toward_clear}/{len(movers)})")
+    print(
+        f"\nA2-1 zero movers among byte-copied: {'HELD' if among_copied == 0 else 'FAILED'} ({among_copied})"
+    )
+    print(
+        f"A2-2 >= 5 movers labelled opus_256: {'HELD' if opus >= 5 else 'FAILED'} ({opus}/{len(movers)})"
+    )
+    print(
+        f"A2-3 >= 5 movers toward clear: {'HELD' if toward_clear >= 5 else 'FAILED'} ({toward_clear}/{len(movers)})"
+    )
 
     # The whole-set picture, for the record (fires, never convictions by his declaration).
     print("\nper-label detection, run 1 -> ARM-2 (flagged+convicted / n):")

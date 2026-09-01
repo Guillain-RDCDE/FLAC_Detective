@@ -110,8 +110,9 @@ def read_excerpt(path: Path) -> Tuple[np.ndarray, int]:
     return np.ascontiguousarray(mono, dtype=np.float32), int(rate)
 
 
-def _groups_at(x: np.ndarray, basis: np.ndarray, window: np.ndarray,
-               offset: int) -> List[np.ndarray]:
+def _groups_at(
+    x: np.ndarray, basis: np.ndarray, window: np.ndarray, offset: int
+) -> List[np.ndarray]:
     """Companded magnitudes grouped by (frame, band), on frames locked to ``offset``."""
     groups: List[np.ndarray] = []
     step = HOP * FRAME_SKIP
@@ -177,9 +178,7 @@ def lattice_stat(x: np.ndarray, sample_rate: int, offset: Optional[int] = None) 
     if offset is None:
         from flac_detective.analysis.new_scoring.mdct import best_alignment_stat
 
-        _ratio, offset, _hypothesis = best_alignment_stat(
-            x, sample_rate, stop_at=float("inf")
-        )
+        _ratio, offset, _hypothesis = best_alignment_stat(x, sample_rate, stop_at=float("inf"))
         if offset < 0:
             return float("nan")
     return _score(_groups_at(x, basis, window, int(offset) % HOP))
@@ -238,8 +237,9 @@ def run_control(sample_rate: int = 44100) -> int:
     ok = bool(detected) and min(detected) <= 0.05
     if detected:
         print(f"\n  sensitivity floor: finest grid detected = step {min(detected):.2f}")
-    print("  VERDICT:", "reads a lattice, ignores smooth audio OK" if ok
-          else "FAILS its own control")
+    print(
+        "  VERDICT:", "reads a lattice, ignores smooth audio OK" if ok else "FAILS its own control"
+    )
     return 0 if ok else 1
 
 
@@ -319,8 +319,10 @@ def report(rows: List[dict]) -> None:
         if not values.size:
             continue
         area = "—" if arm == "genuine" else f"{auc(values, genuine):.2f}"
-        print(f"{arm:14}{values.size:>5}{np.median(values):>10.3f}{area:>7}"
-              f"{100 * (values >= bar).mean():>8.0f}%")
+        print(
+            f"{arm:14}{values.size:>5}{np.median(values):>10.3f}{area:>7}"
+            f"{100 * (values >= bar).mean():>8.0f}%"
+        )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -330,8 +332,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--corpus", type=Path, default=Path(r"C:/Users/loutr/audit_corpus"))
     parser.add_argument("--out", type=Path, default=Path("ml/lattice_residual_probe.csv"))
     parser.add_argument("--limit", type=int, default=30)
-    parser.add_argument("--arms", nargs="+", default=[
-        "aacmf_256", "aac_ff320", "aac_ff256", "opus_256", "mp3_320", "vorbis_q8"])
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        default=["aacmf_256", "aac_ff320", "aac_ff256", "opus_256", "mp3_320", "vorbis_q8"],
+    )
     args = parser.parse_args(argv)
 
     if args.control:

@@ -131,8 +131,8 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from mp3_idem_probe import mp3_idem, require_ffmpeg  # noqa: E402
 from edge_width_probe import auc  # noqa: E402
+from mp3_idem_probe import mp3_idem, require_ffmpeg  # noqa: E402
 
 AUDIT = Path(r"C:\Users\loutr\audit_corpus")
 OUT = Path(r"C:\Users\loutr\remaster_arm")

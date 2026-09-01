@@ -47,9 +47,9 @@ log = logging.getLogger(__name__)
 
 # Signatures detected in the first ~2 KB of a .log file.
 RIPPER_SIGNATURES = [
-    ("EAC",         ("Exact Audio Copy", "EAC extraction logfile")),
-    ("XLD",         ("X Lossless Decoder", "XLD extraction logfile")),
-    ("CUERipper",   ("CUERipper",)),
+    ("EAC", ("Exact Audio Copy", "EAC extraction logfile")),
+    ("XLD", ("X Lossless Decoder", "XLD extraction logfile")),
+    ("CUERipper", ("CUERipper",)),
     ("Audiochecker", ("AUDIOCHECKER",)),
 ]
 
@@ -86,8 +86,10 @@ def parse_audiochecker_tracks(log_path: Path) -> list[tuple[str, str]]:
             content = f.read()
     except OSError:
         return []
-    return [(m.group("file").strip(), m.group("status").strip())
-            for m in AUDIOCHECKER_LINE.finditer(content)]
+    return [
+        (m.group("file").strip(), m.group("status").strip())
+        for m in AUDIOCHECKER_LINE.finditer(content)
+    ]
 
 
 def top_label(log_path: Path, root: Path) -> str:
@@ -112,26 +114,30 @@ def collect_from_log(log_path: Path, ripper: str, root: Path) -> list[dict]:
         for fname, status in parse_audiochecker_tracks(log_path):
             if "CDDA (100%)" not in status:
                 continue
-            flac = (log_path.parent / fname)
+            flac = log_path.parent / fname
             if flac.is_file():
-                entries.append({
-                    "path": str(flac),
-                    "source": "audiochecker_cdda100",
-                    "ripper": ripper,
-                    "top_label": label,
-                })
+                entries.append(
+                    {
+                        "path": str(flac),
+                        "source": "audiochecker_cdda100",
+                        "ripper": ripper,
+                        "top_label": label,
+                    }
+                )
         return entries
 
     # EAC / XLD / CUERipper: trust the entire directory tree below the log.
     # rglob to catch CD01/, CD02/, etc.
     for flac in log_path.parent.rglob("*.flac"):
         if flac.is_file():
-            entries.append({
-                "path": str(flac),
-                "source": ripper.lower(),
-                "ripper": ripper,
-                "top_label": label,
-            })
+            entries.append(
+                {
+                    "path": str(flac),
+                    "source": ripper.lower(),
+                    "ripper": ripper,
+                    "top_label": label,
+                }
+            )
     return entries
 
 
@@ -204,16 +210,24 @@ def main(root_dir: str, output_path: str, max_per_label: Optional[int]) -> None:
     with open(output_p, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
     log.info(f"\nManifest written to {output_p}")
-    log.info(f"Total file size will be approximately: {len(deduped) * 30 / 1024:.1f} GB at ~30 MB/track")
+    log.info(
+        f"Total file size will be approximately: {len(deduped) * 30 / 1024:.1f} GB at ~30 MB/track"
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--root", default="D:/FLAC",
-                        help="Root of the music library (default: D:/FLAC)")
-    parser.add_argument("--output", default="ml/authentic_files.json",
-                        help="Output JSON manifest path")
-    parser.add_argument("--max-per-label", type=int, default=None,
-                        help="Cap N files per top-label for diversity (default: no cap)")
+    parser.add_argument(
+        "--root", default="D:/FLAC", help="Root of the music library (default: D:/FLAC)"
+    )
+    parser.add_argument(
+        "--output", default="ml/authentic_files.json", help="Output JSON manifest path"
+    )
+    parser.add_argument(
+        "--max-per-label",
+        type=int,
+        default=None,
+        help="Cap N files per top-label for diversity (default: no cap)",
+    )
     args = parser.parse_args()
     sys.exit(main(args.root, args.output, args.max_per_label))

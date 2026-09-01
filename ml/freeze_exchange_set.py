@@ -198,12 +198,14 @@ def audit_own_output(
                 ", ".join(f"{k}={v}" for k, v in sorted(short.items())[:5]),
             )
 
-    if sample_rates:
-        if frame_counts and not _audit_frame_counts(labels, frame_counts, log):
-            ok = False
-        if not _audit_sample_rates(labels, sample_rates, log):
-            return False
-    return True
+    # Both audits run, THEN the verdict — so a set with two leaks reports two
+    # rather than stopping at the first and hiding the second behind a re-freeze.
+    ok = True
+    if frame_counts and not _audit_frame_counts(labels, frame_counts, log):
+        ok = False
+    if sample_rates and not _audit_sample_rates(labels, sample_rates, log):
+        ok = False
+    return ok
 
 
 def _audit_frame_counts(
@@ -235,8 +237,7 @@ def _audit_frame_counts(
     if len(counts) == 1:
         return True
     log.error(
-        "%d distinct frame counts across the set — LENGTH IS A LABEL and the set "
-        "cannot ship:",
+        "%d distinct frame counts across the set — LENGTH IS A LABEL and the set " "cannot ship:",
         len(counts),
     )
     leaked = False
@@ -304,7 +305,10 @@ def _audit_sample_rates(
                 log.error(
                     "  arm %s is %.0f%% at %d Hz, but only %.0f%% of genuine files are "
                     "— identifiable without decoding a sample",
-                    arm, 100 * share, rate, 100 * genuine_share,
+                    arm,
+                    100 * share,
+                    rate,
+                    100 * genuine_share,
                 )
                 leaked = True
 

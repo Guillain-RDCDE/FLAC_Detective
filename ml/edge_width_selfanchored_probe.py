@@ -183,14 +183,14 @@ import soundfile as sf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from edge_width_probe import ARMS, EXCERPT_SEC, auc  # noqa: E402
+
 from flac_detective.analysis.spectrum import (  # noqa: E402
     WIDTH_SMOOTH_BINS,
     _welch_magnitude_db,
     detect_cutoff_detailed,
 )
 from flac_detective.config import spectral_config  # noqa: E402
-
-from edge_width_probe import ARMS, EXCERPT_SEC, auc  # noqa: E402
 
 START_DROP_DB = 6.0  # same as EDGE_START_DROP_DB in spectrum.py
 GRID_START = float(spectral_config.CUTOFF_SCAN_START)

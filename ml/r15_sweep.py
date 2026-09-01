@@ -31,8 +31,9 @@ import soundfile as sf
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from flac_detective.analysis.new_scoring import stereo_image as si  # noqa: E402
 from v3_build_set_a import BAND_LIMIT_FILTER  # noqa: E402
+
+from flac_detective.analysis.new_scoring import stereo_image as si  # noqa: E402
 
 FLOORS = [0.02, 0.05, 0.10, 0.20, 0.30]
 ARMS = ("mp3_320", "aac_ff256", "opus_256", "vorbis_q8")

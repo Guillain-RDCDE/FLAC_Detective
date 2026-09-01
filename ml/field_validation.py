@@ -42,7 +42,9 @@ def _hr(title: str) -> None:
 
 def load_m4a_ape() -> list[Path]:
     if M4A_APE_LIST.exists():
-        paths = [Path(p) for p in M4A_APE_LIST.read_text(encoding="utf-8").splitlines() if p.strip()]
+        paths = [
+            Path(p) for p in M4A_APE_LIST.read_text(encoding="utf-8").splitlines() if p.strip()
+        ]
         # The list was written with MSYS /d/... paths; map back to D:\.
         fixed = []
         for p in paths:
@@ -107,7 +109,9 @@ def part2_real_lossless(by_codec: dict[str, list[Path]]) -> None:
     results = _analyze(lossless, "ALAC+APE")
     flagged = [(f, r) for f, r in results if r["verdict"] in {"SUSPICIOUS", "FAKE_CERTAIN"}]
     if flagged:
-        print(f"\n  {len(flagged)} flagged (inspect — real lossless rips, likely vintage/band-limited):")
+        print(
+            f"\n  {len(flagged)} flagged (inspect — real lossless rips, likely vintage/band-limited):"
+        )
         for f, r in flagged:
             print(f"     {r['verdict']} score={r['score']}  {f.name}")
             print(f"        reason: {r.get('reason','')[:160]}")
@@ -159,11 +163,24 @@ def part4_fakes(n: int) -> None:
         # FLAC -> MP3 128k (introduces the cliff) -> ALAC (lossless wrap of the fake).
         subprocess.run(
             ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-vn", "-b:a", "128k", str(mp3)],
-            check=True, capture_output=True,
+            check=True,
+            capture_output=True,
         )
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(mp3), "-vn", "-c:a", "alac", str(fake)],
-            check=True, capture_output=True,
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(mp3),
+                "-vn",
+                "-c:a",
+                "alac",
+                str(fake),
+            ],
+            check=True,
+            capture_output=True,
         )
         fakes.append(fake)
         print(f"  built fake: {fake.name}", flush=True)

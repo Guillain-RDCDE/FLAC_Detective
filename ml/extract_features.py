@@ -32,10 +32,10 @@ import numpy as np
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-SAMPLE_RATE = 44100   # CRITICAL: keep full spectrum up to ~22kHz.
-                      # MP3 transcodes leave their signature ("cliff") at 14-21 kHz
-                      # depending on bitrate. Resampling to 22050 (Nyquist 11kHz)
-                      # erases exactly the signal we are trying to learn.
+SAMPLE_RATE = 44100  # CRITICAL: keep full spectrum up to ~22kHz.
+# MP3 transcodes leave their signature ("cliff") at 14-21 kHz
+# depending on bitrate. Resampling to 22050 (Nyquist 11kHz)
+# erases exactly the signal we are trying to learn.
 SEGMENT_SEC = 10.0
 N_MELS = 128
 N_FFT = 2048
@@ -57,8 +57,9 @@ def _extract_one(args: tuple[Path, int, str, Path]) -> tuple[np.ndarray | None, 
         # Load 10 seconds from the middle of the track.
         info = librosa.get_duration(path=str(flac_path))
         offset = max(0.0, (info - SEGMENT_SEC) / 2)
-        y, sr = librosa.load(str(flac_path), sr=SAMPLE_RATE,
-                             offset=offset, duration=SEGMENT_SEC, mono=True)
+        y, sr = librosa.load(
+            str(flac_path), sr=SAMPLE_RATE, offset=offset, duration=SEGMENT_SEC, mono=True
+        )
         if len(y) < SAMPLE_RATE * SEGMENT_SEC * 0.5:
             # Less than half the expected length — too short, skip.
             return (None, label, label_name, str(flac_path))
@@ -72,10 +73,17 @@ def _extract_one(args: tuple[Path, int, str, Path]) -> tuple[np.ndarray | None, 
             y = y[:target_len]
 
         mel = librosa.feature.melspectrogram(
-            y=y, sr=sr, n_fft=N_FFT, hop_length=HOP, n_mels=N_MELS, fmax=sr // 2,
+            y=y,
+            sr=sr,
+            n_fft=N_FFT,
+            hop_length=HOP,
+            n_mels=N_MELS,
+            fmax=sr // 2,
         )
         mel_db = librosa.power_to_db(mel, ref=np.max).astype(np.float32)
-        rel = flac_path.relative_to(root).as_posix() if root in flac_path.parents else str(flac_path)
+        rel = (
+            flac_path.relative_to(root).as_posix() if root in flac_path.parents else str(flac_path)
+        )
         return (mel_db, label, label_name, rel)
     except Exception as e:
         log.warning(f"Failed {flac_path}: {e}")
@@ -106,9 +114,11 @@ def main(input_root: Path, output_path: Path, workers: int) -> int:
         log.error(f"Input dir not found: {input_root}")
         return 1
     jobs = collect_jobs(input_root)
-    log.info(f"Collected {len(jobs)} files: "
-             f"{sum(1 for j in jobs if j[1] == 0)} authentic, "
-             f"{sum(1 for j in jobs if j[1] == 1)} transcoded")
+    log.info(
+        f"Collected {len(jobs)} files: "
+        f"{sum(1 for j in jobs if j[1] == 0)} authentic, "
+        f"{sum(1 for j in jobs if j[1] == 1)} transcoded"
+    )
 
     if not jobs:
         log.error("No files to process.")
@@ -116,6 +126,7 @@ def main(input_root: Path, output_path: Path, workers: int) -> int:
 
     try:
         from tqdm import tqdm
+
         progress = tqdm(total=len(jobs), unit="file")
     except ImportError:
         progress = None
@@ -153,11 +164,13 @@ def main(input_root: Path, output_path: Path, workers: int) -> int:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         output_path,
-        X=X, y=y,
+        X=X,
+        y=y,
         paths=np.array(paths, dtype=object),
         labels=np.array(label_names, dtype=object),
-        config=dict(sample_rate=SAMPLE_RATE, segment_sec=SEGMENT_SEC,
-                    n_mels=N_MELS, n_fft=N_FFT, hop=HOP),
+        config=dict(
+            sample_rate=SAMPLE_RATE, segment_sec=SEGMENT_SEC, n_mels=N_MELS, n_fft=N_FFT, hop=HOP
+        ),
     )
     log.info(f"Wrote {output_path}")
     return 0
@@ -165,7 +178,7 @@ def main(input_root: Path, output_path: Path, workers: int) -> int:
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("--input",  default="dataset")
+    p.add_argument("--input", default="dataset")
     p.add_argument("--output", default="features/dataset.npz")
     p.add_argument("--workers", type=int, default=12)
     args = p.parse_args()

@@ -140,8 +140,9 @@ def dead_run_stats(x: np.ndarray, sample_rate: int) -> Tuple[float, float, float
 # ================================ control ===================================
 
 
-def _synthetic(sample_rate: int, seconds: float, kill_bands: int,
-               width_bins: int, seed: int = 20260818) -> np.ndarray:
+def _synthetic(
+    sample_rate: int, seconds: float, kill_bands: int, width_bins: int, seed: int = 20260818
+) -> np.ndarray:
     """Broadband noise with ``kill_bands`` stretches zeroed, ``width_bins`` wide.
 
     Widths are given in ANALYSIS bins and converted to Hz here. The first version
@@ -180,18 +181,28 @@ def run_control(sample_rate: int = 44100) -> int:
     # ~480 dead bins either way: 8 runs of 60, or 240 runs of 2.
     few_long = dead_run_stats(_synthetic(sample_rate, 20.0, 8, 60), sample_rate)
     many_short = dead_run_stats(_synthetic(sample_rate, 20.0, 240, 2), sample_rate)
-    print(f"  {'8 runs of 60 bins':>28} {few_long[0]:>9.1f} {few_long[1]:>10.2f} "
-          f"{few_long[2]:>11.4f}")
-    print(f"  {'240 runs of 2 bins':>28} {many_short[0]:>9.1f} {many_short[1]:>10.2f} "
-          f"{many_short[2]:>11.4f}")
+    print(
+        f"  {'8 runs of 60 bins':>28} {few_long[0]:>9.1f} {few_long[1]:>10.2f} "
+        f"{few_long[2]:>11.4f}"
+    )
+    print(
+        f"  {'240 runs of 2 bins':>28} {many_short[0]:>9.1f} {many_short[1]:>10.2f} "
+        f"{many_short[2]:>11.4f}"
+    )
 
     finds_runs = few_long[0] > clean[0] * 2
     distinguishes = few_long[0] > many_short[0] * 2
 
     print("\n  VERDICT:")
     print("   ", "finds long dead bands OK" if finds_runs else "MISSES long dead bands")
-    print("   ", "distinguishes arrangement from count OK" if distinguishes
-          else "CANNOT distinguish arrangement — this is density under another name")
+    print(
+        "   ",
+        (
+            "distinguishes arrangement from count OK"
+            if distinguishes
+            else "CANNOT distinguish arrangement — this is density under another name"
+        ),
+    )
     return 0 if (finds_runs and distinguishes) else 1
 
 
@@ -229,9 +240,7 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
     rows: List[dict] = []
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(
-            fh, fieldnames=["arm", "file", "max_run", "mean_run", "dead_frac"]
-        )
+        writer = csv.DictWriter(fh, fieldnames=["arm", "file", "max_run", "mean_run", "dead_frac"])
         writer.writeheader()
         for arm, paths in groups.items():
             for index, path in enumerate(paths, 1):
@@ -241,8 +250,15 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
                 except Exception as exc:
                     print(f"  skip {path.name}: {exc}", flush=True)
                     continue
-                writer.writerow({"arm": arm, "file": path.name, "max_run": f"{mx:.2f}",
-                                 "mean_run": f"{mn:.3f}", "dead_frac": f"{frac:.5f}"})
+                writer.writerow(
+                    {
+                        "arm": arm,
+                        "file": path.name,
+                        "max_run": f"{mx:.2f}",
+                        "mean_run": f"{mn:.3f}",
+                        "dead_frac": f"{frac:.5f}",
+                    }
+                )
                 rows.append({"arm": arm, "max_run": mx, "mean_run": mn, "dead_frac": frac})
                 if index % 10 == 0:
                     print(f"  {arm} [{index}/{len(paths)}]", flush=True)
@@ -276,12 +292,16 @@ def report(rows: List[dict]) -> None:
             if not values.size:
                 continue
             area = "—" if arm == "genuine" else f"{auc(values, genuine):.2f}"
-            print(f"{arm:14}{values.size:>5}{np.median(values):>10.3f}{area:>7}"
-                  f"{100 * (values >= bar).mean():>8.0f}%")
+            print(
+                f"{arm:14}{values.size:>5}{np.median(values):>10.3f}{area:>7}"
+                f"{100 * (values >= bar).mean():>8.0f}%"
+            )
 
-    print("\nIf max_run separates where dead_frac does not, the arrangement carries "
-          "information\nthat plain density throws away — which is the whole reason "
-          "to add it.")
+    print(
+        "\nIf max_run separates where dead_frac does not, the arrangement carries "
+        "information\nthat plain density throws away — which is the whole reason "
+        "to add it."
+    )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -291,8 +311,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--corpus", type=Path, default=Path(r"C:/Users/loutr/audit_corpus"))
     parser.add_argument("--out", type=Path, default=Path("ml/dead_run_probe.csv"))
     parser.add_argument("--limit", type=int, default=40)
-    parser.add_argument("--arms", nargs="+", default=[
-        "mp3_320", "mp3_V0", "aacmf_256", "opus_256", "aac_ff320", "vorbis_q8"])
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        default=["mp3_320", "mp3_V0", "aacmf_256", "opus_256", "aac_ff320", "vorbis_q8"],
+    )
     args = parser.parse_args(argv)
 
     if args.control:

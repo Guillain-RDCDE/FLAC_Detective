@@ -215,8 +215,7 @@ def temporal_seam_stat(x: np.ndarray, sample_rate: int) -> Tuple[float, float]:
     band_freqs = freqs[band]
 
     search = np.where(band_freqs >= SEAM_SEARCH_FROM_HZ)[0]
-    search = search[(search >= SEAM_HALF_WIDTH) &
-                    (search + SEAM_HALF_WIDTH <= variability.size)]
+    search = search[(search >= SEAM_HALF_WIDTH) & (search + SEAM_HALF_WIDTH <= variability.size)]
     if search.size == 0:
         return float("nan"), float("nan")
 
@@ -237,8 +236,13 @@ def temporal_seam_stat(x: np.ndarray, sample_rate: int) -> Tuple[float, float]:
 # ================================ controls ==================================
 
 
-def _synthetic(sample_rate: int, seconds: float, seam_hz: Optional[float],
-               depth_db: float, seed: int = 20260818) -> np.ndarray:
+def _synthetic(
+    sample_rate: int,
+    seconds: float,
+    seam_hz: Optional[float],
+    depth_db: float,
+    seed: int = 20260818,
+) -> np.ndarray:
     """Broadband noise, optionally with a step of ``depth_db`` above ``seam_hz``."""
     rng = np.random.default_rng(seed)
     n = int(sample_rate * seconds)
@@ -275,15 +279,23 @@ def run_control(sample_rate: int = 44100) -> int:
         audio = _synthetic(sample_rate, 20.0, cutoff, 90.0)
         score, where, detected = seam_stat(audio, sample_rate)
         scores.append(score)
-        print(f"  band-limited at {cutoff:>6.0f}Hz -> score {score:>6.2f} "
-              f"(cutoff read {detected:>6.0f}Hz)")
+        print(
+            f"  band-limited at {cutoff:>6.0f}Hz -> score {score:>6.2f} "
+            f"(cutoff read {detected:>6.0f}Hz)"
+        )
     clean = [s for s in scores if np.isfinite(s)]
     independent = all(s < smooth_score * 2 for s in clean)
 
     print("\n  VERDICT:")
     print("   ", "finds a real seam ✓" if found_ok else "MISSES a known seam ✗")
-    print("   ", "ignores the cliff ✓" if independent
-          else "FIRES ON THE CLIFF ✗ — this is Rule 2 wearing a different hat")
+    print(
+        "   ",
+        (
+            "ignores the cliff ✓"
+            if independent
+            else "FIRES ON THE CLIFF ✗ — this is Rule 2 wearing a different hat"
+        ),
+    )
     return 0 if (found_ok and independent) else 1
 
 
@@ -303,9 +315,9 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
     rows: List[dict] = []
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=[
-            "arm", "file", "seam", "seam_hz", "cutoff_hz", "tseam", "tseam_hz"
-        ])
+        writer = csv.DictWriter(
+            fh, fieldnames=["arm", "file", "seam", "seam_hz", "cutoff_hz", "tseam", "tseam_hz"]
+        )
         writer.writeheader()
         for arm, paths in groups.items():
             for index, path in enumerate(paths, 1):
@@ -316,12 +328,17 @@ def run_corpus(corpus: Path, out: Path, limit: int, arms: List[str]) -> int:
                 except Exception as exc:
                     print(f"  skip {path.name}: {exc}", flush=True)
                     continue
-                row = {"arm": arm, "file": path.name, "seam": f"{score:.4f}",
-                       "seam_hz": f"{where:.0f}", "cutoff_hz": f"{cutoff:.0f}",
-                       "tseam": f"{tscore:.4f}", "tseam_hz": f"{twhere:.0f}"}
+                row = {
+                    "arm": arm,
+                    "file": path.name,
+                    "seam": f"{score:.4f}",
+                    "seam_hz": f"{where:.0f}",
+                    "cutoff_hz": f"{cutoff:.0f}",
+                    "tseam": f"{tscore:.4f}",
+                    "tseam_hz": f"{twhere:.0f}",
+                }
                 writer.writerow(row)
-                rows.append({**row, "seam": score, "cutoff_hz": cutoff,
-                             "tseam": tscore})
+                rows.append({**row, "seam": score, "cutoff_hz": cutoff, "tseam": tscore})
                 if index % 10 == 0:
                     print(f"  {arm} [{index}/{len(paths)}]", flush=True)
             fh.flush()
@@ -378,14 +395,20 @@ def report(rows: List[dict]) -> None:
         print(f"{arm:14}{values.size:>5}{np.median(values):>9.2f}{area:>7}{100 * fires:>8.0f}%")
 
     # Independence: a seam reader correlating with cutoff is Rule 2 in disguise.
-    all_rows = [r for rs in by_arm.values() for r in rs
-                if np.isfinite(r["seam"]) and np.isfinite(r["cutoff_hz"])]
+    all_rows = [
+        r
+        for rs in by_arm.values()
+        for r in rs
+        if np.isfinite(r["seam"]) and np.isfinite(r["cutoff_hz"])
+    ]
     if len(all_rows) > 10:
         seam = np.array([r["seam"] for r in all_rows])
         cutoff = np.array([r["cutoff_hz"] for r in all_rows])
         corr = float(np.corrcoef(seam, cutoff)[0, 1])
-        print(f"\nindependence — corr(seam, cutoff) = {corr:+.2f}  "
-              f"({'OK' if abs(corr) < 0.4 else 'TOO HIGH: this may be Rule 2 again'})")
+        print(
+            f"\nindependence — corr(seam, cutoff) = {corr:+.2f}  "
+            f"({'OK' if abs(corr) < 0.4 else 'TOO HIGH: this may be Rule 2 again'})"
+        )
 
     # And the one that matters: Provir's own algorithm, temporal rather than level.
     tgen = np.array([r["tseam"] for r in by_arm["genuine"]], dtype=np.float64)
@@ -393,8 +416,7 @@ def report(rows: List[dict]) -> None:
     if tgen.size:
         tbar = float(np.quantile(tgen, 0.90))
         print("\n" + "=" * 70)
-        print("HF_SEAM (temporal variance, Provir's spec) — bar = genuine p90 "
-              f"= {tbar:.3f}")
+        print("HF_SEAM (temporal variance, Provir's spec) — bar = genuine p90 " f"= {tbar:.3f}")
         print("=" * 70)
         print(f"{'arm':14}{'n':>5}{'median':>9}{'AUC':>7}{'fires':>9}")
         for arm in ["genuine"] + sorted(set(by_arm) - {"genuine"}):
@@ -403,11 +425,15 @@ def report(rows: List[dict]) -> None:
             if not values.size:
                 continue
             area = "-" if arm == "genuine" else f"{auc(values, tgen):.2f}"
-            print(f"{arm:14}{values.size:>5}{np.median(values):>9.3f}{area:>7}"
-                  f"{100 * (values >= tbar).mean():>8.0f}%")
-        print("\nMeasurement only, never a rule. Its named false-positive mode is "
-              "production:\nheavy HF limiting and dense synthetic pads flatten "
-              "temporal variance with no codec.")
+            print(
+                f"{arm:14}{values.size:>5}{np.median(values):>9.3f}{area:>7}"
+                f"{100 * (values >= tbar).mean():>8.0f}%"
+            )
+        print(
+            "\nMeasurement only, never a rule. Its named false-positive mode is "
+            "production:\nheavy HF limiting and dense synthetic pads flatten "
+            "temporal variance with no codec."
+        )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -417,8 +443,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--corpus", type=Path, default=Path(r"C:/Users/loutr/audit_corpus"))
     parser.add_argument("--out", type=Path, default=Path("ml/hf_seam_probe.csv"))
     parser.add_argument("--limit", type=int, default=40)
-    parser.add_argument("--arms", nargs="+", default=[
-        "opus_256", "mp3_320", "mp3_V0", "aacmf_256", "aac_ff320", "vorbis_q8"])
+    parser.add_argument(
+        "--arms",
+        nargs="+",
+        default=["opus_256", "mp3_320", "mp3_V0", "aacmf_256", "aac_ff320", "vorbis_q8"],
+    )
     args = parser.parse_args(argv)
 
     if args.control:

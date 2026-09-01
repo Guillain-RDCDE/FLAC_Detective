@@ -180,8 +180,10 @@ def auc(fake: np.ndarray, genuine: np.ndarray) -> float:
 
 
 ARMS = {
-    "genuine": ["C:/Users/loutr/audit_corpus/authentic/*.flac",
-                "C:/Users/loutr/wild_authentic/**/*.flac"],
+    "genuine": [
+        "C:/Users/loutr/audit_corpus/authentic/*.flac",
+        "C:/Users/loutr/wild_authentic/**/*.flac",
+    ],
     "mp3_320": ["C:/Users/loutr/audit_corpus/fake/mp3_320/*.flac"],
     "mp3_V0": ["C:/Users/loutr/audit_corpus/fake/mp3_V0/*.flac"],
     "aac_ff320": ["C:/Users/loutr/audit_corpus/fake/aac_ff320/*.flac"],
@@ -222,8 +224,10 @@ def report(rows: List[dict]) -> None:
     def zone(arm: str) -> List[dict]:
         return [r for r in rows if r["arm"] == arm and r["cutoff"] >= GUARD1 * r["rate"] / 2]
 
-    print(f"\n{'arm':12}{'n zone':>8}{'rel fini':>10}{'rel med':>10}"
-          f"{'rel p05':>10}{'rel p95':>10}{'cut med':>10}")
+    print(
+        f"\n{'arm':12}{'n zone':>8}{'rel fini':>10}{'rel med':>10}"
+        f"{'rel p05':>10}{'rel p95':>10}{'cut med':>10}"
+    )
     stats = {}
     for arm in ARMS:
         rowset = zone(arm)
@@ -235,9 +239,11 @@ def report(rows: List[dict]) -> None:
         cut = np.array([r["cutoff"] for r in rowset], dtype=float)
         stats[arm] = finite
         if finite.size:
-            print(f"{arm:12}{len(rowset):>8}{finite.size:>10}"
-                  f"{np.median(finite):>10.1f}{np.percentile(finite, 5):>10.1f}"
-                  f"{np.percentile(finite, 95):>10.1f}{np.median(cut):>10.0f}")
+            print(
+                f"{arm:12}{len(rowset):>8}{finite.size:>10}"
+                f"{np.median(finite):>10.1f}{np.percentile(finite, 5):>10.1f}"
+                f"{np.percentile(finite, 95):>10.1f}{np.median(cut):>10.0f}"
+            )
         else:
             print(f"{arm:12}{len(rowset):>8}{0:>10}   (toutes abstentions)")
 
@@ -255,8 +261,10 @@ def report(rows: List[dict]) -> None:
             continue
         rel = np.array([r["rel_residual"] for r in rowset], dtype=float)
         fixed = np.array([r["fixed_residual"] for r in rowset], dtype=float)
-        print(f"{arm:12} n={len(rowset):3d}  relatif fini {int(np.isfinite(rel).sum()):3d}"
-              f"   fixe fini {int(np.isfinite(fixed).sum()):3d}")
+        print(
+            f"{arm:12} n={len(rowset):3d}  relatif fini {int(np.isfinite(rel).sum()):3d}"
+            f"   fixe fini {int(np.isfinite(fixed).sum()):3d}"
+        )
 
     print("\nLecture : une AUC elevee ET un plancher authentique nettement au-dessus du")
     print("plancher transcode autorisent a remplacer le garde-fou par l'instrument.")
@@ -274,7 +282,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
-            fh, fieldnames=["arm", "path", "rate", "cutoff", "fixed_residual", "rel_residual"])
+            fh, fieldnames=["arm", "path", "rate", "cutoff", "fixed_residual", "rel_residual"]
+        )
         writer.writeheader()
         writer.writerows(rows)
     print(f"\n{len(rows)} lignes -> {args.out}", flush=True)
