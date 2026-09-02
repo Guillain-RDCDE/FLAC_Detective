@@ -1,86 +1,80 @@
-# Reply — BrokenProcessPool / WinError 1450 on folders with more than a few files
+# Reply to post on the issue
 
-Thank you for the report, and particularly for pasting the whole stack trace
-rather than a summary of it. The trace is what identifies the bug, and it points
-somewhere other than where you concluded — which is not a criticism, because the
-symptom you saw genuinely looks like the cause you named.
+Thanks for this — and genuinely, thank you for pasting the whole traceback
+instead of a summary. It's what let me find the bug in about ten minutes, and it
+points somewhere other than where either of us would have guessed from the
+symptom.
 
-## What is actually happening
-
-Your diagnosis was that FLAC Detective loads every FLAC into memory at once. It
-does not, and the trace shows it: the failure happens in
+**Your diagnosis is off, but only because the real cause is hiding.** The tool
+isn't loading your FLACs into memory. Look at where it actually dies:
 
 ```
 File "<frozen importlib._bootstrap_external>", line 1652, in _fill_cache
-OSError: [WinError 1450] Insufficient system resources exist to complete the requested service
+OSError: [WinError 1450] Insufficient system resources
 ```
 
-`_fill_cache` is the import machinery **listing a package directory**. The
-worker died while importing `flac_detective`, before it had opened a single
-audio file. Nothing had been decoded, so nothing was in memory.
+`_fill_cache` is Python's import machinery listing a package directory. The
+worker died **while importing FLAC Detective**, before it opened a single audio
+file. Nothing had been decoded yet, so nothing was in memory.
 
-The real cause is start-up cost, multiplied. Windows spawns rather than forks,
-so each of your 16 workers is a fresh interpreter that re-imports the entire
-stack — numpy, scipy, soundfile and torch — before it looks at any file. Sixteen
-of those importing in the same instant open thousands of file handles at once,
-and Windows answers with `WinError 1450`. Once a worker dies during start-up the
-pool is broken, and every remaining file goes down with it.
+Here's what's really going on. Windows spawns workers instead of forking them,
+so each of your 16 workers is a brand-new interpreter that has to re-import the
+whole stack — numpy, scipy, soundfile and torch — before it looks at anything.
+Sixteen of those starting at the same instant open thousands of file handles at
+once, and Windows says no. Your "it works under 10 files" observation is the
+clincher: with fewer files than workers, fewer processes get spawned, and the
+import storm never hits the ceiling.
 
-Your "less than 10 files" observation fits: with fewer files than workers, the
-pool spawns fewer processes, and the import storm never reaches the threshold.
+So: your bug report is completely valid, your reproduction steps are right, and
+the number that matters is your core count rather than your file count.
 
-## Three defects, not one
+**You found three separate bugs, and all three are mine.**
 
-Your report exposed three, and all three are ours:
+1. The worker count was just `os.cpu_count()`, with no cap. That's the right
+   number when workers are cheap. It's the wrong number when every worker pays a
+   heavy import first — that cost is per *process*, not per core.
+2. **There was no `--workers` flag at all.** You had a 16-core machine, a crash
+   caused by using 16 workers, and no supported way to ask for fewer. That's the
+   one I'm least happy about.
+3. A dead pool killed the entire run instead of falling back. The obvious
+   response — stop asking for workers and just finish the job here — was
+   available the whole time.
 
-1. **No cap on the worker count.** It was `os.cpu_count()`, which is the right
-   number for CPU-bound work with cheap workers and the wrong one when every
-   worker pays a heavy import first. The cost that matters here is per process,
-   not per core.
-2. **No way for you to lower it.** There was no `--workers` flag. You had a
-   16-core machine, a failure caused by using 16 workers, and no supported way
-   to ask for fewer. That is the part of this I am least happy about.
-3. **No recovery.** `BrokenProcessPool` reached you as a bare traceback with
-   nothing analysed, when the obvious response — stop asking for workers and
-   finish the job here — was available the whole time.
+**Fixed in v1.13.8:**
 
-## What is fixed in v1.13.8
+- Default worker count is capped at 8. It's a declared ceiling, not a measured
+  optimum: past that the throughput gain is small anyway, and the start-up cost
+  is paid per process regardless.
+- `--workers N` now exists. **`--workers 1` runs everything in the main process
+  and spawns nothing at all** — the reliable escape hatch on any machine where
+  workers struggle to start.
+- If the pool dies anyway, the run no longer dies with it. Whatever finished is
+  saved, the rest is analysed in the main process, and you get a log line naming
+  the cause instead of a wall of traceback about futures.
 
-- The default worker count is capped (8). Declared as a ceiling, not measured as
-  an optimum: past it the marginal throughput gain is small on any machine we
-  have, and the start-up cost is paid per process regardless.
-- **`--workers N`** exists. `--workers 1` analyses in the main process and
-  spawns nothing at all, which is the reliable answer on any machine where
-  workers cannot start.
-- If the pool dies anyway, the run no longer dies with it: what is already
-  recorded is saved, and the remaining files are analysed in the main process.
-  You get a complete report, more slowly, plus a log line that names the cause
-  instead of showing you a traceback about futures.
+**Now the honest part: I could not reproduce your crash.** This machine has 4
+cores, so it never spawns 16 workers, and it doesn't have the Microsoft Store
+build of Python — whose packages live behind the WindowsApps virtualisation
+layer, which I suspect makes those concurrent directory listings noticeably more
+expensive than on a normal install. So the fix is built on your traceback and the
+mechanism it points to, not on a crash I watched happen.
 
-## What I could not do, stated plainly
+Which means I might be wrong, and there's one test that would tell us. If you
+have five minutes:
 
-**I could not reproduce your failure.** This machine has 4 cores, so it never
-spawns 16 workers, and it does not run the Microsoft Store build of Python whose
-package directory lives behind the WindowsApps virtualisation layer — which I
-suspect makes those concurrent directory listings more expensive than they are
-on a normal install. The fix is therefore built on your trace and on the
-mechanism it points to, not on a reproduction I can show you.
+1. `pip install -U flac-detective`, then run your folder again with default
+   settings. If capping the workers was enough, it just finishes.
+2. If it still dies, try `flac-detective --workers 1 ".\my-folder"`. If **that**
+   works, the diagnosis is right and 8 is still too generous for your setup —
+   tell me and I'll look at deriving the cap from available memory rather than
+   picking a number.
+3. If even `--workers 1` dies, then worker start-up isn't the cause at all, I've
+   fixed the wrong thing, and I'd really like to see that new traceback.
 
-So the fix could be wrong, and there is one measurement that would tell us. If
-you are willing:
+Any of the three answers helps, and honestly the third would be the most
+interesting.
 
-1. `pip install -U flac-detective` (v1.13.8 or later), then run your folder
-   again with the default settings. If the cap alone is enough, it completes.
-2. If it still dies, run `flac-detective --workers 1 ".\my-folder"`. If **that**
-   completes, the diagnosis is right and only the cap was too generous for your
-   machine. If it dies too, the diagnosis is wrong and I would want the new
-   trace, because then the problem is not worker start-up at all.
-
-Either answer is useful and the second is more useful. Thank you again.
-
-## One aside
-
-You reported against v1.13.0. Two other Windows bugs in that version have been
-fixed since — it could not start at all on a console using the cp1252 code page,
-and `--format json` could not be piped. Neither is related to this, but they are
-reasons to upgrade beyond this fix.
+One last thing, unrelated but worth knowing since you're on v1.13.0: two other
+Windows bugs have been fixed since then — it wouldn't start at all on a console
+using the cp1252 code page, and `--format json` couldn't be piped anywhere. Both
+are fixed in the same upgrade.
