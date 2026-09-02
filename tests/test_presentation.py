@@ -20,6 +20,21 @@ def test_plain_explanation_authentic():
     assert _no_jargon(txt)
 
 
+def test_plain_explanation_authentic_states_its_scope():
+    """A pass must say how far it reaches.
+
+    On set B this verdict came back for all 35 atrac3plus files: every rule ran,
+    none covers that format, and an unqualified "genuine lossless audio" is a
+    clean bill the engine had no standing to give. It cannot abstain instead —
+    it cannot see that the file is ATRAC — so the pass has to carry its own
+    limit.
+    """
+    txt = pz.plain_explanation({"verdict": "AUTHENTIC"})
+    assert "not a guarantee" in txt.lower()
+    assert "panel" in txt.lower()
+    assert _no_jargon(txt)
+
+
 def test_plain_explanation_fake_uses_cliff_and_bitrate():
     txt = pz.plain_explanation(
         {"verdict": "FAKE_CERTAIN", "cutoff_freq": 16000, "estimated_mp3_bitrate": 128}

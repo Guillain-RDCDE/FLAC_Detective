@@ -55,6 +55,84 @@ log = logging.getLogger(__name__)
 SEED = 20260815
 
 
+class KeyRefused(Exception):
+    """The key cannot be written as asked. Raised instead of shipping a silent gap."""
+
+
+def build_key(
+    labels: Dict[str, Dict[str, str]],
+    strata: Optional[Dict[str, str]],
+    seed: int,
+    *,
+    no_strata: bool = False,
+) -> Dict[str, object]:
+    """Assemble the answer key, refusing to leave the stratum map to chance.
+
+    Set A r2 shipped with a key carrying ``labels`` and nothing else, three hours
+    after the pre-r2 key that did carry a stratum map — and the letter announcing
+    the set said the key labelled the band-limited sources. It did not. Nothing
+    failed, because nothing checked: this function is the check.
+
+    A stratum map is therefore not optional, it is a decision. Either one is
+    supplied and it must cover every source in the set, or the caller states in
+    so many words that this set has no strata. Silence is refused.
+
+    Args:
+        labels: file id -> {"label": …, "source_slug": …}, as the freeze loop built it.
+        strata: source_slug -> stratum name, or None.
+        seed: The shuffle seed, recorded in the key.
+        no_strata: Explicit declaration that this set is unstratified.
+
+    Returns:
+        The key payload, ready to serialise.
+
+    Raises:
+        KeyRefused: if no decision was made about strata, if both were given, or
+            if the map does not cover every source in the set.
+    """
+    slugs = {entry.get("source_slug", "") for entry in labels.values()}
+    if strata and no_strata:
+        raise KeyRefused("a stratum map was supplied AND declared absent — decide which")
+    if strata is None and not no_strata:
+        raise KeyRefused(
+            "no stratum map and no --no-strata declaration. Set A r2 shipped without "
+            "one while its letter said otherwise; say which this set is."
+        )
+    if strata is not None:
+        uncovered = sorted(s for s in slugs if s not in strata)
+        if uncovered:
+            raise KeyRefused(
+                f"the stratum map misses {len(uncovered)} of {len(slugs)} sources "
+                f"({', '.join(uncovered[:3])}…) — a partial map scores a partial set"
+            )
+    return {
+        "seed": seed,
+        "n": len(labels),
+        "labels": labels,
+        "strata": strata if strata is not None else {},
+        "strata_declared": bool(strata),
+    }
+
+
+def write_key(path: Path, payload: Dict[str, object]) -> str:
+    """Write the key and seal it in the same action. Returns the digest.
+
+    The hash is written at BUILD time, beside the key, so it can be published with
+    the manifest before either side has scored anything. Neither party in v3 could
+    prove their key predated the other's verdicts; a digest that only appears when
+    the key is released proves nothing about when the key was fixed.
+
+    The digest file is sha256sum-style with LF, which is what the other side reads.
+    """
+    body = (json.dumps(payload, indent=1) + "\n").encode("utf-8")
+    path.write_bytes(body)
+    digest = hashlib.sha256(body).hexdigest()
+    path.with_suffix(path.suffix + ".sha256").write_bytes(
+        f"{digest}  {path.name}\n".encode("ascii")
+    )
+    return digest
+
+
 def sha256(path: Path) -> str:
     """Return the SHA-256 of ``path``."""
     h = hashlib.sha256()
@@ -401,6 +479,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument(
         "--skip-tag-check", action="store_true", help="skip the ffprobe metadata re-check"
     )
+    ap.add_argument(
+        "--strata",
+        type=Path,
+        help="JSON map source_slug -> stratum, folded into the key. Must cover every source.",
+    )
+    ap.add_argument(
+        "--no-strata",
+        action="store_true",
+        help="declare that this set is unstratified. Required when --strata is absent.",
+    )
     args = ap.parse_args(argv)
 
     items = collect(args.corpus)
@@ -468,15 +556,27 @@ def main(argv: Optional[List[str]] = None) -> int:
     # The key lives OUTSIDE the shipped directory, so that zipping the folder
     # cannot include the answers.
     key_path = args.out.parent / f"{args.name}-LABELS.json"
-    key_path.write_text(
-        json.dumps({"seed": SEED, "n": len(items), "labels": labels}, indent=1), encoding="utf-8"
-    )
+    strata: Optional[Dict[str, str]] = None
+    if args.strata:
+        strata = json.loads(args.strata.read_text(encoding="utf-8"))
+        strata = strata.get("strata", strata)  # accept a bare map or a wrapped one
+    try:
+        payload = build_key(labels, strata, SEED, no_strata=args.no_strata)
+    except KeyRefused as exc:
+        log.error("refusing to write the answer key: %s", exc)
+        return 1
+    digest = write_key(key_path, payload)
 
     counts: Dict[str, int] = {}
     for entry in labels.values():
         counts[entry["label"]] = counts.get(entry["label"], 0) + 1
     log.info("Shipped set : %s (%d files)", args.out, len(items))
     log.info("Answer key  : %s  — DO NOT SEND", key_path)
+    log.info("Key sha256  : %s  — publish this WITH the manifest, before scoring", digest)
+    log.info(
+        "Strata      : %s",
+        f"{len(payload['strata'])} sources mapped" if payload["strata_declared"] else "declared none",
+    )
     log.info("Composition (key-side only): %s", counts)
     return 0
 

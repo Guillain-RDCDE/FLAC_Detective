@@ -81,6 +81,63 @@ ERRORED = ("ERROR", "ERR", "FAILED", "EXCEPTION")
 # environmental failure rather than left as a count. His block was 152.
 ERROR_RUN_ALARM = 10
 
+# AMENDMENT 2026-09-02 (third), written AFTER the round was scored and marked as
+# such: it changes how one criterion is REPORTED, never any count.
+#
+# K2 came back "NOT as predicted" at 0.0% against 0.0%. Both numerators were
+# zero — nothing was convicted among his genuine rows at all — so there was
+# nothing for a direction to be read from, and the band-limited side held three
+# rows. A prediction that cannot come out either way has not been tested, and
+# printing it beside criteria that were is how a registration quietly acquires a
+# failure it never earned.
+#
+# So a directional criterion now has three outcomes, not two, and NOT TESTABLE is
+# neither. It is recorded with its reason and it does not enter the failure list.
+#
+# The floor is DERIVED, not chosen: with n rows a single file moves the rate by
+# 1/n, so at n = 10 one file is worth ten points and below that a "direction" is
+# one file's worth of noise. Ten is the point where the smallest possible step
+# stops being bigger than most differences worth claiming.
+MIN_DIRECTIONAL_N = 10
+
+
+def direction(
+    label: str, hits_a: int, n_a: int, hits_b: int, n_b: int, wording: str
+) -> Tuple[Optional[bool], str]:
+    """Read a directional criterion, or refuse to.
+
+    Returns ``(held, line)`` where ``held`` is None when the comparison could not
+    be made at all — too few rows on one side, or nothing counted on either, so
+    no ordering exists to be right or wrong about. None never reaches the failure
+    list; see MIN_DIRECTIONAL_N.
+
+    Args:
+        label: Criterion name, e.g. "K2".
+        hits_a: Numerator of the side predicted to be higher.
+        n_a: Denominator of that side.
+        hits_b: Numerator of the side predicted to be lower.
+        n_b: Denominator of that side.
+        wording: What the criterion claims, e.g. "band-limited hurts more".
+    """
+    if n_a == 0 or n_b == 0:
+        return None, f"{label} NOT TESTABLE — {wording}: one side has no rows ({n_a} vs {n_b})"
+    if min(n_a, n_b) < MIN_DIRECTIONAL_N:
+        return None, (
+            f"{label} NOT TESTABLE — {wording}: {min(n_a, n_b)} rows on the smaller side, "
+            f"below the {MIN_DIRECTIONAL_N} a direction needs"
+        )
+    rate_a, rate_b = hits_a / n_a, hits_b / n_b
+    if hits_a == 0 and hits_b == 0:
+        return None, (
+            f"{label} NOT TESTABLE — {wording}: nothing counted on either side "
+            f"(0 of {n_a}, 0 of {n_b}), so there is no direction to read"
+        )
+    held = rate_a > rate_b
+    return held, (
+        f"{label} {wording}: {rate_a:.1%} vs {rate_b:.1%} "
+        f"{'as predicted' if held else 'NOT as predicted'}"
+    )
+
 
 def load_key(path: Path) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
     """(label by file id, source_slug by file id, stratum by source_slug)."""
@@ -197,13 +254,16 @@ def score(  # noqa: C901
         band = [f for f in genuine if strata.get(slugs.get(f, ""), "").startswith("band_limited")]
         full = [f for f in genuine if strata.get(slugs.get(f, "")) == "full_band"]
         if band and full:
-            r_band = sum(1 for f in band if is_conv(f)) / len(band)
-            r_full = sum(1 for f in full if is_conv(f)) / len(full)
-            held["K2"] = r_band > r_full
-            lines.append(
-                f"K2 band-limited hurts more: {r_band:.1%} vs {r_full:.1%} "
-                f"{'as predicted' if held['K2'] else 'NOT as predicted'}"
+            verdict, line = direction(
+                "K2",
+                sum(1 for f in band if is_conv(f)),
+                len(band),
+                sum(1 for f in full if is_conv(f)),
+                len(full),
+                "band-limited hurts more",
             )
+            held["K2"] = verdict
+            lines.append(line)
         else:
             lines.append("K2 not evaluable — his key carries no stratum map")
         # K3 — Layer II, if his half has one.
@@ -261,13 +321,16 @@ def score(  # noqa: C901
         band = [f for f in genuine if strata.get(slugs.get(f, ""), "").startswith("band_limited")]
         full = [f for f in genuine if strata.get(slugs.get(f, "")) == "full_band"]
         if band and full:
-            s_band = sum(1 for f in band if is_sig(f)) / len(band)
-            s_full = sum(1 for f in full if is_sig(f)) / len(full)
-            held["A-iii"] = s_band > s_full
-            lines.append(
-                f"A-iii band-limited signaled more: {s_band:.1%} vs {s_full:.1%} "
-                f"{'as predicted' if held['A-iii'] else 'NOT as predicted'}"
+            verdict, line = direction(
+                "A-iii",
+                sum(1 for f in band if is_sig(f)),
+                len(band),
+                sum(1 for f in full if is_sig(f)),
+                len(full),
+                "band-limited signaled more",
             )
+            held["A-iii"] = verdict
+            lines.append(line)
     return held, lines
 
 
@@ -435,6 +498,57 @@ def selftest() -> int:  # noqa: C901
             print("  SELFTEST FAIL errored run: a fault was folded into a coverage line")
             ok = False
 
+        # Case 8 — the situation set B actually produced: nothing convicted among
+        # genuine on EITHER stratum. The old code read 0.0% > 0.0% as False and
+        # printed a failure. There is no direction in two zeros, and a criterion
+        # that could not come out either way must not enter the failure list.
+        held8, lines8 = score(
+            load_verdicts(write("nozero.csv", clean)), by_file, slugs, strata_map, "B"
+        )
+        if held8.get("K2") is not None:
+            print(f"  SELFTEST FAIL two zeros: K2 = {held8.get('K2')}, expected None")
+            ok = False
+        if not any("K2 NOT TESTABLE" in line and "either side" in line for line in lines8):
+            print("  SELFTEST FAIL two zeros: K2 was not reported as untestable")
+            ok = False
+        if any(k for k, v in held8.items() if v is False):
+            print("  SELFTEST FAIL two zeros: an untested criterion reached the failure list")
+            ok = False
+
+        # Case 9 — three band-limited rows, his actual stratum size. Even with a
+        # visible difference, three rows cannot carry a direction: one file is
+        # worth 33 points. The floor is derived in MIN_DIRECTIONAL_N.
+        thin_labels, thin_strata = {}, {}
+        for i in range(1, 4):
+            thin_labels[f"t{i:03d}"] = {"label": "genuine", "source_slug": f"u{i:03d}"}
+            thin_strata[f"u{i:03d}"] = "band_limited_analog"
+        for i in range(4, 34):
+            thin_labels[f"t{i:03d}"] = {"label": "genuine", "source_slug": f"u{i:03d}"}
+            thin_strata[f"u{i:03d}"] = "full_band"
+        thin_key = work / "thin.json"
+        thin_key.write_text(
+            json.dumps({"labels": thin_labels, "strata": thin_strata}), encoding="utf-8"
+        )
+        thin_by_file, thin_slugs, thin_strata_map = load_key(thin_key)
+        thin_csv = work / "thin.csv"
+        with open(thin_csv, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=["file", "verdict"])
+            w.writeheader()
+            for fid in thin_labels:
+                # All three band-limited convicted, no full-band one: the
+                # predicted direction, at the largest margin arithmetic allows.
+                convicted = thin_strata[thin_labels[fid]["source_slug"]].startswith("band_limited")
+                w.writerow({"file": fid + ".flac", "verdict": CONVICTION if convicted else "AUTHENTIC"})
+        held9, lines9 = score(
+            load_verdicts(thin_csv), thin_by_file, thin_slugs, thin_strata_map, "B"
+        )
+        if held9.get("K2") is not None:
+            print(f"  SELFTEST FAIL thin stratum: K2 = {held9.get('K2')}, expected None")
+            ok = False
+        if not any("K2 NOT TESTABLE" in line and "3 rows" in line for line in lines9):
+            print("  SELFTEST FAIL thin stratum: the row count was not given as the reason")
+            ok = False
+
     print("selftest: " + ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
@@ -467,6 +581,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     labels_seen = Counter(by_file.values())
     print(f"key composition: {dict(labels_seen)}")
     failed = [k for k, v in held.items() if v is False]
+    untested = [k for k, v in held.items() if v is None]
+    if untested:
+        print(f"NOT TESTABLE: {', '.join(untested)} — recorded as untested, not as failed")
     print("\n" + ("ALL REGISTERED CRITERIA HELD" if not failed else "FAILED: " + ", ".join(failed)))
     return 0 if not failed else 1
 

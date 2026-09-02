@@ -82,7 +82,17 @@ def plain_explanation(result: Dict[str, Any]) -> str:
             cliff = f" The high frequencies cut off sharply at about {khz:.0f} kHz."
 
     if verdict == "AUTHENTIC":
-        base = "No signs of transcoding — this looks like genuine lossless audio."
+        # Scoped on purpose, since 2026-09-02. On Provir's set B this verdict was
+        # returned for all 35 atrac3plus files: every rule ran, none had an
+        # instrument for that format, and the engine handed out a clean bill it
+        # had no standing to give. Abstaining there would be worse — it would
+        # claim to know the file is ATRAC, which the engine cannot see — so the
+        # repair belongs in what the pass SAYS, not in when it fires.
+        base = (
+            "No signs of transcoding by the encoders this tool can read — it looks like "
+            "genuine lossless audio. That is a clean reading, not a guarantee: formats "
+            "outside its panel leave marks it has no instrument for."
+        )
     elif verdict == "WARNING":
         base = "A couple of mild oddities, but nothing conclusive. Most likely genuine."
     elif verdict == "SUSPICIOUS":

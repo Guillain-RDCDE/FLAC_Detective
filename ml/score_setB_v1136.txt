@@ -5,12 +5,13 @@ genuine rows 35, lossy rows 245
 false convictions: 0/35 = 0.0%
 genuine signaled : 0/35 = 0.0%
 K1 false convictions <= 2 % and <= 3 files: 0 of 35 HELD
-K2 band-limited hurts more: 0.0% vs 0.0% NOT as predicted
+K2 NOT TESTABLE — band-limited hurts more: 3 rows on the smaller side, below the 10 a direction needs
 K3 not evaluable — no MP2 arm in his half
 K4 conviction rate by arm: aac_256 80%, mp3_320_lame 71%, opus_256 49%, mp3_320_pretag 9%, mp3_V0_lame 6%, atrac3plus 0%, vorbis_q10 0%
    MP3 arms top out at 71%, high-rate AAC at 80% NOT as predicted
 
 engine sha in the verdict file: ['55c4aeb848f89eeda008e18fd627b1a012c0aec5']
 key composition: {'genuine': 35, 'aac_256': 35, 'mp3_320_pretag': 35, 'atrac3plus': 35, 'mp3_320_lame': 35, 'mp3_V0_lame': 35, 'vorbis_q10': 35, 'opus_256': 35}
+NOT TESTABLE: K2 — recorded as untested, not as failed
 
-FAILED: K2, K4
+FAILED: K4

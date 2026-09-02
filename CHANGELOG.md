@@ -1,3 +1,45 @@
+## v1.13.7 (2026-09-02) — the limit now says itself
+
+v1.13.6 closed this section with a sentence: *"An ATRAC3+ transcode has every
+rule run on it and every rule find nothing, and still reads `AUTHENTIC`. That is
+a real limit and it stays one."* It was written before there was a number for
+it. There is one now: on Provir's set B, **all 35 atrac3plus files came back
+`AUTHENTIC`**, alongside 35 `vorbis_q10` files at 0 % convicted.
+
+The limit stays — abstaining on those rows would be worse, because it would mean
+claiming to know the file is ATRAC, which the engine cannot see. What was wrong
+was not when the pass fires but what it *said*: "No signs of transcoding — this
+looks like genuine lossless audio" reads as a clean bill of health for a file the
+panel never covered.
+
+So the pass now carries its own reach: no signs of transcoding **by the encoders
+this tool can read**, and that is a clean reading, not a guarantee. One string,
+one test, no change to any verdict — every count in the v3 exchange stands
+exactly as it was published.
+
+### Also, in `ml/` — the exchange harness, not the engine
+
+- **The freezer can no longer lose a stratum map in silence.** Set A r2 shipped
+  with a key carrying `labels` and nothing else, three hours after a key that
+  did carry a 36-source stratum map, while the letter announcing the set said
+  the key labelled the twelve band-limited sources. Nothing failed because
+  nothing checked. `build_key` now refuses to write a key unless a map is
+  supplied and covers every source, or the set is explicitly declared
+  unstratified. Six tests, and the refusal is demonstrated against the real r2
+  key.
+- **The key is sealed when it is built, not when it is released.** `write_key`
+  writes the digest beside the key in the same action, so it can be published
+  with the manifest before either side scores. Neither party in v3 could prove
+  their key predated the other's verdicts.
+- **A directional criterion now has three outcomes.** K2 came back "NOT as
+  predicted" at 0.0 % against 0.0 % — nothing convicted on either side, and
+  three rows on the band-limited one. A prediction that could not come out
+  either way was being printed as a failure it never earned. NOT TESTABLE is now
+  distinct from FAILED and does not enter the failure list; the floor is derived
+  (at n rows one file moves the rate by 1/n, so below ten a direction is one
+  file's worth of noise) rather than chosen. Re-scoring the round changes that
+  one line and nothing else.
+
 ## v1.13.6 (2026-09-01) — a pass the engine had no standing to issue
 
 `AUTHENTIC` meant two different things: the instruments ran and found nothing,
