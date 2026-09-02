@@ -1,0 +1,15 @@
+# Exchange evidence is hashed as bytes, so git must not touch its line endings.
+#
+# The SHA-256 of a verdict file is published before either key moves; the
+# manifests and hash files received from the other party are the links in his
+# timestamp chain. A checkout that rewrote CRLF to LF — or the reverse — would
+# hand a third party a file whose hash no longer matches the published one, and
+# this exchange has already been bitten twice by line endings: his .sha256 seals
+# the CRLF form (the LF form hashes differently), and his set B manifest is LF
+# while its selfhash file is CRLF.
+#
+# Narrow on purpose: no global `text=auto` rule, so nothing outside these paths
+# is renormalised.
+ml/verdicts_set*.csv        -text
+ml/exchange/received/**     -text
+ml/exchange/MANIFEST*.sha256 -text

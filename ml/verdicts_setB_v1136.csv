@@ -1,0 +1,281 @@
+file,verdict,score,confidence,hires_verdict,evidence_families,engine_version,engine_sha
+b001.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b002.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b003.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b004.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b005.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b006.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b007.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b008.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b009.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b010.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b011.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b012.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b013.wav,FAKE_CERTAIN,79,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b014.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b015.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b016.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b017.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b018.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b019.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b020.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b021.wav,SUSPICIOUS,74,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b022.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b023.wav,FAKE_CERTAIN,86,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b024.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b025.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b026.wav,WARNING,52,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b027.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b028.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b029.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b030.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b031.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b032.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b033.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b034.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b035.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b036.wav,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b037.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b038.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b039.wav,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b040.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b041.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b042.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b043.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b044.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b045.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b046.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b047.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b048.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b049.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b050.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b051.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b052.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b053.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b054.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b055.wav,SUSPICIOUS,66,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b056.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b057.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b058.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b059.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b060.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b061.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b062.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b063.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b064.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b065.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b066.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b067.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b068.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b069.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b070.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b071.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b072.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b073.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b074.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b075.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b076.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b077.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b078.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b079.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b080.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b081.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b082.wav,AUTHENTIC,12,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b083.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b084.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b085.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b086.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b087.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b088.wav,FAKE_CERTAIN,82,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b089.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b090.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b091.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b092.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b093.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b094.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b095.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b096.wav,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b097.wav,FAKE_CERTAIN,60,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b098.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b099.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b100.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b101.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b102.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b103.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b104.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b105.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b106.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b107.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b108.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b109.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b110.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b111.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b112.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b113.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b114.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b115.wav,FAKE_CERTAIN,86,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b116.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b117.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b118.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b119.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b120.wav,FAKE_CERTAIN,56,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b121.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b122.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b123.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b124.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b125.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b126.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b127.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b128.wav,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b129.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b130.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b131.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b132.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b133.wav,AUTHENTIC,1,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b134.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b135.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b136.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b137.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b138.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b139.wav,FAKE_CERTAIN,71,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b140.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b141.wav,AUTHENTIC,11,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b142.wav,FAKE_CERTAIN,73,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b143.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b144.wav,FAKE_CERTAIN,71,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b145.wav,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b146.wav,FAKE_CERTAIN,86,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b147.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b148.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b149.wav,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b150.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b151.wav,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b152.wav,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b153.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b154.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b155.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b156.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b157.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b158.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b159.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b160.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b161.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b162.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b163.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b164.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b165.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b166.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b167.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b168.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b169.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b170.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b171.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b172.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b173.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b174.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b175.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b176.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b177.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b178.wav,FAKE_CERTAIN,79,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b179.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b180.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b181.wav,FAKE_CERTAIN,73,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b182.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b183.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b184.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b185.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b186.wav,AUTHENTIC,20,✅ Authentic file,NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b187.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b188.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b189.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b190.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b191.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b192.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b193.wav,FAKE_CERTAIN,77,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b194.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b195.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b196.wav,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b197.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b198.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b199.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b200.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b201.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b202.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b203.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b204.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b205.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b206.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b207.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b208.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b209.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b210.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b211.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b212.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b213.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b214.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b215.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b216.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b217.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b218.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b219.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b220.wav,FAKE_CERTAIN,79,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b221.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b222.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b223.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b224.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b225.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b226.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b227.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b228.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b229.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b230.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b231.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b232.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b233.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b234.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b235.wav,FAKE_CERTAIN,58,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b236.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b237.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b238.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b239.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b240.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b241.wav,WARNING,53,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b242.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b243.wav,AUTHENTIC,1,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b244.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b245.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b246.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b247.wav,FAKE_CERTAIN,83,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b248.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b249.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b250.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b251.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b252.wav,WARNING,36,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b253.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b254.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b255.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b256.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b257.wav,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b258.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b259.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b260.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b261.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b262.wav,AUTHENTIC,1,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b263.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b264.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b265.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,cnn,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b266.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b267.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b268.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b269.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b270.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b271.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b272.wav,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b273.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b274.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b275.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b276.wav,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b277.wav,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b278.wav,AUTHENTIC,16,✅ Authentic file,NOT_HIRES,,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b279.wav,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5
+b280.wav,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.6,55c4aeb848f89eeda008e18fd627b1a012c0aec5

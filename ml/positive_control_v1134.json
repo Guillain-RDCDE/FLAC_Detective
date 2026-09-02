@@ -1,0 +1,40 @@
+{
+  "tree": "C:\\Users\\loutr\\fd-v1134",
+  "version": "1.13.4",
+  "module": "C:\\Users\\loutr\\fd-v1134\\src\\flac_detective\\__init__.py",
+  "band_limit_filter": "lowpass=f=14000:poles=2,lowpass=f=14000:poles=2,lowpass=f=14000:poles=2,lowpass=f=14000:poles=2,lowpass=f=14000:poles=2,lowpass=f=14000:poles=2",
+  "rows": {
+    "src056.flac": {
+      "verdict": "FAKE_CERTAIN",
+      "score": 105,
+      "families": [
+        "cnn",
+        "spectral"
+      ]
+    },
+    "src059.flac": {
+      "verdict": "FAKE_CERTAIN",
+      "score": 106,
+      "families": [
+        "cnn",
+        "spectral"
+      ]
+    },
+    "src060.flac": {
+      "verdict": "FAKE_CERTAIN",
+      "score": 76,
+      "families": [
+        "cnn",
+        "spectral"
+      ]
+    },
+    "rh1982-10-18.late.178810.sbd.ellingsen.lennox.miksis.flac24__s2t05 - West L.A. Fadeaway.flac": {
+      "verdict": "FAKE_CERTAIN",
+      "score": 55,
+      "families": [
+        "cnn",
+        "spectral"
+      ]
+    }
+  }
+}
