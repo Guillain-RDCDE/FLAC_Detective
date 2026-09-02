@@ -1,3 +1,41 @@
+## v1.13.8 (2026-09-02) — stop asking for workers, not for work
+
+A user reported that a folder of more than a few files kills the run: 36 files,
+16 workers, Store Python 3.12 on Windows 11, ending in `BrokenProcessPool` with
+nothing analysed. Their diagnosis was that the tool loads every FLAC into memory
+at once. The trace says otherwise, and the trace is what they were good enough to
+paste in full:
+
+```
+File "<frozen importlib._bootstrap_external>", line 1652, in _fill_cache
+OSError: [WinError 1450] Insufficient system resources
+```
+
+`_fill_cache` is the import machinery listing a package directory. The worker
+died **while importing**, before it opened an audio file. Windows spawns rather
+than forks, so each of 16 workers is a fresh interpreter re-importing numpy,
+scipy, soundfile and torch, and sixteen simultaneous import storms exhaust the
+handles Windows will give. Their "it works under 10 files" observation fits:
+fewer files than workers means fewer processes spawned.
+
+Three defects, all ours:
+
+- **The worker count was uncapped** — `os.cpu_count()`, which is right for
+  cheap workers and wrong when each one pays a heavy import first. The cost that
+  matters is per process, not per core. Now capped at 8, declared as a ceiling
+  rather than measured as an optimum.
+- **There was no `--workers` flag at all.** A 16-core machine, a failure caused
+  by 16 workers, and no supported way to ask for fewer. `--workers 1` now
+  analyses in the main process and spawns nothing.
+- **A broken pool took the whole run down.** It now saves what has been recorded
+  and finishes the remaining files in this process, with a log line naming the
+  cause instead of a traceback about futures.
+
+**Not reproduced here, and said so in the reply**: this machine has 4 cores and
+no Store Python, so the fix is built on the reporter's trace and the mechanism it
+points to. The reply asks for the one measurement that would refute it — whether
+`--workers 1` completes — because if it does not, the diagnosis is wrong.
+
 ## v1.13.7 (2026-09-02) — the limit now says itself
 
 v1.13.6 closed this section with a sentence: *"An ATRAC3+ transcode has every

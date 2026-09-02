@@ -11,8 +11,28 @@ class AnalysisConfig:
     # Sample duration to analyze (seconds)
     SAMPLE_DURATION: float = 30.0
 
-    # Number of workers for multi-processing (defaults to CPU count)
-    MAX_WORKERS: int = os.cpu_count() or 4
+    # Number of workers for multi-processing.
+    #
+    # Capped, and the cap is about START-UP, not about cores. Windows and macOS
+    # spawn rather than fork, so every worker is a fresh interpreter that
+    # re-imports the whole stack — numpy, scipy, soundfile and torch — before it
+    # looks at a single file. Sixteen of those importing at once open thousands
+    # of file handles in the same moment, and on Windows that fails with
+    # `OSError: [WinError 1450] Insufficient system resources` inside the import
+    # machinery, killing the worker before any audio is read.
+    #
+    # Reported from the field (issue: 36 files, 16 workers, Store Python 3.12 on
+    # Windows 11) with a plausible but wrong diagnosis attached — "it loads all
+    # the FLAC files into memory". The traceback is in `_fill_cache`, listing a
+    # package directory during import. Nothing had been decoded yet.
+    #
+    # Eight is a declared ceiling, not a measured optimum: past it the marginal
+    # file-per-second gain is small on any machine we have, and the start-up
+    # cost is paid per process regardless. `--workers` overrides it in both
+    # directions.
+    WORKER_CAP: int = 8
+
+    MAX_WORKERS: int = min(os.cpu_count() or 4, WORKER_CAP)
 
     # Auto-save interval (number of files)
     SAVE_INTERVAL: int = 50

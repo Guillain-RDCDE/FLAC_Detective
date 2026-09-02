@@ -16,9 +16,10 @@ import os
 import sys
 import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures.process import BrokenProcessPool
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Iterator, Optional
 
 from .__version__ import __version__
 
@@ -452,6 +453,19 @@ def parse_arguments() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            f"Number of parallel worker processes (default: CPU count, capped at "
+            f"{analysis_config.WORKER_CAP}). Use 1 to analyse in this process, with no "
+            "workers to spawn at all — the answer if the run dies with 'WinError 1450' "
+            "or a BrokenProcessPool, which is a start-up failure and not a problem with "
+            "your files."
+        ),
+    )
+    parser.add_argument(
         "--deep",
         action="store_true",
         help=(
@@ -507,6 +521,14 @@ def parse_arguments() -> argparse.Namespace:
         parser.error(
             f"--sample-duration must be between 5 and 120 seconds (got {args.sample_duration})"
         )
+
+    # A worker count is a resource decision, so it is applied to the config here
+    # and read from there everywhere — the CLI, the GUI worker and the pool all
+    # take the same number rather than each having an opinion.
+    if args.workers is not None:
+        if args.workers < 1:
+            parser.error(f"--workers must be 1 or more (got {args.workers})")
+        analysis_config.MAX_WORKERS = args.workers
 
     if not args.paths:
         args.paths = get_user_input_path()
@@ -667,6 +689,31 @@ def _create_non_flac_result(non_flac_file: Path) -> dict:
     }
 
 
+def _analyze_batch(files: list[Path], analyzer: Any, workers: int) -> Iterator[tuple[Path, dict]]:
+    """Yield ``(path, result)`` for each file, in a pool or in this process.
+
+    ``workers <= 1`` runs here: no pool to break, and the heavy stack is imported
+    once instead of once per worker. That is the fallback path, and it is also
+    what ``--workers 1`` gives anyone whose machine cannot spawn workers at all.
+
+    Args:
+        files: Files to analyse.
+        analyzer: The analyzer; must be picklable when ``workers > 1``.
+        workers: Process count. 1 or less means in-process.
+
+    Yields:
+        ``(path, result)`` pairs, in completion order when pooled.
+    """
+    if workers <= 1:
+        for path in files:
+            yield path, analyzer.analyze_file(path)
+        return
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
+        for future in as_completed(futures):
+            yield futures[future], future.result()
+
+
 def _process_flac_files(
     files_to_process: list[Path],
     tracker: ProgressTracker,
@@ -674,6 +721,9 @@ def _process_flac_files(
     advanced: bool = False,
 ):
     """Process FLAC files with multi-processing and rich progress.
+
+    Falls back to this process if the worker pool dies. See ``run`` below.
+
 
     Args:
         files_to_process: List of FLAC files to analyze.
@@ -702,41 +752,58 @@ def _process_flac_files(
 
         progress_ctx = nullcontext()
 
-    with ProcessPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
-        futures = {executor.submit(analyzer.analyze_file, f): f for f in files_to_process}
+    processed_count = 0
+    done: set[Path] = set()
 
-        processed_count = 0
-
-        # Start Progress Block
-        if HAS_RICH:
-            with progress_ctx as progress:
-                task_id = progress.add_task("[cyan]Analyzing audio files...", total=total_files)
-
-                for future in as_completed(futures):
-                    result = future.result()
-                    tracker.add_result(result)
-                    processed_count += 1
-
-                    # Update Progress
-                    progress.update(task_id, advance=1)
-
-                    # Log result (will appear above progress bar thanks to RichHandler)
-                    _log_formatted_result(result, processed_count, total_files, advanced)
-
-                    # Periodic save
-                    if processed_count % analysis_config.SAVE_INTERVAL == 0:
-                        tracker.save()
-        else:
-            # Fallback for standard console
-            for future in as_completed(futures):
-                result = future.result()
-                tracker.add_result(result)
-                processed_count += 1
-
+    def consume(files: list[Path], workers: int, progress: Any = None, task_id: Any = None) -> None:
+        """Analyse ``files`` and record every result as it lands."""
+        nonlocal processed_count
+        for path, result in _analyze_batch(files, analyzer, workers):
+            done.add(path)
+            tracker.add_result(result)
+            processed_count += 1
+            if progress is not None:
+                progress.update(task_id, advance=1)
+                # Logged inside the progress block so RichHandler puts it above the bar.
+                _log_formatted_result(result, processed_count, total_files, advanced)
+            else:
                 _log_formatted_result(result, processed_count, total_files)
+            if processed_count % analysis_config.SAVE_INTERVAL == 0:
+                tracker.save()
 
-                if processed_count % analysis_config.SAVE_INTERVAL == 0:
-                    tracker.save()
+    def run(progress: Any = None, task_id: Any = None) -> None:
+        """Run the pool, and finish the job by hand if the pool dies.
+
+        A BrokenProcessPool used to reach the user as a bare traceback with every
+        remaining file unanalysed. The pool dies for reasons that have nothing to
+        do with the audio — most often a worker killed while importing, which on
+        Windows is `WinError 1450` — so the right answer is to stop asking for
+        workers, not to stop working. What is already recorded stays recorded;
+        the rest is finished in this process, slower and reliably.
+        """
+        workers = max(1, int(analysis_config.MAX_WORKERS))
+        try:
+            consume(files_to_process, workers, progress, task_id)
+        except BrokenProcessPool:
+            left = [f for f in files_to_process if f not in done]
+            logger.error(
+                "The worker pool died after %d of %d files. This is a start-up failure "
+                "in the workers, not a problem with your audio — on Windows it is usually "
+                "'WinError 1450' while importing. Finishing the remaining %d file(s) in "
+                "this process. Use --workers to set a lower number next time.",
+                len(done),
+                total_files,
+                len(left),
+            )
+            tracker.save()
+            consume(left, 1, progress, task_id)
+
+    if HAS_RICH:
+        with progress_ctx as progress:
+            task_id = progress.add_task("[cyan]Analyzing audio files...", total=total_files)
+            run(progress, task_id)
+    else:
+        run()
 
 
 def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTracker):
