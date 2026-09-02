@@ -1,0 +1,92 @@
+Jamie — the numbers, 2 of 2: your engine on my half.
+
+Translated into my scorer's vocabulary with the tier mapping YOU declared
+before your verdicts existed — UPSCALE and LOSSY_MASTER convict, SUSPECT
+signals, GENUINE does neither. The translation reproduces your announced
+counts exactly: 43 convicted, 207 signalled, 38 genuine, 0 errors. The scorer
+was not modified; the translation is a separate script and it is in the repo.
+
+
+YOUR COLUMN A ON MY 288
+
+Zero false convictions on my 36 genuine. Your safety on my half is perfect,
+and my A-i criterion — the one I set for myself — holds on your numbers.
+
+    mp3_320    53%
+    opus_256   47%
+    aacmf_256  17%
+    mp2_256     3%
+    aac_ff256   0%
+    mp3_V0      0%
+    vorbis_q8   0%
+
+A-ii held: Layer II at 3% against MP3 at 53%. The blindness v2 had was in my
+MP3 filter-bank instruments, not in conviction generally, and your engine
+reads the same shape from the other side.
+
+And the one I did not expect to be corroborated at all:
+
+A-iii held, at a margin I would not have dared predict. Of my 36 genuine, you
+signalled 14. Split by stratum: **12 of 12 band-limited signalled, 2 of 24
+full-band**. 100% against 8.3%.
+
+Your engine and mine are tripped by the same honest material. I told you on
+the 31st that band-limiting an honest file makes my engine convict it one time
+in three; your engine never convicts them, but it flags every single one. Two
+instruments, different corpora, different methods, no shared code — and the
+same population walks into both. That is the strongest joint result either of
+us has, and it is a finding about the problem rather than about a tool.
+
+It is also the answer to why I built the stratum and declared it rather than
+hoping nobody asked.
+
+
+YOUR COLUMN B
+
+Where it has coverage it is much stronger than your shipped engine:
+
+    mp3_V0     81%   (your column A: 0%)
+    vorbis_q8  72%   (your column A: 0%)
+    mp3_320    64%   (your column A: 53%)
+
+144 rows left every denominator — aac, aacmf, opus and mp2, 36 each — because
+no instrument runs there. That is the amendment you asked for and it is doing
+exactly what it should: a coverage limit is not a detection rate.
+
+One false positive: the vorbis detector fires on a genuine file. 1 of 36. My
+scorer prints "FAILED — a defect, not a result" against that line, but that
+wording was written about MY engine on MY half, and I am not going to let a
+label I wrote for myself do work against you. One false positive on 36, from a
+research instrument you explicitly did not cable into your product, is a
+number, not a verdict.
+
+Your small-bench claim holds up out here: B convicts where A is silent, and
+nothing in the other direction.
+
+
+WHAT THE TWO HALVES SAY TOGETHER
+
+Both engines are blind on Vorbis in their shipped form — yours 0% on my
+vorbis_q8, mine 0% on your vorbis_q10. Both are weak on V0 — you 0%, me 6%.
+Both are defeated by pre-tag encoder houses. And both are tripped by honest
+band-limited material, mine into convictions and yours into flags.
+
+Four blind spots, found by two instruments that share no code and disagree
+about method. I would not have believed any one of them from my own bench.
+
+
+NEXT
+
+Full reports, both halves, both columns, in the repository beside the verdict
+files whose hashes you already hold. Nothing was adjusted after your key
+arrived; the engine has not been touched since before your verdicts did.
+
+For set C, the targets pick themselves: the pre-tag houses, V0, Vorbis at
+quality, and a band-limited stratum built by whichever of us did not build the
+last one. Low rates before any constant is chosen on them, and both keys
+sealed at build time.
+
+Then the organisation, and you go first — you said the first thing you have is
+an offer, and I would rather hear it than negotiate it.
+
+-- Guillain

@@ -1,0 +1,15 @@
+﻿=== fd-exchange-v3, half A ===
+288 rows in the key, 288 verdicts, 288 matched
+
+genuine rows 36, lossy rows 252
+false convictions: 0/36 = 0.0%
+genuine signaled : 14/36 = 38.9%
+A-i 0 false convictions on our own genuine: 0 HELD
+     conviction rate by arm: mp3_320 53%, opus_256 47%, aacmf_256 17%, mp2_256 3%, aac_ff256 0%, mp3_V0 0%, vorbis_q8 0%
+A-ii Layer II below MP3: 3% vs 53% as predicted
+A-iii band-limited signaled more: 100.0% vs 8.3% as predicted
+
+no engine_sha column — the commitment cannot name the engine that produced it
+key composition: {'mp3_V0': 36, 'vorbis_q8': 36, 'genuine': 36, 'mp3_320': 36, 'opus_256': 36, 'aacmf_256': 36, 'aac_ff256': 36, 'mp2_256': 36}
+
+ALL REGISTERED CRITERIA HELD

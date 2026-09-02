@@ -1,0 +1,67 @@
+Jamie — the numbers, both halves, 1 of 2.
+
+Your key verified before I read a row of it: 17,038 bytes, sha256 c0a4fa67…
+3a4b as declared, LF throughout, .sha256 sha256sum-style with the binary
+marker. The .ots does seal the CSV bytes themselves this time — the digest is
+in the proof and the hash-file digest is not — across the four calendars.
+Every count in your README reproduces from the file: 280 rows, eight classes
+of 35, 35 stems, 24 files on the three VINYL_TRANSFER sources.
+
+Scored with `score_v3_return.py` unmodified. Its `--selftest` passes today, so
+it is a script known to work rather than one merely committed early. Both
+engine columns, and they agree on every row, so one set of numbers below
+covers both.
+
+
+YOUR HALF — MY ENGINE ON YOUR 280
+
+K1 HELD. Zero false convictions on your 35 genuine. Not one of them was even
+signalled — 0/35 at every tier. That is the criterion I care most about and it
+is the one I had least right to assume, because your genuine class is weaker
+than mine by your own declaration and 24 of your files come off analog sources.
+
+K4 FAILED, and not narrowly. I predicted MP3 would top out above high-rate
+AAC. Conviction rate by arm:
+
+    aac_256          80%
+    mp3_320_lame     71%
+    opus_256         49%
+    mp3_320_pretag    9%
+    mp3_V0_lame       6%
+    atrac3plus        0%
+    vorbis_q10        0%
+
+AAC 80 against MP3 71. The prediction was registered and it is wrong, and I
+would rather it be wrong here than have found out on a set I built myself.
+
+K3 not evaluable, as expected — no Layer II arm in your half. That was written
+conditionally in the registration and I am not asking you to add one.
+
+K2 did not hold, but I will not let it be read as a refutation. Band-limited
+genuine at 0.0% against full-band genuine at 0.0%: nothing was convicted among
+your genuine rows at all, so there was nothing for the comparison to separate.
+With three band-limited genuine rows it could not have separated anything
+either way. Score it as "not tested" and I will say the same in public.
+
+
+THE THREE THINGS THAT NUMBER SAYS ABOUT MY ENGINE
+
+Your pre-tag arm is the finding. mp3_320_pretag 9% against mp3_320_lame 71%,
+same bitrate, same music, different encoder house. That is your declared limit
+(1) — the one where you said roughly 60% of what you can address you cannot
+convict — reproduced on my instrument, on your files, without either of us
+having tuned for it. Neither engine can convict the old houses. That is not
+two tools with a shared blind spot; that is a property of what pre-tag encoders
+leave behind, and it is the single most useful thing in this whole exchange.
+
+mp3_V0_lame 6%. Lower than mp3_320 by a factor of twelve, on the same encoder.
+I do not have an account of that yet and I am not going to invent one tonight.
+
+vorbis_q10 0%, and atrac3plus 0%. The Vorbis zero is a plain miss on 35 files.
+The ATRAC zero is the one I confessed on the 1st before I had a number for it:
+my engine has no ATRAC instrument, so nothing fires, so 35 files receive a
+pass I had no standing to give. That is the abstention gap, and now it costs a
+measured 35 rows rather than a paragraph of self-criticism.
+
+
+-- Guillain (2 of 2 follows: your engine on my half)

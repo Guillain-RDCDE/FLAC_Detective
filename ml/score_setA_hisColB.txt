@@ -1,0 +1,15 @@
+﻿=== fd-exchange-v3, half A ===
+288 rows in the key, 288 verdicts, 288 matched
+
+NOT EVALUABLE — 144 rows where no instrument ran, removed from every denominator and counted as neither conviction nor miss: aac_ff256 36, aacmf_256 36, mp2_256 36, opus_256 36
+genuine rows 36, lossy rows 108
+false convictions: 1/36 = 2.8%
+genuine signaled : 1/36 = 2.8%
+A-i 0 false convictions on our own genuine: 1 FAILED — a defect, not a result
+     conviction rate by arm: mp3_V0 81%, vorbis_q8 72%, mp3_320 64%
+A-iii band-limited signaled more: 8.3% vs 0.0% as predicted
+
+no engine_sha column — the commitment cannot name the engine that produced it
+key composition: {'mp3_V0': 36, 'vorbis_q8': 36, 'genuine': 36, 'mp3_320': 36, 'opus_256': 36, 'aacmf_256': 36, 'aac_ff256': 36, 'mp2_256': 36}
+
+FAILED: A-i

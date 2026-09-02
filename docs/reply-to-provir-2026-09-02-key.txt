@@ -1,0 +1,130 @@
+Jamie,
+
+My key, in the same message, as the method says. Store mode, no compression, so
+the bytes inside are the bytes these hashes describe.
+
+https://www.dropbox.com/scl/fi/tdso5hkvtu2vea333tm6g/fd-exchange-v3-setA-r2-KEY-2026-09-02.zip?rlkey=384q036ewnzwmjuswg2evpeg8&dl=0
+
+    fd-exchange-v3-setA-r2-KEY-2026-09-02.zip
+    sha256 3a6a00e503c0ea0b11821525c3fccabdf4285e9aff3b9cc7748b7bd83058d035
+    31,486 bytes
+
+    fd-exchange-v3-setA-r2-LABELS.json
+    sha256 078071b1654c0715b4dbe4262ec685a402e0b4ef8dd9e94b0c9b61273cd47e19
+    27,341 bytes
+
+288 entries keyed by the blind id as shipped, each carrying `label` (one of
+genuine, mp3_320, mp3_V0, aac_ff256, aacmf_256, opus_256, vorbis_q8, mp2_256 —
+36 of each) and `source_slug` (src001-src036; the eight files cut from one
+source share a slug). Plus `seed` and `n`. A .sha256 beside it, sha256sum-style,
+LF, in your convention.
+
+
+FIRST, A CORRECTION AGAINST MYSELF
+
+On the 31st I wrote to you: "the key labels them band_limited_synthetic". The
+key I am handing you does not. It carries `labels` and nothing else.
+
+The r2 rebuild dropped the block. The pre-r2 key file still has it — 36 sources,
+12 band_limited_synthetic, 24 full_band — and the r2 freeze, three hours later,
+was written without it. I found it an hour ago while checking what I was about
+to send you against what I had told you it contained, which is a check I only
+ran because you and I have spent a week finding declarations that did not match
+their artefacts.
+
+So the stratum map travels beside the key, not inside it:
+
+    fd-exchange-v3-setA-r2-STRATA.json
+    sha256 313f305744cec83072e2a8b2bac990f8d7d1a43e1563bdb20c5d985c7bf629ed
+
+Lifted verbatim from the pre-r2 file, keyed by source_slug. It applies to the
+shipped set because r2 reshuffled the ids but not the sources: the two key files
+share no single id, and the same 36 slugs. src001 through src012 are the
+stratum — 96 files, 12 of them genuine, the other 84 being those sources' lossy
+arms, built from the filtered source as declared.
+
+I am not asking you to take the file date for it. **The stratum is measurable in
+the files you already hold**, exactly as declared on the 31st before you scored:
+six cascaded 2-pole sections at 14 kHz, detect_cutoff landing 15,250 to
+15,500 Hz. If my map and your measurement disagree on a single one of those 96
+files, my map is wrong and yours wins. That is the only version of this that is
+worth anything — the map is checkable against the audio, so it cannot be
+self-serving, whatever its file date says.
+
+If you would rather score my half without it, score it without it. A-iii and
+anything band-limited will read "not evaluable", and I will take that outcome
+over a stratum you have to trust me on.
+
+
+AND THE ASYMMETRY NEITHER OF US CLOSED
+
+Your .ots seals your key's bytes at 11:26 today — after my two hashes were
+posted. Mine has no seal at all, only a file that has not been written since
+21:12 on the 31st. Both of us can prove our verdicts predate the other's key.
+Neither of us can prove our KEY predates the other's verdicts, and I have held
+your set A verdicts since this morning.
+
+That gap is not closed by either of us being honest, which is the point of
+sealing things. For set C: the key's hash gets sealed at build time, published
+with the manifest, before either side scores anything. Then a key is committed
+the same way verdicts are, and this paragraph never needs writing again.
+
+
+YOUR KEY, RECEIVED
+
+280 rows, five columns, 35 of each of the eight classes, source_stem S01-S35,
+basis per source as declared on the 31st — 20 owner-ruled lawful, 12 you ripped
+and attest, 3 vinyl transfers. I will verify the sha256 and the .ots against the
+CSV bytes before I read a single row of it, and I will say so either way.
+
+The three vinyl transfers being one disclosed stratum is what my K2 condition
+needed, and it is there without my having had to ask twice.
+
+
+THE LIST/INFO CHUNK
+
+Stripping the writer's metadata and setting the bit-exact flag for set C is the
+right repair, and better than the one I would have proposed. I only read that
+header because I hash what arrives before I score it and the chunk was sitting
+in the first eighty bytes; there was no cleverness in it.
+
+
+YOUR TWO, IN KIND
+
+A worker that fails to start and gets banked as a scored row, twice in one
+night, with the resume skipping it forever — that is worse than mine, because
+mine produced no rows and yours produced clean negatives. A clean negative from
+a process that never ran is the failure mode that survives every check that
+counts rows.
+
+And an excerpt length living in another module's global, bound at import in one
+place and read at call in another, caught by a reviewer before any audio ran: I
+have the same species in a different costume this week — a document describing
+the shipped engine as carrying an instrument that only the research tree has.
+Yours was caught by reading the consumer's code, mine by reading the consumer's
+code. Nine species on your census; the count on mine is not lower, and I will
+send it in the same form when the scoring is done.
+
+
+SET C
+
+Agreed, and both in one set: the low rates my constant needs next to the hard
+cases you want, disclosed the same way. Two conditions from my side, both
+learned the expensive way — the low-rate arms have to be built BEFORE any
+constant is chosen on them, and the key's hash sealed at build time as above.
+
+I will bring the band-limited stratum to it too, and this time the strata block
+will be inside the key, with a test that fails if it is missing.
+
+
+ORDER
+
+Scoring now: your half first, then mine, `score_v3_return.py` unmodified, both
+engine columns, and the numbers to you whatever they say — including on the rows
+where my own tool does badly, which is what the README promised in August.
+
+Then the organisation. If the first thing you have to say there is an offer
+rather than a request, you should know that the first thing I have to say is
+that I would rather owe you a favour than be owed one, so we will manage.
+
+-- Guillain
