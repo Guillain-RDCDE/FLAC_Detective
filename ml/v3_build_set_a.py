@@ -630,11 +630,23 @@ def bandlimit(out: Path, want: int = BAND_LIMITED_TARGET) -> int:
         # identifiers are 100+ characters) and appending to them fails with
         # "Result too large". The stratum lives in the ledger, not in a filename.
         dst = src.parent / "_bl_tmp.flac"
-        # Two cascaded 2-pole sections at 15 kHz — a 4th-order roll-off, not a
+        # SIX cascaded 2-pole sections at 14 kHz — a 12th-order roll-off, not a
         # brickwall, so the file reads like an analog-limited master rather than
         # like a codec cut. ffmpeg's lowpass takes poles 1 or 2 only; asking for
         # 4 fails with "Result too large", which is not a path-length problem
         # however much it looks like one.
+        #
+        # (This comment said "two sections at 15 kHz" until 2026-09-02. The
+        # constant has always been six at 14 kHz, which is also the figure
+        # disclosed to Provir, so the code and the letter agreed and only the
+        # comment was wrong — the kind of stale line that is believed precisely
+        # because it sits next to the right code.)
+        #
+        # These sections are IIR and therefore minimum-phase: measured on the
+        # shipped chain, 518 degrees of phase rotation between 1 kHz and 14 kHz,
+        # group delay 5.7 samples at 10 kHz rising to 9.3 at 14 kHz. It is applied
+        # to the SOURCE, before any arm is derived, so every arm's lossy encode
+        # remains the last operation on the signal.
         proc = subprocess.run(
             [
                 "ffmpeg",

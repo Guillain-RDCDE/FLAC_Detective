@@ -229,3 +229,88 @@ archive material. If that test says his Vorbis numbers on our set mean less than
 he would like, that is a fact about the measurement and it will be reported in
 his words, not smoothed.
 
+
+## THIRD AMENDMENT, 2 September 2026 — still before his verdicts arrived
+
+### 1. An ERROR is not a blank, and a contiguous block of them is not a rate
+
+Provir's first commitment carried **152 consecutive ERROR rows**: five jobs were
+competing for his machine and the engine returned nothing parseable across one
+block. He quarantined them and is re-scoring on a quiet machine, and told us
+before we could find the block ourselves.
+
+Our scorer would have counted all 152 as failures to convict. Both absences are
+now handled, and handled **apart**:
+
+* a **blank** says "this instrument does not cover this codec" — a designed limit;
+* an **ERROR** says "something went wrong here" — a fault.
+
+Folding them together would let a broken run hide inside a coverage line. ERROR
+rows now leave every denominator, are reported on their own line, and the
+**longest contiguous run** is reported with them. Past ten in a row the report
+says so in words and tells the reader to re-score before believing anything below
+it. Located in the verdict file's original order, because sorting first would
+destroy the very signal worth reporting. Selftest case 7 reproduces his situation.
+
+### 2. His column B silence on Vorbis — declared exposure is not an exclusion
+
+He has measured that one common post-production operation silences his Vorbis
+instrument in 4 cases of 5 (positive control: the same operation kills his MP3
+instrument 5 of 5, matching a result he banked weeks ago), and that a variant with
+identical magnitude response but **no phase rotation** leaves it at 5 of 5. So the
+damage is done by phase rotation, not by the frequency change. He asks that a
+silent column B on a Vorbis file be read as not-evaluable.
+
+**Accepted for the structural case, refused for this one**, and the distinction
+matters:
+
+* Column B blank on AAC, Opus or ATRAC is **not evaluable**. The coverage limit is
+  knowable in advance and per-codec, and no claim was made.
+* Column B silent on a **Vorbis** row is scored as a **miss**, with his declared
+  exposure reported beside the number in his own words.
+
+The reason is that we cannot tell which files carry the operation. Treating every
+silent Vorbis row as not-evaluable would remove the whole arm from evaluation on
+the strength of an unmeasured possibility, and make the claim unfalsifiable on our
+set. He wrote himself that this is "exactly the sort of excuse that stops being
+credible once the numbers are in", and that he is declaring the exposure rather
+than claiming it. Declaring it is right; excluding on it is not.
+
+### 3. Our set's construction order bounds his exposure — measured, not asserted
+
+`ml/v3_build_set_a.py` applies the band-limit filter to the **source**, replacing
+it, and every arm is derived afterwards. So for every file in set A the chain is
+
+    source (with whatever processing it already carried) -> codec -> decode -> FLAC
+
+and **the lossy encode is the last operation on the signal**. Nothing is applied
+after it — not by us, and not by the archive, whose processing is upstream of our
+encode by construction.
+
+If his instrument is silenced by phase rotation applied **after** the encode,
+which is what smearing the encoder's traces implies, then set A cannot trigger it
+however processed its sources are. If it is also degraded by rotation **upstream**
+of the encode, the argument does not hold and only he can say so.
+
+The measurement, since our own stratum is the most heavily phase-rotated thing in
+the set and we would rather hand him the number than a reassurance. The declared
+band-limit filter is six cascaded 2-pole IIR sections at 14 kHz — minimum-phase,
+so it rotates hard near the knee:
+
+| | 1 kHz | 10 kHz | 14 kHz | 16 kHz |
+|---|---|---|---|---|
+| gain | 0.0 dB | -2.4 dB | -18.1 dB | -41.4 dB |
+| phase | -22 deg | -293 deg | -540 deg | -697 deg |
+
+**518 degrees of rotation between 1 kHz and 14 kHz** — 1.4 full turns — with group
+delay rising from 5.7 samples at 10 kHz to 9.3 at 14 kHz. It is applied to 12 of
+our 36 sources, declared, and it is upstream of every encode.
+
+### 4. A stale comment, found while checking the above
+
+`v3_build_set_a.py` described the filter as "two cascaded 2-pole sections at
+15 kHz". The constant has always been **six at 14 kHz**, which is also the figure
+disclosed to Provir on 31 August — so the code and the letter agreed, and only the
+comment was wrong. Corrected. It is the kind of line that gets believed precisely
+because it sits next to the right code.
+

@@ -59,6 +59,28 @@ GENUINE = "genuine"
 # miss.
 NOT_EVALUABLE = ("", "-", "BLANK", "NOT_EVALUABLE", "NOT_ASSESSED", "N/A", "NA")
 
+# AMENDMENT 2026-09-02 (second), also written before his verdicts arrived.
+#
+# His first commitment carried 152 consecutive ERROR rows: five other jobs were
+# competing for the machine and the engine returned nothing parseable on a
+# contiguous block. He quarantined them and is re-scoring on a quiet machine.
+#
+# Our scorer would have counted every one of them as a failure to convict. An
+# ERROR is not a claim either — but it is not the same absence as a blank. A
+# blank says "this instrument does not cover this codec", which is a designed
+# limit. An ERROR says "something went wrong here", which is a fault, and folding
+# the two together would let a broken run hide inside a coverage line.
+#
+# So ERROR leaves the denominators like a blank, and is reported SEPARATELY, with
+# the count and the largest contiguous run. A long run is the shape of a machine
+# complaining rather than of scattered bad files, and it is the thing that should
+# stop a scoring run rather than be averaged into it. Both halves report it.
+ERRORED = ("ERROR", "ERR", "FAILED", "EXCEPTION")
+
+# Above this, a contiguous block of errors is called out as a probable
+# environmental failure rather than left as a count. His block was 152.
+ERROR_RUN_ALARM = 10
+
 
 def load_key(path: Path) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
     """(label by file id, source_slug by file id, stratum by source_slug)."""
@@ -115,8 +137,22 @@ def score(  # noqa: C901
         """False when no instrument ran on this row. See NOT_EVALUABLE."""
         return verdicts[f].get("verdict", "").strip().upper() not in NOT_EVALUABLE
 
-    skipped = [f for f in common if not evaluable(f)]
-    common = [f for f in common if evaluable(f)]
+    def errored(f: str) -> bool:
+        """True when the run failed on this row — a fault, not a designed limit."""
+        return verdicts[f].get("verdict", "").strip().upper() in ERRORED
+
+    # Errors are located in the ORIGINAL order of the verdict file, because a
+    # contiguous block is the evidence that the machine failed rather than the
+    # files. Sorting first would destroy exactly the signal worth reporting.
+    order = [f for f in verdicts if f in set(common)]
+    errors = [f for f in order if errored(f)]
+    longest_run = run = 0
+    for f in order:
+        run = run + 1 if errored(f) else 0
+        longest_run = max(longest_run, run)
+
+    skipped = [f for f in common if not evaluable(f) and not errored(f)]
+    common = [f for f in common if evaluable(f) and not errored(f)]
 
     genuine = [f for f in common if key[f] == GENUINE]
     lossy = [f for f in common if key[f] != GENUINE]
@@ -131,6 +167,19 @@ def score(  # noqa: C901
             f"every denominator and counted as neither conviction nor miss: "
             + ", ".join(f"{lab} {n}" for lab, n in sorted(by_label.items()))
         )
+    if errors:
+        by_label = Counter(key[f] for f in errors)
+        lines.append(
+            f"ERRORED — {len(errors)} rows the run failed on, removed from every "
+            f"denominator and reported apart from NOT EVALUABLE: "
+            + ", ".join(f"{lab} {n}" for lab, n in sorted(by_label.items()))
+        )
+        if longest_run >= ERROR_RUN_ALARM:
+            lines.append(
+                f"  *** {longest_run} of them are CONSECUTIVE in the verdict file. That is "
+                f"the shape of a machine failing, not of bad files. Re-score on a quiet "
+                f"machine before reading anything below."
+            )
     lines.append(f"genuine rows {len(genuine)}, lossy rows {len(lossy)}")
     lines.append(f"false convictions: {_rate(len(conv_genuine), len(genuine))}")
     lines.append(f"genuine signaled : {_rate(sum(1 for f in genuine if is_sig(f)), len(genuine))}")
@@ -360,6 +409,30 @@ def selftest() -> int:  # noqa: C901
             ok = False
         if not any("genuine rows 20, lossy rows 20" in line for line in lines6):
             print("  SELFTEST FAIL blank column: unread rows stayed in a denominator")
+            ok = False
+
+        # Case 7 — Provir's 2 September situation: a contiguous block of ERROR
+        # rows because five jobs were fighting for the machine. They must leave
+        # the denominators, be reported APART from a coverage blank, and the run
+        # length must be called out — a long block is a machine complaining, and
+        # averaging it into a rate is how a broken run gets published.
+        errored_ids = list(labels)[10:25]  # 15 consecutive rows, spanning labels
+        broken = work / "errored.csv"
+        with open(broken, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=["file", "verdict"])
+            w.writeheader()
+            for fid in labels:
+                verdict = "ERROR" if fid in errored_ids else clean(fid)
+                w.writerow({"file": fid + ".flac", "verdict": verdict})
+        _, lines7 = score(load_verdicts(broken), by_file, slugs, strata_map, "B")
+        if not any("ERRORED — 15 rows" in line for line in lines7):
+            print("  SELFTEST FAIL errored run: the failed rows were not reported apart")
+            ok = False
+        if not any("15 of them are CONSECUTIVE" in line for line in lines7):
+            print("  SELFTEST FAIL errored run: the contiguous block was not called out")
+            ok = False
+        if any(line.startswith("NOT EVALUABLE") for line in lines7):
+            print("  SELFTEST FAIL errored run: a fault was folded into a coverage line")
             ok = False
 
     print("selftest: " + ("PASS" if ok else "FAIL"))
