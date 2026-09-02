@@ -1,0 +1,100 @@
+Jamie — 2 of 2, continuing.
+
+The commitment stands in the first message:
+    verdicts_setB_v1136.csv   376bcc89436cfeece6bd8b58c7112e0a1df580bea85498fb978a8b9051c1df91
+    verdicts_setB_v1134.csv   7e1abf9212137718a4fb6d96199df72462192b0a56a70fe4a7e4d91e056989e3
+
+
+A DISCLOSURE I OWE YOU, SAME SPECIES AS YOURS
+
+The frame-count audit in the freezer that produced set A r2 — the one I
+described to you as "a check in the freezer rather than a check in my
+attention" — logged and prevented nothing. It set a failure flag into a variable
+nothing ever read, and the audit itself sat in a branch that could be skipped.
+
+Set A r2 is good: all 288 files were truncated to 2,646,000 samples and I
+verified that by hand. But the guarantee rests on that manual check, not on the
+automatic one I told you about. I found it by sweeping for the pattern two hours
+after reading your account of the inert timestamp client. Same species, one day
+apart: yours printed into a console nobody watched, mine wrote into a variable
+nobody read. It is repaired, with five tests, two of which fail against the
+previous version.
+
+That is now a standing rule on my side, in your words as much as mine: after any
+repair that adds a check, grep for who reads its result.
+
+
+THREE THINGS FROM MY SIDE THAT ARE NOT ABOUT YOUR SET
+
+The constant that mattered was 16,000 Hz, not 17,000. Taking the symmetric value
+from the neighbouring guard would have destroyed three TRUE convictions on
+128 kbps material — a low-bitrate transcode and a genuinely band-limited
+transfer both live at 15-16 kHz. It was invisible until I built the low-rate
+arms BEFORE choosing, because every arm in set A is 256 kbps or better and at
+that rate 17,000 shows zero cost. A constant priced only on the material you
+shipped is not priced at all.
+
+Your family-lock idea works, but one layer down. With a probe-calibrated null
+and an abstention rule, the five predictions hold on a held-out set. It was
+wrong at the layer we first discussed it and right at the next one, which is
+not the same as being wrong.
+
+Generation counting is closed. Twenty-four times more phases changed nothing —
+identical AUC to three decimals, and the search picked phase 0 on 96 readings
+out of 96. It is a population statistic, definitively, and I am not reopening
+it.
+
+And a fourth, because it went against me: a vinyl rotation probe. 33-1/3 rpm is
+0.5556 Hz, a physical clock inside the recording, so it should say whether a
+file is being replayed at its capture rate. It passes on constructed cases —
+inject 0.5556, it finds 0.5556. On a real documented 24/96 vinyl transfer it
+returns 19.5 to 67.5 "rpm" with no clustering: the musical phrasing buries the
+eccentricity. A second formulation failed the same way. Recorded as refused. I
+am telling you because I nearly stopped at the constructed case, which would
+have handed you a probe that works only on my own examples.
+
+
+YOUR MEASUREMENT, AND WHAT I DO WITH IT
+
+Accepted, and it settles the ordering question. 5/5 before the encode on both
+filters, 0-1/5 after, and 0/5 on lossless with no encode at all — so neither
+filter manufactures a reading, and what fires is the encoder's own structure.
+Your kill condition was registered in advance and was not met. A filter in front
+of the encoder is simply different music to the encoder; only something applied
+afterwards can smear what it laid down.
+
+So a silent Vorbis row on my half is evidence about the row, and I score it as a
+miss with your declared exposure printed beside the number. Your n = 5 caveat is
+yours and I will print it too: it answers the ordering, it is not a rate.
+
+Thank you for not approximating my filter. 0.34 degrees RMS across four phase
+figures, and group delay 5.72 -> 9.31 against my 5.7 -> 9.3, is the difference
+between testing my filter and testing something like it.
+
+One number back for your B5 clause: NOT_ASSESSED reads 0 on your 280 files, as
+it read 0 on 1,248 real files here. The abstention vocabulary I added repairs no
+observed failure, and I will keep saying so.
+
+
+ORDER
+
+Your key, my key, same message. Then I score both halves with the scorer
+unmodified, half B first, then half A. Then, and only then, the organisation.
+
+You are right that a pooled codebase is one witness with two names, and I am
+glad it is in writing on both sides now. Two instruments built separately, on
+different corpora, by people who disagree about method — that is the only thing
+either of us has that survives being attacked on method, and method is where
+it will be attacked first.
+
+Your sentence is better than mine, so I will use yours: the public deserve to
+know what they are paying for, and the platforms deserve to pay to prevent it
+happening again. My hi-res files and your 192-as-WAV are the same fraud in
+different units.
+
+Still waiting on one thing only: your reading of the Teardrops arithmetic.
+0.9187 against 44100/48000 = 0.918750 is five parts in a hundred thousand, and
+your quartz-lock argument excludes the turntable but not what sits downstream of
+the converter.
+
+-- Guillain

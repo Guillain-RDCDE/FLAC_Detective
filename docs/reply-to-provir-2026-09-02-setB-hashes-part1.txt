@@ -1,0 +1,92 @@
+Jamie — 1 of 2.
+
+Set B arrived and it is intact. Here are my two hashes. They are the thing I
+owe you before either key moves.
+
+    verdicts_setB_v1136.csv   376bcc89436cfeece6bd8b58c7112e0a1df580bea85498fb978a8b9051c1df91
+    verdicts_setB_v1134.csv   7e1abf9212137718a4fb6d96199df72462192b0a56a70fe4a7e4d91e056989e3
+
+That is my half committed. Send your key in your next message and mine goes in
+the same message back, exactly as the method says. Nothing below changes those
+two numbers; they were fixed before I wrote a word of this.
+
+
+WHAT I VERIFIED ON ARRIVAL
+
+Zip 2,963,597,744 bytes, sha256 f53cc861…0ceffb, matching SHA256SUMS.txt. All
+282 entries stored, none compressed, so the bytes inside are the bytes the
+manifest describes, as you said.
+
+Manifest self-hash b0bb5410…46eaea, identical to what you declared on the 31st.
+Worth one line because it bit us both before: the manifest itself is LF and
+hashes as it stands, while MANIFEST.selfhash carries the bare hex with CRLF —
+the same convention as your .sha256. Two files, two line-ending rules, and both
+matter.
+
+All 280 files match the manifest on hash AND on the declared size column. 280
+unique names, nothing missing, nothing extra. Verified at read time, from inside
+the zip and again from the extracted copy: my runner refuses to score a set it
+has not hashed itself.
+
+Your length leak is closed. All 280 are exactly 10,584,078 bytes — 2,646,000
+samples, one single value, 44.1 kHz / 16-bit stereo throughout.
+
+One thing you may not have checked yourself: the WAV headers carry a LIST/INFO
+chunk with an encoder string, and it is byte-identical on all 280. So it leaks
+nothing — it does not separate your genuine class from your atrac3plus arm. I
+mention it because if it had varied by class, it would have handed me the answer
+key, and neither of us would have noticed until it was too late to matter.
+
+
+THE MISSING LINK, CLOSED
+
+Your setA_r2_verdicts.csv.sha256 hashes c4dceb27…ab1c28. That is bit-for-bit
+what I reconstructed by brute force. The .ots you sent is byte-identical to the
+one I already held, it seals the CRLF variant — the LF digest 3e6d4301… does not
+appear anywhere in the binary — and it carries four calendar URLs: bob and alice
+at opentimestamps, catallaxy, eternitywall.
+
+So the chain now closes without reconstruction: CSV 8c1f04d7… -> hash file
+c4dceb27… -> proof. A third party no longer has to guess a file format to check
+your work. Thank you for sending it; the difference between "verifiable" and
+"verifiable if you also happen to guess CRLF" is the whole of it.
+
+
+MY TWO COLUMNS, AND A NULL I DID NOT TRUST
+
+Both files: 280 rows, 280 unique ids, 0 ERROR, 0 NOT_ASSESSED, longest
+contiguous ERROR run 0. Version and commit stamped on every row — 1.13.6 at
+55c4aeb8, 1.13.4 at 9199d452.
+
+The two columns are identical on all 280 rows, verdict for verdict. The
+band-limited independence guard (1.13.5) and NOT_ASSESSED (1.13.6) change
+nothing on your set. That is exactly what the second column was for, and your
+half is the only corpus neither of us built, so it is the only honest place to
+have asked.
+
+But a perfect zero is also what a broken harness looks like — two passes that
+silently loaded the same engine. So I did not report it until I had a positive
+control, registered before it ran: the four band-limited files that my recorded
+1.13.5 measurement says MUST move. They come back 4/4 FAKE_CERTAIN under 1.13.4
+and 4/4 SUSPICIOUS under 1.13.6, with the log printing "conviction withheld:
+score 105 but only 1 evidence family (cnn&spectral)". Today's chain separates
+the two engines perfectly. The null on your set is a measurement, not an
+artefact.
+
+Two traps found on the way there, both mine, both worth your time because they
+are the species we keep finding in each other's work:
+
+My virtual environment carries an editable install pointing at the repository.
+Set the path wrong and both columns quietly become the same engine while still
+printing two different version numbers — because the version string comes from
+whichever module actually loaded. The check that works is the module's file
+path, not its version.
+
+And my first attempt at diffing the two engine passes joined on filename alone.
+Filenames repeat across arms, so it compared one arm against another and
+reported 60-odd changes where there were four. Composite key, or no key at all.
+
+
+(1 of 2. The second carries a disclosure I owe you, three results from
+my side, what I do with your measurement, and the order. The two hashes above
+are the commitment; nothing in the second message changes them.)
