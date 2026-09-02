@@ -218,11 +218,21 @@ today. A frozen set has exactly one measurement copy, it lives outside Dropbox,
 and a pass that names a path under `Temp/` is pointing at the wrong one. The
 read-time manifest check is the backstop, not the plan.
 
-**One heavy job at a time on this machine.** Also written down before and also
-ignored today: a scoring pass and the test suite were started together, and the
-test run ended in `INTERNALERROR` on a coverage-file lock with 461 tests passed.
-Every test passed and the run is still not a green gate, because a run that ends
-that way has not finished. It was re-run alone.
+**A run that ends in `INTERNALERROR` is not a green gate**, however many tests
+passed above it. One did, with 461 passing, and the first explanation was wrong:
+a scoring pass and the test suite had been started together, so it was written
+down as contention. It happened again later with nothing else running at all.
+
+The trace named the real cause both times: coverage tries to delete its
+`.coverage.*` file and Windows answers `WinError 32 — used by another process`.
+The repository lives inside Dropbox, and Dropbox holds the file open. Same root
+as the set A file that rotted this afternoon: **a synced folder is not a working
+directory**. Confirmed by fixing it rather than by reasoning about it — with
+`COVERAGE_FILE` pointed outside the sync folder the same suite exits 0.
+
+The remedy is local only; CI runs on Linux with no sync layer and never saw
+this. Running one heavy job at a time remains sensible, but it was not what
+caused this and saying so would have left the real cause in place.
 
 ## What set C has to carry
 

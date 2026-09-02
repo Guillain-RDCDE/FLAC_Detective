@@ -93,14 +93,25 @@ def verify_manifest(set_dir: Path) -> List[Path]:
     return files
 
 
-def run(set_dir: Path, out_path: Path, deep: bool) -> int:
-    """Score a verified set, stamping version and commit on every row."""
+def run(set_dir: Path, out_path: Path, deep: bool, sample_duration: float = 30.0) -> int:
+    """Score a verified set, stamping version and commit on every row.
+
+    ``sample_duration`` exists to answer a question Provir raised against his own
+    instrument on 2 September: he had priced his research column on one fixed
+    excerpt per file, and two excerpts of the same lawful file disagreed by more
+    than his margin — so his number described the read as much as the file.
+
+    Ours reads three positions (start, middle, end) and rule 10 compares two to
+    five segments, so it is not the same defect. That is not the same as knowing
+    our verdicts are stable across reads, which nobody had measured. Varying this
+    is how the question gets an answer instead of a reassurance.
+    """
     from flac_detective.__version__ import __version__
     from flac_detective.analysis.analyzer import FLACAnalyzer
 
     files = verify_manifest(set_dir)
     sha = engine_sha()
-    print(f"moteur {__version__} @ {sha[:12]}", flush=True)
+    print(f"moteur {__version__} @ {sha[:12]}, extrait {sample_duration:g} s", flush=True)
 
     done = set()
     if out_path.exists():
@@ -108,7 +119,7 @@ def run(set_dir: Path, out_path: Path, deep: bool) -> int:
             done = {r["file"] for r in csv.DictReader(fh)}
         print(f"reprise: {len(done)} deja scores", flush=True)
 
-    analyzer = FLACAnalyzer(deep=deep)
+    analyzer = FLACAnalyzer(sample_duration=sample_duration, deep=deep)
     new = not out_path.exists()
     with open(out_path, "a", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=FIELDS)
@@ -153,8 +164,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--set", dest="set_dir", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--no-deep", action="store_true", help="skip the CNN fast-path bypass")
+    ap.add_argument(
+        "--sample-duration",
+        type=float,
+        default=30.0,
+        metavar="SECS",
+        help="excerpt length the engine reads (default 30). Vary it to measure "
+        "whether a verdict describes the file or the read.",
+    )
     args = ap.parse_args(argv)
-    return run(args.set_dir, args.out, deep=not args.no_deep)
+    return run(
+        args.set_dir, args.out, deep=not args.no_deep, sample_duration=args.sample_duration
+    )
 
 
 if __name__ == "__main__":

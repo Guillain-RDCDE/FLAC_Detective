@@ -1,0 +1,81 @@
+Notes for Jamie — measured 2 September, evening, after his second letter.
+Not a letter yet; these are the things worth sending with tomorrow's, each with
+the measurement rather than the assertion.
+
+1. THE HEADER CHUNK HAS A ONE-WORD FIX, AND IT IS A FLAG
+
+He is adding a test that fails if any shipped file carries a LIST chunk. The
+thing that puts it there is ffmpeg stamping its own muxer name, and it survives
+`-map_metadata -1`, which is why it looked like it had been stripped.
+
+Measured here: a FLAC written with `-map_metadata -1` alone still reports
+`TAG:encoder=Lavf62.12.100` to ffprobe. The same command with `-bitexact` added
+reports nothing at all. Our freezer has carried `-bitexact` since the v2 set,
+which is the only reason set A r2 is clean — checked on the shipped files just
+now, all three sampled report an empty tag set.
+
+And the check we repaired this afternoon reads both format AND stream tags. Run
+against his set B: `has_tags` returns True on b001.wav. **Our freezer would have
+refused to ship his set**, which is the outcome he wants his new test to produce.
+So the pair is: `-bitexact` at write time, and a tag check that reads stream tags
+as well as format tags at freeze time.
+
+2. FREE FORMAT: HIS CONSTRAINT IS EXACT, WITH THE NUMBERS
+
+Checked rather than believed, because it decides how set C is built:
+
+  10 s of 44.1 kHz stereo, LAME 3.100 `--freeformat -b 512` -> 643,656 bytes
+  (~515 kbps).
+  `ffmpeg -i free512.mp3 out.wav` -> `[mp3float] Header missing`, repeated 199
+  times, no audio produced. Exit is not the problem; the silence is.
+  `lame --decode free512.mp3 out.wav` -> 1,764,044 bytes, correct.
+
+Our own arm builder encodes through ffmpeg's libmp3lame, which can neither write
+nor read free format, so if we ever build that arm it has to shell out to LAME
+too. `ml/free_format.py` now carries the decode path, and it hashes the decoder
+binary before executing it — the rule we already applied to his encoder
+collection. Sending the decoder build with its hash is the right call, and a week
+early is better than on the day.
+
+3. HIS EXCERPT PROBLEM, ASKED OF OUR OWN ENGINE
+
+His first confession — a number priced on one excerpt, quoted as if it belonged
+to the file — is the kind that transposes, so it was asked here rather than
+assumed away.
+
+What the audit found, before any measurement: our accusing rules do not share the
+defect in the same shape. Rules 11, 13, 14 and 15 read the WHOLE file, not an
+excerpt. Rule 10 compares two segments and escalates to five when they disagree.
+The spectral path samples three positions — start, middle, end. And rule 12, the
+CNN, used to infer on a single 10-second window from the middle of the file and
+was repaired for exactly his reason: the comment in the source says a quiet
+intro or a band-limited bridge made the verdict hostage to one segment. It now
+samples three evenly spaced windows and surfaces their spread.
+
+So the excerpt length only reaches the spectral and quality paths. That is not
+the same as knowing our verdicts are stable, which nobody here had measured
+either, so it was measured: forty files — two band-limited sources and three
+full-band ones, all eight arms of each — scored at 15, 30 and 60 seconds.
+
+**Zero verdicts moved.** Not one conviction gained or lost, not one signalling
+change, at either comparison against the 30 s baseline.
+
+That number came with a warning attached, and the warning is worth more than the
+result. The 15 s and 60 s verdict files came out byte-identical, hash and all,
+which is exactly what a knob that does nothing produces. So the knob was given a
+positive control before the stability was believed: calling the spectral analysis
+directly at the three lengths on five files shows the measured energy ratio does
+move — 0.003147, 0.002950, 0.002933 on one of them — while the detected cutoff
+does not move by a single hertz. The parameter is live. What is stable is the
+cutoff, because an encoder's wall is a property of the file rather than of the
+window you look at it through, and the cutoff is what the scoring rules read.
+
+Two limits on that, stated rather than left for him to find. The files are
+60-second excerpts already, so this varies the window inside an excerpt, not the
+choice of excerpt from a full track — on a real track the spectral path takes
+three positions rather than one, which is a different regime and untested here.
+And forty files is forty files.
+
+His defect and ours are therefore not the same shape, but the question was worth
+asking in his terms, and the answer only means anything because the knob was
+proved live first.
