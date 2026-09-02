@@ -6,6 +6,14 @@ false convictions: 0/36 = 0.0%
 genuine signaled : 14/36 = 38.9%
 A-i 0 false convictions on our own genuine: 0 HELD
      conviction rate by arm: mp3_320 53%, opus_256 47%, aacmf_256 17%, mp2_256 3%, aac_ff256 0%, mp3_V0 0%, vorbis_q8 0%
+     by stratum, because a pooled rate hides a stratum we built:
+       aac_ff256      full-band  0/24  band-limited  0/12
+       aacmf_256      full-band  5/24  band-limited  1/12
+       mp2_256        full-band  1/24  band-limited  0/12
+       mp3_320        full-band 19/24  band-limited  0/12
+       mp3_V0         full-band  0/24  band-limited  0/12
+       opus_256       full-band 17/24  band-limited  0/12
+       vorbis_q8      full-band  0/24  band-limited  0/12
 A-ii Layer II below MP3: 3% vs 53% as predicted
 A-iii band-limited signaled more: 100.0% vs 8.3% as predicted
 

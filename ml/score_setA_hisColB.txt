@@ -7,6 +7,10 @@ false convictions: 1/36 = 2.8%
 genuine signaled : 1/36 = 2.8%
 A-i 0 false convictions on our own genuine: 1 FAILED — a defect, not a result
      conviction rate by arm: mp3_V0 81%, vorbis_q8 72%, mp3_320 64%
+     by stratum, because a pooled rate hides a stratum we built:
+       mp3_320        full-band 23/24  band-limited  0/12
+       mp3_V0         full-band 24/24  band-limited  5/12
+       vorbis_q8      full-band 23/24  band-limited  3/12
 A-iii band-limited signaled more: 8.3% vs 0.0% as predicted
 
 no engine_sha column — the commitment cannot name the engine that produced it

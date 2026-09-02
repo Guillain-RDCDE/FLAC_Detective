@@ -139,6 +139,51 @@ def direction(
     )
 
 
+def arm_rates_by_stratum(
+    lossy: List[str],
+    key: Dict[str, str],
+    slugs: Dict[str, str],
+    strata: Dict[str, str],
+    is_conv,
+) -> List[str]:
+    """Split every arm's rate by stratum, or say why it cannot be split.
+
+    AMENDMENT 2026-09-02 (fourth), after the round, and it corrects numbers that
+    were already sent.
+
+    We reported his research column as "mp3_V0 81 %, vorbis_q8 72 %, mp3_320
+    64 %" — pooled across a stratum WE built and WE declared. He split it himself
+    and returned the real shape: 96 %, 100 % and 96 % on our full-band sources
+    against 0 %, 42 % and 25 % on our filtered ones. His 320 column does not
+    read our filtered files at all.
+
+    Those pooled numbers were not wrong arithmetic, they were an average over a
+    factor we knew about and held the map for. An average across a stratum you
+    constructed yourself is a number about your construction as much as about
+    the instrument. So the split is printed whenever a stratum map exists, and
+    the pooled line is kept beside it rather than replaced — the published
+    figures stay checkable.
+    """
+    if not strata:
+        return ["     (no stratum map: arm rates cannot be split)"]
+    out = ["     by stratum, because a pooled rate hides a stratum we built:"]
+    for arm in sorted({key[f] for f in lossy}):
+        rows = [f for f in lossy if key[f] == arm]
+        band = [f for f in rows if strata.get(slugs.get(f, ""), "").startswith("band_limited")]
+        full = [f for f in rows if strata.get(slugs.get(f, "")) == "full_band"]
+        if not band or not full:
+            continue
+        b_hits = sum(1 for f in band if is_conv(f))
+        f_hits = sum(1 for f in full if is_conv(f))
+        out.append(
+            f"       {arm:<14} full-band {f_hits:>2}/{len(full):<3} "
+            f"band-limited {b_hits:>2}/{len(band)}"
+        )
+    if len(out) == 1:
+        return ["     (every arm sits in one stratum only: nothing to split)"]
+    return out
+
+
 def load_key(path: Path) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
     """(label by file id, source_slug by file id, stratum by source_slug)."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -289,6 +334,7 @@ def score(  # noqa: C901
                     f"{a} {r:.0%}" for a, r in sorted(by_arm.items(), key=lambda kv: -kv[1])
                 )
             )
+            lines.extend(arm_rates_by_stratum(lossy, key, slugs, strata, is_conv))
             mp3 = [r for a, r in by_arm.items() if a.startswith("mp3")]
             aac_hi = [r for a, r in by_arm.items() if "aac" in a and ("320" in a or "256" in a)]
             if mp3 and aac_hi:
@@ -312,6 +358,7 @@ def score(  # noqa: C901
             "     conviction rate by arm: "
             + ", ".join(f"{a} {r:.0%}" for a, r in sorted(rates.items(), key=lambda kv: -kv[1]))
         )
+        lines.extend(arm_rates_by_stratum(lossy, key, slugs, strata, is_conv))
         if "mp2_256" in rates and "mp3_320" in rates:
             held["A-ii"] = rates["mp2_256"] < rates["mp3_320"]
             lines.append(
@@ -547,6 +594,41 @@ def selftest() -> int:  # noqa: C901
             ok = False
         if not any("K2 NOT TESTABLE" in line and "3 rows" in line for line in lines9):
             print("  SELFTEST FAIL thin stratum: the row count was not given as the reason")
+            ok = False
+
+        # Case 10 — the pooled arm rate that had to be corrected after it was
+        # sent. Every mp3_320 file is convicted on the full-band sources and none
+        # on the band-limited ones: pooled that is 50 %, a number that describes
+        # our own construction as much as the instrument. The split must be
+        # printed, and the pooled line must survive beside it so the figure that
+        # was published stays checkable.
+        split_labels, split_strata = {}, {}
+        for i in range(1, 21):
+            split_labels[f"p{i:03d}"] = {"label": "genuine", "source_slug": f"q{i:03d}"}
+            split_labels[f"p{i + 100:03d}"] = {"label": "mp3_320", "source_slug": f"q{i:03d}"}
+            split_strata[f"q{i:03d}"] = "band_limited_synthetic" if i <= 10 else "full_band"
+        split_key = work / "split.json"
+        split_key.write_text(
+            json.dumps({"labels": split_labels, "strata": split_strata}), encoding="utf-8"
+        )
+        s_by_file, s_slugs, s_strata = load_key(split_key)
+        split_csv = work / "split.csv"
+        with open(split_csv, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=["file", "verdict"])
+            w.writeheader()
+            for fid, entry in split_labels.items():
+                band = split_strata[entry["source_slug"]].startswith("band_limited")
+                convicted = entry["label"] == "mp3_320" and not band
+                w.writerow({"file": fid + ".flac", "verdict": CONVICTION if convicted else "AUTHENTIC"})
+        _, lines10 = score(load_verdicts(split_csv), s_by_file, s_slugs, s_strata, "A")
+        if not any("conviction rate by arm" in line and "mp3_320 50%" in line for line in lines10):
+            print("  SELFTEST FAIL split: the pooled rate was not kept beside the split")
+            ok = False
+        if not any(
+            "mp3_320" in line and "full-band 10/10" in line and "band-limited  0/10" in line
+            for line in lines10
+        ):
+            print("  SELFTEST FAIL split: the per-stratum rates were not printed")
             ok = False
 
     print("selftest: " + ("PASS" if ok else "FAIL"))

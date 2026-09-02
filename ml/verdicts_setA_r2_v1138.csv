@@ -1,0 +1,289 @@
+file,verdict,score,confidence,hires_verdict,evidence_families,engine_version,engine_sha
+fd-exchange-v3-setA-r2-0001.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0002.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0003.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0004.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0005.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0006.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0007.flac,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0008.flac,FAKE_CERTAIN,115,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|spectral|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0009.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0010.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0011.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0012.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0013.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0014.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0015.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0016.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0017.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0018.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0019.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0020.flac,WARNING,44,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0021.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0022.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0023.flac,WARNING,34,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0024.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0025.flac,FAKE_CERTAIN,62,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0026.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0027.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0028.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0029.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0030.flac,FAKE_CERTAIN,62,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0031.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0032.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0033.flac,FAKE_CERTAIN,91,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0034.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0035.flac,AUTHENTIC,12,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0036.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0037.flac,FAKE_CERTAIN,96,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0038.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0039.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0040.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0041.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0042.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0043.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0044.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0045.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0046.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0047.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0048.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0049.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0050.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0051.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0052.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0053.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0054.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0055.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0056.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0057.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0058.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0059.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0060.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0061.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0062.flac,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0063.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0064.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0065.flac,FAKE_CERTAIN,111,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0066.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0067.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0068.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0069.flac,WARNING,35,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0070.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0071.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0072.flac,FAKE_CERTAIN,65,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0073.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0074.flac,SUSPICIOUS,73,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0075.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0076.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0077.flac,FAKE_CERTAIN,67,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0078.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0079.flac,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0080.flac,WARNING,52,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0081.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0082.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0083.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0084.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0085.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0086.flac,FAKE_CERTAIN,63,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0087.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0088.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0089.flac,AUTHENTIC,27,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0090.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0091.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0092.flac,AUTHENTIC,24,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0093.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0094.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0095.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0096.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0097.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0098.flac,AUTHENTIC,2,✅ Authentic file,NOT_HIRES,stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0099.flac,AUTHENTIC,27,✅ Authentic file,NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0100.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0101.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0102.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0103.flac,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0104.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0105.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0106.flac,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0107.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0108.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0109.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0110.flac,WARNING,38,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0111.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0112.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0113.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0114.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0115.flac,FAKE_CERTAIN,90,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0116.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0117.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0118.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0119.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0120.flac,SUSPICIOUS,76,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0121.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0122.flac,FAKE_CERTAIN,96,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0123.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0124.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0125.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0126.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0127.flac,FAKE_CERTAIN,74,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0128.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0129.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0130.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0131.flac,FAKE_CERTAIN,81,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0132.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0133.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0134.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0135.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0136.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0137.flac,FAKE_CERTAIN,83,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0138.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0139.flac,FAKE_CERTAIN,90,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0140.flac,WARNING,50,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn&spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0141.flac,SUSPICIOUS,73,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0142.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0143.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0144.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0145.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0146.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0147.flac,FAKE_CERTAIN,111,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|spectral|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0148.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0149.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0150.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0151.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0152.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0153.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0154.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0155.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0156.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0157.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0158.flac,FAKE_CERTAIN,66,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0159.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0160.flac,WARNING,43,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0161.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0162.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0163.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0164.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0165.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0166.flac,FAKE_CERTAIN,93,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0167.flac,FAKE_CERTAIN,95,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0168.flac,WARNING,36,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0169.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0170.flac,WARNING,36,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0171.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0172.flac,FAKE_CERTAIN,57,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0173.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0174.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0175.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0176.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0177.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0178.flac,AUTHENTIC,28,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0179.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0180.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0181.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0182.flac,FAKE_CERTAIN,88,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0183.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0184.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0185.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0186.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0187.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0188.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0189.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0190.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0191.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0192.flac,WARNING,42,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0193.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0194.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0195.flac,FAKE_CERTAIN,93,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0196.flac,WARNING,42,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0197.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0198.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0199.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0200.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0201.flac,FAKE_CERTAIN,87,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0202.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0203.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0204.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0205.flac,FAKE_CERTAIN,62,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0206.flac,AUTHENTIC,20,✅ Authentic file,NOT_HIRES,spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0207.flac,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0208.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0209.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0210.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0211.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0212.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0213.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0214.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0215.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0216.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0217.flac,AUTHENTIC,13,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0218.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0219.flac,FAKE_CERTAIN,67,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0220.flac,WARNING,53,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn&spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0221.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0222.flac,AUTHENTIC,10,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0223.flac,WARNING,42,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0224.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0225.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0226.flac,WARNING,53,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0227.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0228.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0229.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0230.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0231.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0232.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0233.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0234.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0235.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0236.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0237.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0238.flac,FAKE_CERTAIN,85,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0239.flac,FAKE_CERTAIN,96,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0240.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0241.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0242.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0243.flac,AUTHENTIC,25,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0244.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0245.flac,AUTHENTIC,26,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0246.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0247.flac,SUSPICIOUS,73,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0248.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0249.flac,SUSPICIOUS,84,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0250.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0251.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0252.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0253.flac,SUSPICIOUS,56,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,cnn&spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0254.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0255.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0256.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0257.flac,FAKE_CERTAIN,56,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,spectral|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0258.flac,FAKE_CERTAIN,80,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|spectral|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0259.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0260.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0261.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0262.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0263.flac,WARNING,31,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn|stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0264.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0265.flac,AUTHENTIC,16,✅ Authentic file,NOT_HIRES,temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0266.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0267.flac,WARNING,36,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0268.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0269.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0270.flac,AUTHENTIC,22,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0271.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0272.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0273.flac,SUSPICIOUS,55,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0274.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0275.flac,WARNING,51,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,cnn&spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0276.flac,AUTHENTIC,2,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0277.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0278.flac,WARNING,37,"⚡ Anomalies detected, may be legitimate",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0279.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0280.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0281.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo|temporal,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0282.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0283.flac,AUTHENTIC,23,✅ Authentic file,NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0284.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0285.flac,FAKE_CERTAIN,62,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,mdct|stereo,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0286.flac,FAKE_CERTAIN,55,❌ Transcoding confirmed — corroborated by independent evidence,NOT_HIRES,cnn|mdct,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0287.flac,AUTHENTIC,0,✅ Authentic file,NOT_HIRES,,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4
+fd-exchange-v3-setA-r2-0288.flac,SUSPICIOUS,72,"⚠️  Probable transcoding, manual check recommended",NOT_HIRES,spectral,1.13.8,44e65b7fe0c1c5f313e48a9ac5eb7809bff0dcc4

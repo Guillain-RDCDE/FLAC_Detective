@@ -143,11 +143,24 @@ def sha256(path: Path) -> str:
 
 
 def has_tags(path: Path) -> bool:
-    """True if ffprobe finds any metadata tag on ``path``.
+    """True if ffprobe finds any metadata tag on ``path``, or cannot tell.
 
     Checked rather than trusted: a single surviving ``encoder`` tag would hand
     the recipient the answer for that file, and one leaked label is enough to
     make a blind set arguable.
+
+    Two repairs, 2026-09-02, both of the species this exchange keeps finding:
+
+    **A failure to check was reported as a clean file.** ffprobe missing, timing
+    out or erroring returned False — "no tags" — so the freeze continued and
+    shipped a file nobody had actually inspected. An unverifiable file is not a
+    clean one, and the safe direction is the one that stops the freeze. It now
+    returns True and says why, which aborts the freeze rather than the check.
+
+    **Only FORMAT tags were read.** ffmpeg writes an encoder string into stream
+    tags too, and Provir's set B carried exactly that shape of leak in its WAV
+    headers — a LIST/INFO chunk naming the muxer, identical on all 280 files, so
+    harmless there only by luck. ``stream_tags`` is now read as well.
     """
     try:
         r = subprocess.run(
@@ -156,7 +169,7 @@ def has_tags(path: Path) -> bool:
                 "-v",
                 "error",
                 "-show_entries",
-                "format_tags",
+                "format_tags:stream_tags",
                 "-of",
                 "default=nw=1",
                 str(path),
@@ -164,8 +177,16 @@ def has_tags(path: Path) -> bool:
             capture_output=True,
             timeout=60,
         )
-    except (OSError, subprocess.TimeoutExpired):
-        return False
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        log.error("cannot verify tags on %s (%s) — treating it as tagged", path.name, exc)
+        return True
+    if r.returncode != 0:
+        log.error(
+            "ffprobe failed on %s (exit %d) — treating it as tagged",
+            path.name,
+            r.returncode,
+        )
+        return True
     return bool(r.stdout.decode(errors="replace").strip())
 
 
