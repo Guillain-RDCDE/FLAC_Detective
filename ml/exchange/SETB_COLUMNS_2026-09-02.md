@@ -14,6 +14,14 @@ Both engines were pinned before his files arrived. The second column exists
 because his half is the only corpus neither party built, and therefore the only
 honest place to measure what the band-limited repair actually did.
 
+Both verdict files are CRLF and are hashed as they stand. A `.gitattributes`
+entry marks them, and everything under `ml/exchange/received/`, as `-text`, so a
+clone reproduces the bytes these hashes describe whatever the local line-ending
+configuration. This exchange has been bitten twice by line endings already — his
+`.sha256` seals the CRLF form, and his set B manifest is LF while its selfhash
+file is CRLF — and a published hash that only matches on the machine that
+produced it is not a commitment.
+
 ## The set as received
 
 Zip `fd-exchange-v3-setB-2026-08-31.zip`, 2,963,597,744 bytes, sha256
