@@ -96,6 +96,48 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
 }
 
+# Don't let three third-party websites decide whether our documentation builds.
+#
+# The Docs job runs sphinx with -W, so a warning is a failure. Intersphinx warns
+# when it cannot fetch an inventory, which happens whenever docs.python.org,
+# numpy.org or scipy.org is slow, rate-limiting the runner, or simply down — and
+# on 2 September it did exactly that, turning a green build red for a reason that
+# had nothing to do with this repository.
+#
+# A gate that fails on someone else's uptime is not testing us. Cross-project
+# links degrade to plain text when an inventory is missing, which is a cosmetic
+# loss in the API pages and never a wrong statement.
+intersphinx_timeout = 15
+
+# `suppress_warnings = ["intersphinx"]` does NOT work for this one, which is why
+# the first attempt at this fix did nothing: the message is emitted by a bare
+# `LOGGER.warning(...)` in sphinx/ext/intersphinx/_load.py with no `type=`, and
+# suppress_warnings can only match warnings that carry a type. So it is filtered
+# by its text, narrowly, and everything else intersphinx says still fails the
+# build.
+
+
+def _drop_unreachable_inventory_warning(record):
+    """Let a build survive an unreachable inventory, and nothing else."""
+    return "failed to reach any of the inventories" not in record.getMessage()
+
+
+def setup(app):
+    """Install the filter on the HANDLERS, not on the logger.
+
+    A filter attached to a logger only sees records logged directly to it —
+    records propagating up from ``sphinx.sphinx.ext.intersphinx._load`` never
+    pass through it. That was the second failed attempt. Handlers do see
+    propagated records, and the warnings-are-errors machinery is a handler, so
+    that is where the filter has to sit.
+    """
+    import logging as _logging
+
+    sphinx_logger = _logging.getLogger("sphinx")
+    for handler in sphinx_logger.handlers:
+        handler.addFilter(_drop_unreachable_inventory_warning)
+    return {"parallel_read_safe": True, "parallel_write_safe": True}
+
 # MyST parser settings
 myst_enable_extensions = [
     "colon_fence",
