@@ -46,7 +46,14 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "README.md",
+    # Correspondence and issue drafts live here because that is where the rest of
+    # the project's writing lives, but they are working artefacts, not pages of
+    # the manual. Sphinx treats "not in any toctree" as an error, so anything
+    # that is not documentation has to be excluded or it turns the Docs job red —
+    # which is exactly what happened twice on 1 and 2 September, unnoticed for a
+    # day each time.
     "reply-to-provir-*.md",
+    "issue-reply-*.md",
 ]
 
 # -- Options for HTML output -------------------------------------------------

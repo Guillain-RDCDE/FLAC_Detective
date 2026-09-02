@@ -15,6 +15,7 @@ getting-started
 user-guide
 api-reference
 technical-details
+band-limited-stratum
 roadmap-formats
 ```
 
