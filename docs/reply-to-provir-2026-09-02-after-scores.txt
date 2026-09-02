@@ -1,138 +1,63 @@
 Jamie,
 
-I want to start somewhere other than the numbers, because the thing that mattered
-most in your two messages was not a number.
+I want to start somewhere other than the numbers, because the thing that mattered most in your two messages was not a number.
 
-You took a claim you had made six hours earlier, in public, to me, and you took it
-apart yourself. You did not wait to see whether I would notice that your n = 5
-did not survive my n = 12. You found it, you led with it, and you wrote "I
-withdraw it in those words". I have been on the receiving end of a lot of
-technical correspondence and I can count on one hand the people who do that. It
-is the single reason I believe the rest of your figures, and it is worth more to
-this than any detector either of us has written.
+You took a claim you had made six hours earlier, in public, to me, and you took it apart yourself. You did not wait to see whether I would notice that your n = 5 did not survive my n = 12. You found it, you led with it, and you wrote "I withdraw it in those words". I have been on the receiving end of a lot of technical correspondence and I can count on one hand the people who do that. It is the single reason I believe the rest of your figures, and it is worth more to this than any detector either of us has written.
 
 So here is mine, and it is worse than yours.
 
-
 THE THING THAT GOES AGAINST ME
 
-Your split made me turn the same lens on my own engine, and it should have been
-turned there months ago. My conviction rate by arm, on my own half, split by my
-own stratum:
+Your split made me turn the same lens on my own engine, and it should have been turned there months ago. My conviction rate by arm, on my own half, split by my own stratum — full-band first, then band-limited:
 
-    aacmf_256   15/24 full-band    0/12 band-limited
-    mp2_256     16/24              0/12
-    vorbis_q8   12/24              0/12
-    aac_ff256    4/24              0/12
-    mp3_320      4/24              0/12
-    mp3_V0       2/24              0/12
-    opus_256     2/24              0/12
+aacmf_256: 15/24, then 0/12
+mp2_256: 16/24, then 0/12
+vorbis_q8: 12/24, then 0/12
+aac_ff256: 4/24, then 0/12
+mp3_320: 4/24, then 0/12
+mp3_V0: 2/24, then 0/12
+opus_256: 2/24, then 0/12
 
-Zero. Every arm, every codec I carry. Ninety-six lossy files built from twelve
-filtered sources and not one conviction among them.
+Zero. Every arm, every codec I carry. Ninety-six lossy files built from twelve filtered sources and not one conviction among them.
 
-I built that stratum as a false-positive hazard and priced two repairs against it
-— band-limiting an honest file makes me convict it one time in three, which is
-the number I sent you on the 31st. It is also a recall hazard, and I had no idea
-of its size, because every arm rate I have quoted since August pooled twelve
-filtered sources with twenty-four full-band ones and the full-band ones carried
-the number. I was doing to myself exactly what I did to your column B.
+I built that stratum as a false-positive hazard and priced two repairs against it — band-limiting an honest file makes me convict it one time in three, which is the number I sent you on the 31st. It is also a recall hazard, and I had no idea of its size, because every arm rate I have quoted since August pooled twelve filtered sources with twenty-four full-band ones and the full-band ones carried the number. I was doing to myself exactly what I did to your column B.
 
-No repair follows today. The observation is four hours old, the corpus is one I
-built, and a fix measured against my own construction is worth nothing. It is the
-first question I want set C to answer, on a stratum you build.
-
+No repair follows today. The observation is four hours old, the corpus is one I built, and a fix measured against my own construction is worth nothing. It is the first question I want set C to answer, on a stratum you build.
 
 YOUR SPLIT, AND YOUR ACCOUNT OF K4
 
 Both reproduce here.
 
-Your column B split comes out of your raw verdicts against my key exactly as you
-sent it: 23/24 and 0/12 on mp3_320, 24/24 and 5/12 on V0, 23/24 and 3/12 on
-Vorbis. My scorer prints that split now, with the pooled line kept beside it so
-the figure I already sent you stays checkable rather than quietly replaced.
+Your column B split comes out of your raw verdicts against my key exactly as you sent it: 23/24 and 0/12 on mp3_320, 24/24 and 5/12 on V0, 23/24 and 3/12 on Vorbis. My scorer prints that split now, with the pooled line kept beside it so the figure I already sent you stays checkable rather than quietly replaced.
 
-Your account of my K4 holds on my own material, and harder than on yours. Two AAC
-encoders, same bitrate, same music, one swapped: Media Foundation 15/36, ffmpeg
-4/36. Forty-two per cent against eleven, and on full-band sources alone 63
-against 17 — a 46-point gap inside one codec at one rate. And the same ffmpeg
-encoder I convict at 11 % here I convict at 80 % on your half. "High-rate AAC"
-moves 46 points across encoders and 69 across corpora. It is not a quantity, and
-K4 compared MP3 against it as though it were. My post-mortem has been rewritten
-twice now: the first rewrite still treated it as a thing with a rate.
+Your account of my K4 holds on my own material, and harder than on yours. Two AAC encoders, same bitrate, same music, one swapped: Media Foundation 15/36, ffmpeg 4/36. Forty-two per cent against eleven, and on full-band sources alone 63 against 17 — a 46-point gap inside one codec at one rate. And the same ffmpeg encoder I convict at 11 % here I convict at 80 % on your half. "High-rate AAC" moves 46 points across encoders and 69 across corpora. It is not a quantity, and K4 compared MP3 against it as though it were. My post-mortem has been rewritten twice now: the first rewrite still treated it as a thing with a rate.
 
-Your two AAC encoders at one rate is therefore not a nice-to-have arm for set C.
-It is the arm that tests whether either of us can say anything about a codec at
-all.
-
+Your two AAC encoders at one rate is therefore not a nice-to-have arm for set C. It is the arm that tests whether either of us can say anything about a codec at all.
 
 TWO THINGS I OWE YOU BEFORE YOU ASK
 
-**My engine has moved twice since I told you it had not.** That sentence was true
-when I sent it — nothing was touched between the run and the key. It has not been
-true since. 1.13.7 changed one string, so that a pass says how far it reaches
-instead of reading as a clean bill of health on a codec it has no instrument for;
-your ATRAC arm is what made me look. 1.13.8 fixed a crash a user reported. No
-verdict moved: the four band-limited control files come back with identical
-verdicts and identical scores under both. Every number I sent you stands, and you
-should hear that from me rather than find it in a changelog.
+My engine has moved twice since I told you it had not. That sentence was true when I sent it — nothing was touched between the run and the key. It has not been true since. 1.13.7 changed one string, so that a pass says how far it reaches instead of reading as a clean bill of health on a codec it has no instrument for; your ATRAC arm is what made me look. 1.13.8 fixed a crash a user reported. No verdict moved: the four band-limited control files come back with identical verdicts and identical scores under both. Every number I sent you stands, and you should hear that from me rather than find it in a changelog.
 
-**A file of set A r2 rotted on my disk this afternoon.** Not the copy you hold —
-yours verified, and my clean copy still verifies 288 of 288. The copy I had left
-inside a syncing folder lost 50,794 bytes to Dropbox's files-on-demand layer
-while I was reading it, which is the same incident that cost us the v2 round. The
-read-time manifest check refused to score rather than publish a verdict about
-rotten bytes, so the guard earned its place. I re-ran from the intact copy and
-the verdict file hashes identically, so nothing I have told you depends on it.
-The rule that a frozen set has one measurement copy and it lives outside the sync
-folder was already written down. I did not follow it.
-
+A file of set A r2 rotted on my disk this afternoon. Not the copy you hold — yours verified, and my clean copy still verifies 288 of 288. The copy I had left inside a syncing folder lost 50,794 bytes to Dropbox's files-on-demand layer while I was reading it, which is the same incident that cost us the v2 round. The read-time manifest check refused to score rather than publish a verdict about rotten bytes, so the guard earned its place. I re-ran from the intact copy and the verdict file hashes identically, so nothing I have told you depends on it. The rule that a frozen set has one measurement copy and it lives outside the sync folder was already written down. I did not follow it.
 
 SET C
 
-Your later reading is the right one: you build the band-limited stratum. I built
-the last one and I should not build the next.
+Your later reading is the right one: you build the band-limited stratum. I built the last one and I should not build the next.
 
-Your MP3 ladder, the pre-tag houses, V0, Vorbis at quality, two AAC encoders at
-one rate, and the low rates before any constant is chosen on them — all agreed.
-Free format needs LAME's own decoder because ffmpeg refuses it outright, and that
-is work on my side to be ready for, so thank you for saying it now rather than
-when the files land. Both keys sealed at build time with the manifest: my freezer
-does that as of today, and it now refuses to write a key at all unless a stratum
-map covers every source or the set is declared unstratified in so many words —
-because the set A r2 key did not carry the map I told you it carried, and nothing
-noticed for two days.
+Your MP3 ladder, the pre-tag houses, V0, Vorbis at quality, two AAC encoders at one rate, and the low rates before any constant is chosen on them — all agreed. Free format needs LAME's own decoder because ffmpeg refuses it outright, and that is work on my side to be ready for, so thank you for saying it now rather than when the files land. Both keys sealed at build time with the manifest: my freezer does that as of today, and it now refuses to write a key at all unless a stratum map covers every source or the set is declared unstratified in so many words — because the set A r2 key did not carry the map I told you it carried, and nothing noticed for two days.
 
-Publishing the hash of your per-rung predictions before my key moves is the right
-shape and I will match it.
-
+Publishing the hash of your per-rung predictions before my key moves is the right shape and I will match it.
 
 THE ORGANISATION
 
-Yes, and I will say the awkward part first: I do not want your code, and I would
-rather you never sent it.
+Yes, and I will say the awkward part first: I do not want your code, and I would rather you never sent it.
 
-You wrote the reason yourself — the day I read it, my repository is downstream of
-yours and what either of us says afterwards is one witness with two names. That
-independence is not a nicety. It is the only thing either of us owns that cannot
-be bought or rebuilt, and everything solid this week came out of it: my stratum
-confirmed by an instrument that was not mine, the pre-tag houses blind to both of
-us without either having tuned for it, the AAC spread showing up on two engines
-that share nothing. Two people who disagree about method and get the same answer
-is the whole asset. So licence your method into the organisation and keep your
-engine yours, and I will keep mine, and we will keep being able to say that.
+You wrote the reason yourself — the day I read it, my repository is downstream of yours and what either of us says afterwards is one witness with two names. That independence is not a nicety. It is the only thing either of us owns that cannot be bought or rebuilt, and everything solid this week came out of it: my stratum confirmed by an instrument that was not mine, the pre-tag houses blind to both of us without either having tuned for it, the AAC spread showing up on two engines that share nothing. Two people who disagree about method and get the same answer is the whole asset. So licence your method into the organisation and keep your engine yours, and I will keep mine, and we will keep being able to say that.
 
-An agreement before you hand over method and constants is reasonable and your
-reason is the honest one. Send the draft when your reader has been through it. I
-will read it properly, and I will say plainly if anything in it touches what is
-already public, because I would rather raise that on Thursday than discover it
-later.
+An agreement before you hand over method and constants is reasonable and your reason is the honest one. Send the draft when your reader has been through it. I will read it properly, and I will say plainly if anything in it touches what is already public, because I would rather raise that on Thursday than discover it later.
 
-And your last line has been sitting with me. If the first thing you have is an
-offer rather than a request, then you have already answered the only question I
-actually had about working with you.
+And your last line has been sitting with me. If the first thing you have is an offer rather than a request, then you have already answered the only question I actually had about working with you.
 
-Take the evening off. We have both been finding our own bugs since about six this
-morning, and I think we have earned it.
+Take the evening off. We have both been finding our own bugs since about six this morning, and I think we have earned it.
 
 -- Guillain :)
