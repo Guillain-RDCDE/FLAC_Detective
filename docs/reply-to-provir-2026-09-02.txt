@@ -1,0 +1,51 @@
+Jamie — your timestamp guard and my freezer are the same bug in different clothes, and it is the most useful thing either of us learned this week. Mine logged into a variable nobody read. Yours printed to a console nobody was watching. Both reported success on the line above the failure, and neither was found by the guard. The rule I have written down, in the form I will actually use: after any repair that adds a check, grep for who reads its result. Not "is the check there" — is anything downstream of it.
+
+The 152-row block. You are right that I would have found it the moment the key joined, and right that hearing it from you first is different. It also found a third hole in my scorer, so thank you twice.
+
+My scorer treated an ERROR exactly as it treated your blank: as a failure to convict. Those are not the same absence. A blank says "this instrument does not cover this codec" — a designed limit, knowable per codec. An ERROR says "something went wrong here" — a fault. Folding them together is how a machine complaining becomes a published rate.
+
+Both now leave every denominator and report separately, and errors carry one thing your letter taught me to want: the longest CONTIGUOUS run. Scattered errors are bad files; a block is a machine. Past ten in a row my report says so in words and tells the reader to re-score before believing anything below it. It locates them in the verdict file's original order, because sorting first destroys the only signal worth having. A selftest case reproduces your situation.
+
+ON VORBIS, AND ONE PLACE I DISAGREE WITH YOU.
+
+The test going against your own prediction, with the positive control reproducing a number you banked weeks ago, is worth more to me than the result you wanted. And the variant with identical magnitude response and no phase rotation leaving it at 5 of 5 is the sharpest thing in your letter: it turns "processed audio breaks it" into "phase rotation breaks it", which is a limitation with an edge rather than a fog. Withholding the parameters is obviously right.
+
+The disagreement. You asked that a silent column B on a Vorbis file be read as not-evaluable. I accept that for AAC, Opus and ATRAC — no instrument covers them, the limit is structural and per-codec, and no claim was made. I am not accepting it for Vorbis, and I would rather say so before your numbers exist than after.
+
+Neither of us can tell which files carry the operation. So reading every silent Vorbis row as not-evaluable removes the whole arm from evaluation on an unmeasured possibility, and makes the claim unfalsifiable on the one set neither of us built. You wrote the objection better than I would have: it is exactly the sort of excuse that stops being credible once the numbers are in, and you are declaring the exposure rather than claiming it. Declaring it is right. Excluding on it is a different act.
+
+So a silent column B on Vorbis is scored as a miss, with your declared exposure printed beside the number in your own words, where a reader can weigh it.
+
+AND I THINK YOUR EXPOSURE IS BOUNDED, NOT UNKNOWN.
+
+My builder applies processing to the SOURCE and derives every arm afterwards. The chain for all 288 files is: source, carrying whatever the archive already did to it, then codec, then decode, then FLAC. Nothing is applied after the encode — not by me, and not by the taper, whose equalisation is upstream of my encoding by construction.
+
+If your instrument is silenced by phase rotation applied AFTER the encode — which is what smearing the encoder's own traces implies — then set A cannot trigger it however heavily processed its sources are. If it is also degraded by rotation upstream of the encode, my argument fails and only you can tell me that.
+
+Since I hold the most phase-rotated object in the set, here is the number rather than the reassurance. My declared band-limit filter is six cascaded 2-pole IIR sections at 14 kHz, so it is minimum-phase and rotates hard near the knee: -22 degrees at 1 kHz, -293 at 10 kHz, -540 at 14 kHz, -697 at 16 kHz. That is 518 degrees between 1 and 14 kHz, 1.4 full turns, with group delay rising from 5.7 samples at 10 kHz to 9.3 at 14 kHz. Twelve of my thirty-six sources carry it, it is declared, and all of it is upstream of every encode.
+
+A correction I owe you from measuring that. My own code comment described the filter as "two cascaded 2-pole sections at 15 kHz". The constant has always been six at 14 kHz, which is the figure I gave you on 31 August — so the code and the letter agreed and only the comment was wrong. It is the kind of stale line that gets believed precisely because it sits next to correct code. Same failure mode as a guard that logs.
+
+Your reading of my vinyl limit is right, and more generous than I would have phrased it: my worst class meeting your worst class, not a finding about the record.
+
+YOUR LAST SECTION. I am answering it now, and the timing is the point.
+
+You asked me not to answer until the key had moved, so it could not be read as a reaction to how the numbers land. I think that reasoning points the other way. After the key moves is exactly when my answer becomes contingent on them — a yes that arrives after a good result, or a silence after a bad one, both mean less than they look. You wrote yours before the numbers for that reason. I am answering before them for the same one. If your verdicts on my set are humiliating tomorrow, this answer already stands and you can hold me to it.
+
+Yes. Without terms, and with no pretence of a shape.
+
+It is not an abstract yes, and mine does not come from the storefront selling a 192 as a WAV. It comes from the hi-res axis. I have been handed files sold as high definition, a hundred times over, that were nothing of the sort — upsampled, or padded to 24 bits with nothing in them, and priced accordingly. That is why my engine carries a second axis at all. Nobody is being defrauded of a few euros; they are told a number and sold a file that does not contain it, and there is no counter anywhere to complain to.
+
+I have no idea what the right structure is and I will not invent one over a message. What I do think, after three weeks, is that we already have a working prototype of the method, and the method is the hard part. A verdict arrives with its evidence. A registration is written before its measurement. A refused repair is published with the numbers that refused it. A defect in your own engine is disclosed before the other side scores. None of that would have to be drafted as policy — it is what we have actually been doing since 13 August, and it is why I trust a number from you that disagrees with mine.
+
+One design point, and I think it is the important one: do not merge the engines.
+
+I spent the last two days removing a defect where my corroboration barrier counted two evidence families that had read the same observation. Independence established once, at design time, and never re-checked on the file in front of it. The whole value of a second instrument is that it looked somewhere else. This has the same structure one level up. Two engines that agree are worth something precisely because they were built separately, on different corpora, by people who disagree about method. Pool the code and you get one instrument with two names, and everything either of us says afterwards is a single witness. Your MP3 house register and my documentary admission rule should stay different things.
+
+So: your instrument stays yours, mine stays mine, and what gets shared is the discipline and the evidence. That is also the version that survives being attacked — and it will be attacked on its method long before it is attacked on its measurements.
+
+Terms are a separate conversation, whenever you want it, after the verdicts.
+
+Verdicts when they finish. Nothing of yours has been touched.
+
+— Guillain
