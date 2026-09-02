@@ -1,0 +1,55 @@
+Jamie — received, verified, and not opened. Everything below is from your file and your letter; I have not joined it to the key.
+
+WHAT VERIFIES
+
+sha256 of the file as it arrived: 8c1f04d79dfea1c78dc2ba3ee2ed61c3d309bf7521139a6bd948303ca75a6b2c. Byte for byte, yours.
+
+Worth one line because it has bitten me three times this fortnight: it survived transport with CRLF intact. Had anything normalised those line endings the file would have hashed 2cead616… and we would have spent an hour on a non-problem.
+
+288 rows, 288 unique ids, and the join against my manifest is exact — nothing missing, nothing extra, no duplicates. Your declared counts all reproduce from the file: 43 convicted and every one of them UPSCALE, 0 LOSSY_MASTER, 207 flagged, 38 genuine, 0 error. Column B: MP3 fires 52, Vorbis 27, both 0, neither 209. Column B contains only FIRES and a dash, no third value.
+
+THE TIMESTAMP, AND A MISSING LINK I REBUILT
+
+Your .ots seals setA_r2_verdicts.csv.sha256 — the hash file, not the CSV. That is a perfectly good chain, but you sent the proof and not the file it proves, so the middle link was missing and I could not check that what you timestamped was the hash of what you sent.
+
+It does verify. The sealed digest is c4dceb277900e26da46f8814fdea8511e7a1abae9a8559070ddd9dd276ab1c28, and I recovered the missing link by trying the plausible formats: your .sha256 file contained the bare hex digest terminated CRLF, and nothing else. So the chain is complete —
+
+  the CSV        -> 8c1f04d7…
+  as CRLF text   -> c4dceb27…
+  sealed in four calendars at 06:14
+
+Four, not three: alice and bob at opentimestamps.org, catallaxy, and eternitywall. More than you claimed, which is the direction I do not mind.
+
+And the line endings matter at that link too. A LF-terminated hash file would have sealed 3e6d4301… instead. Two links in your chain both depend on a CRLF surviving, and both did.
+
+Send the .sha256 file when convenient so a third party does not have to brute-force it.
+
+YOUR SECOND CAVEAT DOES NOT APPLY TO THIS SET
+
+You wrote that your Vorbis instrument's loader forces 44.1 kHz and is blind on anything else, and that the Vorbis column would be not-evaluable on any set A file that is not 44.1.
+
+Measured on all 288 shipped files: every one is 44,100 Hz, 16-bit, stereo, and 2,646,000 samples. There is a single frame count across the whole set — the length leak is gone by measurement and not merely by intention.
+
+So the Vorbis column is fully evaluable on all 288 rows, and the caveat costs you nothing here. I would rather hand you that than have you discount your own result for a reason that does not apply.
+
+Your three filenames with 0128, 0192 and 0256 in them are the 128th, 192nd and 256th files. The ids run 0001 to 0288 in sequence. Noise, as you said — and I am glad you looked and said so rather than assuming I would.
+
+WHY I AM NOT SENDING THE KEY YET
+
+You asked for it, and I am going to hold, quoting the method we both signed rather than inventing a reason. Mine says:
+
+  3. We post the SHA-256 of that verdict file — with the engine version and
+     commit SHA inside it — before either key moves.
+  4. Keys are exchanged in the same message that follows.
+
+Before EITHER key moves. I have nothing committed, because I have never received set B — you described it on 31 August with its self-hash b0bb5410…, and the link has not arrived. I suspect it got lost behind two power cuts and a rebuilt verdict file.
+
+This protects my blind rather than yours. If your key stays where it is and mine moves now, then when set B arrives I score it already knowing how your engine behaved on my half. My verdicts would still come from a pinned engine, so the numbers would not change — but every judgement after that point would be contaminated, and neither of us could prove otherwise. It is the same reason you scored before you inventoried.
+
+So: send set B. I verify the manifest at read time, score with v1.13.6 at a named commit, report v1.13.4 from the same run as declared, post the SHA-256 of my verdict file, and both keys move in the message after that. On my machine that is hours, not days, once the folder is here.
+
+I have not run the join. Your file is sitting beside my key, untouched, and it will stay that way until the round is symmetric.
+
+One thing I will say without opening anything, because it is about you and not about the numbers: four commitments across two power cuts, each one timestamped, the failed ones kept and handed over rather than quietly discarded — that record is worth more than whatever the join turns out to say. Most people would have sent the last hash and called it the first.
+
+— Guillain
