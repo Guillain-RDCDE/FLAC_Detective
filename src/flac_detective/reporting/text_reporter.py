@@ -115,6 +115,22 @@ class TextReporter:
 
         return "  " + " │ ".join(formatted_cols)
 
+    def _format_label(self, result: dict) -> str:
+        """Sample rate and bit depth, as "44.1/16", or "-" when unknown.
+
+        Short because it shares a table row, and present because its absence sent
+        a user hunting a container bug that was a bit-depth difference (issue #7).
+        An unknown value prints as "-" rather than as a plausible default: a
+        missing reading is not 16 bits.
+        """
+        rate = result.get("sample_rate") or 0
+        depth = result.get("bit_depth") or 0
+        if not rate and not depth:
+            return "-"
+        rate_str = f"{rate / 1000:g}" if rate else "?"
+        depth_str = f"{depth}" if depth else "?"
+        return f"{rate_str}/{depth_str}"
+
     def _score_icon(self, score: int, verdict: str = "") -> str:
         """Returns an icon for a result, driven by its authoritative verdict.
 
@@ -248,9 +264,18 @@ class TextReporter:
             report_lines.append(f" SUSPICIOUS FILES ({len(suspicious)})")
 
             # Table header
-            # Icon (4) | Score (7) | Verdict (15) | Cutoff (8) | Bitrate (8) | File (Rest)
+            # Icon (4) | Score (7) | Verdict (15) | Format (9) | Cutoff (8) | Bitrate (8) | File
+            #
+            # Format carries the sample rate and bit depth, added 2026-09-03 after
+            # issue #7. Someone compared one album in four containers, saw the
+            # FLAC flagged and the WAV clean, and reasonably concluded the wrapper
+            # decided the verdict. The likely answer was that one file was 24-bit
+            # and another 16-bit — different audio, read differently on purpose —
+            # and this report never said so. The CSV and HTML carried it; the
+            # report most people actually read did not.
             report_lines.append(
-                f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Cutoff':<8} | {'Bitrate':<8} | {'File'}"
+                f" {'Icon':<4} | {'Score':<7} | {'Verdict':<15} | {'Format':<9} | "
+                f"{'Cutoff':<8} | {'Bitrate':<8} | {'File'}"
             )
             report_lines.append(" " + "-" * (self.width - 2))
 
@@ -267,12 +292,14 @@ class TextReporter:
 
                 bitrate = result.get("estimated_mp3_bitrate", 0)
                 bitrate_str = f"{bitrate}k" if bitrate > 0 else "-"
+                fmt_str = self._format_label(result)
 
                 # Get full display path (not truncated)
                 display_name = self._get_display_path(result, scan_paths)
 
                 report_lines.append(
-                    f" {icon:<4} | {score_str:<7} | {verdict:<15} | {cutoff:<8} | {bitrate_str:<8} | {display_name}"
+                    f" {icon:<4} | {score_str:<7} | {verdict:<15} | {fmt_str:<9} | "
+                    f"{cutoff:<8} | {bitrate_str:<8} | {display_name}"
                 )
 
         else:
