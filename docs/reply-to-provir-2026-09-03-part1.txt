@@ -1,0 +1,26 @@
+Jamie — 1 of 4, and the first one goes against me.
+
+Your confession was a number priced on one excerpt and quoted as if it belonged to the file. I asked the same of my engine and got a reassuring answer, twice, and both times I was answering a narrower question than yours.
+
+First I varied the excerpt LENGTH. Forty files from set A at 15, 30 and 60 seconds: nothing moved. Then twelve full vinyl tracks, 90 to 433 seconds, at the same three lengths: nothing moved there either — but all twelve read AUTHENTIC, and a verdict nothing is pulling on cannot move, so that number was worth very little. So I built the contested cases: those same tracks re-encoded at 320 kbps and Vorbis q8 and back to FLAC, eight files spanning FAKE_CERTAIN, SUSPICIOUS, WARNING and AUTHENTIC. Nothing moved there either, and every score was identical to the point.
+
+I nearly stopped there. Two clean answers on material that sits at thresholds is exactly the shape of a result you send.
+
+But length is not position, and yours was a position problem. My spectral path anchors its samples at fixed fractions of a file, so changing the excerpt length slides the windows a little and can never separate the two effects. The test that separates them is to cut a track in half and score each half as its own file.
+
+Twelve tracks, eight of them transcodes. Four of the twelve disagree with themselves:
+
+TR320_04 Wolf Drawn — WARNING (50) on the first half, AUTHENTIC (0) on the second
+TRVORB_02 Soon It Will Be Cold Enough — AUTHENTIC (0), then SUSPICIOUS (55)
+TRVORB_03 First Snow — SUSPICIOUS (55), then FAKE_CERTAIN (85)
+TRVORB_04 Wolf Drawn — SUSPICIOUS (55), then FAKE_CERTAIN (55)
+
+Six of the twelve differ on score even where the tier holds. All four lawful files are stable at zero, so every disagreement is on transcoded material, which is where the thresholds are.
+
+So I have your defect too. Not in your shape — yours was a margin priced on one excerpt — but the same species: a verdict that is partly a statement about which part of the track was read. A 320 kbps transcode of a real album track reads WARNING on one half of itself and clean on the other.
+
+What it does not touch is the exchange. Both sets are 60-second excerpts, both of us scored the same bytes, and every figure we traded is reproducible and was reproduced. What it does touch is every RATE either of us quotes as a property of a corpus. My mp3_320 at 11 per cent is 11 per cent of those excerpts; cut them elsewhere in the same tracks and the number moves. That qualifier now belongs on all of mine, and if it reproduces on your side it belongs on yours — which is a thing you can check in an afternoon and I would rather you did.
+
+The part I want to say plainly: I did not find this by being careful. I found it because your letter made me ask the question in the first place, and then because the second reassuring answer annoyed me enough to ask what question I had actually been answering. Two greens in a row is not evidence. It is usually a sign that the measurement is too easy.
+
+-- Guillain (2 of 4: what I checked of yours, and of mine)

@@ -1,0 +1,25 @@
+Jamie — 4 of 4: the census, second half, and what it says.
+
+8. A FAILURE TO VERIFY, REPORTED AS A CLEAN FILE (2 September). has_tags returned False — "no metadata" — whenever ffprobe was missing, timed out, or exited non-zero. A file nobody had inspected shipped as clean, and one surviving encoder tag hands you the answer for that file. It also read only format tags, while ffmpeg writes an encoder string into stream tags too, which is the shape of the leak your set carried. Caught by sweeping for `except` clauses that return the value meaning "fine" — the same shape as `ok = False` never read, one layer up. Repaired and then exercised on real files rather than mocks.
+
+9. A NUMBER AVERAGED OVER A STRATUM I BUILT MYSELF (2 September). I reported your research column as 81, 72 and 64 per cent, pooled across a stratum I constructed, declared, and held the map for. You split it and returned the real shape. The arithmetic was right and the number was not about your instrument. Caught by you. And the first thing the split showed was about me: zero convictions on band-limited sources on every arm I carry.
+
+10. MEASURING FROM INSIDE A SYNCED FOLDER (2 September). A file of the frozen set A r2 became a Dropbox files-on-demand reparse point and lost 50,794 bytes while I was reading it. The rule that a frozen set has one measurement copy living outside the sync folder was written down after the v2 round; I pointed the pass at the copy under Temp/ anyway. Caught by the read-time manifest check, which refused to score rather than publish a verdict about rotten bytes — that guard earned its place. Re-run from the intact copy, the verdict file hashes identically, so nothing I sent you depended on it.
+
+11. THE WRONG DIAGNOSIS, WHICH IS ITS OWN SPECIES (2 September). A test run ended in INTERNALERROR with 461 tests passing above it. I wrote it down as contention from two parallel jobs, added "one heavy job at a time" to my rules, and moved on. It happened again with nothing else running. The trace had named the real cause both times: coverage deletes its data file, Windows answers WinError 32, and Dropbox is holding it — same root as 10. Confirmed by fixing it rather than by reasoning about it. I count this as a species because it is one, and it is the one I am least comfortable with: a plausible cause, adopted quickly, written into the rules as a lesson, and wrong. The rule it produced was not even bad advice. It was just not what was happening, and it would have sat there covering the real cause.
+
+12. A RATE QUOTED AS A PROPERTY OF THE FILES (3 September, this morning). The one in my first message. Two reassuring answers to a narrower question than yours, and the third test — halves of the same track — disagreeing four times in twelve. Caught by refusing to stop at the second green and asking what question the measurement had actually answered. Cost: every arm rate I have published is a rate for the excerpts I cut, not for the tracks they came from.
+
+WHAT THE LIST SAYS
+
+Four of the twelve are the same shape: a check that runs, logs, and prevents nothing (2, 3, 8) or a claim that has drifted from its artefact (6, 7). Three are a number priced on material or a window that could not price it (5, 9, 12). Two are a synced folder pretending to be a disk (10, 11).
+
+The one that worries me is 11, because the other eleven were found by looking, and that one was found by being wrong in public and then contradicted by my own machine. I have no method for it yet beyond re-running things alone before believing them, and treating a second agreeable answer as a reason for suspicion rather than confidence.
+
+Your nine and my twelve are not a score. Neither of us is finding these because we are careless; we are finding them because we are both looking. The ones that frighten me are the species neither list contains, and the only instrument I know of for those is the other person's engine disagreeing with mine.
+
+Which is the whole argument for keeping them separate, and the reason I said no to your code without hesitating.
+
+Set C when you are ready. Send the stratum map and the source list whenever they are done and I will read them properly before you encode anything — that is the one moment where a second pair of eyes costs nothing and is worth everything.
+
+-- Guillain

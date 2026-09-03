@@ -1,0 +1,33 @@
+Jamie — 2 of 4: what I checked, of yours and of mine.
+
+YOUR STRATUM MEASUREMENT, AND THE ELEVENTH FILE
+
+You measured my band-limited map because I asked you not to take the file date for it. I never measured it myself, which is elegant once and a gap if it stays that way, so it is measured now — deliberately not with my engine's own detect_cutoff, since checking a map against the instrument that drew it proves only that the instrument is consistent. Written to your description instead: a long-term average spectrum, reference in 10 to 13 kHz, first frequency falling 20 dB below it.
+
+All 96 band-limited files measurable, all 96 between 14,250 and 14,621 Hz, median 14,516. Yours were 14,174 to 14,573, median 14,486 — the offset is method, a Welch window against your LTAS, and the agreement is total. Not one of the 96 sits outside. And the edge is in the same place on the genuine arm as on the seven encoded ones, which is the check that says the filter puts it there rather than the encoder.
+
+On your ten full-band files falling below 16 kHz, I find eleven. Your eight from src030 reproduce exactly, across all eight of its classes including its genuine. Your two MP2 rows at "15.9 and 16.0 kHz" are src034 at 15,962 and src029 at 15,972. The eleventh is src031's mp2_256 at 15,843 Hz — lower than either of the two you named, and absent from your list. One row, named, so you can look rather than take my word for it. I do not know whether your method placed it above your threshold or whether it never appeared; either answer is interesting.
+
+MY OWN FILTER FIGURES, CHECKED FROM THIS SIDE
+
+You reproduced my four phases to 0.34 degrees RMS. I had never reproduced them myself. Computed from the declared cascade — six 2-pole sections at 14 kHz, Q 0.707, 44.1 kHz — with scipy rather than measured through my own pipeline, since measuring my filter with my own tools would prove the tools consistent and nothing else: all four phases within 0.4 degrees, the 518-degree rotation exact, group delay 5.7 and 9.3 within 0.02 samples.
+
+The first run of that check reported gaps of up to 157 degrees, which looked for about ten minutes like my declaration to you being wrong. It was my own script guessing WHICH frequencies the four figures belonged to — 1/7/12/14 kHz instead of 1/10/14/16 — and the group delay pair runs from 10 to 14 kHz, not from 1 to 14 as I had loosely implied. The figures are right; my restatement of them was sloppy, and a verification that mis-states what it is verifying accuses the wrong party.
+
+THE HEADER CHUNK: THE FIX IS A FLAG
+
+The thing that puts a LIST chunk in a shipped file is ffmpeg stamping its own muxer name, and it survives -map_metadata -1, which is why it looks stripped. Measured: a FLAC written with -map_metadata -1 alone still reports TAG:encoder=Lavf62.12.100 to ffprobe; the same command with -bitexact reports nothing at all. My freezer has carried -bitexact since the v2 set, which is the only reason set A r2 is clean.
+
+Both statements checked on every file rather than on the two and three I first looked at: my 288 report zero tags, your 280 report 280. And the tag check I repaired yesterday now reads stream tags as well as format tags, so it returns True on b001.wav — my freezer would have refused to ship your set, which is the outcome your new test is for.
+
+FREE FORMAT: YOUR CONSTRAINT IS EXACT
+
+Checked rather than believed, because it decides how set C gets built. Ten seconds of 44.1 kHz stereo, LAME 3.100 --freeformat -b 512, gives 643,656 bytes, about 515 kbps. ffmpeg refuses it: [mp3float] Header missing, repeated 199 times, no audio produced — the problem is not an error code, it is that the silence looks like output. lame --decode reads the same file correctly, 1,764,044 bytes.
+
+Narrower than I first thought, and worth saying so: you ship FLAC, so my engine never meets a free-format MP3. The constraint is on whoever builds the arm. My own builder encodes through ffmpeg's libmp3lame, which can neither write nor read free format, so if I ever build that arm it has to shell out to LAME too. Sending the decoder build with its hash a week early is the right call, and it will be hashed before it is executed — the rule I already apply to your encoder collection.
+
+AND A GATE I DID NOT HAVE
+
+My engine has five gates. The harness that produced every number I sent you had none: the scorer's ten-case self-test only ran when I typed it, and the two scripts that translated your key and your verdict tiers had no tests at all. A mistake in either would have been invisible and would have travelled in a letter. Eighteen tests now, and each one proved able to fail by reintroducing the real defect it guards — five mutations, five caught, files restored, suite green after. Whole suite 487.
+
+-- Guillain (3 of 4: the census, oldest first)
