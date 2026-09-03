@@ -1,52 +1,31 @@
-# Reply to post on issue #7
+# Reply posted on issue #7
 
-Thank you for this, and for saying up front that the write-up was AI-generated —
-it saves everyone a guessing game, and the report itself is well built: a clear
-property, a stated expectation, a reproduction, and hashes. That is more than
-most bug reports carry.
+Hi — thank you for this, genuinely.
 
-Short version: **I could not reproduce it on the current version, and I think I
-know what happened, because I reproduced it by accident first and the cause was
-not the container.**
+And thank you for saying up front that the write-up came from an AI, and that you're happy to talk human to human. That's a rare and useful thing to put at the top of a bug report: it tells me exactly how much to trust each part, and it saves us both a round of guessing. The report itself is well built — a clear property, a stated expectation, a reproduction, hashes. That's more than most.
 
-## What I did
+Here's what happened when I sat down with it, told in order, because the order is the interesting part.
 
-I built the same audio into four containers and ran the current engine on all
-four. First attempt: FLAC read WARNING, WAV/AIFF/ALAC read AUTHENTIC. Your bug,
-apparently, on 1.13.8.
+**I reproduced your bug within the hour.** Built the same audio into four containers, ran the current engine: FLAC came back WARNING, WAV and AIFF and ALAC came back AUTHENTIC. There it was, exactly as you described.
 
-It was not. My FLAC was **24-bit** and my WAV and AIFF were **16-bit**. The
-engine was reading genuinely different audio, and the difference in the report
-was real — a spectral rule fired on one and not the other, and even the
-independent witnesses read different frequencies (22,018 Hz against 20,134 Hz).
+**It wasn't the container.** My FLAC was 24-bit and my WAV and AIFF were 16-bit. The engine was reading genuinely different audio — a spectral rule fired on one and not the other, and even the passive witnesses read different frequencies, 22,018 Hz against 20,134. I'd built my own trap and walked into it.
 
-Rebuilt with the same 16-bit samples in all four containers, and verified equal
-as the arrays `soundfile` returns rather than through a converter:
+Rebuilt with the same 16-bit samples in all four, verified as the arrays soundfile returns rather than through a converter:
 
 ```
-b.flac   AUTHENTIC  score=0  cutoff=20250  families=['stereo', 'temporal']
-b.wav    AUTHENTIC  score=0  cutoff=20250  families=['stereo', 'temporal']
-b.aiff   AUTHENTIC  score=0  cutoff=20250  families=['stereo', 'temporal']
-b.m4a    AUTHENTIC  score=0  cutoff=20250  families=['stereo', 'temporal']
+b.flac   AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
+b.wav    AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
+b.aiff   AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
+b.m4a    AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
 ```
 
-Identical verdict, identical score, identical cutoff, identical witnesses, down
-to the same rule text. On 1.13.8 the property you are asking for holds.
+Same verdict, same score, same cutoff, same witnesses, down to the same rule text. On the current version the property you're asking for holds.
 
-## The part worth your attention
+**Now the bit I'd want to know if I were you.** `ffmpeg -f s16le | sha256sum` converts to 16 bits before it hashes. So it cannot tell a 24-bit file apart from its own 16-bit truncation — which is exactly the pair you get when the WAV was made from the FLAC, or when one tool in the chain truncated and another didn't. The hashes match and the audio is still different.
 
-**`ffmpeg -f s16le | sha256sum` cannot tell a 24-bit file from its own 16-bit
-truncation.** It converts to 16 bits before hashing, so if your WAV was made from
-your FLAC — or both were made from a 24-bit master by a tool that truncated one
-of them — the hashes match and the files are still different audio to anything
-that reads them properly.
+I'm not telling you that's your case. I'm telling you it's the case I hit, using your method, an hour after reading your report, and it produced your exact pattern: compressed containers behaving differently from uncompressed ones.
 
-I am not asserting that is your case. I am saying it is the case I hit within an
-hour of reading your report, using your verification method, and it produced
-exactly the pattern you describe: the compressed containers behaving differently
-from the uncompressed ones.
-
-The check that separates the two, on your files:
+Three seconds to find out, on your files:
 
 ```python
 import soundfile as sf
@@ -55,37 +34,24 @@ for p in ["04.flac", "04.wav", "04.aiff", "04.m4a"]:
     print(p, i.format, i.subtype, i.frames, i.samplerate)
 ```
 
-If the `subtype` column is not identical across all four, that is the answer. If
-it is identical and the verdicts still differ on 1.13.8, then it is a real
-container dependency, I want to know, and I would ask for that output plus
-`flac-detective --advanced` on the two disagreeing files.
+If `subtype` isn't identical across all four, that's your answer. If it IS identical and you still get different verdicts, then it's a real container dependency, I've missed it, and I'd want that output plus `--advanced` on the two files that disagree. I'd rather be wrong here than right.
 
-## Also relevant: 1.9.0
+One more thing that might matter: you're on 1.9.0, and a fair amount of the scoring changed since. In particular there's now a corroboration barrier — no conviction from a single evidence family. The lone silence rule you saw voting couldn't reach SUSPICIOUS on its own today. I'm not saying "upgrade and go away"; I'm saying a report against 1.9.0 and a fix in 1.13.8 are hard to discuss together, and I'd love to know what the current version does on your library.
 
-You are four minor versions back, and quite a lot of the scoring changed in
-between — the silence rule's activation window, a domain guard on band-limited
-material, a corroboration barrier that now requires two independent evidence
-families before any conviction, and an abstention verdict. The rule you saw
-voting alone ("Issues: Silence: 1") could not produce a conviction on its own in
-1.13.8; a single family is held below that bar by design now.
+**Two things changed here because of you.**
 
-That is not me telling you to upgrade and go away. It is that a report against
-1.9.0 and a fix in 1.13.8 are hard to talk about together, and I would rather
-know what 1.13.8 does on your files.
+Your second suggestion was simply right, and it's in regardless of how your case resolves: a container-independence test. Same samples in FLAC, WAV and AIFF, asserting identical verdict, score, cutoff and evidence families — and asserting first that the fixtures really hold identical samples at identical bit depth, so the test can't be fooled the way I was.
 
-## What I have changed regardless
+And the report now carries a **Format** column with the sample rate and bit depth, next to the cutoff:
 
-Your second suggestion was the right one and it is in, independent of how your
-case resolves: a container-independence test. Same samples written to FLAC, WAV
-and AIFF, asserting identical verdict, identical score, identical cutoff and
-identical evidence families — and asserting first that the fixtures really do
-hold identical samples, compared as read, so the test cannot be fooled the way I
-was. ALAC is left out only because `libsndfile` cannot write it and I did not
-want a test that needs ffmpeg installed.
+```
+ Icon | Score   | Verdict         | Format    | Cutoff   | Bitrate  | File
+ [!!] | 55/100  | SUSPICIOUS      | 44.1/24   | 18.2k    | 224k     | a.flac
+ [!!] | 55/100  | SUSPICIOUS      | 44.1/16   | 18.2k    | 224k     | a.wav
+```
 
-If your files do turn out to differ in bit depth, that is worth its own issue:
-the engine is entitled to read 24-bit and 16-bit differently, but a user with an
-album in four formats has every right to expect to be told which one they are
-looking at, and today the report does not say.
+That's the fix your issue really earned. The CSV carried that information and the HTML carried it; the text report — the one people actually read — didn't. If it had, you'd have spotted this yourself in three seconds and never needed to write to me. A verdict without the reading it came from is just an opinion, and mine was being one.
 
-Thanks again — this was a good use of my afternoon either way.
+To be straight with you about where this leaves us: I haven't fixed your problem, because I was never able to see it. What I've done is make it visible and make sure it can't come back unnoticed. Run those five lines and tell me what you get — if the subtypes match, I'll dig further and I'll be glad you pushed.
+
+Good luck with the library sweep. If you find more of these, please do send them — this one was worth the afternoon whichever way it lands.
