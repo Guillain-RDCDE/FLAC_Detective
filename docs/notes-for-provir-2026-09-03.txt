@@ -90,8 +90,41 @@ Two of those eight are worth his attention for another reason: two full-length
 the same weakness his half already showed — our mp3_320 conviction rate is 11 per
 cent on our own material.
 
-His defect and ours are therefore not the same shape, and the answer only means
-anything because the knob was proved live first.
+And then the question was asked properly, which changed the answer.
+
+Excerpt LENGTH was never his defect. His was two different EXCERPTS of one file
+disagreeing — a position problem. Our spectral path anchors its samples at fixed
+fractions of the file, so varying the length moves the windows a little and can
+never separate the two effects. The test that separates them is to cut a track in
+half and score each half as its own file.
+
+Twelve tracks, eight of them transcodes so that something is actually pulling on
+the verdict. **Four of the twelve disagree between their own two halves:**
+
+    TR320_04   Wolf Drawn    WARNING (50)      ->  AUTHENTIC (0)
+    TRVORB_02  Soon It Will  AUTHENTIC (0)     ->  SUSPICIOUS (55)
+    TRVORB_03  First Snow    SUSPICIOUS (55)   ->  FAKE_CERTAIN (85)
+    TRVORB_04  Wolf Drawn    SUSPICIOUS (55)   ->  FAKE_CERTAIN (55)
+
+Scores differ on six of the twelve even where the tier holds. All four lawful
+files are stable at 0; every disagreement is on transcoded material, which is
+where the thresholds are.
+
+So we have your defect too. Not in your shape — yours was a margin priced on one
+excerpt — but the same species: **a verdict that is partly a statement about
+which part of the track was read.** A 320 kbps transcode of a real album track
+reads WARNING on its first half and clean on its second.
+
+What it does not touch: the exchange numbers. Both sets are 60-second excerpts
+and both of us scored the same bytes, so every figure we traded is reproducible
+and was reproduced. What it does touch is every RATE either of us quotes as a
+property of a corpus. Our mp3_320 at 11 per cent is 11 per cent of those
+excerpts; cut them elsewhere in the same tracks and the number moves. That
+qualifier now belongs on all of them, ours and — if it reproduces on your side —
+yours.
+
+I would rather have found this before publishing the rates than after, and I did
+not.
 
 
 4. OUR OWN STRATUM MAP, MEASURED FROM THIS SIDE AT LAST

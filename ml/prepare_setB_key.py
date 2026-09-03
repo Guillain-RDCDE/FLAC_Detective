@@ -29,6 +29,7 @@ import hashlib
 import json
 from collections import Counter
 from pathlib import Path
+from typing import List, Optional
 
 VINYL_BUCKET = "VINYL_TRANSFER"
 EXPECTED_ROWS = 280
@@ -37,12 +38,12 @@ EXPECTED_CLASSES = 8
 EXPECTED_STEMS = 35
 
 
-def main() -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     """Reshape his key CSV into the scorer's JSON, checking every declared count."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     raw = args.csv.read_bytes()
     print(f"source {args.csv.name}  {len(raw)} bytes")

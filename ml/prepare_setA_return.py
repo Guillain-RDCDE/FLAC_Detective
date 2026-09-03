@@ -36,6 +36,7 @@ import csv
 import json
 from collections import Counter
 from pathlib import Path
+from typing import List, Optional
 
 # His declared tiers, from his letter of 2 September, before any number moved.
 TIER = {
@@ -52,14 +53,14 @@ VORBIS_ARMS = ("vorbis_q8",)
 GENUINE = "genuine"
 
 
-def main() -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     """Write his two columns as two verdict files our scorer can read."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--verdicts", type=Path, required=True)
     ap.add_argument("--key", type=Path, required=True)
     ap.add_argument("--out-a", type=Path, required=True)
     ap.add_argument("--out-b", type=Path, required=True)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     key = json.loads(args.key.read_text(encoding="utf-8"))["labels"]
     labels = {k: v["label"] for k, v in key.items()}

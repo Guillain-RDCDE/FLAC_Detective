@@ -1,0 +1,13 @@
+track,verdict_first_half,score_first_half,verdict_second_half,score_second_half,differs
+01 - Eve.flac,AUTHENTIC,0,AUTHENTIC,0,no
+02 - Soon It Will Be Cold Enough To Build Fires.flac,AUTHENTIC,0,AUTHENTIC,0,no
+03 - First Snow.flac,AUTHENTIC,0,AUTHENTIC,0,no
+04 - Wolf Drawn.flac,AUTHENTIC,0,AUTHENTIC,0,no
+TR320_01___Eve.flac,WARNING,50,WARNING,54,no
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,FAKE_CERTAIN,80,FAKE_CERTAIN,80,no
+TR320_03___First_Snow.flac,WARNING,50,WARNING,31,no
+TR320_04___Wolf_Drawn.flac,WARNING,50,AUTHENTIC,0,yes
+TRVORB_01___Eve.flac,FAKE_CERTAIN,55,FAKE_CERTAIN,86,no
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,AUTHENTIC,0,SUSPICIOUS,55,yes
+TRVORB_03___First_Snow.flac,SUSPICIOUS,55,FAKE_CERTAIN,85,yes
+TRVORB_04___Wolf_Drawn.flac,SUSPICIOUS,55,FAKE_CERTAIN,55,yes

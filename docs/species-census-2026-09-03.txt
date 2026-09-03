@@ -6,7 +6,8 @@ oldest first, with what each one cost and what caught it. I have counted a
 species once even where it recurred, and I have said which ones recurred, because
 a species that comes back twice after being named is worse than a new one.
 
-Eleven, and three of them found after I wrote you that sentence.
+Twelve, and four of them found after I wrote you that sentence — the last one
+this morning, by refusing to accept my own reassuring answer.
 
 
 1. THE TYPED ABSENCE (v1.13.1, 30 August)
@@ -163,19 +164,44 @@ lesson, and wrong. The rule it produced was not even bad advice — it was just 
 what was happening, and it would have sat there covering the real cause.
 
 
+12. A RATE QUOTED AS A PROPERTY OF THE FILES (3 September, after your letter)
+
+Your first confession was a number priced on one excerpt and quoted as though it
+belonged to the file. Asking the same of our engine gave a reassuring answer
+twice — no verdict moves when the excerpt LENGTH changes, on forty exchange files
+and then on twelve full tracks — and both answers were to a narrower question
+than yours. Length is not position, and our spectral path anchors its samples at
+fixed fractions of a file, so changing the length can never separate the two.
+
+Cutting twelve tracks in half and scoring each half as its own file:
+
+    TR320_04   WARNING (50)     ->  AUTHENTIC (0)
+    TRVORB_02  AUTHENTIC (0)    ->  SUSPICIOUS (55)
+    TRVORB_03  SUSPICIOUS (55)  ->  FAKE_CERTAIN (85)
+    TRVORB_04  SUSPICIOUS (55)  ->  FAKE_CERTAIN (55)
+
+Four of twelve, all on transcoded material, and six of twelve differ on score
+even where the tier holds. The four lawful files are stable at zero.
+
+Caught by: refusing to stop at the second reassuring answer, and asking what
+question the measurement had actually answered.
+Cost: every arm rate we have published is a rate for the excerpts we cut, not for
+the tracks they came from. It does not move the exchange figures — both halves
+scored identical bytes — and it puts a qualifier on all of them.
+
 WHAT THE LIST SAYS
 
-Four of the eleven are the same shape: a check that runs, logs, and prevents
-nothing (2, 3, 8) or a claim that has drifted from its artefact (6, 7). Two are a
-number priced on material that could not price it (5, 9). Two are a synced folder
-pretending to be a disk (10, 11).
+Four of the twelve are the same shape: a check that runs, logs, and prevents
+nothing (2, 3, 8) or a claim that has drifted from its artefact (6, 7). Three are
+a number priced on material or a window that could not price it (5, 9, 12). Two
+are a synced folder pretending to be a disk (10, 11).
 
-The one that worries me is 11, because the other ten were found by looking, and
+The one that worries me is 11, because the other eleven were found by looking, and
 that one was found by being wrong in public and then being contradicted by my own
 machine. I have no method for that yet beyond re-running things alone before
 believing them.
 
-Your nine and my eleven are not a score. Neither of us is finding these because
+Your nine and my twelve are not a score. Neither of us is finding these because
 we are careless; we are finding them because we are both looking, and the ones
 that frighten me are the species neither list contains.
 
