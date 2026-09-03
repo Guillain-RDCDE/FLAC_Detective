@@ -181,6 +181,20 @@ markers = [
 ]
 
 [tool.coverage.run]
+# If pytest ends in `INTERNALERROR> PermissionError: [WinError 32] ... .coverage.*`
+# with every test passing above it, nothing is wrong with the tests. Coverage is
+# deleting its own data file and something else is holding it open — on Windows
+# that something is usually a file-sync client, and this repository lives inside
+# one. The run is not a green gate whatever the count above it says.
+#
+# Fix locally by putting the data file outside the synced tree before running:
+#   $env:COVERAGE_FILE = "$env:TEMP\fd-coverage\.coverage"   (PowerShell)
+#   export COVERAGE_FILE=/tmp/fd-coverage/.coverage          (bash)
+#
+# Not set here on purpose: CI runs on Linux with no sync layer, has never seen
+# this, and writes its data file where the coverage upload step expects it.
+# Diagnosed 2 September 2026, after first being blamed — wrongly — on two heavy
+# jobs running at once.
 source = ["src"]
 branch = true
 omit = [

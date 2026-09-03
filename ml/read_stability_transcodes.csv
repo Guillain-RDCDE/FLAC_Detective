@@ -1,0 +1,9 @@
+file,population,verdict_15s,verdict_30s,verdict_60s,score_15s,score_30s,score_60s,moved
+TR320_01___Eve.flac,fd-transcodes-complets,WARNING,WARNING,WARNING,50,50,50,no
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,fd-transcodes-complets,FAKE_CERTAIN,FAKE_CERTAIN,FAKE_CERTAIN,80,80,80,no
+TR320_03___First_Snow.flac,fd-transcodes-complets,AUTHENTIC,AUTHENTIC,AUTHENTIC,0,0,0,no
+TR320_04___Wolf_Drawn.flac,fd-transcodes-complets,AUTHENTIC,AUTHENTIC,AUTHENTIC,0,0,0,no
+TRVORB_01___Eve.flac,fd-transcodes-complets,FAKE_CERTAIN,FAKE_CERTAIN,FAKE_CERTAIN,56,56,56,no
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,fd-transcodes-complets,SUSPICIOUS,SUSPICIOUS,SUSPICIOUS,55,55,55,no
+TRVORB_03___First_Snow.flac,fd-transcodes-complets,SUSPICIOUS,SUSPICIOUS,SUSPICIOUS,55,55,55,no
+TRVORB_04___Wolf_Drawn.flac,fd-transcodes-complets,SUSPICIOUS,SUSPICIOUS,SUSPICIOUS,55,55,55,no

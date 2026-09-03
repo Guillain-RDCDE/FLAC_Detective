@@ -70,12 +70,56 @@ does not move by a single hertz. The parameter is live. What is stable is the
 cutoff, because an encoder's wall is a property of the file rather than of the
 window you look at it through, and the cutoff is what the scoring rules read.
 
-Two limits on that, stated rather than left for him to find. The files are
-60-second excerpts already, so this varies the window inside an excerpt, not the
-choice of excerpt from a full track — on a real track the spectral path takes
-three positions rather than one, which is a different regime and untested here.
-And forty files is forty files.
+One limit was stated as soon as that number existed: set A is 60-second excerpts,
+so it varies the window inside an excerpt and never reaches the regime where the
+spectral path takes THREE positions instead of one — which is where a real file
+sits, and where a user actually is. That regime has since been measured too.
 
-His defect and ours are therefore not the same shape, but the question was worth
-asking in his terms, and the answer only means anything because the knob was
-proved live first.
+Twelve full vinyl-transfer tracks, 90 to 433 seconds, at the same three lengths:
+nothing moved. But all twelve read AUTHENTIC, and a verdict that nothing is
+pulling on cannot move, so on its own that number is worth very little.
+
+So the cases that are actually contested were built: those same full tracks
+re-encoded at 320 kbps and at Vorbis q8, then back to FLAC. Eight files spanning
+every tier the engine has — FAKE_CERTAIN, SUSPICIOUS, WARNING and AUTHENTIC, so
+files sitting at thresholds rather than far from them. **Nothing moved there
+either, and every score is identical to the point at all three lengths.**
+
+Two of those eight are worth his attention for another reason: two full-length
+320 kbps transcodes read AUTHENTIC. That is a miss, not an instability, and it is
+the same weakness his half already showed — our mp3_320 conviction rate is 11 per
+cent on our own material.
+
+His defect and ours are therefore not the same shape, and the answer only means
+anything because the knob was proved live first.
+
+
+4. OUR OWN STRATUM MAP, MEASURED FROM THIS SIDE AT LAST
+
+He verified our band-limited map against our audio because we asked him not to
+take the file date for it. We had never verified it ourselves, which is elegant
+once and a gap if it stays that way. So it was measured here, deliberately NOT
+with the engine's own `detect_cutoff` — checking a map against the instrument
+that drew it proves only that the instrument is consistent — but with his method
+written from his description: a plain long-term average spectrum, reference in
+10-13 kHz, first frequency falling 20 dB below it.
+
+All 96 band-limited files measurable, all 96 inside 14,250 to 14,621 Hz, median
+14,516. His figures were 14,174 to 14,573, median 14,486 — the offset is method
+(Welch window against his LTAS), the agreement is total. **Not one of the 96 sits
+outside.** And the edge is in the same place on the `genuine` arm as on the seven
+encoded ones, which is the check that says the filter puts it there rather than
+the encoder.
+
+On his ten full-band files falling below 16 kHz, we find eleven. His eight from
+src030 reproduce exactly, across all eight of its classes including its genuine.
+His two MP2 rows at "15.9 and 16.0 kHz" are src034 at 15,962 and src029 at
+15,972. The eleventh is **src031's mp2_256 at 15,843 Hz** — lower than either of
+the two he named, and absent from his list. One row, named, so he can look rather
+than take our word for it.
+
+5. THE TAG CHECK, ON EVERY FILE RATHER THAN A SAMPLE
+
+Yesterday's two claims were made on two of his 280 and three of our 288. Run
+across both halves in full: our 288 report **zero** tags, his 280 report **280**.
+Both statements hold on every file, which is the only version worth sending.

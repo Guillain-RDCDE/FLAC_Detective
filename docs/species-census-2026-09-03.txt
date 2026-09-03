@@ -1,0 +1,182 @@
+Jamie — the census, owed since the key letter.
+
+I said the count on my side was not lower than your nine and that I would send it
+in the same form once the scoring was done. The scoring is done. Here it is,
+oldest first, with what each one cost and what caught it. I have counted a
+species once even where it recurred, and I have said which ones recurred, because
+a species that comes back twice after being named is worse than a new one.
+
+Eleven, and three of them found after I wrote you that sentence.
+
+
+1. THE TYPED ABSENCE (v1.13.1, 30 August)
+
+A defect that ran long enough to become part of the calibration. Fixing it blind
+cost 44 convictions on 132 files, because the constants had been chosen on top of
+it. The repair was not to remove it but to MOVE the constant, with before and
+after measured and the criteria written in advance.
+
+Caught by: an audit of what "absent" meant at each layer.
+Recurred: no.
+
+
+2. THE FREEZER THAT NEVER REFUSED (31 August)
+
+The frame-count audit written after set A leaked its arms through file LENGTH —
+108 of 288 files announced their own class without a byte being decoded. The
+repair wrote its failure into a local named `ok` that nothing read, and the
+function returned True regardless. It logged the leak and shipped the set. Second
+fault in the same function: the audit sat inside a branch that only ran when
+sample rates had been collected, so it could be skipped in silence.
+
+This is the one I described to you as "a check in the freezer rather than a check
+in my attention". It was neither.
+
+Caught by: sweeping for the pattern, two hours after reading your account of the
+inert timestamp client. Yours printed into a console nobody watched; mine wrote
+into a variable nobody read.
+Recurred: yes, see 9.
+
+
+3. THE CORROBORATION BARRIER UNPLUGGED BY ITS OWN REPAIR (1 September)
+
+The barrier requires two independent evidence families before a conviction. A
+repair that collapsed dependent families into one name left the barrier counting
+the collapsed pair as two.
+
+Caught by: reading who consumed the result of the repair. This is where the rule
+came from that you have since written into your own notes — after any repair that
+adds a check, grep for who reads its result.
+Recurred: no.
+
+
+4. THE `+` THAT COULD NOT BE READ BACK (1 September)
+
+Since v1.13.5 a collapsed pair is itself named `cnn+spectral`, and the verdict
+file joined evidence families with `+`. The merged witness silently became two
+again on read-back — in the very file you score me on.
+
+Caught by: rehearsing the whole path end to end on six files instead of assuming
+it. Repeat, do not suppose.
+Recurred: yes — the v1.13.4 worktree still carried the `+` version yesterday and
+would have made your two columns incomparable. Caught before the pass ran.
+
+
+5. A CONSTANT CHOSEN ON THE MATERIAL THAT COULD NOT PRICE IT (1 September)
+
+The independence guard needed a frequency. Taking 17,000 Hz by symmetry with the
+neighbouring guard showed zero cost on set A — and would have destroyed three
+TRUE convictions on 128 kbps material, where a low-bitrate transcode and a
+genuinely band-limited transfer both live at 15-16 kHz. Every arm in set A is 256
+kbps or better, so the set could not see the cost. 16,000 was correct.
+
+Caught by: building the low-rate arms BEFORE choosing the constant.
+Recurred: no. This is why I want the low rates in set C before any constant is
+chosen on them.
+
+
+6. A DOCUMENT DESCRIBING AN ENGINE THAT DOES NOT EXIST (2 September)
+
+A document described the shipped engine as carrying an instrument that only the
+research tree has. Your excerpt-length global, bound at import in one place and
+read at call in another, is the same species in a different costume: the
+description and the artefact had drifted apart and nothing compared them.
+
+Caught by: reading the consumer's code rather than the comment.
+Recurred: yes, immediately and worse — see 7.
+
+
+7. THE KEY THAT DID NOT CARRY WHAT I TOLD YOU IT CARRIED (2 September)
+
+On 31 August I wrote to you: "the key labels them band_limited_synthetic". It did
+not. The set A r2 key carried `labels` and nothing else, and the root cause was
+not a lost block — the freezer had NEVER written a stratum map at all. The pre-r2
+key came from another path entirely.
+
+Two days, and it surfaced only because I read what I was about to send you
+against what I had told you it contained.
+
+Caught by: checking the artefact against the claim, at the last possible moment.
+Repaired: `build_key` now refuses to write a key unless a stratum map covers
+every source or the set is declared unstratified in so many words. Demonstrated
+against the real r2 key, which it refuses. Six tests.
+
+
+8. A FAILURE TO VERIFY, REPORTED AS A CLEAN FILE (2 September)
+
+`has_tags` returned False — "no metadata" — whenever ffprobe was missing, timed
+out, or exited non-zero. A file nobody had inspected shipped as clean, and one
+surviving `encoder` tag hands you the answer for that file. It also read only
+format tags, while ffmpeg writes an encoder string into stream tags too — which
+is the shape of the leak your set B carried.
+
+Caught by: sweeping for `except` clauses that return the value meaning "fine".
+That is the same shape as `ok = False` never read, one layer up.
+Repaired, and then exercised on real files rather than mocks: our shipped set
+reports no tags at all, yours reports `encoder=Lavf62.19.101`, and the repaired
+check would have refused to ship your set. The flag that makes the difference is
+`-bitexact`, which our freezer has carried since v2 — that is the whole of the
+fix you are adding a test for.
+
+
+9. A NUMBER AVERAGED OVER A STRATUM I BUILT MYSELF (2 September)
+
+I reported your research column as 81, 72 and 64 per cent — pooled across a
+stratum I constructed, declared, and held the map for. You split it and returned
+the real shape. The arithmetic was right and the number was not about your
+instrument.
+
+Caught by: you.
+And the first thing the split showed was about me: zero convictions on
+band-limited sources on every arm I carry.
+
+
+10. MEASURING FROM INSIDE A SYNCED FOLDER (2 September)
+
+A file of the frozen set A r2 became a Dropbox files-on-demand reparse point and
+lost 50,794 bytes while I was reading it. The rule that a frozen set has one
+measurement copy and it lives outside the sync folder was written down after the
+v2 round. I pointed the pass at the copy under `Temp/` anyway.
+
+Caught by: the read-time manifest check, which refused to score rather than
+publish a verdict about rotten bytes. That guard earned its place. Re-run from
+the intact copy, the verdict file hashes identically, so nothing I sent you
+depended on it.
+Recurred: yes, in a second costume the same evening — see 11.
+
+
+11. THE WRONG DIAGNOSIS, WHICH IS ITS OWN SPECIES (2 September)
+
+A test run ended in `INTERNALERROR` with 461 tests passing above it. I wrote it
+down as contention from two parallel jobs, added "one heavy job at a time" to the
+rules, and moved on. It happened again with nothing else running.
+
+The trace had named the real cause both times: coverage deletes its data file,
+Windows answers `WinError 32`, and Dropbox is holding it — the repository is
+inside the sync folder, same root as 10. Confirmed by fixing it rather than by
+reasoning about it: with the coverage file pointed outside, the same suite exits
+0 with 469 passing.
+
+I am counting this as a species because it is one, and it is the one I am least
+comfortable with. A plausible cause, adopted quickly, written into the rules as a
+lesson, and wrong. The rule it produced was not even bad advice — it was just not
+what was happening, and it would have sat there covering the real cause.
+
+
+WHAT THE LIST SAYS
+
+Four of the eleven are the same shape: a check that runs, logs, and prevents
+nothing (2, 3, 8) or a claim that has drifted from its artefact (6, 7). Two are a
+number priced on material that could not price it (5, 9). Two are a synced folder
+pretending to be a disk (10, 11).
+
+The one that worries me is 11, because the other ten were found by looking, and
+that one was found by being wrong in public and then being contradicted by my own
+machine. I have no method for that yet beyond re-running things alone before
+believing them.
+
+Your nine and my eleven are not a score. Neither of us is finding these because
+we are careless; we are finding them because we are both looking, and the ones
+that frighten me are the species neither list contains.
+
+-- Guillain
