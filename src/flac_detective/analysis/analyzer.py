@@ -6,6 +6,7 @@ PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 import logging
 import shutil
 import tempfile
+from functools import partial
 from pathlib import Path
 from typing import Dict, Optional, Set, Union
 
@@ -233,7 +234,10 @@ class FLACAnalyzer:
                 energy_ratio,
                 cache=cache,
                 source_path=filepath,
-                measure_compressed_size=lambda p=temp_path: flac_equivalent_size(p),
+                # ``partial`` rather than a lambda with a default argument: both
+                # capture ``temp_path`` by value at this point, but mypy cannot
+                # infer the type of a lambda whose parameter comes from a default.
+                measure_compressed_size=partial(flac_equivalent_size, temp_path),
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
                 breakdown_out=score_breakdown,
