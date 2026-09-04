@@ -154,3 +154,90 @@ class TestUntouchedGuards:
             residual_floor_db=float("nan"),
         )
         assert (score == 50) == (est is not None and est != 0)
+
+
+class TestSkipGateMirrorsTheRule:
+    """``rule1_may_consult_container`` must be a faithful mirror of the guards above.
+
+    It exists so the analyzer can decide, before scoring, whether to spend a FLAC
+    re-encode measuring the compression ratio (issue #7: the ratio has to describe
+    the audio, not the wrapper). Skipping it is only safe where Rule 1 cannot reach
+    its container test — and "cannot reach" has to mean the same thing in both
+    places. If a guard here moves and the gate does not, the engine silently stops
+    measuring a case that has started to matter, and the container dependency comes
+    back at exactly that cutoff.
+
+    So the property is stated directly rather than by copying the thresholds: where
+    the gate says no, the container bitrate must not be able to change the answer.
+    """
+
+    # Two bitrates that no window contains at once: whatever cell a cutoff picks,
+    # these two land on opposite sides of it.
+    FAR_APART = (300.0, 1411.0)
+
+    @pytest.mark.parametrize(
+        "cutoff",
+        [
+            9_000.0,
+            9_999.0,  # below the lowest cell
+            15_500.0,
+            16_500.0,
+            17_500.0,
+            18_500.0,
+            19_500.0,  # cell boundaries
+            19_250.0,
+            20_250.0,
+            20_500.0,  # inside cells
+            20_947.0,
+            20_948.0,
+            21_000.0,
+            21_499.0,
+            21_500.0,
+            21_501.0,
+            22_050.0,
+        ],
+    )
+    @pytest.mark.parametrize("cutoff_std", [0.0, 129.0, 131.0, float("nan")])
+    @pytest.mark.parametrize("residual", [-60.0, -40.0, float("nan")])
+    def test_when_the_gate_says_no_the_container_cannot_matter(self, cutoff, cutoff_std, residual):
+        from flac_detective.analysis.new_scoring.rules.spectral import (
+            rule1_may_consult_container,
+        )
+
+        if rule1_may_consult_container(cutoff, 44100, cutoff_std):
+            pytest.skip("gate admits this cutoff; the measurement is taken")
+
+        low = _r1(
+            cutoff_freq=cutoff,
+            cutoff_std=cutoff_std,
+            residual_floor_db=residual,
+            container_bitrate=self.FAR_APART[0],
+        )
+        high = _r1(
+            cutoff_freq=cutoff,
+            cutoff_std=cutoff_std,
+            residual_floor_db=residual,
+            container_bitrate=self.FAR_APART[1],
+        )
+        assert low == high, (
+            f"a {cutoff:.0f} Hz cutoff the gate refuses to measure still answers "
+            f"differently for {self.FAR_APART[0]} vs {self.FAR_APART[1]} kbps: "
+            f"{low} vs {high} — skipping the measurement there is not safe"
+        )
+
+    def test_the_gate_admits_the_cells_the_rule_can_actually_use(self):
+        """The mirror must not be conservative to the point of being useless either.
+
+        A gate that always said no would pass the test above and quietly restore
+        the bug, so the admitted side is pinned too: a cutoff inside a cell, with a
+        stable wall, is exactly where Rule 1 reads the container.
+        """
+        from flac_detective.analysis.new_scoring.rules.spectral import (
+            rule1_may_consult_container,
+        )
+
+        assert rule1_may_consult_container(19_250.0, 44100, 0.0)
+        assert rule1_may_consult_container(20_250.0, 44100, float("nan"))
+        # and the container really does decide there
+        assert _r1(cutoff_freq=19_250.0, container_bitrate=800.0)[0] == 50
+        assert _r1(cutoff_freq=19_250.0, container_bitrate=300.0)[0] == 0

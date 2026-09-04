@@ -69,6 +69,39 @@ logger = logging.getLogger(__name__)
 # band-limited material (shallow wall, floor > -55 dB) are near-undetectable anyway.
 NEARNYQ_FLOOR_DB = -55.0
 
+# Safety check 2's constant, hoisted so Rule 1 and the gate below cannot drift
+# apart. Its full justification lives at the point of use inside Rule 1.
+HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
+
+
+def rule1_may_consult_container(
+    cutoff_freq: float, sample_rate: int = 44100, cutoff_std: float = float("nan")
+) -> bool:
+    """True if Rule 1 can still reach its container-bitrate test at this cutoff.
+
+    A mirror of the three safety checks below, hoisted so the analyzer can know —
+    BEFORE scoring — whether the compression ratio will be looked at at all.
+
+    It exists to price a fix, not to change a verdict. Sizing the audio by
+    re-encoding it (``audio_formats.flac_equivalent_size``) is what makes the ratio
+    a fact about the recording instead of about the wrapper, and it is the only
+    known cure for issue #7 — but it doubles the analysis time of a file that
+    would otherwise take the authentic fast path, which is most of a real library.
+    When this returns False, Rule 1 returns 0 and ``None`` for every container
+    alike, so the measurement cannot change any verdict and is not taken.
+
+    Kept next to the checks it mirrors on purpose: if one of them moves and this
+    does not, the engine silently stops measuring a case that now matters.
+    ``test_rule1_gates`` pins the two together.
+    """
+    if cutoff_freq >= 0.95 * (sample_rate / 2.0):
+        return False
+    if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
+        return False
+    if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
+        return False
+    return estimate_mp3_bitrate(cutoff_freq) != 0
+
 
 def apply_rule_1_mp3_bitrate(  # noqa: C901
     cutoff_freq: float,
@@ -192,8 +225,10 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     # Note this branch is REDUNDANT at 44.1 kHz, where safety check 1 has already
     # returned at 0.95 * Nyquist = 20,947.5 Hz. It is live at 48 kHz and above, where
     # 0.95 * Nyquist exceeds 21,500.
-    HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
-
+    #
+    # The constant now lives at module scope: ``rule1_may_consult_container`` has to
+    # apply the same bar, and two copies of a threshold is how a hoisted gate quietly
+    # stops mirroring the rule it was hoisted from.
     if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
         logger.debug(
             f"RULE 1: Skipped (cutoff {cutoff_freq:.0f} Hz > {HIGH_QUALITY_CUTOFF_THRESHOLD} Hz, likely authentic FLAC)"

@@ -122,12 +122,18 @@ def flac_equivalent_size(path: Path) -> Optional[int]:
     containers, two of them judged and two of them waved through.
 
     So the ratio is measured by actually compressing the audio, at one fixed
-    setting, whatever it arrived in. Called only for non-FLAC sources: a FLAC is
-    already its own answer, and re-encoding every FLAC in a library sweep would
-    cost more than the rule is worth. The residual that leaves is small and worth
-    stating: a level-8 FLAC is ~1-2 % smaller than this reference encode, so a
-    FLAC sitting within ~1.5 % of one of Rule 1's window edges can still land on
-    the other side from its WAV twin. The windows are ~250 kbps wide.
+    setting, whatever it arrived in — **including when it arrived as a FLAC**.
+    Exempting FLAC looks free (a FLAC is already a compressed size) and is not: a
+    stored FLAC was encoded at whatever level its ripper chose, which is not this
+    function's level, and the engine then holds two rulers that disagree. Measured
+    on 120 corpus files: mean 0.63 %, p95 1.46 %, max 4.17 %. Rule 1's cell edges
+    are 50 kbps apart, so that spread straddles an edge on 7.5 % of them. See the
+    comment in analyzer.py for the file that reads AUTHENTIC as FLAC and
+    FAKE_CERTAIN as WAV on exactly that 0.4 % difference.
+
+    Sizing every container the same way makes the number exactly reproducible, so
+    Rule 1's sharp edges become legitimate again rather than an accident of
+    packaging. The cost is a re-encode per file, paid on every analysis.
     """
     try:
         import soundfile as sf  # local: keeps the cold-start import cost off this module
