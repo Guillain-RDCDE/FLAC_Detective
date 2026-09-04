@@ -106,6 +106,92 @@ alone deliberately: giving those two rules back their votes changes verdicts
 across the corpus and belongs in its own release, measured, not smuggled into a
 bug fix.
 
+### Two measurements, no repairs (2026-09-04)
+
+Neither of these changes `src/`. Both are answers to questions this project had
+been carrying, and both go against us.
+
+**Our read-position defect is NOT Provir's** (`ml/read_offset_fixed_window.py`).
+The halves probe found 4 of 12 verdicts disagreeing with themselves but changed
+window length and window position together. This holds the window at a fixed 60 s
+and moves only the start offset, reporting the ADDRESS (`cutoff_freq`) apart from
+the MAGNITUDE (`score`) — because an address that stays put while the magnitude
+wanders is a different disease from both moving. Windows are cut sample-exact
+with `soundfile`, never with an ffmpeg seek, since the subject is alignment.
+
+Coarse grid, 20 files × 7 offsets across 90 s:
+
+```
+lawful windows convicted                0/84      lawful windows signalled  0/84
+verdict mobile                          4/20 files, all of them positives
+address mobile (> 100 Hz)               3/20 files
+convictions at offset 0                 3/8   at 45 s / 75 s / 90 s   5/8
+slices bit-exact 140/140                determinism 20/20
+```
+
+Fine grid, one MPEG frame walked in eighths (0-1152 samples, 26 ms), 12 files:
+**0/12 address mobile, 0/12 verdict mobile.** 108/108 bit-exact, 12/12
+deterministic.
+
+So the defect needs *tens of seconds* of displacement to appear and *cannot* be
+produced inside a frame. It is not an alignment artefact: it is a statement about
+which 60 seconds of music were read. Provir's engine fires only in the window
+starting at sample zero; ours is at its **worst** there (3/8 against 5/8 further
+in), because track openings are thin and fewer evidence families fire — `stereo`
+is absent at offset 0 on both TR320 files, `cnn` only appears from 45 s.
+
+A third axis fell out of it, which neither camp had named: `TRVORB_03` has an
+identical score (55) and identical cutoff (22,050 Hz) at every offset and still
+moves between SUSPICIOUS and FAKE_CERTAIN, because the verdict follows the
+**number of corroborating families** and `CONVICTION_MIN_FAMILIES` is 2.
+
+**The cutoff detector is defeated by a noise floor 107 dB down**
+(`ml/sbr_arm.py`). Built to look for the SBR blind spot before Provir's mp3PRO
+copy makes it his problem; found something larger on the way. Six sources, paired,
+each arm against a non-SBR control **at the same bitrate**:
+
+```
+arm            read AUTHENTIC   cutoff read      real ceiling
+lc_aac_32k          6/6           22,050 Hz        6,746 Hz
+mp3_64k             5/6           22,050 Hz       11,250 Hz
+he_aac_48k          4/6           16,250 Hz       16,294 Hz
+he_aac_32k          3/6           15,333 Hz       14,931 Hz
+lc_aac_64k          3/6           14,417 Hz       12,536 Hz
+lc_aac_128k         3/6           17,292 Hz       17,288 Hz
+he_aac_64k          0/6           20,500 Hz       20,418 Hz
+genuine control     6/6 AUTHENTIC, as it must be
+```
+
+Below roughly 64 kbps the decoded audio carries a noise floor all the way to
+Nyquist at about -107 dB from peak. `detect_cutoff` reads that as content,
+returns 22,050 Hz, and `Rule8NyquistException` then **subtracts 50 points**: the
+rule that protects genuine full-band recordings is actively shielding a file
+whose music stops at 6.7 kHz. Verified rather than assumed — the noise is present
+in a float32 decode with no quantisation anywhere, identical at 24 and 16 bits, so
+it belongs to the codec and not to our FLAC step. (The first version of that check
+compared two files that were both PCM_24 and therefore compared a file with
+itself; it proved nothing and was redone.)
+
+Three distinct failure modes are now separable: the address is missed entirely
+(32/48 kbps), the address is read too high because SBR refilled the band
+(he_aac_32k, 15,333 read for 14,931 real), or the address is read correctly and
+the scoring simply does not convict a 17 kHz wall (lc_aac_128k, exact to 4 Hz).
+
+SBR itself is confirmed as real and quantified: at equal bitrate it fills far
+higher than AAC-LC (20,418 vs 12,536 Hz at 64 kbps), and HE-AAC at 64 kbps reaches
+higher than AAC-LC at *double* the rate.
+
+**Nothing is repaired.** The standing rule is that the band-limited hole is not
+touched until the other camp has built the Set C stratum, and these are
+measurements, not fixes.
+
+Both probes are gated: `tests/test_offset_probe.py` and `tests/test_sbr_arm.py`,
+48 cases, **proved by mutation** — 14 real defects reintroduced one at a time, 14
+caught, both files restored byte for byte. Among them the defect the offset probe
+shipped with on its first run: with an empty lawful pool it printed "the defect
+costs recall, never precision", a reassuring sentence derived from zero
+observations. Sixth instance of the guard-that-guards-nothing pattern here.
+
 ## v1.13.8 (2026-09-02) — stop asking for workers, not for work
 
 A user reported that a folder of more than a few files kills the run: 36 files,

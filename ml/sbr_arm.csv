@@ -1,0 +1,55 @@
+source,arm,profile,ceiling_hz,verdict,score,cutoff_hz,families
+01 - Eve.flac,genuine,,22050,AUTHENTIC,0,22050.0,
+01 - Eve.flac,he_aac_32k,HE-AAC,14906,AUTHENTIC,25,15000,spectral|temporal
+01 - Eve.flac,he_aac_48k,HE-AAC,16270,AUTHENTIC,18,16250,temporal
+01 - Eve.flac,he_aac_64k,HE-AAC,20392,WARNING,50,20500,spectral|temporal
+01 - Eve.flac,lc_aac_32k,LC,5651,AUTHENTIC,0,22050.0,
+01 - Eve.flac,lc_aac_48k,LC,7817,SUSPICIOUS,55,22050.0,mdct
+01 - Eve.flac,lc_aac_64k,LC,12453,AUTHENTIC,30,14000,spectral
+01 - Eve.flac,lc_aac_128k,LC,17233,AUTHENTIC,13,17250,temporal
+01 - Eve.flac,mp3_64k,unknown,11193,AUTHENTIC,0,22050.0,temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,genuine,,22050,AUTHENTIC,0,22050.0,temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,he_aac_32k,HE-AAC,14964,WARNING,37,15000,spectral|temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,he_aac_48k,HE-AAC,16307,AUTHENTIC,23,16250,temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,he_aac_64k,HE-AAC,20448,FAKE_CERTAIN,76,20500,cnn|spectral|temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lc_aac_32k,LC,10273,AUTHENTIC,0,22050.0,
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lc_aac_48k,LC,10082,SUSPICIOUS,55,22050.0,mdct
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lc_aac_64k,LC,12659,SUSPICIOUS,60,14000,cnn&spectral
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lc_aac_128k,LC,17313,WARNING,43,17250,cnn|stereo|temporal
+02 - Soon It Will Be Cold Enough To Build Fires.flac,mp3_64k,unknown,11279,AUTHENTIC,0,22050.0,
+03 - First Snow.flac,genuine,,22050,AUTHENTIC,0,22050.0,
+03 - First Snow.flac,he_aac_32k,HE-AAC,14892,AUTHENTIC,15,17000,temporal
+03 - First Snow.flac,he_aac_48k,HE-AAC,16270,AUTHENTIC,18,16250,temporal
+03 - First Snow.flac,he_aac_64k,HE-AAC,20409,WARNING,50,20500,spectral|temporal
+03 - First Snow.flac,lc_aac_32k,LC,5101,AUTHENTIC,0,22050.0,
+03 - First Snow.flac,lc_aac_48k,LC,7698,SUSPICIOUS,55,22050.0,mdct
+03 - First Snow.flac,lc_aac_64k,LC,12421,AUTHENTIC,17,16500,temporal
+03 - First Snow.flac,lc_aac_128k,LC,17243,AUTHENTIC,13,17250,temporal
+03 - First Snow.flac,mp3_64k,unknown,11141,AUTHENTIC,0,22050.0,temporal
+04 - Wolf Drawn.flac,genuine,,22050,AUTHENTIC,0,22050.0,
+04 - Wolf Drawn.flac,he_aac_32k,HE-AAC,14909,AUTHENTIC,25,15000,spectral|temporal
+04 - Wolf Drawn.flac,he_aac_48k,HE-AAC,16290,AUTHENTIC,18,16250,temporal
+04 - Wolf Drawn.flac,he_aac_64k,HE-AAC,20427,WARNING,50,20500,spectral|temporal
+04 - Wolf Drawn.flac,lc_aac_32k,LC,4939,AUTHENTIC,25,22050.0,mdct
+04 - Wolf Drawn.flac,lc_aac_48k,LC,7654,SUSPICIOUS,55,22050.0,mdct
+04 - Wolf Drawn.flac,lc_aac_64k,LC,12450,AUTHENTIC,30,14000,spectral
+04 - Wolf Drawn.flac,lc_aac_128k,LC,17247,AUTHENTIC,13,17250,temporal
+04 - Wolf Drawn.flac,mp3_64k,unknown,11224,AUTHENTIC,0,22050.0,temporal
+05 - Anthem.flac,genuine,,22050,AUTHENTIC,0,22050.0,
+05 - Anthem.flac,he_aac_32k,HE-AAC,14968,WARNING,32,15000,spectral|temporal
+05 - Anthem.flac,he_aac_48k,HE-AAC,16336,WARNING,33,16250,temporal
+05 - Anthem.flac,he_aac_64k,HE-AAC,20448,FAKE_CERTAIN,76,20500,cnn|spectral|temporal
+05 - Anthem.flac,lc_aac_32k,LC,8547,AUTHENTIC,0,22050.0,
+05 - Anthem.flac,lc_aac_48k,LC,9231,AUTHENTIC,0,22050.0,
+05 - Anthem.flac,lc_aac_64k,LC,12697,SUSPICIOUS,60,14000,cnn&spectral
+05 - Anthem.flac,lc_aac_128k,LC,17446,WARNING,42,17500,cnn|stereo|temporal
+05 - Anthem.flac,mp3_64k,unknown,11317,AUTHENTIC,0,22050.0,
+06 - Smoke Signals.flac,genuine,,22050,AUTHENTIC,0,22050.0,temporal
+06 - Smoke Signals.flac,he_aac_32k,HE-AAC,14947,WARNING,50,15000,cnn&spectral|temporal
+06 - Smoke Signals.flac,he_aac_48k,HE-AAC,16290,WARNING,48,16250,cnn|temporal
+06 - Smoke Signals.flac,he_aac_64k,HE-AAC,20387,SUSPICIOUS,69,20500,spectral
+06 - Smoke Signals.flac,lc_aac_32k,LC,5966,AUTHENTIC,0,22050.0,
+06 - Smoke Signals.flac,lc_aac_48k,LC,9232,SUSPICIOUS,55,22050.0,mdct
+06 - Smoke Signals.flac,lc_aac_64k,LC,12534,WARNING,41,14000,spectral
+06 - Smoke Signals.flac,lc_aac_128k,LC,17245,WARNING,43,17250,cnn|temporal
+06 - Smoke Signals.flac,mp3_64k,unknown,11344,WARNING,31,22050.0,cnn|temporal
