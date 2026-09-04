@@ -1,3 +1,111 @@
+## v1.13.9 (2026-09-04) — the wrapper is not the audio
+
+Issue #7, second round. The reporter came back with the five lines of `soundfile`
+output the first reply asked for, and they closed the door on the first
+hypothesis: `format=FLAC/WAV/AIFF`, `subtype=PCM_16` on all three, same frame
+count, same rate. No bit-depth difference hiding in the pair — which is what the
+previous reply had found in ITS OWN fixtures and, honestly, half expected to find
+in his. He also reinstalled 1.13.8 in a clean venv and got byte-identical results
+to 1.9.0, so "report against an old version" stopped being an answer too.
+
+And one observation worth more than the rest: on his file 06, **ALAC sided with
+FLAC**. Not FLAC against the world — compressed against uncompressed.
+
+**Reproduced here, this time.** Same 16-bit samples in four containers:
+
+```
+case.flac   WARNING    33/150   families: cnn, spectral, stereo, temporal
+case.wav    AUTHENTIC   3/150   families: none
+case.aiff   AUTHENTIC   3/150   families: none
+case.m4a    WARNING    33/150   families: cnn, spectral, stereo, temporal
+```
+
+Bit-identical audio. Same detected cutoff, 19,250 Hz, in all four.
+
+### What was actually happening
+
+Three links, and the third is the one that matters.
+
+1. **The compression ratio was measured on the container, not on the audio.**
+   `calculate_real_bitrate` sizes the file on disk. A FLAC reads ~819 kbps, a WAV
+   and an AIFF read 1411 kbps whatever their samples hold, an ALAC reads its own
+   codec's ratio. Rule 1 treats that number as evidence — audio that squeezes to
+   ~800 kbps has thrown something away — so a fact about the packaging was being
+   read as a fact about the recording.
+
+2. **Rule 1 therefore fires on some containers and not others.** At a 19,250 Hz
+   cutoff the 256 kbps cell expects 600-850 kbps: the FLAC is inside it, the WAV
+   is not, and the "uninformative container" bypass needs a residual floor at or
+   below -55 dB, which genuine material with a noise floor does not have.
+
+3. **And Rule 1's silence was then read as an acquittal.** The fast path at
+   `calculator.py` exits on `score < 10 and mp3_bitrate_detected is None`, and
+   that exit returns AUTHENTIC without running rules 7, 10, 12, 13, 14 or 15. On
+   uncompressed input `None` is not "Rule 1 looked and found nothing", it is
+   "Rule 1 had nothing to look at". **The WAV was not cleared. It was never
+   examined.** The reporter's silence rule never even ran on the two files that
+   passed.
+
+That third link is the defect. The first two are the wrong ruler; the third is
+the engine issuing a pass it had no standing to issue — the exact thing
+`assessability.py` was written to stop at the verdict, happening one layer
+earlier, where the rules are chosen.
+
+### The fix
+
+- **The compression ratio is now measured by compressing the audio.** Any
+  non-FLAC source is re-encoded to FLAC at one fixed setting and that size is
+  what Rule 1 reads (`audio_formats.flac_equivalent_size`). All four containers
+  now report 818.8 kbps for the same samples, and the matrix above collapses to
+  one row repeated four times — same score, same verdict, same families, same
+  reason text. A FLAC is already its own measurement and is left alone, which
+  also keeps the cost off the common path.
+- **Gate E: the fast path may no longer acquit on an unavailable measurement.**
+  When the container bitrate carries no compression information, the file gets
+  the full rule set instead of a free pass.
+
+**Costs, stated rather than buried.** A non-FLAC file now pays a re-encode:
+~10 % of its analysis time here (9 s of encoding against ~100 s of analysis, on a
+70-second fixture). Beyond that, WAV and AIFF get slower because they now run the
+rules they had been skipping, which is the point. And one residual: a level-8
+FLAC is ~1-2 % smaller than the reference encode, so a FLAC within ~1.5 % of one
+of Rule 1's window edges can still land on the other side from its WAV twin. The
+windows are ~250 kbps wide.
+
+### The test that should have caught it
+
+`tests/test_container_independence.py` existed already — written after the FIRST
+reply to this issue, and green the whole time. Its fixture was six seconds of
+quiet tones: every container took the fast path on it and agreed, because nothing
+was consulted. It was measuring its own silence.
+
+It now carries a second fixture calibrated onto the rules that hold the
+dependency (a wall at ~19.15 kHz, tilted near-mono content landing the FLAC at
+~819 kbps, a residual floor around -47 dB, three real silent gaps), it runs the
+matrix in **default mode as well as `--deep`** — deep bypasses the fast path by
+design, so a deep-only test cannot see half of this bug — it includes ALAC where
+ffmpeg is present, and it asserts two things the old one did not:
+
+- no container may leave by the fast path while another gets judged;
+- the fixture must reach a non-AUTHENTIC verdict, or the test is declared
+  vacuous and fails. Agreement is cheap if nothing was consulted.
+
+On the pre-fix code the new assertions fail with
+`{'FLAC': 'WARNING', 'WAV': 'AUTHENTIC', 'AIFF': 'AUTHENTIC', 'ALAC': 'WARNING'}`.
+
+### Found while in there, not fixed here
+
+`calculate_bitrate_variance` computes every segment's size as `file_size /
+num_segments` and then takes the standard deviation of ten identical numbers. It
+returns **0.0 for every file that has ever been analysed**. Rule 5 needs > 100 to
+fire and Rule 6 needs > 50, so both have been structurally unreachable
+end-to-end — including Rule 6's -30 protection for authentic high-bitrate files,
+which is exactly what would have shielded the FLAC above. Their unit tests pass
+because they call the rule functions with a variance supplied by hand. Left
+alone deliberately: giving those two rules back their votes changes verdicts
+across the corpus and belongs in its own release, measured, not smuggled into a
+bug fix.
+
 ## v1.13.8 (2026-09-02) — stop asking for workers, not for work
 
 A user reported that a folder of more than a few files kills the run: 36 files,

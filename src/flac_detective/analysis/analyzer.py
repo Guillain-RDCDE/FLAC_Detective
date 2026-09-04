@@ -11,7 +11,12 @@ from typing import Dict, Optional, Set, Union
 
 from .assessability import unassessable_reason
 from .audio_cache import AudioCache
-from .audio_formats import decode_to_wav, needs_ffmpeg_decode, probe_codec
+from .audio_formats import (
+    decode_to_wav,
+    flac_equivalent_size,
+    needs_ffmpeg_decode,
+    probe_codec,
+)
 from .diagnostic_tracker import get_tracker
 from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
@@ -174,6 +179,24 @@ class FLACAnalyzer:
             # source_path=filepath (the ORIGINAL): the real bitrate must be sized from
             # the on-disk compressed file, not the decoded WAV — otherwise an ALAC/APE
             # source looks uncompressed and Rules 1 & 3 wrongly switch off.
+            #
+            # For anything that is not already a FLAC, the on-disk size is the wrong
+            # ruler even so, and issue #7 is what that costs: a WAV and an AIFF read
+            # at PCM level whatever their samples hold, an ALAC reads at its own
+            # codec's ratio, and the same audio in four containers reached four
+            # different conclusions — two judged, two waved through untested. The
+            # compression ratio Rule 1 reads is evidence about the AUDIO, so it is
+            # measured by compressing the audio, at one fixed setting, for every
+            # container alike. A FLAC is already that measurement and is left alone,
+            # which also keeps the cost off the common path.
+            compressed_size = (
+                None if filepath.suffix.lower() == ".flac" else flac_equivalent_size(temp_path)
+            )
+            if compressed_size is not None:
+                logger.debug(
+                    f"Container-independent size for {filepath.name}: {compressed_size} bytes"
+                )
+
             score_breakdown: Dict[str, int] = {}
             # Families that testify without scoring cannot appear in a points
             # breakdown, so they travel on their own channel.
@@ -187,6 +210,7 @@ class FLACAnalyzer:
                 energy_ratio,
                 cache=cache,
                 source_path=filepath,
+                compressed_size_bytes=compressed_size,
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
                 breakdown_out=score_breakdown,

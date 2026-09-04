@@ -40,7 +40,10 @@ logger = logging.getLogger(__name__)
 
 
 def _calculate_bitrate_metrics(
-    filepath: Path, audio_meta: AudioMetadata, source_path: Optional[Path] = None
+    filepath: Path,
+    audio_meta: AudioMetadata,
+    source_path: Optional[Path] = None,
+    compressed_size_bytes: Optional[int] = None,
 ) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
@@ -52,13 +55,26 @@ def _calculate_bitrate_metrics(
             lossless-COMPRESSED source decoded to a temp WAV (ALAC/APE), this MUST
             be the original compressed file — sizing the decoded WAV would yield a
             ~uncompressed bitrate (ratio ≈ 1), wrongly tripping the "uncompressed"
-            gate and disabling Rules 1 & 3. Defaults to ``filepath`` (FLAC/WAV: the
+            gate and disabling Rules 1 & 3. Defaults to ``filepath`` (FLAC: the
             temp is a same-size copy, so it makes no difference).
+        compressed_size_bytes: Size the audio occupies once losslessly compressed,
+            measured by ``audio_formats.flac_equivalent_size``. Supplied for every
+            non-FLAC source, and it takes precedence over sizing any file on disk.
+            Without it a WAV and an AIFF report ~1411 kbps whatever their samples
+            hold, and the compression ratio Rule 1 reads stops being a fact about
+            the audio and becomes a fact about the packaging (issue #7).
 
     Returns:
         BitrateMetrics containing all calculated bitrate values
     """
-    real_bitrate = calculate_real_bitrate(source_path or filepath, audio_meta.duration)
+    if compressed_size_bytes is not None and audio_meta.duration > 0:
+        real_bitrate = (compressed_size_bytes * 8) / (audio_meta.duration * 1000)
+        logger.debug(
+            f"Real bitrate from FLAC-equivalent size: {real_bitrate:.1f} kbps "
+            f"({compressed_size_bytes} bytes)"
+        )
+    else:
+        real_bitrate = calculate_real_bitrate(source_path or filepath, audio_meta.duration)
     apparent_bitrate = calculate_apparent_bitrate(
         audio_meta.sample_rate, audio_meta.bit_depth, audio_meta.channels
     )
@@ -281,7 +297,24 @@ def _apply_scoring_rules(  # noqa: C901
             return context.current_score, context.reasons
 
         # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
-        if context.current_score < 10 and context.mp3_bitrate_detected is None:
+        #
+        # GATE E, added for issue #7. This branch does not merely skip some rules,
+        # it ACQUITS: everything after it — 7, 10, 12, 13, 14, 15 — never runs, and
+        # the file leaves as AUTHENTIC. It reads `mp3_bitrate_detected is None` as
+        # "Rule 1 looked and found nothing". On uncompressed input that is not what
+        # it means: Rule 1's container window has nothing to read there, so None is
+        # an absence of measurement, not a negative result. The engine has no
+        # standing to acquit on it — the same principle assessability.py already
+        # applies at the verdict, applied here, where the rules are chosen.
+        #
+        # With the container-independent sizing upstream this is now rare (it takes
+        # audio that is genuinely incompressible), and it costs those files the full
+        # rule set instead of an unearned pass. That is the right way round.
+        if (
+            context.current_score < 10
+            and context.mp3_bitrate_detected is None
+            and not is_uncompressed
+        ):
             if not deep:
                 logger.info(
                     f"OPTIMIZATION: Fast path for authentic file "
@@ -429,6 +462,7 @@ def new_calculate_score(
     energy_ratio: float = 0.0,
     cache=None,
     source_path: Optional[Path] = None,
+    compressed_size_bytes: Optional[int] = None,
     deep: bool = False,
     residual_floor_db: float = float("nan"),
     breakdown_out: Optional[Dict[str, int]] = None,
@@ -447,6 +481,10 @@ def new_calculate_score(
         cache: Optional AudioCache instance (contains pre-loaded full audio)
         source_path: Original on-disk file, used for the *real* bitrate when the
             analysed audio is a decoded WAV (ALAC/APE). See _calculate_bitrate_metrics.
+        compressed_size_bytes: Size of the audio once losslessly compressed, for
+            non-FLAC sources. Takes precedence over sizing a file on disk, so the
+            compression ratio Rule 1 reads describes the samples rather than the
+            container they arrived in. See _calculate_bitrate_metrics.
         deep: Run Rule 12 on every file, bypassing the authentic fast path (slower;
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
         residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
@@ -491,7 +529,12 @@ def new_calculate_score(
                 logger.error(f"Could not read duration from file: {e}")
 
         # Calculate all bitrate metrics
-        bitrate_metrics = _calculate_bitrate_metrics(filepath, audio_meta, source_path=source_path)
+        bitrate_metrics = _calculate_bitrate_metrics(
+            filepath,
+            audio_meta,
+            source_path=source_path,
+            compressed_size_bytes=compressed_size_bytes,
+        )
 
         # Initialize Context
         context = ScoringContext(
