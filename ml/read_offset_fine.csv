@@ -1,0 +1,109 @@
+file,population,offset_samples,offset_s,window_s,verdict,score,cutoff_hz,families,slice_exact
+TR320_01___Eve.flac,positive,0,0.0,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,144,0.0033,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,288,0.0065,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,432,0.0098,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,576,0.0131,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,720,0.0163,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,864,0.0196,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,1008,0.0229,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_01___Eve.flac,positive,1152,0.0261,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,0,0.0,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,144,0.0033,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,288,0.0065,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,432,0.0098,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,576,0.0131,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,720,0.0163,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,864,0.0196,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,1008,0.0229,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,1152,0.0261,60.0,FAKE_CERTAIN,80,20250,cnn|spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,0,0.0,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,144,0.0033,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,288,0.0065,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,432,0.0098,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,576,0.0131,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,720,0.0163,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,864,0.0196,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,1008,0.0229,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_03___First_Snow.flac,positive,1152,0.0261,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,0,0.0,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,144,0.0033,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,288,0.0065,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,432,0.0098,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,576,0.0131,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,720,0.0163,60.0,WARNING,50,20250,spectral|stereo|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,864,0.0196,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,1008,0.0229,60.0,WARNING,50,20250,spectral|temporal,yes
+TR320_04___Wolf_Drawn.flac,positive,1152,0.0261,60.0,WARNING,50,20250,spectral|temporal,yes
+TRVORB_01___Eve.flac,positive,0,0.0,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,144,0.0033,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,288,0.0065,60.0,FAKE_CERTAIN,55,21250,mdct|stereo,yes
+TRVORB_01___Eve.flac,positive,432,0.0098,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,576,0.0131,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,720,0.0163,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,864,0.0196,60.0,FAKE_CERTAIN,55,21250,mdct|stereo|temporal,yes
+TRVORB_01___Eve.flac,positive,1008,0.0229,60.0,FAKE_CERTAIN,55,21250,mdct|stereo,yes
+TRVORB_01___Eve.flac,positive,1152,0.0261,60.0,FAKE_CERTAIN,55,21250,mdct|stereo,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,0,0.0,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,144,0.0033,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,288,0.0065,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,432,0.0098,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,576,0.0131,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,720,0.0163,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,864,0.0196,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,1008,0.0229,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_02___Soon_It_Will_Be_Cold_Enough_To_Build_Fires.flac,positive,1152,0.0261,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,0,0.0,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,144,0.0033,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,288,0.0065,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,432,0.0098,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,576,0.0131,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,720,0.0163,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,864,0.0196,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,1008,0.0229,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_03___First_Snow.flac,positive,1152,0.0261,60.0,SUSPICIOUS,55,22050.0,mdct,yes
+TRVORB_04___Wolf_Drawn.flac,positive,0,0.0,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,144,0.0033,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,288,0.0065,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,432,0.0098,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,576,0.0131,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,720,0.0163,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,864,0.0196,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,1008,0.0229,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+TRVORB_04___Wolf_Drawn.flac,positive,1152,0.0261,60.0,FAKE_CERTAIN,55,22050.0,mdct|temporal,yes
+01 - Eve.flac,lawful,0,0.0,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,144,0.0033,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,288,0.0065,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,432,0.0098,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,576,0.0131,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,720,0.0163,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,864,0.0196,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,1008,0.0229,60.0,AUTHENTIC,0,22050.0,,yes
+01 - Eve.flac,lawful,1152,0.0261,60.0,AUTHENTIC,0,22050.0,,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,0,0.0,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,144,0.0033,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,288,0.0065,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,432,0.0098,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,576,0.0131,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,720,0.0163,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,864,0.0196,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,1008,0.0229,60.0,AUTHENTIC,0,22050.0,temporal,yes
+02 - Soon It Will Be Cold Enough To Build Fires.flac,lawful,1152,0.0261,60.0,AUTHENTIC,0,22050.0,temporal,yes
+03 - First Snow.flac,lawful,0,0.0,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,144,0.0033,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,288,0.0065,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,432,0.0098,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,576,0.0131,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,720,0.0163,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,864,0.0196,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,1008,0.0229,60.0,AUTHENTIC,0,22050.0,,yes
+03 - First Snow.flac,lawful,1152,0.0261,60.0,AUTHENTIC,0,22050.0,,yes
+04 - Wolf Drawn.flac,lawful,0,0.0,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,144,0.0033,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,288,0.0065,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,432,0.0098,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,576,0.0131,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,720,0.0163,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,864,0.0196,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,1008,0.0229,60.0,AUTHENTIC,0,22050.0,temporal,yes
+04 - Wolf Drawn.flac,lawful,1152,0.0261,60.0,AUTHENTIC,0,22050.0,temporal,yes
