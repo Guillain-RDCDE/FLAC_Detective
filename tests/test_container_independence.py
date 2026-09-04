@@ -46,6 +46,28 @@ SAMPLE_RATE = 44_100
 _HAVE_FFMPEG = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
 
+def _ml_is_available() -> bool:
+    """Can Rule 12 actually score, here and now?
+
+    Asked of the engine's own loader rather than of ``import torch``, because the
+    rule needs the model file as well as the library and the two can disagree. A
+    test that decided this for itself could believe the CNN ran when it did not.
+    """
+    try:
+        from flac_detective.analysis.new_scoring.rules import ml_classifier
+
+        return ml_classifier._load_model() is not None
+    except Exception:  # noqa: BLE001 - any failure means "cannot score"
+        return False
+
+
+# CI installs `.[dev]`, which does not carry torch, so Rule 12 contributes 0
+# there. That is a supported configuration — the engine is meant to run without
+# the ML extra — and it changes what this file can assert. See
+# ``test_the_reported_case_is_not_vacuous``.
+_HAVE_ML = _ml_is_available()
+
+
 def _signal(seconds: float = 6.0) -> np.ndarray:
     """Deterministic stereo audio with a spectral edge, silence and dither.
 
@@ -313,24 +335,78 @@ def test_the_default_mode_does_not_acquit_by_container(reported_results_default)
     assert len(set(fast.values())) == 1, f"le chemin rapide depend du conteneur: {fast}"
 
 
+# Witnesses that only speak once the expensive path has run. If the fast path
+# swallowed the file, or the fixture went inert, these disappear.
+_EXPENSIVE_WITNESSES = ("R14", "R15")
+
+
 def test_the_reported_case_is_not_vacuous(reported_results):
     """Guard against the way this whole test file could pass while lying.
 
     Agreement is cheap if nothing was consulted: silence every container and the
-    matrix goes green. So the fixture has to earn its place — it must reach a
-    verdict other than AUTHENTIC, and it must get there through the expensive
-    rules rather than the fast path, in EVERY container. If a future change makes
-    the fast path swallow this file again, that is the regression, and this is the
-    assertion that catches it — not the ones above.
+    matrix goes green. So the fixture has to earn its place — it must be examined
+    by the expensive rules rather than waved through, in EVERY container. If a
+    future change makes the fast path swallow this file again, that is the
+    regression, and this is the assertion that catches it — not the ones above.
+
+    What this does NOT assert is the verdict, and that took a red CI to notice.
+    The original version demanded a non-AUTHENTIC verdict, which this fixture only
+    reaches when Rule 12 can score: without torch it lands at 3/150 instead of
+    33/150, because R7-P1's silence protection takes 50 points off and the CNN is
+    not there to put any back. CI installs `.[dev]` and no torch, so the assertion
+    was failing on a supported configuration while the property this file exists
+    to test — the four containers agreeing — held perfectly in both. Measured, not
+    guessed: forcing the model unavailable here reproduces 3/150 AUTHENTIC on all
+    four containers, with identical scores, families and reasons.
+
+    So the verdict assertion moved to ``test_the_reported_case_reaches_a_verdict``
+    where it is skipped, visibly, when the ML extra is absent. What is left here
+    runs everywhere and still fails if the fixture goes inert.
     """
     for fmt, result in reported_results.items():
-        assert result.get("verdict") != "AUTHENTIC", (
-            f"{fmt}: la fixture ne declenche plus rien, le test ne prouve plus rien "
-            f"({result.get('score')}/150, {result.get('reason')})"
-        )
-        assert "Fast analysis" not in (
-            result.get("reason") or ""
+        reason = result.get("reason") or ""
+        assert (
+            "Fast analysis" not in reason
         ), f"{fmt}: sorti par le chemin rapide, les regles couteuses n'ont pas tourne"
+
+        families = tuple(result.get("evidence_families") or ())
+        assert families, (
+            f"{fmt}: aucune famille de preuves, la fixture ne declenche plus rien "
+            f"({result.get('score')}/150, {reason})"
+        )
+
+        spoke = [w for w in _EXPENSIVE_WITNESSES if w in reason]
+        assert len(spoke) == len(_EXPENSIVE_WITNESSES), (
+            f"{fmt}: les temoins couteux {set(_EXPENSIVE_WITNESSES) - set(spoke)} "
+            f"n'ont pas parle, la fixture n'est plus examinee ({reason})"
+        )
+
+
+# The tiers that mean "this file was judged and something was said about it".
+# Anything outside them — AUTHENTIC, or an abstention — is not a judgement.
+_SIGNALLED = ("WARNING", "SUSPICIOUS", "FAKE_CERTAIN")
+
+
+@pytest.mark.skipif(not _HAVE_ML, reason="extra [ml] absent: Rule 12 ne peut pas scorer")
+def test_the_reported_case_reaches_a_verdict(reported_results):
+    """With the full engine, the fixture must actually be judged.
+
+    Separated from the guard above because it needs Rule 12, and a conditional
+    assertion hidden inside another test would report as a pass on CI while
+    checking nothing. Skipped is honest; silently weakened is not.
+
+    Asserted as "reaches a signalled tier" rather than the older "is not
+    AUTHENTIC", because the older form did not do the job it was written for.
+    Proved by mutation: replace the fixture with silence — the exact scenario its
+    docstring names — and the engine returns NOT_ASSESSED, score 0, no families,
+    which satisfies ``!= AUTHENTIC`` and lets the mutation through. It does not
+    satisfy this.
+    """
+    for fmt, result in reported_results.items():
+        assert result.get("verdict") in _SIGNALLED, (
+            f"{fmt}: la fixture n'atteint plus un etage signale, le test ne prouve plus rien "
+            f"({result.get('verdict')} {result.get('score')}/150, {result.get('reason')})"
+        )
 
 
 @pytest.mark.skipif(not _HAVE_FFMPEG, reason="ffmpeg absent: pas d'ALAC a comparer")

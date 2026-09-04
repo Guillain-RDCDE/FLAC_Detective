@@ -104,6 +104,37 @@ among them — walks past this engine 63 % of the time. Neither figure is caused
 issue #7 and neither is fixed here. They belong in their own release, measured,
 not folded into a bug fix.
 
+### The vacuity guard was asserting the ML extra, and was weak anyway
+
+CI had been red since `ab95a8a` on one test:
+`test_container_independence.py::test_the_reported_case_is_not_vacuous`, failing
+on all three platforms with `FLAC: la fixture ne declenche plus rien (3/150)`.
+
+It was not a container defect. CI installs `.[dev]`, which carries no torch, so
+Rule 12 returns 0 there — and the issue #7 fixture only reaches WARNING 33/150
+with the CNN's points. Without them R7-P1's silence protection takes 50 off and
+it lands at 3/150 AUTHENTIC. Reproduced locally rather than inferred from the
+log: forcing the model unavailable gives 3/150 AUTHENTIC on all four containers,
+with identical scores, families and reasons — **the property this file exists to
+test held perfectly in both configurations.** Only the guard's premise failed.
+
+So the guard was asserting an undeclared dependency. Its dependency-free half —
+the fixture is examined rather than waved through — now runs everywhere and is
+checked on the evidence: no container may leave by the fast path, evidence
+families must be non-empty, and both expensive witnesses (R14, R15) must speak.
+The verdict assertion moved to `test_the_reported_case_reaches_a_verdict`, which
+is *skipped, visibly*, when the ML extra is absent. A conditional assertion
+hidden inside another test would have reported as a pass on CI while checking
+nothing.
+
+**And the old assertion did not do its own job.** Its docstring names the
+scenario it guards against — "silence every container and the matrix goes green"
+— so that was reintroduced. Silence returns `NOT_ASSESSED`, score 0, no families,
+which satisfies `verdict != AUTHENTIC`: the mutation walked straight through the
+guard that existed to stop it. The verdict test now asserts a *signalled tier*
+(WARNING / SUSPICIOUS / FAKE_CERTAIN), and both halves catch the inert fixture.
+Proved by mutation, file restored byte for byte.
+
 ## v1.13.9 (2026-09-04) — the wrapper is not the audio
 
 Issue #7, second round. The reporter came back with the five lines of `soundfile`
