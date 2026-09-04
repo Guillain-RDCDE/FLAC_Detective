@@ -180,22 +180,45 @@ class FLACAnalyzer:
             # the on-disk compressed file, not the decoded WAV — otherwise an ALAC/APE
             # source looks uncompressed and Rules 1 & 3 wrongly switch off.
             #
-            # For anything that is not already a FLAC, the on-disk size is the wrong
-            # ruler even so, and issue #7 is what that costs: a WAV and an AIFF read
-            # at PCM level whatever their samples hold, an ALAC reads at its own
-            # codec's ratio, and the same audio in four containers reached four
-            # different conclusions — two judged, two waved through untested. The
-            # compression ratio Rule 1 reads is evidence about the AUDIO, so it is
-            # measured by compressing the audio, at one fixed setting, for every
-            # container alike. A FLAC is already that measurement and is left alone,
-            # which also keeps the cost off the common path.
-            compressed_size = (
-                None if filepath.suffix.lower() == ".flac" else flac_equivalent_size(temp_path)
-            )
-            if compressed_size is not None:
-                logger.debug(
-                    f"Container-independent size for {filepath.name}: {compressed_size} bytes"
-                )
+            # The on-disk size is the wrong ruler even so, and issue #7 is what it
+            # costs: a WAV and an AIFF read at PCM level whatever their samples
+            # hold, an ALAC reads at its own codec's ratio, and the same audio in
+            # four containers reached four different conclusions — two judged, two
+            # waved through untested. The compression ratio Rule 1 reads is evidence
+            # about the AUDIO, so it is measured by compressing the audio, at one
+            # fixed setting.
+            #
+            # ONE RULER, FOR EVERY CONTAINER INCLUDING FLAC. The first version of
+            # this fix exempted FLAC sources — "a FLAC is already that measurement"
+            # — to save a re-encode on the common path. That left two rulers in the
+            # engine, and measured on 120 corpus files they disagree by 0.63 % on
+            # average (p95 1.46 %, max 4.17 %) simply because a stored FLAC was not
+            # encoded at libsndfile's default level. Rule 1's cell boundaries sit
+            # 50 kbps apart across 400-850 kbps, so that spread straddles an edge on
+            # 9 of those 120 files — 7.5 %, not the "narrow band" the first attempt
+            # claimed. One of them, at 852.0 kbps on disk and 848.2 kbps re-encoded,
+            # reads AUTHENTIC 6/150 as FLAC and FAKE_CERTAIN 86/150 as WAV.
+            #
+            # A margin around the edges cannot rescue it: at ±1.5 % the dead zone
+            # eats 42 % of a 50 kbps gap, and Rule 1 goes quiet on most of its own
+            # range. The grid is finer than the measurement, so the measurement has
+            # to become exact — which it is, once every container is sized the same
+            # way. This also closes a defect nobody had reported: the same audio
+            # stored as a level-8 FLAC and a level-5 FLAC could already disagree.
+            #
+            # PAID ONLY WHEN IT CAN MATTER. Re-encoding costs roughly as much as the
+            # rest of the analysis of a file that takes the authentic fast path —
+            # measured 6 s to 14 s per file on the labelled exchange set — and that
+            # file is most of a real library. So it is skipped at cutoffs where Rule
+            # 1 returns before reaching its container test: there the ratio is not
+            # consulted by anyone, Rule 1 answers 0/None for every container alike,
+            # and no verdict can depend on the wrapper through it. Verified rather
+            # than assumed — the FLAC-vs-WAV corpus matrix is 30/30 either way.
+            #
+            # Handed over as a callable, not as a number: the decision to spend it
+            # reads ``sample_rate`` and ``cutoff_std`` exactly as the rule will, and
+            # those are parsed inside the scorer. Deriving them a second time here
+            # would work today and drift later.
 
             score_breakdown: Dict[str, int] = {}
             # Families that testify without scoring cannot appear in a points
@@ -210,7 +233,7 @@ class FLACAnalyzer:
                 energy_ratio,
                 cache=cache,
                 source_path=filepath,
-                compressed_size_bytes=compressed_size,
+                measure_compressed_size=lambda p=temp_path: flac_equivalent_size(p),
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
                 breakdown_out=score_breakdown,

@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import (
@@ -15,6 +15,7 @@ from .evidence import collapse_dependent_families, evidence_families
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .rules.mdct_alignment import should_run_rule_13
+from .rules.spectral import rule1_may_consult_container
 from .strategies import (
     Rule1MP3Bitrate,
     Rule2Cutoff,
@@ -44,6 +45,9 @@ def _calculate_bitrate_metrics(
     audio_meta: AudioMetadata,
     source_path: Optional[Path] = None,
     compressed_size_bytes: Optional[int] = None,
+    measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
+    cutoff_freq: float = 0.0,
+    cutoff_std: float = float("nan"),
 ) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
@@ -58,16 +62,37 @@ def _calculate_bitrate_metrics(
             gate and disabling Rules 1 & 3. Defaults to ``filepath`` (FLAC: the
             temp is a same-size copy, so it makes no difference).
         compressed_size_bytes: Size the audio occupies once losslessly compressed,
-            measured by ``audio_formats.flac_equivalent_size``. Supplied for every
-            non-FLAC source, and it takes precedence over sizing any file on disk.
-            Without it a WAV and an AIFF report ~1411 kbps whatever their samples
-            hold, and the compression ratio Rule 1 reads stops being a fact about
-            the audio and becomes a fact about the packaging (issue #7).
+            measured by ``audio_formats.flac_equivalent_size``. Supplied for EVERY
+            source, FLAC included, and it takes precedence over sizing any file on
+            disk. Without it a WAV and an AIFF report ~1411 kbps whatever their
+            samples hold, and the compression ratio Rule 1 reads stops being a fact
+            about the audio and becomes a fact about the packaging (issue #7).
+            Supplying it for some containers and not others is no better: two
+            rulers that disagree by ~0.6 % straddle a Rule 1 cell edge on 7.5 % of
+            corpus files, which was the first attempt at this fix.
+        measure_compressed_size: Called to obtain that size, but only when Rule 1
+            can still reach its container test at this cutoff — the re-encode costs
+            about as much as the whole analysis of a file that would fast-path, and
+            at those cutoffs Rule 1 answers 0/None for every container anyway. The
+            decision lives HERE rather than in the caller so that it reads the same
+            ``sample_rate`` and ``cutoff_std`` the rule will read; deriving them
+            twice is how a gate stops mirroring the thing it gates.
+        cutoff_freq, cutoff_std: passed to that decision.
 
     Returns:
         BitrateMetrics containing all calculated bitrate values
     """
-    if compressed_size_bytes is not None and audio_meta.duration > 0:
+    if compressed_size_bytes is None and measure_compressed_size is not None:
+        if rule1_may_consult_container(cutoff_freq, audio_meta.sample_rate, cutoff_std):
+            compressed_size_bytes = measure_compressed_size()
+        else:
+            logger.debug(
+                f"Compression ratio not measured: Rule 1 cannot consult the container "
+                f"at cutoff {cutoff_freq:.0f} Hz ({audio_meta.sample_rate} Hz)"
+            )
+
+    measured = compressed_size_bytes is not None and audio_meta.duration > 0
+    if measured:
         real_bitrate = (compressed_size_bytes * 8) / (audio_meta.duration * 1000)
         logger.debug(
             f"Real bitrate from FLAC-equivalent size: {real_bitrate:.1f} kbps "
@@ -87,7 +112,10 @@ def _calculate_bitrate_metrics(
     )
 
     return BitrateMetrics(
-        real_bitrate=real_bitrate, apparent_bitrate=apparent_bitrate, variance=variance
+        real_bitrate=real_bitrate,
+        apparent_bitrate=apparent_bitrate,
+        variance=variance,
+        ratio_measured=measured,
     )
 
 
@@ -223,8 +251,21 @@ def _apply_scoring_rules(  # noqa: C901
         # Rules 1 (MP3-bitrate signature) and 3 (source-vs-container) become
         # meaningless and would misfire; the spectral rules still see the MP3
         # cliff, so we gate 1 & 3 off (same idea as the cassette gate below).
+        #
+        # The ratio is only allowed to decide anything when it was MEASURED on the
+        # audio (the reference re-encode). When it was not — the analyzer skips that
+        # measurement at cutoffs where Rule 1 cannot reach its container test — the
+        # number on hand is the size of the file on disk, which is a fact about the
+        # wrapper: 0.60 for a FLAC and 1.00 for the WAV holding the same samples.
+        # Letting that through is issue #7 itself, so an unmeasured ratio reads as
+        # "not uncompressed" for every container alike. Both then behave exactly as
+        # a FLAC does today, which is also why this changes no released behaviour.
         bm = context.bitrate_metrics
-        is_uncompressed = bm.apparent_bitrate > 0 and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
+        is_uncompressed = (
+            bm.ratio_measured
+            and bm.apparent_bitrate > 0
+            and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
+        )
 
         # Threshold lowered 30 -> 15 in v1.8, purely to preserve behaviour: test 11C
         # was a constant +15 (it keyed off Rule 9C, which measured at chance) and has
@@ -463,6 +504,7 @@ def new_calculate_score(
     cache=None,
     source_path: Optional[Path] = None,
     compressed_size_bytes: Optional[int] = None,
+    measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
     deep: bool = False,
     residual_floor_db: float = float("nan"),
     breakdown_out: Optional[Dict[str, int]] = None,
@@ -481,10 +523,14 @@ def new_calculate_score(
         cache: Optional AudioCache instance (contains pre-loaded full audio)
         source_path: Original on-disk file, used for the *real* bitrate when the
             analysed audio is a decoded WAV (ALAC/APE). See _calculate_bitrate_metrics.
-        compressed_size_bytes: Size of the audio once losslessly compressed, for
-            non-FLAC sources. Takes precedence over sizing a file on disk, so the
+        compressed_size_bytes: Size of the audio once losslessly compressed, for any
+            container. Takes precedence over sizing a file on disk, so the
             compression ratio Rule 1 reads describes the samples rather than the
             container they arrived in. See _calculate_bitrate_metrics.
+        measure_compressed_size: A callable producing that size on demand, and the
+            preferred form: it is invoked only at cutoffs where Rule 1 can still
+            consult the container, which keeps the re-encode off the files that
+            would take the authentic fast path. See _calculate_bitrate_metrics.
         deep: Run Rule 12 on every file, bypassing the authentic fast path (slower;
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
         residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
@@ -534,6 +580,9 @@ def new_calculate_score(
             audio_meta,
             source_path=source_path,
             compressed_size_bytes=compressed_size_bytes,
+            measure_compressed_size=measure_compressed_size,
+            cutoff_freq=cutoff_freq,
+            cutoff_std=cutoff_std,
         )
 
         # Initialize Context

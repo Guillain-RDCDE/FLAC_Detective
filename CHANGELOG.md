@@ -1,3 +1,109 @@
+## v1.13.10 (2026-09-04) — one ruler, and the measurement that should have come first
+
+v1.13.9, published this morning, claimed issue #7's property held. **It did not.**
+That release was written and shipped without ever running the engine over a
+corpus, and this one exists because the first thing that measurement said was no.
+
+### What 1.13.9 got wrong
+
+Three statements in that entry and in the reply posted on the issue were false.
+They are corrected here rather than edited away, because the reporter acted on
+them.
+
+- **"All four containers now agree."** On FLAC-vs-WAV pairs built from the local
+  599-file corpus, 1.13.9 agreed on 30 of 30 for the synthetic fixture and was
+  never asked about anything else. The released engine before it, measured
+  properly, agreed on **23 of 30 real files** — seven divergences, in both
+  directions, including one that reads `AUTHENTIC 0/150` as FLAC and
+  `FAKE_CERTAIN 105/150` as WAV from the same samples. Issue #7 was four times
+  larger than the report that raised it.
+- **"The residual is narrow — the windows are ~250 kbps wide."** The windows
+  overlap; what matters is the distance between EDGES, and those sit 50 kbps
+  apart from 400 to 850. 1.13.9 exempted FLAC sources from the re-encode to save
+  time, which left two rulers in the engine. Measured across 120 corpus files
+  they disagree by **0.63 % on average, p95 1.46 %, max 4.17 %** — enough to
+  straddle an edge on **9 of 120 files, 7.5 %**. One of them, 852.0 kbps on disk
+  against 848.2 kbps re-encoded, read `AUTHENTIC 6/150` as FLAC and
+  `FAKE_CERTAIN 86/150` as WAV. The fix had moved the divergence, not removed it.
+- **"Rule 6's −30 protection is precisely what should have been shielding your
+  FLAC."** It would not have. Rule 6 requires `mp3_bitrate_detected is None`, and
+  Rule 1 runs before it in the same list and had just set it. Rule 5 requires
+  > 1000 kbps and the file reads 819. Both were inert for that file for reasons
+  that have nothing to do with the variance defect. The variance defect is real
+  (see 1.13.9); the connection to the reporter's file was invented.
+
+### The fix
+
+**One ruler, for every container including FLAC.** The compression ratio Rule 1
+reads is evidence about the audio, so it is measured by re-encoding the audio at
+one fixed setting, whatever it arrived in. Exempting FLAC looked free and was
+not: a stored FLAC carries whatever level its ripper chose, which is a different
+ruler. A margin around the cell edges was considered and rejected by arithmetic —
+at ±1.5 % the dead zone eats 42 % of a 50 kbps gap and Rule 1 goes quiet across
+most of its own range. The grid is finer than the measurement, so the measurement
+has to become exact.
+
+**Paid only where it can change something.** Re-encoding every file doubled the
+analysis time of a file taking the authentic fast path — 6 s to 14 s per file on
+the labelled exchange set — and that file is most of a real library. So it is
+skipped at cutoffs where Rule 1 returns before reaching its container test: there
+the ratio is consulted by nobody and Rule 1 answers 0/None for every container
+alike. **6 s to 8 s** instead, with the agreement measurement unchanged.
+
+That skip is the kind of shortcut that desynchronises in silence when a threshold
+moves. `rule1_may_consult_container` therefore mirrors the rule's own guards, and
+`test_rule1_gates` pins the two together by stating the property rather than
+copying the numbers: **where the gate refuses to measure, two container bitrates
+as far apart as 300 and 1411 kbps must give byte-identical answers** — across the
+whole grid of cutoffs, wander values and residual floors.
+
+**An unmeasured ratio decides nothing.** When the measurement is skipped, the
+number on hand is the size of the file on disk: 0.60 of PCM for a FLAC, 1.00 for
+the WAV holding the same samples. `BitrateMetrics.ratio_measured` now says which
+it is, and the "uncompressed input" gate reads False whenever the ratio was not
+measured — for every container alike.
+
+### Measured, before and after
+
+| | 1.13.8 | 1.13.10 |
+|---|---|---|
+| FLAC and WAV agree (verdict **and** score), 30 blind-corpus files | 23/30 | **30/30** |
+| false positives, 59 genuine files with known labels | 5/59 | 5/59 |
+| detections, 60 labelled transcodes | 22/60 | 22/60 |
+| verdicts changed across 119 labelled files | — | **0** |
+| verdicts changed across 30 blind-corpus FLACs | — | 1 |
+| seconds per file, labelled set | 6 | 8 |
+
+The property is bought and **nothing else moves**: not one verdict shifts across
+119 files whose true arm is known. The single blind-corpus FLAC that changes,
+`AUTHENTIC 6` to `FAKE_CERTAIN 86`, is the 852.0/848.2 kbps file above; it was
+already convicted in its WAV form by the released engine, and Provir's
+independent return convicts it too, on its own evidence. The fix removes a
+contradiction rather than inventing an accusation.
+
+Two of the seven divergences settle on `AUTHENTIC` where Provir convicts, so two
+detections in the WAV path are lost. They were being caught by the uninformative-
+container bypass firing where it had no measurement to justify it. Being right
+for no reason is not a detection to defend, but it is a loss and it is recorded
+as one.
+
+### The numbers that are not about this bug, published anyway
+
+Against ground truth on the labelled exchange set, unchanged by this release:
+
+```
+faux positifs : 5/59 genuine files accused  (two of them FAKE_CERTAIN, at 92 and 73)
+detections    : 22/60 transcodes caught
+```
+
+A tool whose first stated principle is "protect authentic first" owes the rate at
+which it fails to. One genuine file in twelve is accused, two of them with the
+verdict that is supposed to require corroboration between independent evidence
+families. And a set built from ten codec arms — AAC 320, Opus 256, Vorbis q8
+among them — walks past this engine 63 % of the time. Neither figure is caused by
+issue #7 and neither is fixed here. They belong in their own release, measured,
+not folded into a bug fix.
+
 ## v1.13.9 (2026-09-04) — the wrapper is not the audio
 
 Issue #7, second round. The reporter came back with the five lines of `soundfile`
