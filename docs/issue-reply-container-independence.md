@@ -1,57 +1,127 @@
-# Reply posted on issue #7
+# Reply posted on issue #7 — second round
 
-Hi — thank you for this, genuinely.
+Posted 2026-09-04, after the reporter came back with the `soundfile` output and
+the 1.13.8 rerun. Archived here because the reasoning belongs with the code.
 
-And thank you for saying up front that the write-up came from an AI, and that you're happy to talk human to human. That's a rare and useful thing to put at the top of a bug report: it tells me exactly how much to trust each part, and it saves us both a round of guessing. The report itself is well built — a clear property, a stated expectation, a reproduction, hashes. That's more than most.
+---
 
-Here's what happened when I sat down with it, told in order, because the order is the interesting part.
+You were right and I was wrong, and I'm glad you pushed. :)
 
-**I reproduced your bug within the hour.** Built the same audio into four containers, ran the current engine: FLAC came back WARNING, WAV and AIFF and ALAC came back AUTHENTIC. There it was, exactly as you described.
+Your five lines killed my hypothesis stone dead — `PCM_16` across the board, same
+frame count, same rate — and the clean-venv rerun on 1.13.8 killed my fallback
+position too. That's two of my excuses gone in one comment. Thank you for taking
+the trouble; a lot of people would have shrugged and closed the tab.
 
-**It wasn't the container.** My FLAC was 24-bit and my WAV and AIFF were 16-bit. The engine was reading genuinely different audio — a spectral rule fired on one and not the other, and even the passive witnesses read different frequencies, 22,018 Hz against 20,134. I'd built my own trap and walked into it.
-
-Rebuilt with the same 16-bit samples in all four, verified as the arrays soundfile returns rather than through a converter:
-
-```
-b.flac   AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
-b.wav    AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
-b.aiff   AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
-b.m4a    AUTHENTIC  score=0  cutoff=20250  families=['stereo','temporal']
-```
-
-Same verdict, same score, same cutoff, same witnesses, down to the same rule text. On the current version the property you're asking for holds.
-
-**Now the bit I'd want to know if I were you.** `ffmpeg -f s16le | sha256sum` converts to 16 bits before it hashes. So it cannot tell a 24-bit file apart from its own 16-bit truncation — which is exactly the pair you get when the WAV was made from the FLAC, or when one tool in the chain truncated and another didn't. The hashes match and the audio is still different.
-
-I'm not telling you that's your case. I'm telling you it's the case I hit, using your method, an hour after reading your report, and it produced your exact pattern: compressed containers behaving differently from uncompressed ones.
-
-Three seconds to find out, on your files:
-
-```python
-import soundfile as sf
-for p in ["04.flac", "04.wav", "04.aiff", "04.m4a"]:
-    i = sf.info(p)
-    print(p, i.format, i.subtype, i.frames, i.samplerate)
-```
-
-If `subtype` isn't identical across all four, that's your answer. If it IS identical and you still get different verdicts, then it's a real container dependency, I've missed it, and I'd want that output plus `--advanced` on the two files that disagree. I'd rather be wrong here than right.
-
-One more thing that might matter: you're on 1.9.0, and a fair amount of the scoring changed since. In particular there's now a corroboration barrier — no conviction from a single evidence family. The lone silence rule you saw voting couldn't reach SUSPICIOUS on its own today. I'm not saying "upgrade and go away"; I'm saying a report against 1.9.0 and a fix in 1.13.8 are hard to discuss together, and I'd love to know what the current version does on your library.
-
-**Two things changed here because of you.**
-
-Your second suggestion was simply right, and it's in regardless of how your case resolves: a container-independence test. Same samples in FLAC, WAV and AIFF, asserting identical verdict, score, cutoff and evidence families — and asserting first that the fixtures really hold identical samples at identical bit depth, so the test can't be fooled the way I was.
-
-And the report now carries a **Format** column with the sample rate and bit depth, next to the cutoff:
+I reproduced it this morning. Bit-identical samples, four containers:
 
 ```
- Icon | Score   | Verdict         | Format    | Cutoff   | Bitrate  | File
- [!!] | 55/100  | SUSPICIOUS      | 44.1/24   | 18.2k    | 224k     | a.flac
- [!!] | 55/100  | SUSPICIOUS      | 44.1/16   | 18.2k    | 224k     | a.wav
+case.flac   WARNING    33/150   families: cnn, spectral, stereo, temporal
+case.wav    AUTHENTIC   3/150   families: none
+case.aiff   AUTHENTIC   3/150   families: none
+case.m4a    WARNING    33/150   families: cnn, spectral, stereo, temporal
 ```
 
-That's the fix your issue really earned. The CSV carried that information and the HTML carried it; the text report — the one people actually read — didn't. If it had, you'd have spotted this yourself in three seconds and never needed to write to me. A verdict without the reading it came from is just an opinion, and mine was being one.
+Same detected cutoff, 19,250 Hz, in all four. So there it is at last, in my own
+hands rather than yours.
 
-To be straight with you about where this leaves us: I haven't fixed your problem, because I was never able to see it. What I've done is make it visible and make sure it can't come back unnoticed. Run those five lines and tell me what you get — if the subtypes match, I'll dig further and I'll be glad you pushed.
+## What it actually was
 
-Good luck with the library sweep. If you find more of these, please do send them — this one was worth the afternoon whichever way it lands.
+Your structural instinct was pointing at the right half of the engine and the
+wrong mechanism, and honestly the wrong mechanism was the more obvious guess.
+It isn't the reader: ALAC gets decoded to a temp WAV by ffmpeg and then walks the
+exact same path as everything else. But the thing you noticed — that ALAC sided
+with FLAC — is the whole clue, and it's the observation that cracked this. Not
+FLAC against the world. **Compressed against uncompressed.**
+
+Three links in the chain, and it's the third one that stings.
+
+**One.** Rule 1 reads a compression ratio as evidence: audio that squeezes down
+to ~800 kbps has thrown information away somewhere. Reasonable. But the ratio was
+computed from the size of the file on disk. So a FLAC reads ~819 kbps, a WAV and
+an AIFF read 1411 kbps no matter what their samples hold, and an ALAC reads its
+own codec's ratio. A fact about the packaging was being used as a fact about the
+recording.
+
+**Two.** At a 19,250 Hz cutoff the rule's 256 kbps cell expects 600–850 kbps. The
+FLAC is inside that window. The WAV isn't, and the bypass that's supposed to
+handle uninformative containers needs a residual floor at or below −55 dB — which
+genuine material with an actual noise floor doesn't have. So Rule 1 speaks on the
+compressed containers and stays silent on the uncompressed ones.
+
+**Three, and this is the real defect.** There's a fast path that exits early on
+`score < 10 and mp3_bitrate_detected is None`, and that exit returns AUTHENTIC
+without running rules 7, 10, 12, 13, 14 or 15. On uncompressed input, that `None`
+doesn't mean "Rule 1 looked and found nothing." It means "Rule 1 had nothing to
+look at." The engine read an absent measurement as a negative result.
+
+Which is to say: **your WAV was never cleared. It was never examined.** The
+silence rule you saw voting on the FLAC didn't run on the WAV at all. Two of your
+four files got a verdict, and two got waved through the door. I'd rather tell you
+that plainly than dress it up.
+
+## What's changed
+
+The compression ratio is now measured by actually compressing the audio. Anything
+that isn't already a FLAC gets re-encoded to FLAC at one fixed setting, and *that*
+size is what the rule reads. All four containers now report 818.8 kbps for the
+same samples, and the table above collapses to one row repeated four times —
+same score, same verdict, same witnesses, same reason text.
+
+And the fast path can no longer acquit on a measurement it didn't take. When the
+container bitrate carries no compression information, the file gets the full rule
+set instead of a free pass.
+
+Two costs, and I'd rather you hear them from me than find them:
+
+- Non-FLAC files are slower now. The re-encode is about 10 % of the analysis
+  time here (9 seconds against ~100, on a 70-second fixture), and beyond that
+  your WAVs and AIFFs will be slower simply because they're now running the rules
+  they'd been skipping. That part is the point rather than a regression.
+- One residual I haven't closed: a level-8 FLAC is ~1–2 % smaller than the
+  reference encode, so a FLAC sitting within ~1.5 % of one of Rule 1's window
+  edges could still land on the other side from its WAV twin. The windows are
+  ~250 kbps wide, so it's a narrow band, but it isn't zero and I'm not going to
+  pretend it is.
+
+## The part I'm least proud of
+
+The container-independence test I told you about last time? It already existed. It
+was green through every single run of this. Its fixture was six seconds of quiet
+tones, and every container took the fast path on it and agreed — because nothing
+was ever consulted. It wasn't testing the property. It was measuring its own
+silence, and reporting that as a pass. You warned me about exactly this shape of
+mistake by implication when you asked for the fixtures to be checked, and I built
+one anyway.
+
+It now carries a second fixture calibrated onto the rules that actually hold the
+dependency, runs in default mode as well as `--deep` (deep bypasses the fast path
+by design, so a deep-only test can't see half of this), includes ALAC where ffmpeg
+is around, and fails outright if the fixture ever stops discriminating — a test
+that agrees because nothing ran is now a failing test. On the old code the new
+assertions come back with exactly your pattern:
+`{'FLAC': 'WARNING', 'WAV': 'AUTHENTIC', 'AIFF': 'AUTHENTIC', 'ALAC': 'WARNING'}`.
+
+## One more thing, since I was in there
+
+`calculate_bitrate_variance` divides the file size by ten, ten times, and takes
+the standard deviation of ten identical numbers. It has returned 0.0 for every
+file this tool has ever analysed. Rule 5 needs > 100 to fire and Rule 6 needs
+> 50, so both have been unreachable end-to-end since they were written —
+including Rule 6's −30 protection for authentic high-bitrate files, which is
+precisely the thing that should have been shielding your FLAC. Their unit tests
+pass because they hand the rule a variance directly and never ask whether one
+could arrive. I'm not fixing that in this release: giving those two rules their
+votes back moves verdicts across the whole corpus, and that deserves its own
+measured release rather than being smuggled in behind a bug fix.
+
+## Where this leaves us
+
+It's in `main` as 1.13.9. If you have the appetite for one more run, I'd love to
+know what your four files do now — and particularly whether anything in your
+library *changes verdict* that you believe is genuine, because that's the failure
+mode this fix could plausibly introduce and your ears are better placed than my
+fixtures.
+
+Either way: this one was yours. The ALAC observation is what turned it, and I'd
+have kept looking at readers for another week without it. Thanks for the second
+comment as much as the first. :)
