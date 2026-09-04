@@ -104,6 +104,35 @@ among them — walks past this engine 63 % of the time. Neither figure is caused
 issue #7 and neither is fixed here. They belong in their own release, measured,
 not folded into a bug fix.
 
+### The two mypy errors that kept Code Quality Checks red
+
+With the test matrix green again, the CI job still failed on its hard mypy gate,
+on two errors in the container-ruler change above:
+
+```
+calculator.py:96  Unsupported operand types for * ("None" and "int")
+analyzer.py:236   Cannot infer type of lambda
+```
+
+Neither is cosmetic and both are worth recognising on sight.
+
+**`measured` narrowed nothing.** `measured = compressed_size_bytes is not None
+and audio_meta.duration > 0` followed by `if measured:` reads to a person exactly
+like the check it stands for, but a type checker does not follow narrowing
+through an intermediate boolean — inside that branch `compressed_size_bytes` was
+still `int | None`. The condition is now tested directly and `measured` is set in
+each arm. Same behaviour, one fewer indirection between the check and the use.
+
+**A lambda cannot be typed from its own default.** `lambda p=temp_path:
+flac_equivalent_size(p)` captures `temp_path` by value at that point, which is
+what was wanted, but mypy cannot infer the parameter's type from a default.
+`partial(flac_equivalent_size, temp_path)` captures identically and types.
+
+Reproduced locally before fixing, with the workaround this repository already
+needs — the local numpy ships stubs mypy will not parse under `python_version =
+3.10`, so it stops before reaching `src/`; `--python-version 3.12` gets past them
+and found the same two errors, character for character.
+
 ### The vacuity guard was asserting the ML extra, and was weak anyway
 
 CI had been red since `ab95a8a` on one test:

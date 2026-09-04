@@ -91,14 +91,19 @@ def _calculate_bitrate_metrics(
                 f"at cutoff {cutoff_freq:.0f} Hz ({audio_meta.sample_rate} Hz)"
             )
 
-    measured = compressed_size_bytes is not None and audio_meta.duration > 0
-    if measured:
+    # Narrowed on the Optional itself rather than through a bool: a separate
+    # ``measured`` flag reads the same to a person and leaves the type checker
+    # unable to see that ``compressed_size_bytes`` cannot be None inside the
+    # branch. Same behaviour, one fewer thing to reason about.
+    if compressed_size_bytes is not None and audio_meta.duration > 0:
+        measured = True
         real_bitrate = (compressed_size_bytes * 8) / (audio_meta.duration * 1000)
         logger.debug(
             f"Real bitrate from FLAC-equivalent size: {real_bitrate:.1f} kbps "
             f"({compressed_size_bytes} bytes)"
         )
     else:
+        measured = False
         real_bitrate = calculate_real_bitrate(source_path or filepath, audio_meta.duration)
     apparent_bitrate = calculate_apparent_bitrate(
         audio_meta.sample_rate, audio_meta.bit_depth, audio_meta.channels
