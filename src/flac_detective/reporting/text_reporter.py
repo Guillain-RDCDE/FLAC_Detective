@@ -115,6 +115,77 @@ class TextReporter:
 
         return "  " + " │ ".join(formatted_cols)
 
+    # Rule class name -> the shortest phrase that still says what was read. Keys
+    # match ``score_breakdown``, i.e. the strategy class names; a rule missing from
+    # this map prints its own name rather than vanishing, because a verdict carried
+    # by a rule this table cannot name is exactly the situation being fixed.
+    _RULE_LABEL: dict[str, str] = {
+        "Rule1MP3Bitrate": "MP3 bitrate signature",
+        "Rule2Cutoff": "cutoff below the expected range",
+        "Rule424BitSuspect": "24-bit with a low-bitrate source",
+        "Rule5HighVariance": "high variable bitrate",
+        "Rule6HighQualityProtection": "high-quality protection",
+        "Rule7SilenceAnalysis": "silence analysis",
+        "Rule8NyquistException": "spectrum reaches Nyquist",
+        "Rule10Consistency": "multi-segment consistency",
+        "Rule11CassetteDetection": "cassette source",
+        "Rule12MLClassifier": "CNN classifier",
+        "Rule13MDCTAlignment": "MDCT frame alignment",
+        "Rule14TemporalSeam": "temporal seam",
+        "Rule15StereoSeam": "stereo seam",
+    }
+
+    def _deciding_evidence(self, result: dict) -> str:
+        """What actually carried this verdict, in one line.
+
+        The table above reports every reading the engine took — score, format,
+        cutoff, implied bitrate — and, until now, not the one thing the reader
+        actually wants: WHICH RULE DECIDED. That gap is not cosmetic. Issue #7 ran
+        for three rounds with both sides believing the silence rule had convicted a
+        file, because ``Issues: Silence: 1`` sits four lines above this table and
+        reads like a motive. It is a run-level count of audio-quality observations
+        and contributes nothing to any score. The reporter said so twice in
+        writing; so did the maintainer's own analysis.
+
+        The fix the issue already earned once was the Format column, on the
+        principle that "a verdict without the reading it came from is just an
+        opinion". The principle was right and applied one layer too shallow: the
+        readings were published and the inference was not.
+
+        Built from ``score_breakdown`` rather than by parsing the reason string,
+        because that dict is the engine's own attribution and cannot drift from it.
+        """
+        breakdown = result.get("score_breakdown") or {}
+        accusing = sorted(
+            ((rule, pts) for rule, pts in breakdown.items() if pts > 0),
+            key=lambda kv: -kv[1],
+        )
+        protecting = sorted(
+            ((rule, pts) for rule, pts in breakdown.items() if pts < 0),
+            key=lambda kv: kv[1],
+        )
+        if not accusing and not protecting:
+            return ""
+
+        def render(items: list) -> str:
+            return ", ".join(f"{self._RULE_LABEL.get(rule, rule)} {pts:+d}" for rule, pts in items)
+
+        parts = []
+        if accusing:
+            parts.append(render(accusing))
+        if protecting:
+            parts.append(f"offset by {render(protecting)}")
+
+        # The witness count belongs here too: a conviction needs two independent
+        # families, and a reader looking at a SUSPICIOUS file has no other way to
+        # see whether one observation was counted twice or two things agreed.
+        families = result.get("evidence_families") or []
+        if families:
+            plural = "family" if len(families) == 1 else "families"
+            parts.append(f"{len(families)} evidence {plural}: {', '.join(families)}")
+
+        return " — ".join(parts)
+
     def _format_label(self, result: dict) -> str:
         """Sample rate and bit depth, as "44.1/16", or "-" when unknown.
 
@@ -253,7 +324,17 @@ class TextReporter:
                 issues.append(f"Non-FLAC: {stats['non_flac_files']}")
 
             if issues:
-                report_lines.append(" Issues: " + ", ".join(issues))
+                # Named for what it is, since issue #7. This is a RUN-LEVEL tally of
+                # audio-quality observations — clipping, DC offset, a silent stretch
+                # — and not one of them moves a score. Printed as bare "Issues:" four
+                # lines above the verdict table, it was read as the reason for a
+                # verdict by the reporter (twice, in writing) and by the maintainer
+                # analysing his report. Two of the three rounds this issue ran for
+                # were spent chasing a silence rule that had never been consulted.
+                report_lines.append(
+                    " Audio-quality notes across this run (these do not affect any verdict): "
+                    + ", ".join(issues)
+                )
         else:
             report_lines.append(" No files analyzed.")
 
@@ -301,6 +382,14 @@ class TextReporter:
                     f" {icon:<4} | {score_str:<7} | {verdict:<15} | {fmt_str:<9} | "
                     f"{cutoff:<8} | {bitrate_str:<8} | {display_name}"
                 )
+
+                # The reason the verdict exists, directly under the verdict. See
+                # _deciding_evidence: without it this table publishes every reading
+                # except the inference, and a nearby quality counter gets mistaken
+                # for the motive.
+                why = self._deciding_evidence(result)
+                if why:
+                    report_lines.append(f"      why: {why}")
 
         else:
             report_lines.append(" No suspicious files found.")

@@ -114,7 +114,7 @@ def apply_rule_4_24bit_suspect(
 
 
 def apply_rule_5_high_variance(
-    real_bitrate: float, bitrate_variance: float
+    real_bitrate: float, bitrate_variance: Optional[float]
 ) -> Tuple[int, List[str]]:
     """Apply Rule 5: Avoid False Positives - High Variable Bitrate.
 
@@ -125,15 +125,31 @@ def apply_rule_5_high_variance(
     Scoring:
         -40 points if bitrate > 1000 kbps AND variance > 100 kbps
 
+    KNOWN UNREACHABLE, and left that way deliberately. Until 2026-09-05 the
+    variance was never measured — ``calculate_bitrate_variance`` returned a
+    fabricated 0.0 for every file — so this rule had never fired. Repairing the
+    measurement does not revive it: across 40 corpus files the real statistic runs
+    15.1 to **86.7** kbps, and this bar is 100. The threshold sits outside the
+    range of the thing it thresholds, which is a calibration defect and not a bug
+    in this function. Retuning it means choosing a number against data, i.e. its
+    own measured release; doing it inside a bug fix is how an unvalidated
+    threshold gets shipped. The rule stays wired and stays silent, and the reason
+    it is silent is now written down instead of hidden in an arithmetic accident.
+
     Args:
         real_bitrate: Actual file bitrate in kbps
-        bitrate_variance: Standard deviation of bitrate across segments
+        bitrate_variance: Standard deviation of bitrate across segments, or None
+            when it was not measured. None abstains — it is not a reading of zero.
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
     reasons: list[str] = []
+
+    if bitrate_variance is None:
+        logger.debug("RULE 5: Skipped (bitrate variance not measured)")
+        return score, reasons
 
     is_high_bitrate = real_bitrate > HIGH_BITRATE_THRESHOLD
     is_high_variance = bitrate_variance > VARIANCE_THRESHOLD
@@ -156,7 +172,7 @@ def apply_rule_6_variable_bitrate_protection(
     mp3_bitrate_detected: Optional[int],
     bitrate_conteneur: float,
     cutoff_freq: float,
-    bitrate_variance: float,
+    bitrate_variance: Optional[float],
 ) -> Tuple[int, List[str]]:
     """Apply Rule 6: Avoid False Positives - High Quality Protection (REINFORCED).
 
@@ -174,13 +190,24 @@ def apply_rule_6_variable_bitrate_protection(
         mp3_bitrate_detected: Detected MP3 bitrate from spectral analysis (or None)
         bitrate_conteneur: Physical bitrate of the FLAC file in kbps
         cutoff_freq: Detected cutoff frequency in Hz
-        bitrate_variance: Standard deviation of bitrate across segments
+        bitrate_variance: Standard deviation of bitrate across segments, or None
+            when it was not measured. None abstains rather than protecting: this
+            rule clears a file, and clearing one on a reading nobody took is the
+            same defect as convicting on one.
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
     """
     score = 0
     reasons: list[str] = []
+
+    # Reachable again as of 2026-09-05. The variance this rule reads was a
+    # fabricated 0.0 for every file ever analysed, so the > 50 bar had never been
+    # cleared and the protection had never once been granted. On real material the
+    # statistic runs 15.1-86.7 kbps and 15 of 40 corpus files clear it.
+    if bitrate_variance is None:
+        logger.debug("RULE 6: Skipped (bitrate variance not measured)")
+        return score, reasons
 
     # Thresholds for high-quality FLAC protection
     BITRATE_THRESHOLD = 700  # Raised from 600 kbps

@@ -58,6 +58,12 @@ class TestBitrateCalculations:
         assert calculate_apparent_bitrate(48000, 24, 2) == 2304
 
 
+# The mandatory cases below no longer mock the bitrate variance: the scoring path
+# does not consult that statistic at all. It was computed as file_size/10, ten
+# times over, and returned 0.0 for every file this tool has ever analysed, so
+# Rules 5 and 6 have never fired. Wiring the repaired measurement in turns on
+# their never-executed conditions too, and both are wrong — see
+# tests/test_bitrate_variance.py for the measurement and the decision.
 class TestMandatoryTestCase1:
     """TEST 1: MP3 320 kbps with high frequency - MUST be detected as FAKE.
 
@@ -85,16 +91,14 @@ class TestMandatoryTestCase1:
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
-    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
-    def test_mp3_320_high_cutoff(self, mock_rule7, mock_variance, mock_real_bitrate):
+    def test_mp3_320_high_cutoff(self, mock_rule7, mock_real_bitrate):
         """Test Case 1: MP3 320 kbps with high cutoff."""
         # Mock file path
         mock_path = Mock(spec=Path)
 
         # Setup mocks - Use realistic FLAC container bitrate for MP3 320
         mock_real_bitrate.return_value = 851  # FLAC container bitrate (700-950 kbps range)
-        mock_variance.return_value = 50  # Low variance (constant bitrate)
 
         # Mock Rule 7 to return neutral result (0 points)
         mock_rule7.return_value = (0, [], None)
@@ -147,16 +151,14 @@ class TestMandatoryTestCase2:
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
-    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
-    def test_mp3_256_24bit(self, mock_rule7, mock_variance, mock_real_bitrate):
+    def test_mp3_256_24bit(self, mock_rule7, mock_real_bitrate):
         """Test Case 2: MP3 256 kbps in 24-bit container."""
         # Mock file path
         mock_path = Mock(spec=Path)
 
         # Setup mocks - Use realistic FLAC container bitrate for MP3 256
         mock_real_bitrate.return_value = 725  # FLAC container bitrate (600-850 kbps range)
-        mock_variance.return_value = 30  # Low variance
 
         # Mock Rule 7 to return neutral result
         mock_rule7.return_value = (0, [], None)
@@ -214,16 +216,14 @@ class TestMandatoryTestCase3:
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
-    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
-    def test_authentic_poor_quality(self, mock_rule7, mock_variance, mock_real_bitrate):
+    def test_authentic_poor_quality(self, mock_rule7, mock_real_bitrate):
         """Test Case 3: Authentic FLAC with poor quality (e.g. vinyl rip)."""
         # Mock file path
         mock_path = Mock(spec=Path)
 
         # Setup mocks
         mock_real_bitrate.return_value = 850  # Real bitrate = 850 kbps
-        mock_variance.return_value = 150  # High variance (variable bitrate)
 
         # Mock Rule 7
         mock_rule7.return_value = (0, [], None)
@@ -272,16 +272,14 @@ class TestMandatoryTestCase4:
     """
 
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
-    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
-    def test_authentic_high_quality(self, mock_rule7, mock_variance, mock_real_bitrate):
+    def test_authentic_high_quality(self, mock_rule7, mock_real_bitrate):
         """Test Case 4: Authentic high-quality FLAC."""
         # Mock file path
         mock_path = Mock(spec=Path)
 
         # Setup mocks
         mock_real_bitrate.return_value = 1580  # Real bitrate = 1580 kbps
-        mock_variance.return_value = 200  # High variance (variable bitrate)
 
         # Mock Rule 7
         mock_rule7.return_value = (0, [], None)
@@ -340,14 +338,12 @@ class TestDeepMode:
 
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
-    @patch("flac_detective.analysis.new_scoring.calculator.calculate_bitrate_variance")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
     def test_fast_path_skips_rule12_but_deep_runs_it(
-        self, mock_rule7, mock_variance, mock_real_bitrate, mock_r12
+        self, mock_rule7, mock_real_bitrate, mock_r12
     ):
         """Default fast path skips Rule 12; --deep forces it on the same file."""
         mock_real_bitrate.return_value = 900  # healthy FLAC bitrate, no MP3 signature
-        mock_variance.return_value = 50
         mock_rule7.return_value = (0, [], None)
         mock_r12.return_value = (0, [])
 

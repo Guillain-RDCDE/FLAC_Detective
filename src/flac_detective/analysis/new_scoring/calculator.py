@@ -5,11 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple
 
 from .audio_loader import load_audio_with_retry
-from .bitrate import (
-    calculate_apparent_bitrate,
-    calculate_bitrate_variance,
-    calculate_real_bitrate,
-)
+from .bitrate import calculate_apparent_bitrate, calculate_real_bitrate
 from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES
 from .evidence import collapse_dependent_families, evidence_families
 from .metadata import parse_metadata
@@ -108,12 +104,42 @@ def _calculate_bitrate_metrics(
     apparent_bitrate = calculate_apparent_bitrate(
         audio_meta.sample_rate, audio_meta.bit_depth, audio_meta.channels
     )
-    variance = calculate_bitrate_variance(filepath, audio_meta.sample_rate)
+    # NOT MEASURED, ON PURPOSE, and this is the honest half of a defect found on
+    # 2026-09-05. ``calculate_bitrate_variance`` used to divide the file size by ten,
+    # ten times, and return the standard deviation of ten identical numbers: 0.0 for
+    # every file this tool has ever analysed, produced silently, as if it had looked.
+    # Rule 5 needs > 100 and Rule 6 needs > 50, so both have been inert since they
+    # were written, and their unit tests passed by handing them a variance by hand.
+    #
+    # The measurement now exists and is correct (``flac_segment_bitrates``: each slice
+    # actually compressed, ~1 s per track). Feeding it to the rules was written,
+    # wired, and measured — and it is not shipped, because switching on two rules that
+    # have never once executed turns out to switch on their unvalidated conditions
+    # too:
+    #
+    #   * Rule 5's bar is 100 kbps. Across 40 corpus files the real statistic runs
+    #     15.1 to 86.7. The threshold sits above the range of the thing it thresholds,
+    #     so repairing the input does not revive the rule.
+    #   * Rule 6 fires, and misfires. Its "substantial HF content" test is the literal
+    #     constant 19000, applied at every sample rate. On a 96 kHz file with a
+    #     31,226 Hz cutoff, Rule 2 scores +30 for a cutoff BELOW that rate's 44 kHz
+    #     threshold while Rule 6 grants -30 for the same cutoff being "high" — the two
+    #     read one number and disagree because only one of them scales. Measured on
+    #     fd-exchange-2026-08-0019: FAKE_CERTAIN 95 becomes AUTHENTIC 0, the total
+    #     falls under the fast path and rules 7 and 12 through 15 never run. Provir's
+    #     independent return flags that file.
+    #
+    # Zero effect on the labelled exchange set, which is 44.1 kHz throughout, and one
+    # conviction destroyed on the blind corpus. So the rules keep abstaining — None,
+    # never a fabricated zero — the engine stops claiming a reading it never took, and
+    # giving these two their votes back gets the measured release it needs. Turning
+    # them on inside a bug fix is how an unvalidated threshold ships.
+    variance = None
 
     logger.info(
         f"Bitrate analysis: real={real_bitrate:.1f} kbps, "
         f"apparent={apparent_bitrate} kbps, "
-        f"variance={variance:.1f} kbps"
+        f"variance={'not measured' if variance is None else format(variance, '.1f') + ' kbps'}"
     )
 
     return BitrateMetrics(
