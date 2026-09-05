@@ -116,3 +116,52 @@ def test_console_label_follows_verdict_not_score(caplog):
         _log_formatted_result({"score": 82, "verdict": "SUSPICIOUS", "filename": "x.flac"}, 1, 1)
     text = " ".join(r.getMessage() for r in caplog.records)
     assert "SUSPICIOUS" in text and "FAKE" not in text
+
+
+class TestSuspiciousSaysWhatItRestsOn:
+    """SUSPICIOUS is structurally the uncorroborated accusation, and now says so.
+
+    ``CONVICTION_MIN_SCORE`` equals ``SCORE_SUSPICIOUS``, so a file with the points
+    AND a second family has already convicted one branch earlier. Everything that
+    reaches SUSPICIOUS has enough points and exactly one source of evidence.
+
+    Requiring corroboration here too was written and measured before this was
+    understood, and it does not tighten the tier — it empties it. That attempt is
+    pinned as a non-behaviour below so it cannot be made again by accident.
+
+    From issue #7: a master the owner can prove genuine reads 58 — Rule 1's +50
+    for an MP3-bitrate signature plus Rule 2's +8 for a low cutoff, both
+    ``spectral``, on a legitimately band-limited 18.25 kHz master. It was labelled
+    "Probable transcoding". On the labelled exchange set the whole population of
+    this tier was genuine: of 120 transcodes, the 30 that reach 55 points carry two
+    to five families each and convict.
+    """
+
+    def test_the_tier_is_unchanged(self):
+        """The verdict string must not move — only what it claims about itself."""
+        assert v(58, SINGLE_FAMILY) == "SUSPICIOUS"
+        assert v(150, SINGLE_FAMILY) == "SUSPICIOUS"
+
+    def test_it_remains_reachable(self):
+        """The trap: with both bars at 55, a corroboration gate here deletes the tier.
+
+        Guarding the repair that was rejected. If someone later adds
+        ``len(families) >= CONVICTION_MIN_FAMILIES`` to this branch, no score and
+        no evidence set can produce SUSPICIOUS at all, and the engine loses a
+        verdict silently.
+        """
+        assert CONVICTION_MIN_SCORE == SCORE_SUSPICIOUS
+        reachable = [
+            s for s in range(0, 151) if determine_verdict(s, SINGLE_FAMILY)[0] == "SUSPICIOUS"
+        ]
+        assert reachable, "SUSPICIOUS est devenu injoignable"
+
+    def test_the_uncorroborated_case_is_labelled_as_such(self):
+        _, confidence = determine_verdict(58, SINGLE_FAMILY)
+        assert "single line of evidence" in confidence
+        assert "not corroborated" in confidence
+
+    def test_an_unknown_witness_list_does_not_claim_corroboration_either_way(self):
+        """None is not one family and not two; it must not assert either."""
+        _, confidence = determine_verdict(58, None)
+        assert "single line of evidence" not in confidence

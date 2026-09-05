@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import soundfile as sf
@@ -96,55 +97,62 @@ def calculate_apparent_bitrate(sample_rate: int, bit_depth: int, channels: int =
 
 def calculate_bitrate_variance(
     filepath: Path, sample_rate: int, num_segments: int = DEFAULT_VARIANCE_SEGMENTS
-) -> float:
-    """Calculate bitrate variance across multiple segments of the file.
+) -> Optional[float]:
+    """Standard deviation of the bitrate across ``num_segments`` slices, in kbps.
 
-    This helps identify authentic FLAC with variable bitrate vs constant bitrate transcodes.
+    A lossless encoder spends more bits on dense passages than on sparse ones, so
+    genuine music varies across a track where a decoded constant-bitrate transcode
+    does not. That is the statistic Rules 5 and 6 read.
 
-    Note: This is an approximation. Since FLAC uses variable-length encoding, we cannot
-    accurately determine segment boundaries without decoding the entire file. This method
-    assumes uniform distribution of data across the file, which is good enough for
-    detecting constant vs variable bitrate patterns.
+    **It was never measured.** Until now this function computed every segment's
+    size as ``file_size / num_segments`` — the same number, ten times — and
+    returned the standard deviation of ten identical values. It returned 0.0 for
+    every file this tool has ever analysed, and did so silently, as if it had
+    looked. Rule 5 needs > 100 and Rule 6 needs > 50, so both have been
+    structurally unreachable since they were written, while their unit tests
+    passed by handing the rules a variance directly and never asking whether one
+    could arrive.
+
+    Each slice is now actually compressed. Measured on 40 corpus files:
+
+        median 41.2 kbps, mean 44.2, min 15.1, **max 86.7**
+
+    which settles the two rules differently and neither by opinion:
+
+    * **Rule 6 becomes reachable** — 15 of those 40 clear its > 50 bar.
+    * **Rule 5 does not.** Its > 100 bar sits above the highest value the
+      statistic took on any file measured. Repairing the function does not revive
+      it; the threshold is outside the range of the thing it thresholds. That is a
+      calibration defect, recorded here and left for its own release rather than
+      quietly retuned inside a bug fix.
+
+    Returns None when the measurement could not be taken, never 0.0. A fabricated
+    zero is what let this hide: an absence coerced to a number at the point it is
+    consumed reads exactly like a real reading of "no variation at all", which is
+    the strongest possible evidence of a constant-bitrate source.
 
     Args:
-        filepath: Path to FLAC file
-        sample_rate: Sample rate in Hz
-        num_segments: Number of segments to analyze (default: 10)
+        filepath: Path to the audio file
+        sample_rate: Sample rate in Hz (unused; kept for the existing call sites)
+        num_segments: Number of slices to compress separately (default: 10)
 
     Returns:
-        Bitrate variance in kbps (0.0 if calculation fails or file too short)
+        Standard deviation in kbps, or None when it could not be measured.
     """
+    from ..audio_formats import flac_segment_bitrates
+
     try:
         info = sf.info(filepath)
-        total_duration = info.duration
-
-        # Adjust number of segments if file is too short
-        if total_duration < num_segments:
-            num_segments = max(MIN_VARIANCE_SEGMENTS, int(total_duration))
-
-        # If only one segment, variance is 0
+        if info.duration < num_segments:
+            num_segments = max(MIN_VARIANCE_SEGMENTS, int(info.duration))
         if num_segments <= 1:
-            return 0.0
+            return None
 
-        segment_duration = total_duration / num_segments
-        file_size = filepath.stat().st_size
-
-        # Calculate approximate bitrate for each segment
-        # Note: This assumes uniform data distribution, which is an approximation
-        bitrates = []
-        for _ in range(num_segments):
-            # Approximate segment size (not perfectly accurate but good enough)
-            segment_size = file_size / num_segments
-            segment_bitrate = (segment_size * 8) / (segment_duration * 1000)
-            bitrates.append(segment_bitrate)
-
-        # Calculate standard deviation as variance measure
-        if len(bitrates) > 1:
-            variance = float(np.std(bitrates))
-            return variance
-
-        return 0.0
+        bitrates = flac_segment_bitrates(filepath, num_segments)
+        if not bitrates or len(bitrates) < 2:
+            return None
+        return float(np.std(bitrates))
 
     except Exception as e:
         logger.debug(f"Error calculating bitrate variance: {e}")
-        return 0.0
+        return None

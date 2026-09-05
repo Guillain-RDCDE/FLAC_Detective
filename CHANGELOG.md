@@ -1,3 +1,123 @@
+## v1.13.11 (2026-09-05) — the report says which rule decided, and two dead rules say they are dead
+
+Issue #7's reporter ran 1.13.10 over his own files and confirmed the container
+property holds to the letter: same verdict, same score, same cutoff, same Format
+row across FLAC, WAV, AIFF and ALAC. He also handed over something worth more —
+a master he can prove genuine (official store purchase, four containers
+bit-identical after decode) that the engine calls `SUSPICIOUS 58/100`.
+
+This release does not change that verdict. It changes what the tool tells him
+about it, and it stops two rules from lying about being alive.
+
+### Three rounds were spent on a line that was never a reason
+
+Both sides of this issue believed a silence rule had convicted his file. It had
+not. `Issues: Silence: 1` is a **run-level tally of audio-quality observations**
+that contributes nothing to any score, printed four lines above the verdict table
+with no label saying so. He cited it twice in writing as the motive; so did the
+maintainer's own first analysis of his report. Meanwhile the rule that actually
+decided appeared nowhere in the report at all.
+
+The advanced report published every reading the engine took — score, format,
+cutoff, implied bitrate — and not the inference. The Format column added in
+1.13.9 was the right principle applied one layer too shallow.
+
+- Each flagged file now carries its own reason, built from the engine's own
+  per-rule attribution rather than by parsing a string:
+
+```
+ [!!] | 58/100  | SUSPICIOUS | 44.1/16 | 18.2k | 224k | 04.flac
+      why: MP3 bitrate signature +50, cutoff below the expected range +8
+           — 1 evidence family: spectral
+```
+
+- The tally is named for what it is: *"Audio-quality notes across this run (these
+  do not affect any verdict)"*.
+
+### SUSPICIOUS says what it rests on
+
+His file scores 58: Rule 1's +50 for an MP3-bitrate signature plus Rule 2's +8 for
+a low cutoff, on a legitimately band-limited 18.25 kHz master. **Both rules are
+the `spectral` family** — one reading, "the wall is low", scored twice — and he
+was told "Probable transcoding".
+
+Requiring corroboration for SUSPICIOUS was written, wired and measured, then
+thrown away, because `CONVICTION_MIN_SCORE` and `SCORE_SUSPICIOUS` are the same
+number (55): a file with the points *and* a second family has already convicted
+one branch earlier. Adding the gate does not tighten the tier, **it empties it**.
+A verdict becoming silently unreachable is worse than the defect. A test now
+fails if anyone tries it again.
+
+So SUSPICIOUS *is*, structurally, the uncorroborated accusation, and now says so:
+
+> ⚠️ Marks of a transcode, but from a single line of evidence — not corroborated,
+> worth a listen before you act
+
+Measured on the labelled exchange set (59 genuine, 120 transcodes): of the 30
+transcodes reaching 55 points, **every one carries two to five families and
+convicts**. Of the three genuine files reaching it, the one accused on a single
+family lands in this tier. On that sample the tier's entire population is
+genuine. No verdict moves; the wording does. Same repair as v1.13.7 made to the
+AUTHENTIC pass, for the same reason.
+
+### The variance was never measured, and the rules reading it are not fit to be woken
+
+`calculate_bitrate_variance` computed every segment's size as
+`file_size / num_segments` and returned the standard deviation of ten identical
+numbers. **It answered 0.0 for every file this tool has ever analysed**, silently,
+as though it had looked. Rule 5 needs > 100 and Rule 6 needs > 50, so neither has
+fired since the day they were written — while their unit tests passed, by handing
+the rule a variance and never asking whether one could arrive.
+
+The measurement is now real: each slice is actually compressed
+(`flac_segment_bitrates`, ~1 s per track), and it returns **None when it was not
+taken, never a fabricated zero** — a 0.0 reads as "no variation at all", which is
+the strongest possible evidence of a constant-bitrate source.
+
+**And it is deliberately not fed to the rules.** Wiring it in was done and
+measured, and switching on two rules that have never once executed switches on
+their unvalidated conditions too:
+
+- **Rule 5's bar is 100 kbps.** Across 40 corpus files the real statistic runs
+  **15.1 to 86.7**. The threshold sits above the range of the thing it
+  thresholds; repairing the input does not revive the rule.
+- **Rule 6 fires, and misfires.** Its "substantial HF content" test is the literal
+  constant `19000`, applied at every sample rate. On a 96 kHz file with a
+  31,226 Hz cutoff, Rule 2 scores +30 for a cutoff *below* that rate's 44 kHz
+  threshold while Rule 6 grants −30 for the same cutoff being "high" — two rules
+  reading one number and disagreeing because only one of them scales. Measured on
+  `fd-exchange-2026-08-0019`: **FAKE_CERTAIN 95 becomes AUTHENTIC 0**, the total
+  falls under the fast path, and rules 7 and 12 through 15 never run. Provir's
+  independent return flags that file.
+
+Zero effect on the labelled set, which is 44.1 kHz throughout; one conviction
+destroyed on the blind corpus. So both rules keep abstaining — explicitly now,
+with the measurement written down — and giving them their votes back gets the
+calibrated release it needs. A test fails if the variance is re-wired without
+fixing those two thresholds first.
+
+### Measured
+
+| | 1.13.10 | 1.13.11 |
+|---|---|---|
+| FLAC and WAV agree, 30 blind-corpus files | 30/30 | **30/30** |
+| non-AUTHENTIC, same 30 files | 9/30 | 9/30 |
+| false positives, 59 labelled genuine | 5/59 | 5/59 |
+| files accused, 120 labelled transcodes | 41/120 | 41/120 |
+| verdicts changed across 179 labelled files | — | **0** |
+| tests | 701 | 708 |
+
+Not one verdict moves anywhere. Everything in this release is what the tool
+*says*, plus one statistic that stopped pretending to be a measurement.
+
+### Still open, still published
+
+The accuracy figures are unchanged and still not good: **5 of 59 genuine files
+accused** (two of them `FAKE_CERTAIN`, at 92 and 73 points) and **22 of 60
+transcodes caught** on the balanced sample. Neither is caused by issue #7 and
+neither is fixed here. Rules 5 and 6 owe a calibration release; Rule 6 owes a
+sample-rate-aware HF threshold before it is ever switched on.
+
 ## v1.13.10 (2026-09-04) — one ruler, and the measurement that should have come first
 
 v1.13.9, published this morning, claimed issue #7's property held. **It did not.**

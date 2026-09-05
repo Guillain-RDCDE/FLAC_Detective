@@ -177,6 +177,53 @@ def flac_equivalent_size(path: Path) -> Optional[int]:
             tmp.unlink(missing_ok=True)
 
 
+def flac_segment_bitrates(path: Path, n_segments: int = 10) -> Optional[list]:
+    """Bitrate in kbps of each of ``n_segments`` slices, each compressed on its own.
+
+    The statistic Rules 5 and 6 were written to read: a lossless encoder spends
+    more bits on dense passages than on sparse ones, so genuine music varies
+    across a track while a decoded constant-bitrate transcode does not.
+
+    ``calculate_bitrate_variance`` claimed to measure it and did not — it divided
+    the file size by ten, ten times, and took the standard deviation of ten
+    identical numbers, returning 0.0 for every file ever analysed. This is the
+    measurement it was describing.
+
+    Costs one encode of the whole file, split into slices: ~1 s for a 60-second
+    track of real music. Returns None when the file cannot be read or the slices
+    would be shorter than a second, where the statistic means nothing.
+    """
+    try:
+        import soundfile as sf
+    except ImportError:  # pragma: no cover - soundfile is a hard dependency
+        return None
+
+    try:
+        info = sf.info(str(path))
+        frames_per = info.frames // n_segments
+        if frames_per < info.samplerate:
+            return None
+        sixteen = info.subtype in _FLAC_16_BIT
+        subtype = "PCM_16" if sixteen else "PCM_24"
+        dtype = "int16" if sixteen else "int32"
+
+        out = []
+        with sf.SoundFile(str(path)) as src, tempfile.TemporaryDirectory() as td:
+            for k in range(n_segments):
+                src.seek(k * frames_per)
+                block = src.read(frames_per, dtype=dtype, always_2d=True)
+                if len(block) == 0:
+                    break
+                slice_path = Path(td) / f"seg{k}.flac"
+                sf.write(str(slice_path), block, info.samplerate, subtype=subtype, format="FLAC")
+                seconds = len(block) / info.samplerate
+                out.append(slice_path.stat().st_size * 8 / (seconds * 1000))
+        return out or None
+    except Exception as e:  # noqa: BLE001 - never let a statistic break an analysis
+        logger.warning(f"Could not measure segment bitrates for {path}: {e}")
+        return None
+
+
 def decode_to_wav(path: Path) -> Optional[Path]:
     """Decode a non-native lossless source to a temp WAV (PCM) via ffmpeg.
 
