@@ -85,4 +85,3 @@ FLAC Detective is released under the MIT License.
 
 ---
 
-</content>
