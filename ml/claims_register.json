@@ -1,7 +1,7 @@
 [
   {
     "id": "readme-rule-count",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "12 heuristic rules",
     "evidence": {
       "kind": "rule_count",
@@ -22,7 +22,7 @@
   },
   {
     "id": "readme-fp-specificity",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "80 % to 95 %",
     "evidence": {
       "kind": "json_count",
@@ -87,7 +87,7 @@
   },
   {
     "id": "readme-wild-gap",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "8\\.8 %",
     "evidence": {
       "kind": "artifact",
@@ -123,7 +123,7 @@
   },
   {
     "id": "readme-wild-v112",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "50\\.0 %",
     "evidence": {
       "kind": "artifact",
@@ -148,7 +148,7 @@
   },
   {
     "id": "readme-ml-auc-story",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "AUC 0\\.99",
     "evidence": {
       "kind": "artifact",
@@ -431,7 +431,7 @@
   },
   {
     "id": "readme-wild-v113",
-    "file": "README.md",
+    "file": "docs/REFERENCE.md",
     "pattern": "70\\.6 %",
     "evidence": {
       "kind": "artifact",

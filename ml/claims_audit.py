@@ -47,6 +47,10 @@ REGISTER = ROOT / "ml" / "claims_register.json"
 
 PUBLIC_FILES = [
     "README.md",
+    # The reference was cut out of README.md when the front page was shortened.
+    # It carries the accuracy figures, so leaving it off this list would have
+    # meant the numbers that matter most were the ones nobody audited.
+    "docs/REFERENCE.md",
     "docs/index.md",
     "docs/technical-details.md",
     "docs/getting-started.md",
