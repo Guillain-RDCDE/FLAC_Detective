@@ -95,11 +95,12 @@ ranked by score**, so you immediately see what to check first.
 # Verbose mode (show detailed rule execution)
 flac-detective /music --verbose
 
-# Faster analysis (15 seconds per file, less accurate)
+# Shorter windows (15 seconds per window, faster; reads less of each file)
 flac-detective /music --sample-duration 15
 
-# Longer analysis (60 seconds, more accurate)
-flac-detective /music --sample-duration 60
+# The default, 30 seconds, is the reading every published figure was measured
+# at. A longer sample is not more accurate: it reads different audio, and a
+# verdict that changes with the number is sitting on a reading boundary.
 
 # Deep mode: run the ML rule (CNN) on every file
 flac-detective /music --deep

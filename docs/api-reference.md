@@ -76,21 +76,25 @@ FLACAnalyzer(sample_duration: float = 30.0)
 ```
 
 **Parameters**:
-- `sample_duration` (float): Seconds of audio to analyze (default: 30.0)
-  - Lower values = faster but less accurate
-  - Higher values = slower but more accurate
-  - Recommended: 15-60 seconds
+- `sample_duration` (float): Seconds of audio read per window, three windows per
+  file (default: 30.0)
+  - Every published accuracy figure was measured at 30 s; the thresholds were
+    tuned against that reading.
+  - A longer sample reads different audio, not the same audio better. Measured
+    30 s against 120 s on files with known provenance, verdicts moved in both
+    directions, about one in forty — see
+    `ml/exchange/SAMPLE_DURATION_MEASUREMENT_2026-09-07.md`.
+  - A verdict that changes with this number is sitting on a reading boundary.
+    That is worth knowing about the file; it is not a reason to prefer either
+    number.
 
 **Example**:
 ```python
-# Fast analysis (15 seconds)
-analyzer = FLACAnalyzer(sample_duration=15.0)
-
-# Standard analysis (30 seconds) - default
+# Default (30 seconds) — the calibrated reading
 analyzer = FLACAnalyzer()
 
-# Thorough analysis (60 seconds)
-analyzer = FLACAnalyzer(sample_duration=60.0)
+# Shorter windows: faster, reads less of each file
+analyzer = FLACAnalyzer(sample_duration=15.0)
 ```
 
 #### Methods

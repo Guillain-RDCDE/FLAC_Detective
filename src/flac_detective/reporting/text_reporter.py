@@ -7,6 +7,7 @@ from typing import Any
 
 from ..__version__ import __version__
 from ..analysis.new_scoring import determine_verdict
+from .evidence import RULE_LABEL, deciding_evidence
 from .statistics import calculate_statistics
 
 logger = logging.getLogger(__name__)
@@ -115,76 +116,21 @@ class TextReporter:
 
         return "  " + " │ ".join(formatted_cols)
 
-    # Rule class name -> the shortest phrase that still says what was read. Keys
-    # match ``score_breakdown``, i.e. the strategy class names; a rule missing from
-    # this map prints its own name rather than vanishing, because a verdict carried
-    # by a rule this table cannot name is exactly the situation being fixed.
-    _RULE_LABEL: dict[str, str] = {
-        "Rule1MP3Bitrate": "MP3 bitrate signature",
-        "Rule2Cutoff": "cutoff below the expected range",
-        "Rule424BitSuspect": "24-bit with a low-bitrate source",
-        "Rule5HighVariance": "high variable bitrate",
-        "Rule6HighQualityProtection": "high-quality protection",
-        "Rule7SilenceAnalysis": "silence analysis",
-        "Rule8NyquistException": "spectrum reaches Nyquist",
-        "Rule10Consistency": "multi-segment consistency",
-        "Rule11CassetteDetection": "cassette source",
-        "Rule12MLClassifier": "CNN classifier",
-        "Rule13MDCTAlignment": "MDCT frame alignment",
-        "Rule14TemporalSeam": "temporal seam",
-        "Rule15StereoSeam": "stereo seam",
-    }
+    # Rule class name -> the shortest phrase that still says what was read. Lives
+    # in reporting/evidence.py since v1.13.13, shared with the GUI; kept as a
+    # class attribute so nothing that read it here breaks.
+    _RULE_LABEL: dict[str, str] = RULE_LABEL
 
     def _deciding_evidence(self, result: dict) -> str:
         """What actually carried this verdict, in one line.
 
         The table above reports every reading the engine took — score, format,
-        cutoff, implied bitrate — and, until now, not the one thing the reader
-        actually wants: WHICH RULE DECIDED. That gap is not cosmetic. Issue #7 ran
-        for three rounds with both sides believing the silence rule had convicted a
-        file, because ``Issues: Silence: 1`` sits four lines above this table and
-        reads like a motive. It is a run-level count of audio-quality observations
-        and contributes nothing to any score. The reporter said so twice in
-        writing; so did the maintainer's own analysis.
-
-        The fix the issue already earned once was the Format column, on the
-        principle that "a verdict without the reading it came from is just an
-        opinion". The principle was right and applied one layer too shallow: the
-        readings were published and the inference was not.
-
-        Built from ``score_breakdown`` rather than by parsing the reason string,
-        because that dict is the engine's own attribution and cannot drift from it.
+        cutoff, implied bitrate — and, until 1.13.11, not the one thing the reader
+        actually wants: WHICH RULE DECIDED. See ``reporting.evidence`` for the
+        history; the GUI prints the same line from the same function, because
+        issue #8's reporter was looking at the GUI and it did not.
         """
-        breakdown = result.get("score_breakdown") or {}
-        accusing = sorted(
-            ((rule, pts) for rule, pts in breakdown.items() if pts > 0),
-            key=lambda kv: -kv[1],
-        )
-        protecting = sorted(
-            ((rule, pts) for rule, pts in breakdown.items() if pts < 0),
-            key=lambda kv: kv[1],
-        )
-        if not accusing and not protecting:
-            return ""
-
-        def render(items: list) -> str:
-            return ", ".join(f"{self._RULE_LABEL.get(rule, rule)} {pts:+d}" for rule, pts in items)
-
-        parts = []
-        if accusing:
-            parts.append(render(accusing))
-        if protecting:
-            parts.append(f"offset by {render(protecting)}")
-
-        # The witness count belongs here too: a conviction needs two independent
-        # families, and a reader looking at a SUSPICIOUS file has no other way to
-        # see whether one observation was counted twice or two things agreed.
-        families = result.get("evidence_families") or []
-        if families:
-            plural = "family" if len(families) == 1 else "families"
-            parts.append(f"{len(families)} evidence {plural}: {', '.join(families)}")
-
-        return " — ".join(parts)
+        return deciding_evidence(result)
 
     def _format_label(self, result: dict) -> str:
         """Sample rate and bit depth, as "44.1/16", or "-" when unknown.

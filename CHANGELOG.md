@@ -1,3 +1,49 @@
+## v1.13.13 (2026-09-07) — a longer sample is a different sample, not a better one
+
+Issue #8, second question. With 1.13.12 confirmed on his side, the reporter
+asked why a track he knows to be genuine reads `Fake 63` with the GUI's Sample
+field at 120 s and `Authentic 0` at 30 s, and whether there is an ideal sample
+size. The tooltip said "Higher = slower but more robust". So did the CLI help.
+`docs/technical-details.md` gave 85 / 95 / 98 % accuracy at 15 / 30 / 60 s.
+None of it had ever been measured.
+
+### Measured, and withdrawn
+
+The setting is the width of the three FFT windows the spectral rules read
+(one window on tracks of 90 s or less); the engine keeps the lowest of the
+three edges, on a 250 Hz grid. At 120 s the windows cover the whole track.
+Run at 30 s and at 120 s on 284 files with known provenance (80 genuine CD
+rips, 160 MP3 transcodes, 24 labelled exchange tracks, 20 full-length
+tracks): **seven verdicts changed, four towards accusation and three away
+from it.** The readings that moved had crossed a signature-cell boundary
+because different seconds of the track were read. The genuine file accused at
+120 s is the reporter's case to the letter: `17,750 Hz → AUTHENTIC 11` at
+30 s, `18,750 Hz → SUSPICIOUS 56` at 120 s, inside the 256 kbps cell, one
+evidence family.
+
+Fixed window width, median instead of minimum, and a spread gate on Rule 1
+were each priced on a twelve-window probe before being rejected: the spread
+of readings has the same distribution on genuine files and on MP3-192
+transcodes, so any bar that releases half the genuine candidates also
+releases a fifth to a third of the true ones. The instability is in the audio.
+Full tables: `ml/exchange/SAMPLE_DURATION_MEASUREMENT_2026-09-07.md`.
+
+### What changes
+
+- **The GUI's advanced panel now leads with the `Why:` line** — which rule
+  decided, and on how many independent evidence families — the same line the
+  text report has carried since 1.13.11. It moved to
+  `reporting/evidence.py` so the two surfaces cannot drift; the text reporter
+  calls the same function. `tests/test_gui.py` pins it. The reporter was
+  looking at the GUI, and "1 evidence family: spectral" is the one thing that
+  would have told him what his `Fake 63` rested on.
+- **The tooltip, the `--sample-duration` help, the API reference, the user
+  guide and the examples** now say what the setting does, that every
+  published figure was taken at 30 s, and that a verdict which changes with
+  the number is sitting on a reading boundary. The accuracy table in
+  `technical-details.md` is replaced by a note saying it was never measured.
+- **No scoring change.** Verdicts at the default are those of 1.13.12.
+
 ## v1.13.12 (2026-09-07) — the same audio at any FLAC level, and the fixes that were never shipped
 
 Issue #8: a track stored at FLAC compression levels 0 to 3 scores 13, the same

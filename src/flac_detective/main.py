@@ -448,8 +448,11 @@ def parse_arguments() -> argparse.Namespace:
         default=None,
         metavar="SECS",
         help=(
-            "Audio sample duration in seconds (default: 30). Range 5–120. "
-            "Lower = faster but less accurate; higher = slower but more robust."
+            "Seconds of audio read per window, three windows per file (default: 30, "
+            "range 5-120). Every published accuracy figure was measured at 30. A "
+            "longer sample reads different audio, not the same audio better; a "
+            "verdict that changes with this number is sitting on a reading boundary "
+            "(see ml/exchange/SAMPLE_DURATION_MEASUREMENT_2026-09-07.md)."
         ),
     )
     parser.add_argument(

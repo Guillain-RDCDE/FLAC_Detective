@@ -180,13 +180,12 @@ python -c "import flac_detective; print(flac_detective.__version__)"
 ### Performance Optimization
 
 ```python
-# Faster analysis (15 seconds per file)
+# Shorter windows (15 seconds per window, faster; reads less of each file)
 analyzer = FLACAnalyzer(sample_duration=15.0)
 
-# More accurate analysis (60 seconds per file)
-analyzer = FLACAnalyzer(sample_duration=60.0)
-
-# Default: 30 seconds (balanced)
+# Default: 30 seconds per window — the reading every published figure was
+# measured at. A longer window reads different audio, not the same audio
+# better; see docs/technical-details.md, "Sample Duration".
 analyzer = FLACAnalyzer()
 ```
 

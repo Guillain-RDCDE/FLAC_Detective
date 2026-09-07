@@ -104,6 +104,41 @@ def test_easy_advanced_toggle(app):
     assert "R2" in win._reasons.toHtml()
 
 
+def test_advanced_detail_says_which_rule_decided(app):
+    """In advanced mode the detail panel leads with the deciding rule and the witness count.
+
+    Issue #8's reporter looked at a `Fake 63` in this panel and could not see
+    that the whole case was one spectral reading. The text report had carried
+    the line since 1.13.11; the GUI had not. Same function, same line.
+    """
+    win = MainWindow()
+    r = {
+        "filename": "y.flac",
+        "filepath": "",
+        "score": 58,
+        "verdict": "SUSPICIOUS",
+        "cutoff_freq": 18250,
+        "estimated_mp3_bitrate": 224,
+        "reason": "Constant MP3 bitrate detected (Spectral): 224 kbps | R2: Cutoff 18250 Hz",
+        "score_breakdown": {"Rule1MP3Bitrate": 50, "Rule2Cutoff": 8},
+        "evidence_families": ["spectral"],
+        "hires_verdict": "NOT_HIRES",
+    }
+    win._results.append(r)
+    win._append_row(r)
+
+    # Easy mode: no rule attribution, plain language only.
+    win._populate_detail(r)
+    assert "evidence family" not in win._reasons.toPlainText()
+
+    win._advanced_check.setChecked(True)
+    text = win._reasons.toPlainText()
+    assert "MP3 bitrate signature +50" in text
+    assert "1 evidence family: spectral" in text
+    # The line precedes the per-rule bullets.
+    assert text.index("evidence family") < text.index("R2:")
+
+
 def test_collect_files_dedup(app, tmp_path):
     """Folder expansion de-duplicates and only picks up audio files."""
     (tmp_path / "x.flac").write_bytes(b"\x00")

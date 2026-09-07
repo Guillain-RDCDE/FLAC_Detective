@@ -959,16 +959,20 @@ class AudioCache:
 
 **Impact**: 80% faster on repeated analyses
 
-### 2. Sample Duration Optimization
+### 2. Sample Duration
 
-Default: 30 seconds (balance of speed vs accuracy)
+Default: 30 seconds per window, three windows per file (one on files of 90 s
+or less).
 
-```
-Duration    Accuracy    Speed
-15s         85%         Fast
-30s         95%         Balanced ← Default
-60s         98%         Slow
-```
+This section used to print a table of accuracy against duration (85 % at 15 s,
+95 % at 30 s, 98 % at 60 s). No measurement ever produced those numbers, and
+when the question was finally measured (issue #8, 2026-09-07) the premise
+failed: 30 s against 120 s on files with known provenance moved verdicts in
+both directions, about one in forty, and the readings that moved were the
+ones sitting on a 250 Hz cell boundary. A longer window reads different audio,
+not the same audio better. The engine's thresholds were tuned at 30 s and every
+published figure was taken there. Details and the per-corpus tables:
+`ml/exchange/SAMPLE_DURATION_MEASUREMENT_2026-09-07.md`.
 
 ### 3. Parallel Processing
 

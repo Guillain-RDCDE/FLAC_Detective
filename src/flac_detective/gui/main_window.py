@@ -9,6 +9,7 @@ The look is driven by :mod:`flac_detective.gui.style` — light, calm, spacious.
 
 from __future__ import annotations
 
+from html import escape
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
@@ -41,6 +42,7 @@ from PySide6.QtWidgets import (
 
 from ..__version__ import __version__
 from ..presentation import plain_explanation, verdict_plain
+from ..reporting.evidence import deciding_evidence
 from ..utils import find_flac_files, find_non_flac_audio_files
 from . import style
 
@@ -178,7 +180,16 @@ class MainWindow(QMainWindow):
         self._duration_spin.setRange(5.0, 120.0)
         self._duration_spin.setValue(30.0)
         self._duration_spin.setSuffix(" s")
-        self._duration_spin.setToolTip("Audio sampled per file. Higher = slower but more robust.")
+        # Not "higher = more robust": that claim was measured false on 2026-09-07
+        # (issue #8). A longer sample reads more of the track, not the same audio
+        # better, and a verdict that changes with this number is sitting on a
+        # reading boundary. Every published accuracy figure was taken at 30 s.
+        self._duration_spin.setToolTip(
+            "Seconds of audio read per window (three windows per file). "
+            "Every published figure was measured at 30 s. A longer sample reads "
+            "different audio, not the same audio better: if a verdict changes "
+            "with this number, the reading sits on a boundary."
+        )
         bar.addWidget(self._duration_spin)
 
         self._deep_check = QCheckBox("Deep scan")
@@ -583,8 +594,18 @@ class MainWindow(QMainWindow):
                 )
             return html
 
-        # Advanced mode: the hi-res note (if any) + the per-rule reasoning bullets.
+        # Advanced mode: which rule decided and on how many witnesses, then the
+        # hi-res note (if any), then the per-rule reasoning bullets.
+        #
+        # The "why" line came first to the text report (1.13.11, issue #7) and
+        # only here in 1.13.13, after issue #8's reporter looked at a `Fake 63`
+        # in this panel and had no way to see that one spectral reading was the
+        # whole case. The bullets below list every rule that spoke; this line
+        # says which ones carried the verdict, and whether they are independent.
         parts = []
+        why = deciding_evidence(r)
+        if why:
+            parts.append(f"<p style='margin:0 0 10px 0;'><b>Why:</b> {escape(why)}</p>")
         hires = r.get("hires_verdict", "")
         if hires and hires not in ("NOT_HIRES", "UNKNOWN") and r.get("hires_reason"):
             parts.append(

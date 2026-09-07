@@ -17,10 +17,10 @@ def example_custom_configuration():
     print("Example 1: Custom Configuration")
     print("=" * 70)
 
-    # Create analyzer with custom sample duration (faster analysis)
+    # Create analyzer with a shorter sample duration (faster; reads less of the file)
     analyzer = FLACAnalyzer(sample_duration=15.0)
 
-    print("Analyzing with 15-second sample (faster, less accurate)...")
+    print("Analyzing with 15-second windows (faster, reads less of the file)...")
     file_path = Path("path/to/your/file.flac")
 
     if file_path.exists():
@@ -29,10 +29,12 @@ def example_custom_configuration():
     else:
         print(f"File not found: {file_path}")
 
-    # Create analyzer with longer sample (more accurate)
-    analyzer_precise = FLACAnalyzer(sample_duration=60.0)
+    # The default (30 s) is the reading every published figure was measured at.
+    # A longer window is not more accurate: it reads different audio, and a
+    # verdict that changes with the number is sitting on a reading boundary.
+    analyzer_precise = FLACAnalyzer()
 
-    print("\nAnalyzing with 60-second sample (slower, more accurate)...")
+    print("\nAnalyzing with the default 30-second windows (the calibrated reading)...")
     if file_path.exists():
         result = analyzer_precise.analyze_file(file_path)
         print(f"Result: {result['verdict']} (Score: {result['score']})")
