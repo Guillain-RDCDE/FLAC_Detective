@@ -1,3 +1,65 @@
+## v1.13.12 (2026-09-07) — the same audio at any FLAC level, and the fixes that were never shipped
+
+Issue #8: a track stored at FLAC compression levels 0 to 3 scores 13, the same
+track at levels 4 to 8 scores 63 — AUTHENTIC against FAKE from bit-identical
+samples. Re-saving the level-8 file at level 0 brings the 13 back. The reporter
+did the control that rules out the encoder before anyone asked him to.
+
+He was on 1.13.8, and 1.13.8 is what PyPI had. The fix for this was written on
+2026-09-04 as part of issue #7 (1.13.10, one ruler for every container), and
+then 1.13.9, 1.13.10 and 1.13.11 sat on `main` for three days without a tag.
+Nothing a user could install carried them. This release exists first of all to
+ship them.
+
+### The defect, measured rather than inferred
+
+Issue #7 was the same fault seen from the container side: Rule 1 read the size
+of the FILE and called it the bitrate of the AUDIO. A FLAC's size is whatever its
+ripper's compression level made it, and the spread is not small. On 24
+exchange-set tracks encoded at all nine levels with flac 1.5.0, the file shrinks
+by **4.4 % to 19.3 % (mean 11.3 %) from level 0 to level 8**, most of it in one
+step where the encoder starts using linear prediction. Rule 1's windows are
+50 kbps wide. Whether a track lands inside one is then decided by the level.
+
+Run over those 216 files:
+
+| engine | tracks whose verdict moves with the level |
+|---|---|
+| 1.13.8 (what PyPI served) | **2 of 24** — `WARNING 46` → `FAKE_CERTAIN 96` and `AUTHENTIC 8` → `FAKE_CERTAIN 88`, both switching between level 2 and 3 |
+| this release | **0 of 24** — every track keeps its verdict and its score at all nine levels; the two that moved on 1.13.8 now read `FAKE_CERTAIN 66` and `FAKE_CERTAIN 58` whatever the level |
+
+Both tracks that moved are genuine MP3-192 transcodes, so on 1.13.8 the low
+levels were not merely inconsistent, they were acquitting fakes. (One other
+difference in that table is not this issue: an MP3-320 track that 1.13.8 called
+`FAKE_CERTAIN 80` reads `WARNING 50` here at every level, a shift that belongs
+to 1.13.9–1.13.11 and is recorded rather than hidden.) Which side of
+the reporter's 13/63 is right cannot be said without his file, and the reply on
+the issue does not pretend otherwise.
+
+### What is actually new in this release
+
+- **`tests/test_compression_level_independence.py`** pins the property from the
+  level side: the same samples at levels 0, 3, 5 and 8 must give the same
+  re-encoded size, verdict, score, cutoff and evidence families. The container
+  test from issue #7 could not have caught a regression here.
+- **`BitrateMetrics.variance` is `Optional[float]`.** 1.13.11 made the
+  variance rule return `None` when it had not measured, and left the type
+  saying `float`. The quality job had been red since that same commit — on a
+  black complaint about one test, which stopped the job before mypy could
+  report this — and the docs build broke on 2026-09-06 with the README
+  refactor (`REFERENCE.md` in no toctree, two links Sphinx cannot follow, two
+  pages ending on a rule). Every gate is green again, and this tag sits on a
+  green run, which the last three commits did not.
+
+### Not fixed here, on purpose
+
+The engine imports torch lazily when Rule 12 is reached. On one Windows machine
+with a broken torch install, that import is a hard segmentation fault that no
+`except` can catch — the process dies mid-scan. The tool cannot defend against a
+crashing DLL; it is noted so that the next person who sees a scan die exactly at
+its first non-trivial file knows where to look (`pip install --force-reinstall
+torch`, or uninstall it: the engine runs without the ML extra).
+
 ## v1.13.11 (2026-09-05) — the report says which rule decided, and two dead rules say they are dead
 
 Issue #7's reporter ran 1.13.10 over his own files and confirmed the container

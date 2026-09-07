@@ -15,7 +15,10 @@ class BitrateMetrics(NamedTuple):
 
     real_bitrate: float
     apparent_bitrate: int
-    variance: float
+    # None means "not measured": the segment-variance instrument is switched off
+    # until it is validated (see calculator.py), and Rules 5 and 6 already read
+    # None as "skip" rather than as a zero variance.
+    variance: Optional[float]
     # True when ``real_bitrate`` came from re-encoding the audio, and is therefore a
     # property of the SAMPLES. False when it is the size of the file on disk, which
     # is a property of the CONTAINER — the same audio then reads ~850 kbps as a FLAC

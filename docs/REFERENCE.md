@@ -1,6 +1,6 @@
 # FLAC_Detective — reference
 
-[← Back to the README](../README.md)
+[← Back to the README](https://github.com/Guillain-RDCDE/FLAC_Detective#readme)
 
 ---
 
@@ -55,7 +55,7 @@ the half of the design that held throughout. Every number here was pre-registere
 measurement and scored on hash-verified bytes; the remaining gap is real, measured, and
 being worked on rather than blurred.
 
-→ Every rule explained: **[Technical Details](../docs/technical-details.md)**.
+→ Every rule explained: **[Technical Details](technical-details.md)**.
 
 ---
 
@@ -79,7 +79,7 @@ per-rule reasoning. The desktop GUI has the same **Advanced** toggle.
 Analyses **FLAC, WAV, ALAC (`.m4a`) and APE (`.ape`)** — codec-agnostic, and a lossy `.m4a`
 is correctly rejected (the real codec is probed, never trusted by extension).
 
-→ Full guide & every flag: **[User Guide](../docs/user-guide.md)**.
+→ Full guide & every flag: **[User Guide](user-guide.md)**.
 
 ### 🖥️ Prefer a window to a command line?
 
@@ -158,7 +158,4 @@ false-positive audit over 11 234 real FLACs, four instructive dead-ends, a debun
 be an artifact of listening in **mono** — fixed by going **stereo**. Real-world specificity
 on 11 234 authentic FLACs climbed from **80 % to 95 %**.
 
-📖 **[Read the ML detective story →](../ml/README.md)**
-
----
-
+📖 **[Read the ML detective story →](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)**

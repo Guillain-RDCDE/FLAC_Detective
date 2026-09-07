@@ -339,9 +339,7 @@ class TestDeepMode:
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
     @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
-    def test_fast_path_skips_rule12_but_deep_runs_it(
-        self, mock_rule7, mock_real_bitrate, mock_r12
-    ):
+    def test_fast_path_skips_rule12_but_deep_runs_it(self, mock_rule7, mock_real_bitrate, mock_r12):
         """Default fast path skips Rule 12; --deep forces it on the same file."""
         mock_real_bitrate.return_value = 900  # healthy FLAC bitrate, no MP3 signature
         mock_rule7.return_value = (0, [], None)

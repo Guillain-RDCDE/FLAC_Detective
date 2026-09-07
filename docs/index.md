@@ -13,6 +13,7 @@ genuine vinyl rips, cassette transfers and quiet recordings from false alarms.
 start-here
 getting-started
 user-guide
+REFERENCE
 api-reference
 technical-details
 band-limited-stratum
@@ -82,6 +83,3 @@ The full story is in **[Start Here](start-here.md)** (the gentle version) and
 - **Security**: email guillain@poulpe.us (see [SECURITY.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/SECURITY.md))
 
 FLAC Detective is released under the MIT License.
-
----
-
