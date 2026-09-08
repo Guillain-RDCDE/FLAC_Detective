@@ -48,7 +48,7 @@ nothing, whatever it is named.
 
 The 30/08 repair narrowed the band so that one cell of wander no longer
 counted, on the argument that "two cells or more is movement the grid cannot
-manufacture". The grid cannot; the music can, and does. The 2004 test
+manufacture". The grid cannot; the music can, and does. The 30/08 test
 (`test_11d_real_wander_still_reads_as_flutter`) pinned that argument and is
 withdrawn with it.
 
@@ -118,3 +118,64 @@ population that broke it gets its own registration. A3 or A4 breached means
 the derivation is wrong and the repair is withdrawn until it is understood.
 
 Results are appended below, after the run, in a section dated after the fact.
+
+---
+
+# RESULTS — appended 2026-09-08, after the passes, criteria unedited above
+
+Before = worktree at `dd4445f` (1.13.13). After = the repaired tree. Both
+with the ML rule absent. Reports and scripts in `fd-issue8\dur\`
+(`r11d_bench.cmd`, `before_*`, `after_*`, `cmpdur.py`).
+
+## The criteria
+
+| # | criterion | bound | measured |
+|---|---|---|---|
+| A1 | genuine files newly convicted | 0 | **0** — 12 full-length genuine tracks at 30 s and at 120 s, 80 genuine 60 s excerpts at 30 s: no verdict moved |
+| A2 | genuine files newly signalled | 0 | **0** |
+| A3 | any verdict moving on a 60 s corpus | 0 | **0** — 80 genuine, 80 MP3-192 |
+| A4 | movers outside the {R11B, R11D}, no R11A, cutoff < 19 kHz, > 90 s profile | 0 | **0** — the only files whose report changed at all lost an R11D line and nothing else: `First Snow mp3_128` at 30 s (11D alone, 15 < 25, never decisive) and `Eve mp3_128` at 120 s (same) |
+| E1 | full-length transcodes acquitted by the cassette protection before, signalled after | reported | **0 of 24** — on this corpus the protection never fired before either |
+| E2 | full-length transcodes still acquitted after | reported | 6 of 24 at 30 s (`Eve 128`, `First Snow 128/192`, `Wolf Drawn 192`, `Lionheart 128/192`), none of them by Rule 11: Rule 1 was live and did not reach the score |
+
+So on every corpus this project owns, the repair changes **no verdict and no
+score**. That is the expected shape, not a disappointment: the population it
+removes an acquittal from is "roll-off read as natural + edge reading in
+different cells across the three windows", and LAME leaves a sharp wall, so
+its transcodes rarely present the first half. The reporter's file did, and it
+is the only member of the population anyone has produced. Three of the 24
+LAME-192 transcodes here (`Eve`, `With Rainy Eyes`, `Good Knight`) **do**
+carry 11B's "natural roll-off" +20; each of them was one wandering window
+away from the same acquittal, and at 120 s `Eve 192` does wander
+(readings 16,750 / 17,500 / 18,750 Hz). That is the exposure this repair
+closes, measured on our side as three files that could have flipped and
+did not happen to.
+
+## What the before-pass showed about the same statistic, outside this scope
+
+`Eve mp3_192` reads `FAKE_CERTAIN 56` at 30 s and `AUTHENTIC 16` at 120 s
+on 1.13.13, **and still does after this repair**: at 120 s its wander is
+~830 Hz, above 300, so 11D was never involved — it is **Rule 1's gate A**
+("skip on a variable spectrum", `cutoff_std > 130`) that acquits it. Gate A
+reads the same statistic this document has just shown to be distributed
+identically on genuine and transcoded material. It is left untouched here,
+as registered, and it gets its own registration: the question there is
+whether gate A protects any genuine population at all, which needs
+full-length genuine tracks with walls below 19 kHz, a corpus this project
+does not yet have.
+
+Also seen, and not chased: one genuine 60 s excerpt (`022-17 Michel Legrand`)
+read a cutoff of 21,750 Hz in yesterday's pass and 22,050 Hz in today's, on
+unchanged spectral code, same verdict (`AUTHENTIC 0`). Two further runs read
+22,050. A one-cell run-to-run difference on one file out of 160; recorded so
+that a later determinism check has a starting point.
+
+## Recall on full-length transcodes, recorded for the next registration
+
+The before-pass is the first time this engine has been run on full-length
+LAME transcodes with the ML rule absent. At 30 s: 8 of 24 `FAKE_CERTAIN`,
+4 `SUSPICIOUS`, 6 `WARNING`, **6 `AUTHENTIC`** — two of them 128 kbps files
+with a 16 kHz wall read as `AUTHENTIC 20`. That is not this document's
+subject and no number here is changed by it; it is written down because it
+was measured, and because a 128 kbps transcode reading as genuine is a
+larger defect than the one repaired above.

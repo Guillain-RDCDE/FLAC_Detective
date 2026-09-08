@@ -307,7 +307,15 @@ def _apply_scoring_rules(  # noqa: C901
                 f"CASSETTE DETECTED (evidence {context.cassette_score} >= {CASSETTE_THRESHOLD}). "
                 f"Disabling Rule 1 (MP3 Bitrate)."
             )
-            context.add_score(-40, ["R11: Authentic cassette audio source (bonus -40pts)"])
+            # Credited to Rule 11, not to the calculator: the -40 is Rule 11's
+            # verdict acted upon, and a "why" line reading "offset by
+            # _calculator -40" (issue #8's screenshot, 2026-09-08) names nothing.
+            previous_rule = context.active_rule
+            context.active_rule = rule11.name
+            try:
+                context.add_score(-40, ["R11: Authentic cassette audio source (bonus -40pts)"])
+            finally:
+                context.active_rule = previous_rule
 
             # Skip Rule 1
             fast_rules = [

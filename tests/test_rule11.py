@@ -97,14 +97,17 @@ def test_rule11_skipped_high_cutoff():
 
 
 def test_rule11_recognises_a_tape_profile(fake_audio):
-    """Hiss plus wow/flutter must read as cassette evidence, above the gate."""
+    """Tape hiss must read as cassette evidence, above the gate, on its own.
+
+    Until v1.13.14 this also asserted an R11D "wow/flutter" reason. That test
+    is gone (see below): hiss carries the profile by itself.
+    """
     fake_audio(_tape_like())
     score, reasons = apply_rule_11_cassette_detection(
         "dummy.flac", cutoff_freq=15000, cutoff_std=150, sample_rate=SR
     )
     assert score >= CASSETTE_THRESHOLD, f"tape profile scored {score}, reasons={reasons}"
     assert any("R11A" in r for r in reasons), reasons  # tape hiss
-    assert any("R11D" in r for r in reasons), reasons  # wow/flutter
 
 
 def test_rule11_rejects_a_digital_profile(fake_audio):
@@ -221,7 +224,9 @@ def test_11d_absence_and_stability_are_the_same_non_event(fake_audio):
         (False, True, 0.0, False),
         (True, False, 0.0, True),
         (True, True, 0.0, True),
-        (False, True, 204.12, True),  # real flutter: 20 + 15 = 35 >= 15
+        # v1.13.14: a wandering edge is no longer tape flutter. Roll-off alone
+        # stays at 20 < 25 whatever the wander; hiss still carries the gate.
+        (False, True, 204.12, False),  # was True until v1.13.13 (20 + 15 = 35)
         (True, True, 204.12, True),
     ],
 )
@@ -233,7 +238,8 @@ def test_11d_repair_preserves_the_shipped_gate_decision(
     Removing the -10 without raising the threshold was measured first and
     refused: 44 of 132 files lost their conviction against a registered bound of
     5 (ml/exchange/R11D_ABSENCE_REGISTRATION_2026-08-30.md). This table is the
-    pin for the version that shipped instead.
+    pin for the version that shipped instead — with one row changed in v1.13.14
+    when the +15 for a wandering edge was removed (R11D_REMOVAL_REGISTRATION).
     """
     fake_audio(_tape_like() if hiss else (_rolloff_only() if rolloff else _flat()))
     score, reasons = apply_rule_11_cassette_detection(
@@ -257,14 +263,67 @@ def test_11d_one_grid_cell_is_not_flutter(fake_audio):
     assert not any("R11D" in r for r in reasons), reasons
 
 
-@pytest.mark.parametrize("wander", [THREE_CELLS, TWO_CELLS_AWAY, 150.0])
-def test_11d_real_wander_still_reads_as_flutter(fake_audio, wander):
-    """Two cells or more is movement the grid cannot manufacture."""
-    fake_audio(_tape_like())
-    _, reasons = apply_rule_11_cassette_detection(
+def test_cassette_protection_is_credited_to_rule_11(monkeypatch):
+    """The -40 lands in score_breakdown under Rule 11, not under "_calculator".
+
+    Issue #8's reporter sent a screenshot whose Why line read "offset by
+    _calculator -40". The calculator applies the bonus on Rule 11's behalf, so
+    the attribution has to say Rule 11 — otherwise the one line meant to name
+    the deciding rule names an implementation detail.
+    """
+    from pathlib import Path
+    from unittest.mock import Mock
+
+    from flac_detective.analysis.new_scoring import calculator, strategies
+    from flac_detective.analysis.new_scoring.calculator import new_calculate_score
+
+    monkeypatch.setattr(
+        strategies, "apply_rule_11_cassette_detection", lambda *a, **k: (30, ["R11A: hiss"])
+    )
+    monkeypatch.setattr(strategies, "apply_rule_7_silence_analysis", lambda *a, **k: (0, [], None))
+    monkeypatch.setattr(calculator, "calculate_real_bitrate", lambda *a, **k: 600.0)
+    monkeypatch.setattr(calculator, "_ensure_audio", lambda context: None)
+
+    breakdown: dict = {}
+    score, _verdict, _conf, reason = new_calculate_score(
+        17250.0,
+        {"sample_rate": SR, "bit_depth": 16, "channels": 2, "duration": 180.0},
+        {"mismatch": None, "diff_ms": 0},
+        Mock(spec=Path),
+        breakdown_out=breakdown,
+    )
+
+    assert "R11: Authentic cassette audio source" in reason
+    assert breakdown.get("Rule11CassetteDetection") == -40, breakdown
+    assert "_calculator" not in breakdown, breakdown
+
+
+@pytest.mark.parametrize("wander", [0.0, ONE_CELL, 150.0, THREE_CELLS, TWO_CELLS_AWAY, 800.0])
+def test_11d_no_wander_is_flutter(fake_audio, wander):
+    """A 250 Hz grid read in three windows of different music cannot see tape flutter.
+
+    This replaces ``test_11d_real_wander_still_reads_as_flutter``, which pinned
+    "two cells or more is movement the grid cannot manufacture". The grid
+    cannot; the music can. The twelve-window probe of 2026-09-07 found the
+    per-window spread of the edge reading distributed identically on genuine
+    CD rips and on MP3-192 transcodes, and issue #8's reporter watched a
+    full-length pop track go from AUTHENTIC 0 to FAKE 63 on nothing but this
+    +15 lapsing when the windows overlapped. Whatever the wander, 11D now adds
+    nothing: roll-off alone must stay under the gate, and hiss alone must
+    still clear it (ml/exchange/R11D_REMOVAL_REGISTRATION_2026-09-08.md).
+    """
+    fake_audio(_rolloff_only())
+    score_rolloff, reasons = apply_rule_11_cassette_detection(
         "dummy.flac", cutoff_freq=15000, cutoff_std=wander, sample_rate=SR
     )
-    assert any("R11D" in r and "wow/flutter" in r for r in reasons), reasons
+    assert not any("R11D" in r for r in reasons), reasons
+    assert score_rolloff < CASSETTE_THRESHOLD, (score_rolloff, reasons)
+
+    fake_audio(_tape_like())
+    score_hiss, _ = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=15000, cutoff_std=wander, sample_rate=SR
+    )
+    assert score_hiss >= CASSETTE_THRESHOLD
 
 
 @pytest.mark.parametrize("wander", [0.0, ONE_CELL, THREE_CELLS, TWO_CELLS_AWAY, float("nan")])

@@ -9,7 +9,6 @@ import soundfile as sf
 from scipy import signal
 
 from ..audio_loader import load_audio_segment
-from ..constants import CUTOFF_VARIANCE_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
@@ -199,18 +198,37 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         #     of 15 and collecting -40 with Rule 1 disabled. The phantom had
         #     been absorbed into the calibration. A constant belongs in the
         #     gate, not in a reading that was never taken.
+        #
+        # REMOVED in v1.13.14 (ml/exchange/R11D_REMOVAL_REGISTRATION_2026-09-08.md).
+        # The band above kept a +15 for a wander of two cells or more, on the
+        # argument that "two cells is movement the grid cannot manufacture". The
+        # grid cannot; the music can. Wow and flutter are a few tenths of a
+        # percent of frequency modulation at 0.5-10 Hz — tens of hertz at a
+        # 17 kHz edge, at a rate three windows a minute apart cannot resolve,
+        # on a 250 Hz grid. What this test actually read was "did the
+        # edge-finder land in different cells in three windows of different
+        # music", and the twelve-window probe of 2026-09-07 found that
+        # statistic distributed identically on genuine CD rips and on MP3-192
+        # transcodes. Issue #8's reporter saw the consequence on a full-length
+        # pop track: at 30 s the three readings differed by two cells, 11D
+        # called it tape flutter, 11B's roll-off plus this +15 cleared the
+        # cassette gate, the file collected -40 with Rule 1 disabled and read
+        # AUTHENTIC 0; at 120 s the windows overlapped, the wander read 0, and
+        # the same file read FAKE 63 on two evidence families. The sample
+        # length had not touched the reading; it had touched this statistic.
+        #
+        # Every measurement corpus this project owns is in 60 s excerpts, one
+        # window each, NaN wander — so no corpus ever exercised this branch.
+        # It is deleted, not retuned: there is no wander band on this grid that
+        # means "tape". The wander is still logged; Rule 1's gate A reads the
+        # same statistic for a different purpose and is untouched.
         if math.isnan(cutoff_std):
             logger.debug("RULE 11D: cutoff wander not computable (single window) - no contribution")
-        elif CUTOFF_VARIANCE_THRESHOLD < cutoff_std < 300:
-            cassette_score += 15
-            reasons.append(
-                f"R11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter) (likely cassette)"
-            )
-            logger.info(f"RULE 11D: Natural cutoff variation ({cutoff_std:.0f} Hz, wow/flutter)")
         else:
-            # A stable cutoff (0-130 Hz, i.e. up to one grid cell of wander) and
-            # anything at or above 300: measured, and evidence of nothing.
-            logger.debug(f"RULE 11D: wander {cutoff_std:.0f} Hz reads as neither - Neutral")
+            logger.debug(
+                f"RULE 11D: wander {cutoff_std:.0f} Hz logged, no contribution "
+                "(removed in v1.13.14: a 250 Hz grid cannot read wow/flutter)"
+            )
 
     except Exception as e:
         logger.error(f"RULE 11: Analysis error: {e}")

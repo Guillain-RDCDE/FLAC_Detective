@@ -1,3 +1,49 @@
+## v1.13.14 (2026-09-08) — a 250 Hz grid cannot hear wow and flutter
+
+Issue #8, third round. The reporter sent the two screenshots asked of him,
+and they showed that the previous release's explanation of his file was
+wrong. Both runs read the same cutoff, `17.2 kHz`. The reading had never
+moved. What differed was a cassette rule: at 30 s the three spectral windows
+landed in cells two apart, TEST 11D read that 236 Hz of wander as "natural
+cutoff variation (wow/flutter)" and added +15 to 11B's roll-off +20, the
+cassette gate (25) opened, the file collected −40 with Rule 1 disabled, and
+read `Authentic 0`. At 120 s the windows overlapped, the wander read 0, and
+the same file read `Fake 63` on two evidence families.
+
+### 11D is removed, not retuned
+
+Wow and flutter are a few tenths of a percent of frequency modulation at
+0.5–10 Hz: tens of hertz at a 17 kHz edge, at a rate three windows a minute
+apart cannot resolve, on a 250 Hz grid. What 11D actually read was "did the
+edge-finder land in different cells in three windows of different music",
+and the twelve-window probe of the previous release found that statistic
+distributed identically on genuine CD rips and on MP3-192 transcodes. The
+30/08 repair had kept the +15 for two cells or more on the argument that the
+grid cannot manufacture two cells. The grid cannot; the music can.
+
+Registered before measuring, population derived from the weights: only
+files whose cassette evidence is roll-off plus wander, with no tape hiss,
+lose the protection — and only tracks longer than 90 s, because a shorter
+file has one window and no wander at all. **Every measurement corpus this
+project owns is in 60 s excerpts, so none of them had ever exercised this
+test.** Twelve full-length album tracks were transcoded at 192 and 128 kbps
+to build one that does. Measured before and after, at 30 s and 120 s, on
+those 24 plus the 12 genuine originals plus 160 excerpts: **no verdict and
+no score moves**, two files lose an `R11D` line. Three of the LAME-192
+transcodes carry 11B's "natural roll-off" +20 and were one wandering window
+away from the reporter's acquittal. Full tables and two observations left
+for their own registrations (Rule 1's gate A reads the same statistic and
+acquits `Eve 192` at 120 s; six of 24 full-length LAME transcodes read
+`AUTHENTIC` at 30 s): `ml/exchange/R11D_REMOVAL_REGISTRATION_2026-09-08.md`.
+
+### Also from his screenshot
+
+- The `Why:` line read "offset by _calculator −40". The cassette bonus is now
+  credited to `Rule11CassetteDetection` in `score_breakdown`, so the line
+  names the rule. `tests/test_rule11.py` pins both changes, and both new
+  tests were run against the 1.13.13 tree first to check that they fail
+  there.
+
 ## v1.13.13 (2026-09-07) — a longer sample is a different sample, not a better one
 
 Issue #8, second question. With 1.13.12 confirmed on his side, the reporter
