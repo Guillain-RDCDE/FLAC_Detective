@@ -133,7 +133,11 @@ class FlacDetectivePlugin(BeetsPlugin):
         counts: Dict[str, int] = {}
         analysed = 0
 
-        for item in lib.items(ui.decargs(args)):
+        # No ``ui.decargs``: on Python 3 beets hands the query as str already,
+        # the helper has been an identity function deprecated since beets 2.4
+        # (removed in 3.0), and 2.14.0 typed it bytes -> bytes, which turned it
+        # into a mypy failure on 2026-09-08 in a file nobody had touched.
+        for item in lib.items(args):
             if not is_analysable(item.format):
                 continue
             result = self._analyse_item(analyzer, item)

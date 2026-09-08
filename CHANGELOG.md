@@ -44,6 +44,13 @@ acquits `Eve 192` at 120 s; six of 24 full-length LAME transcodes read
   tests were run against the 1.13.13 tree first to check that they fail
   there.
 
+### On `main` after the tag
+
+- The beets plugin no longer calls `ui.decargs`. beets 2.14.0 (released
+  2026-09-07) typed that deprecated identity helper `bytes -> bytes`, and the
+  CI's mypy job went red on a line nobody had touched. On Python 3 the query
+  arrives as `str`; it is passed straight to `lib.items`. No behaviour change.
+
 ## v1.13.13 (2026-09-07) — a longer sample is a different sample, not a better one
 
 Issue #8, second question. With 1.13.12 confirmed on his side, the reporter
