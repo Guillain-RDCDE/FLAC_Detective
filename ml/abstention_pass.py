@@ -93,7 +93,7 @@ def assessability(path: Path) -> Dict[str, object]:
     from flac_detective.analysis.spectrum import analyze_spectrum
 
     info = sf.info(str(path))
-    cutoff, _energy, _std, _floor = analyze_spectrum(path)
+    cutoff, _energy, _std, _floor, _step = analyze_spectrum(path)
     cutoff_known = cutoff is not None and not math.isnan(float(cutoff)) and float(cutoff) > 0
     data, _rate = sf.read(str(path), dtype="float32", frames=int((info.samplerate or 0) * 30) or -1)
     rms = float(np.sqrt(np.mean(np.asarray(data, dtype=np.float64) ** 2))) if data.size else 0.0

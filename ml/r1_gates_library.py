@@ -85,7 +85,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 info = sf.info(str(path))
                 seconds = info.frames / info.samplerate
                 kbps = path.stat().st_size * 8.0 / seconds / 1000.0
-                cutoff, energy, std, resid = analyze_spectrum(path)
+                cutoff, energy, std, resid, _step = analyze_spectrum(path)
             except Exception:
                 continue
             row = {

@@ -44,6 +44,7 @@ def _calculate_bitrate_metrics(
     measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
     cutoff_freq: float = 0.0,
     cutoff_std: float = float("nan"),
+    edge_step_db: float = float("nan"),
 ) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
@@ -73,13 +74,15 @@ def _calculate_bitrate_metrics(
             decision lives HERE rather than in the caller so that it reads the same
             ``sample_rate`` and ``cutoff_std`` the rule will read; deriving them
             twice is how a gate stops mirroring the thing it gates.
-        cutoff_freq, cutoff_std: passed to that decision.
+        cutoff_freq, cutoff_std, edge_step_db: passed to that decision.
 
     Returns:
         BitrateMetrics containing all calculated bitrate values
     """
     if compressed_size_bytes is None and measure_compressed_size is not None:
-        if rule1_may_consult_container(cutoff_freq, audio_meta.sample_rate, cutoff_std):
+        if rule1_may_consult_container(
+            cutoff_freq, audio_meta.sample_rate, cutoff_std, edge_step_db
+        ):
             compressed_size_bytes = measure_compressed_size()
         else:
             logger.debug(
@@ -546,6 +549,7 @@ def new_calculate_score(
     measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
     deep: bool = False,
     residual_floor_db: float = float("nan"),
+    edge_step_db: float = float("nan"),
     breakdown_out: Optional[Dict[str, int]] = None,
     witnesses_out: Optional[Set[str]] = None,
 ) -> Tuple[int, str, str, str]:
@@ -574,6 +578,9 @@ def new_calculate_score(
             catches silent-heuristic AAC/Vorbis transcodes). See the ``--deep`` flag.
         residual_floor_db: Spectral floor above the ~20.5 kHz wall (NaN = unknown).
             Drives Rule 1's near-Nyquist 320 kbps wall-hardness gate.
+        edge_step_db: How far the spectrum falls across the detected edge, in dB
+            over 500 Hz (NaN = no edge found). Drives Rule 1's gate D: an edge
+            that does not step is a slope, and a slope is not an MP3 signature.
         witnesses_out: Optional set, updated in place with the families that
             testify WITHOUT scoring (Rule 14). A points breakdown cannot carry
             them — that is the whole reason they exist — so callers that need to
@@ -622,6 +629,7 @@ def new_calculate_score(
             measure_compressed_size=measure_compressed_size,
             cutoff_freq=cutoff_freq,
             cutoff_std=cutoff_std,
+            edge_step_db=edge_step_db,
         )
 
         # Initialize Context
@@ -633,6 +641,7 @@ def new_calculate_score(
             cutoff_std=cutoff_std,
             energy_ratio=energy_ratio,
             residual_floor_db=residual_floor_db,
+            edge_step_db=edge_step_db,
             cache=cache,  # Pass shared cache to context
         )
 

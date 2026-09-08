@@ -77,7 +77,7 @@ def read_one(path: Path, corpus: str, label: str) -> Optional[dict]:
     from flac_detective.analysis.spectrum import analyze_spectrum
 
     try:
-        cutoff, _energy, std, _resid = analyze_spectrum(path)
+        cutoff, _energy, std, _resid, _step = analyze_spectrum(path)
         rate = sf.info(str(path)).samplerate
     except Exception as exc:
         print(f"  LECTURE ECHOUEE {path.name}: {exc}", flush=True)

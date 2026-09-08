@@ -52,6 +52,9 @@ class ScoringContext:
     # Residual spectral floor above the ~20.5 kHz wall (NaN = unknown / not in the
     # near-Nyquist 320 kbps zone). Drives Rule 1's wall-hardness gate.
     residual_floor_db: float = float("nan")
+    # How far the spectrum falls across the detected edge (dB over 500 Hz), NaN
+    # when no edge was found. Drives Rule 1's gate D: a slope is not a wall.
+    edge_step_db: float = float("nan")
 
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None

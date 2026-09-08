@@ -48,7 +48,7 @@ import math
 from typing import List, Optional, Tuple
 
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
-from ..constants import CUTOFF_VARIANCE_THRESHOLD
+from ..constants import CUTOFF_VARIANCE_THRESHOLD, WALL_GATE_MAX_HZ, WALL_MIN_STEP_DB
 
 logger = logging.getLogger(__name__)
 
@@ -74,12 +74,30 @@ NEARNYQ_FLOOR_DB = -55.0
 HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
 
 
+def edge_is_a_slope(edge_step_db: float, cutoff_freq: float) -> bool:
+    """True when the edge is below the 320 cell, measured, and falls less than a wall.
+
+    NaN (no edge found, or no reading) is NOT a slope: an unknown step lets Rule
+    1 through, the way an unknown wander does at gate A. A measured 0.0 is a
+    reading — the spectrum did not fall at all across the reported edge — and
+    it is the flattest slope there is. From ``WALL_GATE_MAX_HZ`` up the gate
+    abstains: there the step separates nothing (see the constant) and the
+    residual-floor gate of the 320 branch reads depth instead.
+    """
+    if cutoff_freq >= WALL_GATE_MAX_HZ:
+        return False
+    return (not math.isnan(edge_step_db)) and edge_step_db < WALL_MIN_STEP_DB
+
+
 def rule1_may_consult_container(
-    cutoff_freq: float, sample_rate: int = 44100, cutoff_std: float = float("nan")
+    cutoff_freq: float,
+    sample_rate: int = 44100,
+    cutoff_std: float = float("nan"),
+    edge_step_db: float = float("nan"),
 ) -> bool:
     """True if Rule 1 can still reach its container-bitrate test at this cutoff.
 
-    A mirror of the three safety checks below, hoisted so the analyzer can know —
+    A mirror of the four safety checks below, hoisted so the analyzer can know —
     BEFORE scoring — whether the compression ratio will be looked at at all.
 
     It exists to price a fix, not to change a verdict. Sizing the audio by
@@ -100,6 +118,8 @@ def rule1_may_consult_container(
         return False
     if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
         return False
+    if edge_is_a_slope(edge_step_db, cutoff_freq):
+        return False
     return estimate_mp3_bitrate(cutoff_freq) != 0
 
 
@@ -110,6 +130,7 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     sample_rate: int = 44100,
     energy_ratio: float = 0.0,
     residual_floor_db: float = float("nan"),
+    edge_step_db: float = float("nan"),
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -129,6 +150,9 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         residual_floor_db: Spectral floor above the ~20.5 kHz wall in dB (NaN =
             unknown). Gates the near-Nyquist 320 kbps branch; NaN falls back to the
             legacy cutoff-only behaviour.
+        edge_step_db: How far the spectrum falls across the detected edge, in dB
+            over two 250 Hz cells (NaN = no edge found / not measured). Gate D:
+            below ``WALL_MIN_STEP_DB`` the edge is a slope and the rule exits.
 
     Returns:
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
@@ -245,6 +269,29 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
         logger.debug(
             f"RULE 1: Skipped (cutoff std {cutoff_std:.1f} > {CUTOFF_VARIANCE_THRESHOLD}, variable spectrum)"
+        )
+        return (score, reasons), None
+
+    # Safety check 4: a slope is not a wall — GATE D, added in v1.13.15.
+    # detect_cutoff reports WHERE the spectrum first sits 30 dB under the
+    # reference. On a codec low-pass that place is a wall: the level falls
+    # 20-40 dB inside 500 Hz. On a master rolled off gently (issue #8, fourth
+    # round: two rips of one track, both falling ~6 dB/kHz from 12 to 19 kHz)
+    # the same scan reports 17,250 Hz and the table below turns that POSITION
+    # into a "192 kbps signature". The position cannot tell the two apart; the
+    # step across it can. Unknown (NaN) passes, like an unknown wander at gate A.
+    # Reads edges below the 320 cell only: up there the step separates nothing
+    # (V0 low-passes and genuine anti-alias roll-offs are both soft) and the
+    # residual-floor gate below already reads the wall's depth.
+    if edge_is_a_slope(edge_step_db, cutoff_freq):
+        logger.info(
+            f"RULE 1: Skipped (spectrum falls {edge_step_db:.1f} dB across the edge at "
+            f"{cutoff_freq:.0f} Hz, under the {WALL_MIN_STEP_DB:.0f} dB a wall leaves: "
+            f"a slope is not an MP3 signature)"
+        )
+        reasons.append(
+            f"R1: edge at {cutoff_freq:.0f} Hz falls only {edge_step_db:.0f} dB over 500 Hz "
+            f"— a roll-off, not a codec wall; no MP3 signature read"
         )
         return (score, reasons), None
 

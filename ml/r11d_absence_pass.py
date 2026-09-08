@@ -72,7 +72,7 @@ def read_one(path: Path, corpus: str, label: str, analyzer) -> Optional[Dict[str
     if result.get("verdict") == "ERROR":
         return None
     try:
-        cutoff, _energy, std, _resid = analyze_spectrum(path)
+        cutoff, _energy, std, _resid, _step = analyze_spectrum(path)
     except Exception:
         cutoff, std = float("nan"), float("nan")
 

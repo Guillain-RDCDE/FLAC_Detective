@@ -340,6 +340,25 @@ File with 19200 Hz cutoff:
 → +50 points
 ```
 
+**Gate D — a slope is not a wall (v1.13.15).** The cutoff detector answers
+*where* the spectrum first sits 30 dB under the 10-14 kHz reference. On a
+codec low-pass that place is a wall: the level falls 20-40 dB inside 500 Hz.
+On a master that was rolled off gently — issue #8, fourth round: two rips of
+one track, both falling about 6 dB/kHz from 12 to 19 kHz — the same scan
+reports 17,250 Hz and the table above turns that *position* into a "192 kbps
+signature". The position cannot tell the two apart; the step across it can.
+`analyze_spectrum` now also reports `edge_step_db`, the largest fall over two
+adjacent 250 Hz cells within four cells of the edge, read on the window that
+produced the cutoff. Under `WALL_MIN_STEP_DB` (12 dB) the edge is a slope and
+Rule 1 exits with a reason line; a NaN (no edge found) passes, like an unknown
+wander at gate A. Full-length LAME transcodes read 19-51 dB there; the
+reporter's two files read 4.5 and 6.2 dB. The gate reads edges below the
+320 kbps cell only (`WALL_GATE_MAX_HZ`, 19,500 Hz): from there up a LAME V0
+low-pass and a genuine anti-alias roll-off are both soft steps, so the step
+separates nothing, and the 320 branch already decides on the wall's depth
+(the residual floor). The gate can only withhold the +50, never add it.
+Measured in `ml/exchange/WALL_GATE_REGISTRATION_2026-09-08.md`.
+
 ---
 
 ### Rule 2: Cutoff Frequency vs Nyquist Threshold

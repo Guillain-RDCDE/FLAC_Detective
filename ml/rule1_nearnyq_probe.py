@@ -96,7 +96,7 @@ def collect(pattern: str, limit: int) -> list:
     rows = []
     for path in sorted(glob.glob(pattern))[:limit]:
         try:
-            cutoff, energy_ratio, std, residual = analyze_spectrum(Path(path), 30)
+            cutoff, energy_ratio, std, residual, _step = analyze_spectrum(Path(path), 30)
         except Exception:
             continue
         if cutoff is None:
@@ -136,7 +136,7 @@ for name, (pattern, limit) in ARMS.items():
     rows = []
     for path in paths:
         try:
-            cutoff, energy_ratio, std, residual = analyze_spectrum(Path(path), 30)
+            cutoff, energy_ratio, std, residual, _step = analyze_spectrum(Path(path), 30)
         except Exception:
             continue
         if cutoff is None:

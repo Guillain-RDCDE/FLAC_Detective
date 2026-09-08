@@ -96,6 +96,40 @@ CASSETTE_THRESHOLD = 25
 # "wow/flutter".
 CUTOFF_VARIANCE_THRESHOLD = 130.0
 
+# Rule 1's gate D (v1.13.15): the smallest fall across the detected edge, over
+# two adjacent 250 Hz cells, that still counts as a WALL. Below it the edge is a
+# slope, and Rule 1 does not turn its position into an MP3 signature.
+#
+# Why a bar is needed at all: Rule 1 maps WHERE the spectrum first sits 30 dB
+# under the reference to an MP3 bitrate. Issue #8, fourth round, brought two
+# rips of the same track from two compilations, both rolling off ~6 dB/kHz from
+# 12 to 19 kHz — a mastering low-pass, no wall anywhere — and both read a
+# "192 kbps signature" at 17,250 Hz. The engine then convicted one and cleared
+# the other on the container window (735 vs 762 kbps, either side of 750). A
+# slope is the sound of the master; a codec leaves a step.
+#
+# Where the bar sits, and on what: measured with ml/edge_step_probe.py on the
+# window that produced the cutoff (the same reading spectrum.edge_step_db
+# ships). See ml/exchange/WALL_GATE_REGISTRATION_2026-09-08.md for the
+# distributions and the criteria that were fixed before the after-pass ran.
+# The reporter's two files read 4-6 dB; LAME walls on full-length tracks read
+# 19-51 dB; LAME 128/192 excerpts p10 = 20-23 dB, 1 file of 150 under 12.
+WALL_MIN_STEP_DB = 12.0
+
+# Gate D reads edges BELOW the 320 kbps cell only. Measured 2026-09-08 on the
+# same probe: in the near-Nyquist zone (19.5-21.5 kHz) a LAME V0 low-pass is
+# a soft step — 20 of 41 V0 edges read under 12 dB — and so is a genuine
+# anti-alias roll-off (10 of 12 genuine edges there read under 12 dB). Both
+# populations sit on both sides of any step bar, so the step is not a
+# discriminator there and the gate abstains. That cell has its own hardness
+# instrument already, the residual floor (NEARNYQ_FLOOR_DB), which reads depth
+# rather than steepness and was calibrated for exactly that overlap. Below the
+# cell, the sub-320 signatures had no hardness instrument at all — the
+# container window was their only guard — and there a slope under 12 dB is a
+# mastering roll-off on every genuine file measured. Derived from the table,
+# not copied, so the two cannot drift apart.
+WALL_GATE_MAX_HZ = float(next(lo for br, lo, _hi in MP3_SIGNATURES if br == 320))
+
 # Variance threshold for authenticity (kbps)
 VARIANCE_THRESHOLD = 100
 

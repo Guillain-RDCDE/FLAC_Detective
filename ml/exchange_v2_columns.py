@@ -70,7 +70,7 @@ def engine_and_measurements(path: Path, analyzer) -> Optional[dict]:
     if result.get("verdict") == "ERROR":
         return None
     try:
-        cutoff, energy, std, resid = analyze_spectrum(path)
+        cutoff, energy, std, resid, _step = analyze_spectrum(path)
     except Exception:
         cutoff, energy, std, resid = float("nan"), float("nan"), float("nan"), float("nan")
     try:

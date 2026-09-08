@@ -166,8 +166,8 @@ class FLACAnalyzer:
             duration_check = check_duration_consistency(temp_path, metadata)
 
             # Spectral analysis (OPTIMIZED: uses cache -> points to TEMP)
-            cutoff_freq, energy_ratio, cutoff_std, residual_floor_db = analyze_spectrum(
-                temp_path, self.sample_duration, cache=cache
+            cutoff_freq, energy_ratio, cutoff_std, residual_floor_db, edge_step_db = (
+                analyze_spectrum(temp_path, self.sample_duration, cache=cache)
             )
 
             # Audio quality analysis (OPTIMIZED: uses cache -> points to TEMP)
@@ -240,6 +240,7 @@ class FLACAnalyzer:
                 measure_compressed_size=partial(flac_equivalent_size, temp_path),
                 deep=self.deep,
                 residual_floor_db=residual_floor_db,
+                edge_step_db=edge_step_db,
                 breakdown_out=score_breakdown,
                 witnesses_out=witness_families,
             )
