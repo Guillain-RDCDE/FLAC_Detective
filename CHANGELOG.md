@@ -1,3 +1,71 @@
+## v1.13.15 (2026-09-08) — a slope is not a wall
+
+Issue #8, fourth round. The reporter sent two rips of the same track from
+two compilations, one ripped by his brother-in-law and read `Fake 63`, one
+ripped by him and read `Authentic 13`. Aligned, they are two masterings of
+one recording (0.3 s apart, 0.34 dB apart, a flat −33 dB residual in every
+band). Above 10 kHz they have the same shape within a dB: a roll-off of
+about 6 dB/kHz from 12 to 19 kHz, no wall anywhere. Both read a cutoff of
+17,250 Hz, both were handed a "192 kbps signature", and the verdict was then
+decided by their FLAC-equivalent bitrate — 735 kbps inside the 500–750
+container window, 762 outside it. Same reading, two verdicts, on 27 kbps of
+file size.
+
+### Gate D: the step across the edge, not its position
+
+The cutoff detector answers WHERE the spectrum first sits 30 dB under the
+reference. On a codec low-pass that place is a wall — the level falls 20–40 dB
+inside 500 Hz. On a gently rolled-off master the same scan reports a position
+too, and Rule 1's table turned it into a bitrate. The position cannot tell a
+slope from a wall; the size of the step across it can. `analyze_spectrum` now
+also reports `edge_step_db`, the largest fall over two adjacent 250 Hz cells
+within four cells of the edge, read on the window that produced the cutoff,
+and Rule 1 exits below 12 dB with the reason "a roll-off, not a codec wall".
+The transition width the project already had could not do this: it searches
+forward from the reported edge, and on a slope that is already 30 dB down
+when the scan notices it, it reads 0 Hz — a perfect wall — on his file.
+
+Bar and zone were set on `ml/edge_step_probe.py` before the engine ran:
+full-length LAME transcodes read 19–51 dB across the edge, the LAME 128 and
+192 excerpt arms have p10 above 19 dB, the reporter's two files read 4.5 and
+6.2 dB. The gate reads edges below the 320 kbps cell only: up there a LAME V0
+low-pass and a genuine anti-alias roll-off are both soft steps, the step
+separates nothing, and the 320 branch already decides on the wall's depth.
+The gate can only withhold the +50, never add a point.
+
+### Measured before and after, on the criteria registered first
+
+Before = 1.13.14, after = this tree, same files, same order, verdict and
+score per file. Two rips of the reporter's track at 30 s and 120 s, 12
+genuine full-length tracks and their 24 LAME transcodes at both durations,
+and the 80-file audit arms `authentic`, `mp3_128`, `mp3_192`, `mp3_320`,
+`mp3_V0` at 30 s. **Five files move, all toward acquittal, all carrying
+Rule 1's +50 before and the gate's reason after, all below 19.5 kHz, all
+reading under 12 dB**: his brother-in-law's rip (FAKE_CERTAIN 63 →
+AUTHENTIC 13, and now the same as his own rip at every duration); one
+genuine file that had been SUSPICIOUS 61 on a slope at 17,750 Hz; the
+320 kbps transcode of that same genuine track, whose conviction rested on
+the very reading that had convicted the original; and two V0 transcodes of
+sources that roll off by themselves, WARNING 53 and 38, one family. Nothing
+moves on `mp3_128` (14 convictions kept), `mp3_192` (28 kept), the 24
+full-length transcodes (8 kept at both durations) or the 12 genuine tracks.
+One registered bound was breached and is reported as such: I had registered
+0 movers on the V0 arm on the argument that its soft edges all sat in the
+near-Nyquist zone, while my own table showed four below it. The zone did not
+leak — both V0 movers sit below it — the bound was mis-derived, and the loss
+is two WARNINGs of 80. `ml/exchange/WALL_GATE_REGISTRATION_2026-09-08.md`
+carries the tables, the v2 answer-key cross-check and the named files.
+
+### What is not repaired, and said so
+
+The container window is a cliff, and two rips of one track can straddle it.
+Behind gate D it can only acquit a steep-wall transcode whose FLAC size falls
+outside the window; it can no longer convict a slope. Removing it would need
+an instrument that separates a genuine steep wall from a codec one, and the
+step does not (both read 27–42 dB on the audit set). Registered as a
+remaining defect in `ml/exchange/WALL_GATE_REGISTRATION_2026-09-08.md`, with
+the two other observations from this round.
+
 ## v1.13.14 (2026-09-08) — a 250 Hz grid cannot hear wow and flutter
 
 Issue #8, third round. The reporter sent the two screenshots asked of him,

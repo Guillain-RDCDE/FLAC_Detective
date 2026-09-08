@@ -165,4 +165,83 @@ against the named files before shipping, and the loss is reported either way.
   family cleared. Not a defect of this repair; noted because the reporter's
   two files differ on it (2.3 vs 1.0 bins).
 
+## The instrument on the v2 answer key (appended before the after-pass, instrument only)
+
+Same probe, same setting, on the 590 files of the blind v2 set with its
+labels (59 per arm, 60 s excerpts). Edges counted per zone:
+
+| v2 arm | edges < 19.5 kHz | of which step < 12 dB | edges 19.5–21.5 kHz | of which step < 12 dB |
+|---|---|---|---|---|
+| genuine | 9 | **4** | 10 | **8** |
+| mp3_192 | 56 | 1 | 0 | 0 |
+| mp3_320 | 13 | 5 | 43 | 3 |
+| mp3_V0 | 18 | 4 | 15 | 9 |
+| aac_ff128 | 56 | 1 | 0 | 0 |
+| aac_ff256 | 8 | 4 | 6 | 3 |
+| aac_ff320 | 9 | 4 | 7 | 5 |
+| aacmf_256 | 22 | 6 | 11 | 5 |
+| opus_256 | 10 | 4 | 46 | 2 |
+| vorbis_q8 | 15 | 9 | 21 | 13 |
+
+The picture holds on an independent set: below the 320 cell the CBR MP3 and
+AAC-128 walls are steps (1 of 56 under the bar on each), the genuine edges
+there are slopes 4 times out of 9, and in the near-Nyquist zone genuine
+roll-offs read soft 8 times out of 10 — the zone where the gate abstains.
+What the v2 table adds: transcodes of already band-limited sources (this set
+is largely live recordings) read a slope below 19.5 kHz on the 320 / V0 / AAC
+arms, 4–6 per arm, and Vorbis q8 low-passes are soft (9 of 15). Those are
+recall the gate gives up where Rule 1 was reading the source's own roll-off,
+and they are counted by E1–E4 on the audit arms rather than assumed away.
+
 Results are appended below, after the run, in a section dated after the fact.
+
+---
+
+## RESULTS — appended 2026-09-08 after the after-pass
+
+Before = 1.13.14 (worktree `fd-v11314`, `844e329`), after = the repaired
+tree at `8f9d93d` plus the zone constant. Same files, same order, `--workers 2`,
+torch shimmed out on both sides (the CI configuration). Diff by
+`fd-issue8/wall/cmp.py`, verdict and score per file.
+
+| run | files | signalled before → after | convicted before → after | movers |
+|---|---|---|---|---|
+| reporter's files, 30 s | 2 | 0 → 0 | 0 → 0 | 0 |
+| reporter's files, 120 s | 2 | 1 → 0 | 1 → 0 | **1** (his brother-in-law's rip: FAKE_CERTAIN 63 → AUTHENTIC 13) |
+| 12 genuine full-length, 30 s / 120 s | 12 | 0 → 0 | 0 → 0 | 0 |
+| 24 LAME full-length, 30 s | 24 | 18 → 18 | 8 → 8 | 0 |
+| 24 LAME full-length, 120 s | 24 | 20 → 20 | 8 → 8 | 0 |
+| audit authentic | 80 | 3 → 2 | 0 → 0 | **1** (Black Truth Rhythm Band: SUSPICIOUS 61 → AUTHENTIC 11) |
+| audit mp3_128 | 80 | 22 → 22 | 14 → 14 | 0 |
+| audit mp3_192 | 80 | 30 → 30 | 28 → 28 | 0 |
+| audit mp3_320 | 80 | 37 → 36 | 1 → 0 | **1** (Black Truth Rhythm Band: FAKE_CERTAIN 63 → AUTHENTIC 13) |
+| audit mp3_V0 | 80 | 6 → 4 | 0 → 0 | **2** (The Mebusas: WARNING 53 → AUTHENTIC 3; Jon Hassell: WARNING 38 → AUTHENTIC 8) |
+
+Every one of the five movers moves toward acquittal, carried Rule 1's +50
+before, carries the gate D reason after, sits below 19,500 Hz (17,250,
+17,750, 17,250, 19,250, 18,250) and reads under 12 dB (6.2, 3.2, 6.5, 8.0,
+3.3). No file moves the other way, no score rises anywhere.
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | genuine newly convicted | 0 | **0 — held** |
+| A2 | genuine newly signalled | 0 | **0 — held** |
+| A3 | every mover fits the derived profile | all | **5 of 5 — held** |
+| P1 | reporter's two files agree with each other and across durations | — | **AUTHENTIC 13, all four readings — held** |
+| P2 | genuine cleared | reported | **1 of 80**: Black Truth Rhythm Band, a slope at 17,750 Hz (3.2 dB) that Rule 1 had read as a 224 kbps signature, one family, SUSPICIOUS 61 |
+| E1 | mp3_128 lost | ≤ 1 | **0 — held** |
+| E2 | mp3_192 lost | ≤ 3 | **0 — held** |
+| E3 | mp3_320 lost | ≤ 4 | **1 — held**, and it is the transcode of the same Black Truth track: the 320 wall sits above the master's own roll-off, the scan found the roll-off (6.5 dB at 17,250 Hz), and the +50 that convicted it was the same reading that had convicted the genuine file. Rule 1 was measuring the source on both. |
+| E4 | mp3_V0 lost | 0 | **2 — BREACHED as registered.** Both movers sit BELOW the zone limit (19,250 and 18,250 Hz), so the zone did not leak: the bound was mis-derived. The instrument table above already listed four V0 edges under 12 dB below 19,500 Hz, and I registered 0 against my own table. Re-examined per the clause: both are V0 transcodes of sources that roll off by themselves (the genuine Mebusas reads a 9.2 dB slope at 19,500 Hz; Jon Hassell's genuine file has no edge in a cell at all, and its V2 transcode reads a 4.7 dB slope too), both were WARNING on one spectral family (Mebusas 53 with stereo and temporal witnesses that did not corroborate a conviction; Hassell 38), neither was a conviction. The gate did what it is for: it withheld a +50 that read the master's roll-off. The zone stays; the bound is corrected to "reported" and the loss is 2 WARNINGs of 80. |
+| E5 | full-length LAME lost | 0 | **0 at both durations — held** |
+
+**Ships in 1.13.15.** The net effect on the labelled sets: one genuine file
+un-signalled, one 320 kbps and two V0 transcodes of already band-limited
+sources un-signalled (one of them a conviction that rested on the same
+reading that had convicted the genuine track), nothing else moved on 384
+excerpt files and 36 full-length tracks, and the reporter's two rips read
+the same, at every duration.
+
+The full suite (712 passed, 88 skipped on this workstation, torch shimmed
+out) and the four lint gates were green before the commit; the new tests
+fail on the 1.13.14 tree (no `edge_step_db`, no `edge_step_db=` parameter).
