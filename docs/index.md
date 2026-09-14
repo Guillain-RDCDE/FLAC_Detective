@@ -78,7 +78,6 @@ The full story is in **[Start Here](start-here.md)** (the gentle version) and
 - **GitHub**: <https://github.com/Guillain-RDCDE/FLAC_Detective>
 - **PyPI**: <https://pypi.org/project/flac-detective/>
 - **Issues**: <https://github.com/Guillain-RDCDE/FLAC_Detective/issues>
-- **Discussions**: <https://github.com/Guillain-RDCDE/FLAC_Detective/discussions>
 - **Contributing**: [CONTRIBUTING.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/CONTRIBUTING.md)
 - **Security**: email guillain@poulpe.us (see [SECURITY.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/.github/SECURITY.md))
 

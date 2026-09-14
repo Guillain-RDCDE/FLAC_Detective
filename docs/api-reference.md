@@ -701,4 +701,4 @@ if __name__ == '__main__':
 
 ---
 
-For questions or issues, visit [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions).
+For questions or issues, visit [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues).

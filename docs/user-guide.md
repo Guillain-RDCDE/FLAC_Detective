@@ -620,4 +620,4 @@ flac-detective ~/Music --format json | jq -r '.files[] | select(.score <= 30) | 
 
 ---
 
-**Happy analyzing!** For questions, visit [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions).
+**Happy analyzing!** For questions, visit [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues).

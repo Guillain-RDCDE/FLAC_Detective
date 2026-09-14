@@ -380,7 +380,6 @@ Now that you've completed your first analysis:
 
 ## Getting Help
 
-- **Questions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
 - **Bug reports**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - **Documentation**: [Documentation Index](index.md)
 

@@ -47,7 +47,7 @@ The scan only **reads** your files — it never changes anything.
 - 📖 **[Full documentation site](https://guillain-rdcde.github.io/FLAC_Detective/)** — getting started, user guide, technical details, API
 - 🚀 **[Getting Started](docs/getting-started.md)** — install, first analysis, accuracy & file-safety notes
 - 📋 **[Changelog](CHANGELOG.md)** · 🤝 **[Contributing](.github/CONTRIBUTING.md)** · 🔒 **[Security](.github/SECURITY.md)**
-- 💬 **[Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)** · **[Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)**
+- 💬 **[Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)**
 
 ---
 

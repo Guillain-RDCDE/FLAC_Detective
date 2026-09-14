@@ -223,7 +223,6 @@ authentic = [r for r in results if r['verdict'] == 'AUTHENTIC']
 - **User Guide**: [docs/user-guide.md](../docs/user-guide.md)
 - **API Reference**: [docs/api-reference.md](../docs/api-reference.md)
 - **Issues**: [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
 
 ## Contributing
 

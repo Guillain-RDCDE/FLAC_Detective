@@ -574,7 +574,7 @@ python -m cProfile -o profile.stats your_script.py
 
 - Read this guide thoroughly
 - Check existing issues and PRs
-- Ask in [GitHub Discussions](https://github.com/Guillain-RDCDE/FLAC_Detective/discussions)
+- Ask in [GitHub Issues](https://github.com/Guillain-RDCDE/FLAC_Detective/issues)
 - Contact maintainers
 
 **Development questions?**
