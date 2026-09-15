@@ -230,3 +230,36 @@ on `mp3_320` + `mp3_V0` is a transcode with floor ≤ −58 dB, listed by name.
 
 The `after1_*` folders are the record of the failed first pass; the second
 pass writes `after2_*`.
+
+---
+
+## AMENDMENT 2 — 2026-09-15, after the second after-pass, before the third
+
+The second after-pass met A1, A2, P1, P2, E1 and E4 (numbers in the RESULTS
+section), and **A3 was breached by two movers at exactly 19,500 Hz**: the
+320 kbps and V0 transcodes of one track (Simo Moumen — Samsara), AUTHENTIC 2
+→ WARNING 32 on both arms, floor ≤ −58, depth reason — transcodes, correctly
+read, but outside the registered profile "cutoff < 19,500 Hz".
+
+The cause is mine and it is a derivation error of the same kind as E4 on
+2026-09-08: the instrument table above was computed on edges **below 19,500
+Hz** (the gate D zone), so the "0 of 155 genuine" claim holds there and
+nowhere else, while the code applied the bar wherever the instrument had a
+reading — up to ~19.9 kHz. The genuine population between 19.5 and 19.9 kHz
+was never measured against the bar. A gate that reads outside the zone its
+bar was derived on is not the gate that was registered.
+
+### The amended repair
+
+`floor_is_digital_silence` takes the cutoff and returns False from
+`WALL_GATE_MAX_HZ` (19,500 Hz) up — the same zone as gate D, derived from the
+same constant. From the 320 cell up the near-Nyquist residual floor remains
+the only depth instrument, as before.
+
+This can only remove +50s relative to the second pass, so every arm with 0
+movers in `after2_*` has 0 movers under the amended code by construction,
+and every mover below 19,500 Hz is unchanged. The third pass (`after3_*`)
+re-runs the two arms that carried a mover at 19,500 Hz, `mp3_320` and
+`mp3_V0`; the rest of the second pass stands as the measurement of the
+amended code. A3's profile is unchanged; the two Samsara movers are expected
+to revert to AUTHENTIC 2 and are reported as recall the zone gives up.
