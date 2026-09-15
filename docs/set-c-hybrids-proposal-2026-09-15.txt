@@ -1,0 +1,65 @@
+Set C — what the answer key says about hybrids (proposal, 2026-09-15)
+
+A hybrid is a lossless master that was never encoded as a whole, but carries
+one or more lossy-sourced components: a drum hit from a sample pack shipped
+as MP3, a vocal lifted from a video, a stem bounced through a codec before
+the mix. The container is lossless, the mix was never transcoded, and yet a
+band of the spectrum, or a few seconds of it, carries codec scars.
+
+Why the key has to say something before anyone scores
+
+Both engines will fire on some hybrids and stay silent on others. If the key
+labels a hybrid "genuine", every hit is charged as a false positive for
+something that really is lossy. If it labels it "lossy-sourced", every miss
+is charged as a false negative for a file whose master was never encoded.
+Either way the false-positive figure stops measuring what it claims to
+measure, and the two engines are compared on a definition neither was built
+for. The crash909 pack in the Squad-E drive, if it is in as many UK hardcore
+releases as it looks, makes this the common case in one whole genre, not an
+edge case.
+
+What is proposed
+
+1. Three labels in the Set C key, not two: GENUINE (no lossy material
+   anywhere), TRANSCODED (the whole programme passed through a codec), and
+   HYBRID (a lossless master containing lossy-sourced material). A verdict is
+   still never a label; the key is what the builder knows about how the file
+   was made.
+
+2. A hybrid is scored on its own line. Neither a hit nor a miss on a HYBRID
+   file counts toward the false-positive rate or the recall of the other two
+   classes. The numbers we publish are precision and recall on GENUINE vs
+   TRANSCODED; the HYBRID line is reported separately, as "how many of the N
+   hybrids did each engine flag, and on what evidence".
+
+3. Set C carries a small HYBRID arm on purpose, built rather than found:
+   genuine masters with one known lossy sample mixed in at a known level and
+   a known time, so the key can say where the lossy material is. Found
+   hybrids (a commercial release suspected of carrying the pack) stay out of
+   the denominator until the sample is matched in it by a method that does
+   not depend on either engine — correlation against the known sample, not a
+   separated stem. A neural separator leaves its own scars, and measuring
+   codec traces in a Demucs output measures Demucs.
+
+4. The builder of a HYBRID file declares what is lossy in it (the sample, its
+   bitrate, the passages where it plays nearly alone). That is answer-key
+   material, sealed with the rest before scoring, released with it after.
+
+5. Nothing changes for the band-limited stratum, the free-format arms, the
+   two AAC encoders or the low-bitrate arms; the hybrid arm is additional and
+   small (a dozen files is enough for a first line, it is not a calibration
+   set).
+
+What it costs each side
+
+Provir: the Heartbeatz question. If the pack is in it and Provir fires on it,
+that file moves from the lawful control pool to the HYBRID line and the
+current false-positive figure is recomputed without it. Reported either way.
+
+FLAC Detective: the same. Our verdict on a hybrid is "lossy-sourced" today
+and that word is wrong for it; a third word ("contains lossy material",
+with the evidence pointing at the band or the passage) is engine work that
+comes after the key exists, not before.
+
+Sequence: agree the three labels, then Provir builds the stratum and the
+hybrid arm, then both keys are sealed, then anyone scores.

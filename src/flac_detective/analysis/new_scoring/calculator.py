@@ -45,6 +45,7 @@ def _calculate_bitrate_metrics(
     cutoff_freq: float = 0.0,
     cutoff_std: float = float("nan"),
     edge_step_db: float = float("nan"),
+    floor_above_db: float = float("nan"),
 ) -> BitrateMetrics:
     """Calculate all bitrate-related metrics.
 
@@ -74,14 +75,14 @@ def _calculate_bitrate_metrics(
             decision lives HERE rather than in the caller so that it reads the same
             ``sample_rate`` and ``cutoff_std`` the rule will read; deriving them
             twice is how a gate stops mirroring the thing it gates.
-        cutoff_freq, cutoff_std, edge_step_db: passed to that decision.
+        cutoff_freq, cutoff_std, edge_step_db, floor_above_db: passed to that decision.
 
     Returns:
         BitrateMetrics containing all calculated bitrate values
     """
     if compressed_size_bytes is None and measure_compressed_size is not None:
         if rule1_may_consult_container(
-            cutoff_freq, audio_meta.sample_rate, cutoff_std, edge_step_db
+            cutoff_freq, audio_meta.sample_rate, cutoff_std, edge_step_db, floor_above_db
         ):
             compressed_size_bytes = measure_compressed_size()
         else:
@@ -550,6 +551,7 @@ def new_calculate_score(
     deep: bool = False,
     residual_floor_db: float = float("nan"),
     edge_step_db: float = float("nan"),
+    floor_above_db: float = float("nan"),
     breakdown_out: Optional[Dict[str, int]] = None,
     witnesses_out: Optional[Set[str]] = None,
 ) -> Tuple[int, str, str, str]:
@@ -581,6 +583,10 @@ def new_calculate_score(
         edge_step_db: How far the spectrum falls across the detected edge, in dB
             over 500 Hz (NaN = no edge found). Drives Rule 1's gate D: an edge
             that does not step is a slope, and a slope is not an MP3 signature.
+        floor_above_db: What is left above the detected edge, in dB relative to
+            the reference (NaN = unknown). Drives Rule 1's depth gate: digital
+            silence above the edge is a codec low-pass, whatever the step reads
+            and whatever the container says.
         witnesses_out: Optional set, updated in place with the families that
             testify WITHOUT scoring (Rule 14). A points breakdown cannot carry
             them — that is the whole reason they exist — so callers that need to
@@ -630,6 +636,7 @@ def new_calculate_score(
             cutoff_freq=cutoff_freq,
             cutoff_std=cutoff_std,
             edge_step_db=edge_step_db,
+            floor_above_db=floor_above_db,
         )
 
         # Initialize Context
@@ -642,6 +649,7 @@ def new_calculate_score(
             energy_ratio=energy_ratio,
             residual_floor_db=residual_floor_db,
             edge_step_db=edge_step_db,
+            floor_above_db=floor_above_db,
             cache=cache,  # Pass shared cache to context
         )
 

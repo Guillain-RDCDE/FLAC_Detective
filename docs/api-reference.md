@@ -105,12 +105,15 @@ analyzer = FLACAnalyzer(sample_duration=15.0)
 analyze_file(filepath: str | Path) -> dict
 ```
 
-Analyzes a single lossless audio file. Despite the name, it handles **FLAC, WAV, ALAC
-(`.m4a`) and APE (`.ape`)** — ALAC/APE are decoded via ffmpeg (a lossy `.m4a` is rejected,
-not analysed). The argument accepts a **`str` or a `pathlib.Path`** (since v1.0.1).
+Analyzes a single lossless audio file. Despite the name, it handles **FLAC, WAV, AIFF,
+ALAC (`.m4a`), APE (`.ape`)**, and lossless audio inside the archival video containers
+(LPCM in `.mxf`/`.mov`, PCM or FLAC in `.mkv`/`.mka`, TrueHD, DTS-HD MA) — everything
+but FLAC/WAV/AIFF is demuxed and decoded via ffmpeg (a lossy stream, such as an AAC
+`.m4a` or an AC-3 `.mkv`, is rejected, not analysed). The argument accepts a **`str` or a
+`pathlib.Path`** (since v1.0.1).
 
 **Parameters**:
-- `filepath` (`str | Path`): Path to a FLAC / WAV / ALAC / APE file
+- `filepath` (`str | Path`): Path to a FLAC / WAV / AIFF / ALAC / APE file, or a video container holding lossless audio
 
 **Returns**: Dictionary with analysis results (see [Result Objects](#result-objects))
 

@@ -69,6 +69,7 @@ class Rule1MP3Bitrate(ScoringRule):
             context.energy_ratio,
             residual_floor_db=context.residual_floor_db,
             edge_step_db=context.edge_step_db,
+            floor_above_db=context.floor_above_db,
         )
         context.add_score(score, reasons)
         context.mp3_bitrate_detected = estimated_bitrate

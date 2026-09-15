@@ -41,9 +41,9 @@ from PySide6.QtWidgets import (
 )
 
 from ..__version__ import __version__
+from ..analysis.audio_formats import NATIVE_SUFFIXES, PROBE_SUFFIXES, discover_audio_files
 from ..presentation import plain_explanation, verdict_plain
 from ..reporting.evidence import deciding_evidence
-from ..utils import find_flac_files, find_non_flac_audio_files
 from . import style
 
 if TYPE_CHECKING:  # imported lazily at runtime (heavy scipy / matplotlib imports)
@@ -56,8 +56,10 @@ if TYPE_CHECKING:  # imported lazily at runtime (heavy scipy / matplotlib import
 # window itself near-instant to show; the cost is paid on first analyse/select,
 # where a short wait reads as work, not as a slow launch.
 
-# Lossless extensions the GUI will pick up from a dropped/selected folder.
-_AUDIO_GLOB_EXTS = (".flac", ".wav", ".m4a", ".ape")
+# Extensions the GUI accepts as a dropped/selected FILE: the native formats and
+# every probe-able container (a lossy one is then reported, not analysed). The
+# same sets the CLI reads, so the two front ends cannot drift apart.
+_AUDIO_GLOB_EXTS = tuple(sorted(NATIVE_SUFFIXES | PROBE_SUFFIXES))
 
 _HIRES_LABEL = {
     "UPSAMPLED": "Upsampled",
@@ -374,9 +376,12 @@ class MainWindow(QMainWindow):
                 if target.suffix.lower() in _AUDIO_GLOB_EXTS:
                     files.append(target)
             elif target.is_dir():
-                files.extend(find_flac_files(target))
-                files.extend(sorted(target.rglob("*.wav")))
-                files.extend(find_non_flac_audio_files(target))
+                # One walk, every format the CLI would take from the same folder
+                # (an .aiff or a Matroska preservation master included), and the
+                # lossy files after them so they are reported as rejects.
+                analysable, rejects = discover_audio_files(target)
+                files.extend(analysable)
+                files.extend(rejects)
         # De-duplicate, preserve order.
         seen, unique = set(), []
         for f in files:

@@ -48,7 +48,12 @@ import math
 from typing import List, Optional, Tuple
 
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
-from ..constants import CUTOFF_VARIANCE_THRESHOLD, WALL_GATE_MAX_HZ, WALL_MIN_STEP_DB
+from ..constants import (
+    CUTOFF_VARIANCE_THRESHOLD,
+    DEEP_FLOOR_DB,
+    WALL_GATE_MAX_HZ,
+    WALL_MIN_STEP_DB,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +79,27 @@ NEARNYQ_FLOOR_DB = -55.0
 HIGH_QUALITY_CUTOFF_THRESHOLD = 21500
 
 
-def edge_is_a_slope(edge_step_db: float, cutoff_freq: float) -> bool:
+def floor_is_digital_silence(floor_above_db: float, cutoff_freq: float = 0.0) -> bool:
+    """True when the band above the edge sits at or under ``DEEP_FLOOR_DB``.
+
+    NaN (no edge, or too few cells above it) is NOT silence: an unknown floor
+    changes nothing, the way an unknown step leaves gate D alone.
+
+    Below the 320 cell only: the bar was derived from edges under
+    ``WALL_GATE_MAX_HZ`` (the same zone as gate D), and the genuine
+    population between 19.5 and 19.9 kHz was never measured against it. The
+    second after-pass moved two transcodes at exactly 19,500 Hz, outside the
+    registered profile; the code now reads the zone the table was read on.
+    From the 320 cell up, the near-Nyquist residual floor is the instrument.
+    """
+    if cutoff_freq >= WALL_GATE_MAX_HZ:
+        return False
+    return (not math.isnan(floor_above_db)) and floor_above_db <= DEEP_FLOOR_DB
+
+
+def edge_is_a_slope(
+    edge_step_db: float, cutoff_freq: float, floor_above_db: float = float("nan")
+) -> bool:
     """True when the edge is below the 320 cell, measured, and falls less than a wall.
 
     NaN (no edge found, or no reading) is NOT a slope: an unknown step lets Rule
@@ -83,8 +108,15 @@ def edge_is_a_slope(edge_step_db: float, cutoff_freq: float) -> bool:
     it is the flattest slope there is. From ``WALL_GATE_MAX_HZ`` up the gate
     abstains: there the step separates nothing (see the constant) and the
     residual-floor gate of the 320 branch reads depth instead.
+
+    The step yields to depth (v1.13.16): a soft edge over digital silence is a
+    codec low-pass with a gentle filter, not a mastering roll-off — a roll-off
+    keeps falling into an analogue or dither floor. When ``floor_above_db`` is
+    at or under ``DEEP_FLOOR_DB`` the edge is not a slope, whatever the step.
     """
     if cutoff_freq >= WALL_GATE_MAX_HZ:
+        return False
+    if floor_is_digital_silence(floor_above_db, cutoff_freq):
         return False
     return (not math.isnan(edge_step_db)) and edge_step_db < WALL_MIN_STEP_DB
 
@@ -94,6 +126,7 @@ def rule1_may_consult_container(
     sample_rate: int = 44100,
     cutoff_std: float = float("nan"),
     edge_step_db: float = float("nan"),
+    floor_above_db: float = float("nan"),
 ) -> bool:
     """True if Rule 1 can still reach its container-bitrate test at this cutoff.
 
@@ -118,7 +151,7 @@ def rule1_may_consult_container(
         return False
     if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
         return False
-    if edge_is_a_slope(edge_step_db, cutoff_freq):
+    if edge_is_a_slope(edge_step_db, cutoff_freq, floor_above_db):
         return False
     return estimate_mp3_bitrate(cutoff_freq) != 0
 
@@ -131,6 +164,7 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     energy_ratio: float = 0.0,
     residual_floor_db: float = float("nan"),
     edge_step_db: float = float("nan"),
+    floor_above_db: float = float("nan"),
 ) -> Tuple[Tuple[int, List[str]], Optional[int]]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
@@ -153,6 +187,12 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         edge_step_db: How far the spectrum falls across the detected edge, in dB
             over two 250 Hz cells (NaN = no edge found / not measured). Gate D:
             below ``WALL_MIN_STEP_DB`` the edge is a slope and the rule exits.
+        floor_above_db: What is left above the edge — the median level of the
+            band from (cutoff + 1 kHz) to 0.993 x Nyquist, relative to the
+            reference (NaN = no edge / band too narrow). Depth gate: at or
+            under ``DEEP_FLOOR_DB`` the band is digital silence, so gate D does
+            not read the edge as a slope and an uncompressed container is
+            accepted as if its bitrate were informative.
 
     Returns:
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
@@ -283,7 +323,12 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     # Reads edges below the 320 cell only: up there the step separates nothing
     # (V0 low-passes and genuine anti-alias roll-offs are both soft) and the
     # residual-floor gate below already reads the wall's depth.
-    if edge_is_a_slope(edge_step_db, cutoff_freq):
+    #
+    # The step yields to depth (depth gate, v1.13.16): a soft edge over digital
+    # silence is a codec low-pass with a gentle filter — two Beatport AIFFs at
+    # 16 kHz read 7.7 and 8.8 dB across the edge and -63 / -65 dB above it,
+    # where issue #8's genuine roll-offs keep an analogue floor at -41 / -44.
+    if edge_is_a_slope(edge_step_db, cutoff_freq, floor_above_db):
         logger.info(
             f"RULE 1: Skipped (spectrum falls {edge_step_db:.1f} dB across the edge at "
             f"{cutoff_freq:.0f} Hz, under the {WALL_MIN_STEP_DB:.0f} dB a wall leaves: "
@@ -294,6 +339,18 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
             f"— a roll-off, not a codec wall; no MP3 signature read"
         )
         return (score, reasons), None
+    soft_edge_over_silence = (
+        cutoff_freq < WALL_GATE_MAX_HZ
+        and (not math.isnan(edge_step_db))
+        and edge_step_db < WALL_MIN_STEP_DB
+        and floor_is_digital_silence(floor_above_db, cutoff_freq)
+    )
+    if soft_edge_over_silence:
+        logger.info(
+            f"RULE 1: edge at {cutoff_freq:.0f} Hz falls only {edge_step_db:.1f} dB over 500 Hz "
+            f"but the band above it sits at {floor_above_db:.1f} dB (<= {DEEP_FLOOR_DB:.0f}): "
+            f"digital silence, a codec low-pass with a soft filter — the step yields to depth"
+        )
 
     estimated_bitrate = estimate_mp3_bitrate(cutoff_freq)
 
@@ -348,14 +405,34 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         # tier: 15/34 instead of 26/34; G2's registered >= 20 was MISSED and is
         # reported as such). Widening the residual computation window is v1.13
         # material, registered separately. FLAC windows unchanged.
+        #
+        # Since the one-ruler repair (issue #7) every container is sized by
+        # re-encoding its audio to FLAC, so nothing reads at PCM level any more
+        # and this branch is inert. Kept: it is NaN-safe, it documents the
+        # v1.12 mechanism, and a caller that supplies an on-disk bitrate
+        # still gets the guarded behaviour.
         pcm_level = 0.90 * (sample_rate * 32.0 / 1000.0)
         wall_proved_depth = (not math.isnan(residual_floor_db)) and (
             residual_floor_db <= NEARNYQ_FLOOR_DB
         )
         container_uninformative = container_bitrate >= pcm_level and wall_proved_depth
 
+        # DEPTH GATE, v1.13.16: the container window yields to depth. The window
+        # is calibrated on the FLAC size of decoded MP3s of typical music, and a
+        # loud, dense master sits outside it whatever its history — the two
+        # Beatport AIFFs with a 16 kHz ceiling compress to 776 and 848 kbps
+        # against a 160 kbps window of 450-650 (the container-window cliff of
+        # the WALL_GATE registration, seen from the other side). What is left
+        # above the edge is a fact about the audio, not about its loudness:
+        # at or under DEEP_FLOOR_DB the band is digital silence, the edge is a
+        # codec low-pass, and the window is not consulted. Shallow or unknown,
+        # the window decides exactly as before. Measured 2026-09-15: 0 of 155
+        # genuine files read a floor at or under the bar below the 320 cell.
+        # See ml/exchange/DEPTH_GATE_REGISTRATION_2026-09-15.md (amendment).
+        depth_proven = floor_is_digital_silence(floor_above_db, cutoff_freq)
+
         # Le bitrate conteneur est-il dans la plage attendue ?
-        if container_uninformative or (min_br <= container_bitrate <= max_br):
+        if container_uninformative or depth_proven or (min_br <= container_bitrate <= max_br):
             # Near-Nyquist 320 kbps wall-hardness gate. The cutoff alone cannot tell a
             # 320k brickwall from an authentic band-limited rolloff here; the residual
             # floor can. NaN (unknown / not in the near-Nyquist zone) -> legacy +50.
@@ -377,9 +454,26 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
 
             score += 50
             reasons.append(f"Constant MP3 bitrate detected (Spectral): {estimated_bitrate} kbps")
+            if depth_proven:
+                # Say which instrument decided: the reader of a "why:" line has
+                # to be able to check it, and the step or the container window
+                # alone would have cleared this file. "digital silence" is the
+                # token the bench diff keys on.
+                reasons.append(
+                    f"R1: the band above {cutoff_freq:.0f} Hz sits at {floor_above_db:.0f} dB "
+                    f"— digital silence, the mark of a codec low-pass"
+                )
+            in_window = min_br <= container_bitrate <= max_br
             logger.info(
                 f"RULE 1: +50 points (cutoff {cutoff_freq:.0f} Hz ~= {estimated_bitrate} kbps MP3, "
-                f"container {container_bitrate:.0f} kbps in range {min_br}-{max_br})"
+                f"container {container_bitrate:.0f} kbps "
+                + (f"in range {min_br}-{max_br}" if in_window else f"outside {min_br}-{max_br}")
+                + (
+                    f"; accepted on depth, floor above the edge {floor_above_db:.1f} dB"
+                    if depth_proven and not in_window
+                    else ""
+                )
+                + ")"
             )
             return (score, reasons), estimated_bitrate
         else:

@@ -1,0 +1,21 @@
+Hey Jamie,
+
+Extension lead heaven, I know it well :)
+
+Got the folder, thanks. Ran FD on it, and here's the honest result first: 1.13.15 clears all seven. Your two Hein AIFFs read a ceiling at 16 kHz, the CD track 12 reads 20.5 kHz, your vinyl rips 20.75 and 21 kHz, and FD still said authentic on the Beatport ones. Same verdict in the version before gate D, so it wasn't the new gate.
+
+What held the door, measured rather than guessed: two locks. Gate D read the Beatport edge as a slope (7.7 and 8.8 dB over 500 Hz, under the 12 dB bar), and once that was fixed, the container window read their FLAC-equivalent size (776 and 848 kbps, loud dense masters) as outside the 160 kbps cell. Neither lock looks at what is LEFT above the edge, and that is the whole story: your two files sit at -63 and -65 dB above 16 kHz, digital silence, where a real mastering roll-off keeps an analogue floor around -40 to -45 (the issue #8 rips read -41 and -44). So there is a new instrument, the floor above the edge, and below 19.5 kHz a floor at or under -58 dB now settles it: the step yields, the container window yields. Zero of 155 genuine files read under that bar; the deepest genuine hard wall sits at -55.2. Registered before measuring, as usual; results in the repo with the named files. Both AIFFs now convict.
+
+Curious what Provir says on the three AIFFs. Hashes below so we're talking about the same bytes:
+
+  08e2df194c28dc55f6d0235c1644b0e5ec635dda30ab6e1dd90a05882006b54b  DJ Hein - Energetic Rhythm (Original Mix).aiff
+  cafb83b3f2214ed66adce946d97fe182813d232acdfb184437fc16f1adb920d9  DJ Hein - Energetic Rhythm (Donkey Rollers Remix).aiff
+  92ab0893d04a9c695cba61b806b37c691c514fcf43f80f8b7dc517beda0950d7  11 Johan Gielen, Svenson & Gielen - Twisted (Original Mix).aiff
+
+Twisted is the one I can't call: 20.25 kHz edge, floor -50 in a two-cell band, near-Nyquist zone where the old instrument rules. If Provir catches it, that's a second class worth a look.
+
+Two small things. The Recorded 2 rip is a rutracker one (DrStandBy, 2010, EAC log clean, AccurateRip on all 16), great for A/B, not owner-ripped, so not for the pool. And a folder scan was skipping .aiff files entirely (three AIFFs in a folder gave me a four-file report), fixed in the same release.
+
+And the neighbours say thanks for the Uluru.
+
+Guillain

@@ -179,13 +179,13 @@ class TestAnalyzeSpectrumCarriesTheStep:
             tmp_path / "slope.flac",
             lambda f: 0.0 if f < 12000 else -(f - 12000) / 1000.0 * 6.0,
         )
-        cutoff, energy, std, floor, step = analyze_spectrum(path, 30.0)
+        cutoff, energy, std, floor, step, _above = analyze_spectrum(path, 30.0)
         assert 16000.0 <= cutoff <= 18000.0  # 30 dB down is reached near 17 kHz
         assert not math.isnan(step)
         assert step < WALL_MIN_STEP_DB
 
     def test_the_step_of_a_synthetic_wall(self, tmp_path):
         path = _shaped_noise(tmp_path / "wall.flac", lambda f: 0.0 if f < 16000 else -60.0)
-        cutoff, energy, std, floor, step = analyze_spectrum(path, 30.0)
+        cutoff, energy, std, floor, step, _above = analyze_spectrum(path, 30.0)
         assert 15500.0 <= cutoff <= 16500.0
         assert step >= WALL_MIN_STEP_DB

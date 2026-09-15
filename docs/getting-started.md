@@ -16,11 +16,15 @@ This guide will help you install and run your first FLAC analysis in minutes.
 - **Python**: 3.10 or higher
 - **Operating System**: Windows, macOS, or Linux
 
-### Required for ALAC / APE
-- **ffmpeg**: needed **only** to analyse ALAC (`.m4a`) and APE (`.ape`) files — these are
-  decoded to PCM via ffmpeg. **FLAC and WAV never need it.** If you only ever scan
-  FLAC/WAV, you can skip this; if you point the tool at an ALAC/APE file without ffmpeg
-  installed, that file is skipped with a clear message (everything else still works).
+### Required for ALAC / APE and the archival video containers
+- **ffmpeg**: needed **only** to analyse ALAC (`.m4a`), APE (`.ape`), and lossless audio
+  carried inside a video container — LPCM in MXF or QuickTime (`.mxf`, `.mov`), PCM or
+  FLAC in Matroska (`.mkv`, `.mka`, the FFV1 preservation-master kind), TrueHD and
+  DTS-HD MA next to a remux. These are demuxed and decoded to PCM via ffmpeg; the lossy
+  streams the same containers carry (AC-3, AAC, a DTS core) are rejected, not analysed.
+  **FLAC, WAV and AIFF never need it.** If you only ever scan those, you can skip this;
+  if you point the tool at an ffmpeg-only file without ffmpeg installed, that file is
+  skipped with a clear message (everything else still works).
   - Linux: `sudo apt-get install ffmpeg`
   - macOS: `brew install ffmpeg`
   - Windows: `winget install ffmpeg` (or download from [ffmpeg.org](https://ffmpeg.org/download.html) and add it to your `PATH`)
@@ -170,7 +174,7 @@ docker run --rm -v "C:\Users\YourName\Music":/data ghcr.io/guillain-rdcde/flac_d
 
 When you run FLAC Detective, it will:
 
-1. **Scan** for all lossless audio files recursively (`.flac`, `.wav`, and `.m4a`/`.ape` when ffmpeg is installed)
+1. **Scan** for all lossless audio files recursively (`.flac`, `.wav`, `.aiff`; and `.m4a`/`.ape`/`.mkv`/`.mka`/`.mov`/`.mxf` holding lossless audio, when ffmpeg is installed)
 2. **Analyze** each file using 11 detection rules (plus an optional 12th CNN rule with `pip install "flac-detective[ml]"`)
 3. **Display** progress with a real-time progress bar
 4. **Generate** a detailed report

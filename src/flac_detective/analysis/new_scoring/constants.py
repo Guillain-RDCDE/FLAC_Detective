@@ -130,6 +130,28 @@ WALL_MIN_STEP_DB = 12.0
 # not copied, so the two cannot drift apart.
 WALL_GATE_MAX_HZ = float(next(lo for br, lo, _hi in MP3_SIGNATURES if br == 320))
 
+# Rule 1's depth gate (v1.13.16): the floor above the detected edge, at or under
+# which the band is digital silence and the edge is a codec low-pass — whatever
+# the step across it reads, and whatever the container says.
+#
+# Why a second instrument: gate D reads the fall over two cells, and a codec
+# with a gentle filter falls under its bar. Two Beatport AIFFs of a track whose
+# CD and vinyl editions run to 20.5-21 kHz read 7.7 and 8.8 dB at 16 kHz and
+# were cleared as slopes; above their edge there is nothing (-62.8 and -65.1
+# dB), where issue #8's genuine roll-offs keep an analogue floor (-41, -44).
+# And on an uncompressed container (WAV/AIFF) gate C-prime accepts the
+# PCM-level bitrate only when a depth reading proves the wall: the fixed
+# near-Nyquist band has no reading for a wall at 16 kHz, so those files were
+# out of Rule 1's reach by format alone (the v1.12 campaign's missed G2).
+#
+# Where the bar sits, and on what: spectrum.floor_above_edge_db, read offline
+# from the gate D probe's cell profiles (30 s, edges below 19,500 Hz). Of 155
+# genuine files the deepest floor is -55.2 dB (one hard wall); the deepest
+# genuine SOFT edge is -49.9; the two Beatport files read -62.8 and -65.1. The
+# bar sits 2.8 dB under the deepest genuine edge and 4.8 dB above the shallower
+# Beatport file. See ml/exchange/DEPTH_GATE_REGISTRATION_2026-09-15.md.
+DEEP_FLOOR_DB = -58.0
+
 # Variance threshold for authenticity (kbps)
 VARIANCE_THRESHOLD = 100
 

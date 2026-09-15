@@ -1,7 +1,8 @@
 # FLAC Detective Documentation
 
 FLAC Detective is a command-line tool that detects **fake lossless** audio files — MP3s
-(and other lossy codecs) re-saved as FLAC, ALAC, APE or WAV so they *look* lossless when
+(and other lossy codecs) re-saved as FLAC, ALAC, APE, WAV or AIFF, or wrapped as lossless
+audio inside a video container, so they *look* lossless when
 the quality was already thrown away. It scores each file with a multi-rule engine
 (plus an optional 12th CNN rule) and gives a clear, four-level verdict, while protecting
 genuine vinyl rips, cassette transfers and quiet recordings from false alarms.

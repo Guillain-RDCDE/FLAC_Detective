@@ -263,3 +263,63 @@ re-runs the two arms that carried a mover at 19,500 Hz, `mp3_320` and
 `mp3_V0`; the rest of the second pass stands as the measurement of the
 amended code. A3's profile is unchanged; the two Samsara movers are expected
 to revert to AUTHENTIC 2 and are reported as recall the zone gives up.
+
+---
+
+## RESULTS — appended 2026-09-15 after the third after-pass
+
+Before = 1.13.15 (worktree `fd-v11315`, `8fe38ab`), after = the amended tree
+(amendments 1 and 2), same files, same order, `--workers 2`, torch shimmed
+out on both sides. Diff by `fd-depth/cmp.py`, verdict and score per file.
+`after2_*` for every arm except `mp3_320` and `mp3_V0`, which come from
+`after3_*` (amendment 2 can only remove +50s, so every arm with 0 movers in
+the second pass has 0 under the shipped code by construction; the WAV arms'
+movers all sit below 19,500 Hz and are unchanged).
+
+| run | files | signalled before → after | convicted before → after | movers |
+|---|---|---|---|---|
+| received files, dir scan (CD FLAC, 2 vinyl WAV, Uluru) | 4 | 0 → 0 | 0 → 0 | 0 |
+| the 3 Beatport AIFFs | 3 | 0 → **2** | 0 → 0 | **2** (original mix AUTHENTIC 18 → SUSPICIOUS 68; remix AUTHENTIC 20 → WARNING 50; Twisted unchanged AUTHENTIC 0) |
+| reporter's files, 30 s / 120 s | 2 | 0 → 0 | 0 → 0 | 0 |
+| audit authentic, FLAC | 80 | 2 → 2 | 0 → 0 | 0 |
+| audit authentic, **WAV** | 80 | 2 → 2 | 0 → 0 | 0 |
+| audit mp3_128, **WAV** | 80 | 22 → **49** | 14 → 28 | 27 |
+| audit mp3_192, **WAV** | 80 | 30 → **52** | 28 → 48 | 22 |
+| audit mp3_320, FLAC (after3) | 80 | 36 → 38 | 0 → 1 | 2 (Mondkopf 320: AUTHENTIC 5 → FAKE_CERTAIN 55; DJ Katapila 320: AUTHENTIC 11 → WARNING 31) |
+| audit mp3_V0, FLAC (after3) | 80 | 4 → 6 | 0 → 1 | 2 (Mondkopf V0: AUTHENTIC 5 → FAKE_CERTAIN 55; The Mebusas V0: AUTHENTIC 3 → WARNING 53) |
+| 12 genuine full-length, 30 s | 12 | 0 → 0 | 0 → 0 | 0 |
+| 24 LAME full-length, 30 s | 24 | 18 → 18 | 8 → 8 | 0 |
+
+Every one of the 55 movers moves toward conviction, carries Rule 1's +50
+after with the depth reason, and sits below 19,500 Hz (the WAV movers read
+15,500–19,000 Hz). No file moves the other way, no score falls anywhere.
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | genuine newly convicted, FLAC or WAV | 0 | **0 — held** (160 genuine files, plus 12 full-length, plus the reporter's two) |
+| A2 | genuine newly signalled, FLAC or WAV | 0 | **0 — held** |
+| A3 | every FLAC mover fits the profile | all | **4 of 4 — held** after amendment 2; **breached in the second pass** by two movers at exactly 19,500 Hz (Samsara 320 and V0), see amendment 2 — the zone is now read from the same constant as gate D |
+| P1 | the two Beatport AIFFs | R1 +50, signalled | **held** — SUSPICIOUS 68 and WARNING 50, both with "the band above … sits at −65 / −63 dB — digital silence" |
+| P2 | the reporter's two files | unchanged | **held** — AUTHENTIC 13 at both durations |
+| P3 | CD FLAC, vinyl WAVs, Uluru, Twisted | unchanged | **held** |
+| E1 | mp3_128 as WAV, signalled after | ≥ 25 of 80 | **49 — held** (27 gained) |
+| E2 | mp3_192 as WAV, signalled after | ≥ 25 of 80 | **52 — held** (22 gained; the "≥ 25 gained" reading of the bound is missed by 3, and the reason is the one registered: the floor is relative to the programme level, and on the quiet arm files the codec floor reads shallower than −58) |
+| E3 | FLAC movers on mp3_320 + mp3_V0 | transcodes, floor ≤ −58, named | **held** — Mondkopf (×2, a hard 19,000 Hz wall the window acquitted at its FLAC size), DJ Katapila 320 and The Mebusas V0 (the two soft edges gate D had acquitted on 2026-09-08: Rule 1 now reads the silence the codec left, not the master's roll-off) |
+| E4 | transcodes losing a conviction or a signal | 0 | **0 — held** |
+
+**Ships in 1.13.16.** The net effect on the labelled sets: nothing moves on
+172 genuine files in either container; 49 transcodes newly signalled on
+uncompressed input (the population that was out of Rule 1's reach by format
+alone since the v1.12 campaign); four transcodes newly signalled on FLAC
+input, two of them the movers gate D had given up on 2026-09-08; and the two
+Beatport files that started this read as what they are.
+
+The full suite and the four lint gates were green before the commit; the
+new tests fail on the 1.13.15 tree (no `floor_above_db`, five-value
+`analyze_spectrum`).
+
+Found on the way, repaired in the same release: a directory scan took
+`.flac` and `.wav` by name and never analysed an `.aiff` in a folder (the
+three Beatport files passed as a folder gave a four-file report; passed as
+files they were analysed). `discover_audio_files` now makes one decision per
+file for the CLI and the GUI alike.

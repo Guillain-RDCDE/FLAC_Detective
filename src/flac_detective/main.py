@@ -57,13 +57,18 @@ except ImportError:
     console = None
 
 from .analysis import FLACAnalyzer
-from .analysis.audio_formats import is_analysable_lossless
+from .analysis.audio_formats import (
+    LOSSY_SUFFIXES,
+    PROBE_SUFFIXES,
+    discover_audio_files,
+    is_analysable_lossless,
+)
 from .analysis.diagnostic_tracker import get_tracker, reset_tracker
 from .colors import Colors, colorize
 from .config import analysis_config
 from .reporting import CSVReporter, HTMLReporter, TextReporter
 from .tracker import ProgressTracker
-from .utils import LOGO, find_flac_files, find_non_flac_audio_files
+from .utils import LOGO
 
 # Fix Windows console encoding for UTF-8 support (Standard approach)
 if sys.platform == "win32":
@@ -549,10 +554,10 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
-# Audio extensions that are lossy (or, for .m4a/.ape, only conditionally lossless):
-# a directly-passed file with one of these that isn't analysable lossless is reported
-# as a non-FLAC reject rather than silently ignored.
-_LOSSY_SUFFIXES = {".mp3", ".m4a", ".aac", ".ogg", ".wma", ".opus", ".ape"}
+# Audio extensions that are lossy, or (the probe-able containers) only conditionally
+# lossless: a directly-passed file with one of these that isn't analysable lossless
+# is reported as a non-FLAC reject rather than silently ignored.
+_LOSSY_SUFFIXES = LOSSY_SUFFIXES | PROBE_SUFFIXES
 
 
 def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
@@ -580,20 +585,19 @@ def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
             else:
                 logger.warning(f"Ignored (not an analysable audio file or folder) : {path}")
         elif path.is_dir():
-            # Scan recursively. FLAC + WAV are analysable by extension.
-            all_flac_files.extend(find_flac_files(path))
-            all_flac_files.extend(sorted(path.rglob("*.wav")))
-
-            # The remaining audio files are mostly lossy (reject), but a .m4a may hold
-            # ALAC and a .ape is lossless — re-route those to analysis by probing.
-            for candidate in find_non_flac_audio_files(path):
-                if is_analysable_lossless(candidate):
-                    all_flac_files.append(candidate)
+            # One walk, the same decision per file as for a file passed directly:
+            # native formats by extension, probe-able containers by their real
+            # codec, lossy extensions to the reject list. (Until v1.13.16 the
+            # directory scan took .flac and .wav by name and probed the lossy
+            # extensions only, so an .aiff in a folder was never analysed.)
+            analysable, rejects = discover_audio_files(path)
+            for candidate in analysable:
+                if candidate.suffix.lower() not in (".flac", ".wav"):
                     logger.info(
                         f"Lossless {candidate.suffix} added for analysis : {candidate.name}"
                     )
-                else:
-                    all_non_flac_files.append(candidate)
+            all_flac_files.extend(analysable)
+            all_non_flac_files.extend(rejects)
         else:
             logger.warning(f"Ignored (not a FLAC/WAV file or folder) : {path}")
 

@@ -57,6 +57,22 @@ def test_scan_files_routes_lossless_vs_lossy(tmp_path):
     assert {"c.mp3", "d.m4a"} <= rej
 
 
+def test_scan_files_takes_an_aiff_from_a_folder(tmp_path):
+    """Until 1.13.16 a folder scan took .flac and .wav by name and left .aiff behind.
+
+    Found on a Beatport A/B: three AIFFs in a folder produced a report with four
+    files. The same file passed directly was analysed. Native means native
+    wherever the file comes from; and a probe-able container that cannot be
+    probed (one byte of junk here) is a reject, not a silence.
+    """
+    _touch(tmp_path / "a.aiff")
+    _touch(tmp_path / "b.aif")
+    _touch(tmp_path / "c.mkv")
+    analyse, reject = scan_files([tmp_path])
+    assert {p.name for p in analyse} == {"a.aiff", "b.aif"}
+    assert {p.name for p in reject} == {"c.mkv"}
+
+
 def test_scan_files_direct_wav_file(tmp_path):
     """A .wav passed directly (not a folder) is accepted for analysis."""
     wav = tmp_path / "x.wav"

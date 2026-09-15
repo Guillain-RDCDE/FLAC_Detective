@@ -55,6 +55,10 @@ class ScoringContext:
     # How far the spectrum falls across the detected edge (dB over 500 Hz), NaN
     # when no edge was found. Drives Rule 1's gate D: a slope is not a wall.
     edge_step_db: float = float("nan")
+    # What is left above that edge (median dB of the band from cutoff + 1 kHz
+    # to 0.993 x Nyquist, relative to the reference), NaN when unknown. Drives
+    # Rule 1's depth gate: digital silence above the edge is a codec low-pass.
+    floor_above_db: float = float("nan")
 
     # State updated during scoring
     mp3_bitrate_detected: Optional[int] = None

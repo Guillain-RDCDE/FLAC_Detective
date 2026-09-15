@@ -1,12 +1,16 @@
 """Format detection and decoding for analysable lossless inputs.
 
-FLAC and WAV are read natively by libsndfile (soundfile). Other lossless
-containers — notably ALAC (in .m4a) and APE — need ffmpeg, which is a hard
-runtime requirement for *those* formats (FLAC/WAV never touch ffmpeg).
+FLAC, WAV and AIFF are read natively by libsndfile (soundfile). Other lossless
+containers — ALAC (in .m4a), APE, and the archival video containers — need
+ffmpeg, which is a hard runtime requirement for *those* formats (FLAC/WAV/AIFF
+never touch ffmpeg).
 
-The tricky case is ``.m4a``: it can hold ALAC (lossless → analyse) or AAC
-(lossy → reject). We probe the actual codec with ffprobe rather than trust the
-extension.
+The tricky case is a container that can hold either: ``.m4a`` holds ALAC
+(lossless → analyse) or AAC (lossy → reject); a Matroska, QuickTime or MXF
+file holds LPCM, FLAC or TrueHD (analyse) as readily as AC-3, AAC or a DTS core
+(reject). We probe the actual codec — and for DTS its profile — with ffprobe
+rather than trust the extension. The container says nothing about the audio's
+history; only the detector does, once the audio is demuxed.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -27,18 +31,42 @@ LOSSLESS_CODECS = {
     "ape",
     "wavpack",
     "tta",
+    # LPCM in every byte order and width a broadcast or preservation master uses
+    # (MXF and QuickTime carry big-endian PCM; Matroska little-endian).
     "pcm_s16le",
     "pcm_s24le",
     "pcm_s32le",
     "pcm_f32le",
+    "pcm_f64le",
     "pcm_u8",
+    "pcm_s16be",
+    "pcm_s24be",
+    "pcm_s32be",
+    "pcm_f32be",
+    "pcm_f64be",
+    # Dolby's lossless pair: TrueHD and its ancestor MLP (DVD-Audio).
+    "truehd",
+    "mlp",
 }
+
+# DTS is one codec_name for a lossy core and a lossless extension. Only the
+# Master Audio profile decodes to the original PCM; DTS, DTS-HD HRA, DTS
+# Express and DTS:X's lossy layers do not. ffprobe reports it as ``profile``.
+LOSSLESS_DTS_PROFILES = {"DTS-HD MA"}
 
 # Extensions libsndfile reads directly — no ffmpeg, no probe needed.
 NATIVE_SUFFIXES = {".flac", ".wav", ".aiff", ".aif"}
 
 # Extensions whose container may hold either lossless or lossy audio — probe to decide.
-PROBE_SUFFIXES = {".m4a", ".mp4", ".ape", ".tta", ".wv"}
+# The video containers are the archival kind: LPCM or FLAC in Matroska (FFV1
+# preservation masters), LPCM in MXF (broadcast) and QuickTime, TrueHD or
+# DTS-HD MA alongside a Blu-ray remux. Their first audio stream is what is
+# probed and, if lossless, demuxed and analysed like any other file.
+PROBE_SUFFIXES = {".m4a", ".mp4", ".ape", ".tta", ".wv", ".mkv", ".mka", ".mov", ".mxf"}
+
+# Extensions that never hold lossless audio: a file with one of these is a
+# reject ("replace with a real FLAC"), never a candidate for analysis.
+LOSSY_SUFFIXES = {".mp3", ".aac", ".ogg", ".wma", ".opus"}
 
 
 def ffmpeg_available() -> bool:
@@ -79,19 +107,91 @@ def probe_codec(path: Path) -> Optional[str]:
         return None
 
 
+def probe_stream(path: Path) -> Optional[Dict[str, str]]:
+    """Return the first audio stream's codec_name, profile, sample_fmt and bit depth.
+
+    A dict of the ffprobe fields (``codec_name``, ``profile``, ``sample_fmt``,
+    ``bits_per_raw_sample``, ``bits_per_sample``), values as ffprobe prints
+    them, or None on failure. ``probe_codec`` stays the single-field reader the
+    routing relies on; this one is consulted where the codec alone does not
+    settle it (a DTS stream's profile) and to size the decode (bit depth).
+    """
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "a:0",
+                "-show_entries",
+                "stream=codec_name,profile,sample_fmt,bits_per_raw_sample,bits_per_sample",
+                "-of",
+                "default=noprint_wrappers=1",
+                str(path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        fields: Dict[str, str] = {}
+        for line in result.stdout.splitlines():
+            key, sep, value = line.partition("=")
+            if sep:
+                fields[key.strip().lower()] = value.strip()
+        return fields or None
+    except (FileNotFoundError, subprocess.SubprocessError) as e:
+        logger.debug(f"ffprobe failed for {path}: {e}")
+        return None
+
+
 def is_analysable_lossless(path: Path) -> bool:
     """True if the file is a lossless audio source worth analysing.
 
-    FLAC/WAV by extension; ALAC/APE/etc. by probing the container's real codec.
-    Lossy containers (an AAC .m4a) return False — they belong in the reject list.
+    FLAC/WAV/AIFF by extension; everything else by probing the container's real
+    codec. Lossy containers (an AAC .m4a, an AC-3 .mkv, a DTS core) return
+    False — they belong in the reject list. A DTS stream is lossless only in
+    its Master Audio profile, so that one is decided on the profile.
     """
     suffix = path.suffix.lower()
     if suffix in NATIVE_SUFFIXES:
         return True
     if suffix in PROBE_SUFFIXES:
         codec = probe_codec(path)
-        return codec in LOSSLESS_CODECS if codec else False
+        if not codec:
+            return False
+        if codec == "dts":
+            info = probe_stream(path) or {}
+            return info.get("profile", "") in LOSSLESS_DTS_PROFILES
+        return codec in LOSSLESS_CODECS
     return False
+
+
+def discover_audio_files(root_dir: Path) -> Tuple[List[Path], List[Path]]:
+    """Every audio file under ``root_dir``, sorted into (analysable, rejects).
+
+    Analysable: the native formats by extension, and every probe-able container
+    whose first audio stream is lossless. Rejects: the lossy-only extensions,
+    and a probe-able container that holds lossy audio. One walk of the tree,
+    one decision per file, the same decision ``scan_files`` makes for a file
+    passed directly — a directory scan used to pick up ``.flac`` and ``.wav``
+    only, so an ``.aiff`` in a folder was never analysed while the same file
+    passed on the command line was (found 2026-09-15 on a Beatport A/B).
+    """
+    analysable: List[Path] = []
+    rejects: List[Path] = []
+    for candidate in sorted(root_dir.rglob("*")):
+        if not candidate.is_file():
+            continue
+        suffix = candidate.suffix.lower()
+        if suffix in NATIVE_SUFFIXES:
+            analysable.append(candidate)
+        elif suffix in PROBE_SUFFIXES:
+            (analysable if is_analysable_lossless(candidate) else rejects).append(candidate)
+        elif suffix in LOSSY_SUFFIXES:
+            rejects.append(candidate)
+    logger.info(f"Scanning folder: {root_dir} — {len(analysable)} analysable, {len(rejects)} lossy")
+    return analysable, rejects
 
 
 def needs_ffmpeg_decode(path: Path) -> bool:
@@ -224,11 +324,34 @@ def flac_segment_bitrates(path: Path, n_segments: int = 10) -> Optional[list]:
         return None
 
 
+def _pcm_codec_for(info: Optional[Dict[str, str]]) -> str:
+    """The WAV sample format that keeps every bit of the probed stream.
+
+    ffmpeg's WAV muxer defaults to 16-bit; a 24-bit ALAC or TrueHD stream
+    decoded through that default was truncated before analysis, and the
+    bit-depth rules then read a 16-bit file. Anything wider than 16 bits, or
+    carried as 32-bit / float samples, is written as 24-bit PCM.
+    """
+    if not info:
+        return "pcm_s16le"
+    for key in ("bits_per_raw_sample", "bits_per_sample"):
+        try:
+            if int(info.get(key, "0")) > 16:
+                return "pcm_s24le"
+        except ValueError:
+            continue
+    if info.get("sample_fmt", "") in {"s32", "s32p", "flt", "fltp", "dbl", "dblp"}:
+        return "pcm_s24le"
+    return "pcm_s16le"
+
+
 def decode_to_wav(path: Path) -> Optional[Path]:
     """Decode a non-native lossless source to a temp WAV (PCM) via ffmpeg.
 
     Returns the temp WAV path (caller deletes it), or None if ffmpeg is missing or
-    the decode fails. Lets the rest of the pipeline treat ALAC/APE as a plain WAV.
+    the decode fails. Lets the rest of the pipeline treat ALAC/APE/TrueHD, or the
+    audio of a Matroska/MXF/QuickTime file, as a plain WAV. The FIRST audio
+    stream is taken — the one ``probe_codec`` judged — and video is dropped.
     """
     if shutil.which("ffmpeg") is None:
         logger.error(
@@ -243,7 +366,20 @@ def decode_to_wav(path: Path) -> Optional[Path]:
     tmp = Path(tmp_name)
     try:
         result = subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-vn", str(tmp)],
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(path),
+                "-map",
+                "0:a:0",
+                "-vn",
+                "-c:a",
+                _pcm_codec_for(probe_stream(path)),
+                str(tmp),
+            ],
             capture_output=True,
             timeout=300,
         )

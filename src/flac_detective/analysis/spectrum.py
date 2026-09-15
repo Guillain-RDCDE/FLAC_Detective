@@ -1,6 +1,7 @@
 """Spectral analysis of audio files."""
 
 import logging
+import math
 from pathlib import Path
 from typing import TYPE_CHECKING, List, NamedTuple, Optional, Sequence, Tuple
 
@@ -168,9 +169,63 @@ def edge_step_db(
     return best
 
 
+# Floor-above-the-edge instrument (Rule 1's depth gate, v1.13.16). What is LEFT
+# above the detected edge, read on the same 250 Hz cells as the step, relative
+# to the same 10-14 kHz reference.
+#
+# Why it exists: gate D reads how far the spectrum falls across two cells, and
+# a codec low-pass with a gentle filter falls under its 12 dB bar — two Beatport
+# AIFFs of a track whose CD and vinyl editions run to 20.5-21 kHz read 7.7 and
+# 8.8 dB at 16 kHz and were cleared as "a roll-off, not a codec wall". Over the
+# next 2 kHz they fall 25 dB, then nothing: digital silence to Nyquist. A
+# mastering roll-off (issue #8's two rips) keeps falling into an analogue or
+# dither floor instead, -41 to -44 dB on the same reading. The step cannot tell
+# those apart; the floor above the edge can. Measured 2026-09-15 from the gate
+# D probe's cell profiles: 0 of 155 genuine files under -58 dB below 19.5 kHz
+# (deepest -55.2, a hard wall), the two Beatport files at -62.8 and -65.1.
+# See ml/exchange/DEPTH_GATE_REGISTRATION_2026-09-15.md.
+#
+# The reading: the median cell level from (cutoff + FLOOR_GAP_HZ) up to
+# 0.993 x Nyquist. NaN when fewer than FLOOR_MIN_CELLS fit, which is the case
+# from ~19.9 kHz up at 44.1 kHz: there the fixed-band residual floor
+# (compute_residual_floor_db) rules and this instrument abstains.
+FLOOR_GAP_HZ = 1000.0
+FLOOR_MIN_CELLS = 4
+FLOOR_TOP_FRACTION = 0.993
+
+
+def floor_above_edge_db(
+    frequencies: np.ndarray, magnitude_db: np.ndarray, cutoff_hz: float, samplerate: int = 44100
+) -> float:
+    """Median level of the band above the edge, relative to the reference, in dB.
+
+    NaN — not 0.0 — when there is no edge to read or when fewer than
+    ``FLOOR_MIN_CELLS`` whole 250 Hz cells fit between ``cutoff + FLOOR_GAP_HZ``
+    and ``FLOOR_TOP_FRACTION`` x Nyquist. A NaN must be treated as "unknown"
+    by every consumer: Rule 1's depth gate then changes nothing, exactly as an
+    unknown step leaves gate D alone.
+    """
+    nyquist = samplerate / 2.0
+    if cutoff_hz >= 0.999 * nyquist or cutoff_hz >= frequencies[-1] - 1e-6:
+        return float("nan")
+    first, cells = cell_profile_db(frequencies, magnitude_db, samplerate)
+    if not cells:
+        return float("nan")
+    cell = spectral_config.TRANCHE_SIZE
+    lo = int(math.ceil((cutoff_hz + FLOOR_GAP_HZ - first) / cell))
+    # The last cell whose whole span sits under the top fraction.
+    hi = int((FLOOR_TOP_FRACTION * nyquist - first) // cell) - 1
+    lo = max(lo, 0)
+    hi = min(hi, len(cells) - 1)
+    band = [c for c in cells[lo : hi + 1] if not np.isnan(c)]
+    if len(band) < FLOOR_MIN_CELLS:
+        return float("nan")
+    return float(np.median(band))
+
+
 def analyze_spectrum(
     filepath: Path, sample_duration: float = 30.0, cache: "Optional[AudioCache]" = None
-) -> Tuple[float, float, float, float, float]:
+) -> Tuple[float, float, float, float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
@@ -183,7 +238,7 @@ def analyze_spectrum(
 
     Returns:
         Tuple (cutoff_frequency, energy_ratio, cutoff_std, residual_floor_db,
-        edge_step_db) where:
+        edge_step_db, floor_above_db) where:
         - cutoff_frequency: detected cutoff frequency in Hz
         - energy_ratio: energy ratio in high frequencies
         - cutoff_std: cutoff wander across the sampled windows, **NaN when a
@@ -194,6 +249,10 @@ def analyze_spectrum(
         - edge_step_db: how far the spectrum falls across the reported edge, read
           on the window that produced the (minimum) cutoff — see
           :func:`edge_step_db`. NaN when no edge was found. Rule 1's gate D.
+        - floor_above_db: what is left above that edge — the median level of
+          the band from (cutoff + 1 kHz) to 0.993 x Nyquist, on the same
+          window — see :func:`floor_above_edge_db`. NaN when no edge was found
+          or the band is too narrow (near Nyquist). Rule 1's depth gate.
     """
     try:
         # Create cache if not provided
@@ -221,7 +280,7 @@ def analyze_spectrum(
         cutoff_freqs = []
         energy_ratios = []
 
-        def _analyze_sample(i: int) -> Tuple[float, float, float]:
+        def _analyze_sample(i: int) -> Tuple[float, float, float, float]:
             """Analyze a single sample."""
             # Start position of this sample
             start_time = (total_duration / (num_samples + 1)) * (i + 1) - sample_duration / 2
@@ -234,7 +293,7 @@ def analyze_spectrum(
                 frames_to_read = max(0, actual_frames - start_frame)
                 if frames_to_read == 0:
                     logger.warning(f"Sample {i+1} beyond available data, skipping")
-                    return 0.0, 0.0, float("nan")
+                    return 0.0, 0.0, float("nan"), float("nan")
 
             # Extract segment from cached full audio
             logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
@@ -271,7 +330,10 @@ def analyze_spectrum(
             # How far the spectrum falls across that edge (Rule 1's gate D).
             step_db = edge_step_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
 
-            return cutoff_freq, energy_ratio, step_db
+            # What is left above that edge (Rule 1's depth gate).
+            floor_db = floor_above_edge_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
+
+            return cutoff_freq, energy_ratio, step_db, floor_db
 
         # PHASE 4 OPTIMIZATION: Parallelize sample analysis
         # Draw samples sequentially to avoid thread overhead
@@ -279,14 +341,17 @@ def analyze_spectrum(
         cutoff_freqs = [r[0] for r in results]
         energy_ratios = [r[1] for r in results]
         step_dbs = [r[2] for r in results]
+        floor_dbs = [r[3] for r in results]
 
         # Take the WORST value (min) for cutoff to be more strict
         # A transcoded file will have a low cutoff in ALL samples
         # We use min() because even one sample with low cutoff indicates transcoding
         final_cutoff = min(cutoff_freqs)
-        # The step is read on the window that produced that cutoff: the edge
-        # Rule 1 will act on is the one whose steepness is being reported.
-        final_step_db = step_dbs[cutoff_freqs.index(final_cutoff)]
+        # The step and the floor are read on the window that produced that
+        # cutoff: the edge Rule 1 will act on is the one being described.
+        min_idx = cutoff_freqs.index(final_cutoff)
+        final_step_db = step_dbs[min_idx]
+        final_floor_db = floor_dbs[min_idx]
 
         # For energy, we also take min() to be consistent
         final_energy = min(energy_ratios)
@@ -325,14 +390,21 @@ def analyze_spectrum(
             f"Spectrum analysis: cutoff={final_cutoff:.0f} Hz, "
             f"energy_ratio={final_energy:.6f}, cutoff_std={cutoff_std:.1f}, "
             f"residual_floor_db={residual_floor_db:.1f}, edge_step_db={final_step_db:.1f}, "
-            f"samples={cutoff_freqs}"
+            f"floor_above_db={final_floor_db:.1f}, samples={cutoff_freqs}"
         )
 
-        return final_cutoff, final_energy, cutoff_std, residual_floor_db, final_step_db
+        return (
+            final_cutoff,
+            final_energy,
+            cutoff_std,
+            residual_floor_db,
+            final_step_db,
+            final_floor_db,
+        )
 
     except Exception as e:
         logger.debug(f"Spectral analysis error: {e}")
-        return 0, 0, 0, float("nan"), float("nan")
+        return 0, 0, 0, float("nan"), float("nan"), float("nan")
 
 
 def detect_cutoff(  # noqa: C901

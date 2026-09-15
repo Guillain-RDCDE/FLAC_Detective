@@ -1,3 +1,102 @@
+## v1.13.16 (2026-09-15) — what is left above the edge
+
+Two Beatport AIFFs of a track whose CD and vinyl editions run to 20.5–21 kHz
+arrived for an A/B. Both read a ceiling at 16 kHz — the same master lost
+4 kHz on its way to the store — and 1.13.15 cleared both as AUTHENTIC, 18
+and 20. So did 1.13.14. Two locks held the door, each on its own: gate D read
+the Beatport low-pass as a slope (7.7 and 8.8 dB over 500 Hz, under the
+12 dB bar — a gentle codec filter), and once that was opened the container
+window read their FLAC-equivalent size (776 and 848 kbps, loud dense
+masters) as outside the 160 kbps cell's 450–650. Neither lock looks at what
+is LEFT above the edge, and that is the whole story: above 16 kHz these
+files sit at −63 and −65 dB, digital silence, where a genuine mastering
+roll-off keeps an analogue or dither floor (issue #8's two rips: −41 and
+−44 on the same reading).
+
+### The depth gate: the floor above the edge
+
+`analyze_spectrum` now also reports `floor_above_db`: the median level of
+the band from (cutoff + 1 kHz) to 0.993 × Nyquist, on the same 250 Hz cells
+and the same 10–14 kHz reference as the step, on the window that produced
+the cutoff. NaN when no edge was found or fewer than four cells fit, which
+is the case from about 19.9 kHz up. Below the 320 kbps cell a floor at or
+under −58 dB now settles Rule 1 by itself: the step yields (a soft edge
+over silence is a codec low-pass with a soft filter) and the container
+window yields (the FLAC size of a loud master says nothing about its
+history). Shallow or unknown, both gates behave exactly as in 1.13.15. The
+gate can only add a +50, never remove one.
+
+The bar was read off the gate D probe's cell profiles before the engine
+ran, on 1,100 files: of 155 genuine files, none reads a floor at or under
+−58 dB below 19.5 kHz (the deepest genuine hard wall sits at −55.2, the
+deepest genuine soft edge at −49.9); the Beatport files read −62.8 and
+−65.1. The margins are 2.8 dB on one side and 4.8 on the other, on 13
+genuine edges, and are stated as such. The floor is relative to the
+programme level, so a codec wall over a quiet recording reads shallower
+and stays out of reach; that is the cost of reusing a calibrated reference
+rather than inventing a new one.
+
+### Measured before and after, on criteria registered first — twice amended
+
+`ml/exchange/DEPTH_GATE_REGISTRATION_2026-09-15.md` was committed before
+the after-pass and amended twice, each time before the next pass. The
+first after-pass failed its own P1: gate D yielded, the container window
+did not, and the repair as first registered ("the window is not touched")
+could not reach the two files it was built for. The second pass moved two
+transcodes at exactly 19,500 Hz, outside the registered profile, because
+the bar had been derived on edges below that line while the code applied
+it up to 19.9 kHz; the gate now reads the zone the table was read on, the
+same constant as gate D. Both are in the document, with the failed passes
+kept as the record.
+
+Before = 1.13.15, after = this tree, same files, same order, verdict and
+score per file. **Nothing moves on 172 genuine files, as FLAC and as WAV**
+(the 80-file audit set in both containers, 12 full-length tracks, the
+reporter's two rips at 30 s and 120 s). On uncompressed input, where Rule 1
+had been out of reach by format alone since the v1.12 campaign, `mp3_128`
+as WAV goes from 22 to 49 signalled and `mp3_192` from 30 to 52. On FLAC
+input four transcodes move: Mondkopf's 320 and V0 (a hard 19 kHz wall the
+container window had acquitted at its FLAC size), and DJ Katapila's 320 and
+The Mebusas' V0 — the two files gate D had given up on 2026-09-08 because
+Rule 1 was reading the master's roll-off; it now reads the silence the
+codec left above it. The two Beatport files read SUSPICIOUS 68 and
+WARNING 50, with the floor named in the reason. The 24 full-length LAME
+transcodes and the reporter's files do not move.
+
+### Found on the way
+
+* **A folder scan never analysed an `.aiff`.** The directory walk took
+  `.flac` and `.wav` by name and probed only the lossy extensions, so three
+  AIFFs passed as a folder gave a four-file report while the same files
+  passed on the command line were analysed. `discover_audio_files` makes
+  one decision per file, the same for the CLI and the GUI.
+* **Lossless audio inside the archival video containers.** LPCM in MXF and
+  QuickTime (`.mxf`, `.mov`), PCM or FLAC in Matroska (`.mkv`, `.mka`, the
+  FFV1 preservation-master kind), TrueHD and MLP, and DTS in its Master
+  Audio profile only — the first audio stream is probed and, if lossless,
+  demuxed and analysed like any other file. AC-3, AAC and a DTS core in the
+  same containers are rejects. Big-endian PCM is recognised (MXF and
+  QuickTime carry it).
+* **A 24-bit stream decoded through ffmpeg was truncated to 16 bits** by the
+  WAV muxer's default before analysis, so the bit-depth rules read a 16-bit
+  file for a 24-bit ALAC. The decode now keeps the probed width.
+* `--deep` with a working torch: the seven received files were also run
+  through Rule 12, which contributes nothing on any of them; the Beatport
+  files are read by the depth gate alone.
+
+### What is not repaired, and said so
+
+* **The floor is relative to the programme level.** On the quiet arm files
+  a codec wall reads shallower than −58 dB and stays out of reach on
+  uncompressed input (E2 lands three under its registered gain). An
+  absolute reading would see the dither floor directly; it is a different
+  instrument with its own calibration.
+* **The 320 cell and above** keep the fixed-band residual instrument and
+  its known limits. The third AIFF (Twisted, 20,250 Hz edge, floor −50 in a
+  two-cell band) is out of this repair's reach by construction.
+* **The container window cliff** stands wherever the floor is shallow or
+  unknown.
+
 ## v1.13.15 (2026-09-08) — a slope is not a wall
 
 Issue #8, fourth round. The reporter sent two rips of the same track from

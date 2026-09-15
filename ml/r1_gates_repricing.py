@@ -320,7 +320,7 @@ def measure(out_csv: Path) -> None:
                     if kbps is None:
                         continue
                     try:
-                        cutoff, energy, std, resid, _step = analyze_spectrum(path)
+                        cutoff, energy, std, resid, _step, _above = analyze_spectrum(path)
                         rate = int(sf.info(str(path)).samplerate)
                     except Exception:
                         continue
