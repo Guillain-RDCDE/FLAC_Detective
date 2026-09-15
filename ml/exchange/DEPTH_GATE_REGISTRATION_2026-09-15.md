@@ -172,3 +172,61 @@ uncompressed input beats none), and the shortfall is reported with the reason.
   in a 2-cell band) is out of this repair's reach by construction.
 
 Results are appended below, after the run, in a section dated after the fact.
+
+---
+
+## AMENDMENT — 2026-09-15, after the first after-pass, before the second
+
+The first after-pass (`after1_*`, kept) ran on the repair as registered above
+and **P1 failed**: both Beatport AIFFs still read AUTHENTIC 18 and 20. Gate D
+did yield — its reason line is gone from both files — and Rule 1 then reached
+the container window, which said no.
+
+The mechanism, measured rather than guessed: since the one-ruler repair
+(issue #7) EVERY container is sized by re-encoding its audio to FLAC, so an
+AIFF no longer reads at PCM level. Lock 2 as described above ("no depth
+reading to accept an uncompressed container") does not exist any more; gate
+C-prime's PCM branch is dead code on this engine. What holds the door is
+**the container window itself**: the 160 kbps cell accepts 450–650 kbps, and
+these two dense, loud trance masters compress to **776 and 848 kbps** with
+their 16 kHz ceiling (the CD edition of the remix: 939; the vinyl rips: 661
+and 700). The window is calibrated on the FLAC size of decoded MP3s of
+typical music; a loud master sits outside it whatever its history. That is
+the container-window cliff named in the WALL_GATE registration, seen from
+the other side: there it acquitted a steep-wall transcode at 762 kbps, here
+it acquits a soft-wall one at 776.
+
+### The amended repair
+
+Item 6 ("the container window is not touched") is withdrawn and replaced:
+
+6. **The container window yields to depth.** Below the 320 cell, when the
+   floor above the edge is at or under `DEEP_FLOOR_DB`, Rule 1 awards its
+   +50 without consulting the container window, and the reason line names
+   the floor. When the floor is shallow or unknown, the window decides
+   exactly as in 1.13.15. Gate C-prime's PCM branch is left in place (it is
+   NaN-safe and inert on this engine) and documented as such.
+
+Nothing else changes. The gate can still only add a +50, never remove one.
+
+### What the amendment widens, on the instrument table above
+
+The FLAC-input movers are no longer only the soft edges: every hard wall
+below 19.5 kHz with a floor at or under −58 dB that the window currently
+acquits can now be convicted. On the labelled sets those are transcodes by
+construction (0 of 155 genuine files read a floor at or under −58 dB below
+19.5 kHz; the deepest genuine hard wall reads −55.2). The margin is the same
+2.8 dB it was, on the same 13 genuine edges, and it now guards a larger
+population; that is said here rather than discovered later.
+
+### Criteria, re-registered for the second after-pass
+
+A1, A2, A3 (profile: toward conviction, cutoff < 19,500 Hz, floor ≤ −58 dB,
+carries the depth reason — the step condition is dropped), P1, P2, P3 and E4
+stand as written. E1 and E2 now measure the window's cost on both containers
+alike (the WAV arms read the same FLAC-equivalent size as the FLAC arms):
+transcodes signalled after ≥ 25 of 80 on each. E3 becomes: every FLAC mover
+on `mp3_320` + `mp3_V0` is a transcode with floor ≤ −58 dB, listed by name.
+
+The `after1_*` folders are the record of the failed first pass; the second
+pass writes `after2_*`.
