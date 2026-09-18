@@ -69,6 +69,8 @@ flac-detective /music --format csv  -o triage.csv   # spreadsheet, worst-first
 flac-detective /music --format html -o report.html  # visual report (see above)
 flac-detective /music --deep                        # catch high-bitrate AAC/Opus/Vorbis (slower)
 flac-detective /music --advanced                    # show the plumbing: scores, cutoff, per-rule detail
+
+flac-detective /music --progress-events -           # stage-by-stage progress as NDJSON, for another program
 ```
 
 By default the output is **easy mode** — a plain-language verdict and a recommended action

@@ -1,3 +1,51 @@
+## v1.14.0 (2026-09-18) — Six stages, no percentage
+
+Issue #11: an application driving the engine has nothing to show while one
+long track is analysed. `progress.json` and the console bar both count
+COMPLETED files, which is the right granularity for a library and none at all
+for an hour-long file — one tick, arriving when it is already over. From the
+outside the run does not look slow, it looks stuck.
+
+### What a caller now hears
+
+`analyze_file` takes `on_progress=`, called as each stage of THAT file starts
+with a `ProgressEvent(file, stage, index, total)`. The CLI exposes the same
+thing as `--progress-events DEST`, one JSON object per line: `-` for stderr,
+anything else a file path, off by default. The stages are fixed and ordered
+— `prepare`, `metadata`, `spectrum`, `quality`, `scoring`, `done` — and
+`done` is emitted exactly once per file whatever the outcome, including a file
+that failed, because those are precisely the files an interface would
+otherwise hang on.
+
+**No percentage, deliberately.** Which rules run depends on what the earlier
+ones found: the authentic fast path returns before the expensive half,
+`--deep` bypasses it, Rule 1's container test is skipped where nothing reads
+the ratio, and Rules 11-15 each have their own entry condition. The work left
+inside a file is not knowable when the file is opened, so `index`/`total` is a
+position in a list of stages, never a fraction of the time. A number here
+would be a progress bar that lies, which is the failure the reporter already
+has.
+
+### Progress observes; it never takes part
+
+A sink is untrusted: everything it raises is swallowed. A callback that throws
+on every event returns a result identical to the same file analysed with no
+callback at all, and that is a test, not a claim. An unknown stage name, by
+contrast, raises — that would be our own bug, and swallowing it alongside the
+sink's failures is how a defect hides.
+
+Events cross the process boundary, which is the part a unit test of the
+analyser alone would never have caught: the CLI works in a pool and a callback
+does not pickle, so workers put their events on a manager queue that a drain
+thread reads back here. With no consumer none of that is built — no manager,
+no queue, no thread — and the default call into `analyze_file` keeps its old
+one-argument shape, so every duck-typed analyser in the tree (the beets
+plugin, the GUI worker, the test doubles) is untouched.
+
+No engine change, no verdict moves. stdout stays reserved for the report:
+`--format json --progress-events -` together keep a parseable report on stdout
+and the events on stderr, and they are tested together.
+
 ## v1.13.17 (2026-09-18) — Deep scan is not a switch
 
 Issue #10: with the `[ml]` extra installed and the GUI's "Deep scan" box

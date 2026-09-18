@@ -23,6 +23,7 @@ from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .new_scoring.evidence import collapse_dependent_families, evidence_families
+from .progress import ProgressCallback, emit
 from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
@@ -97,7 +98,11 @@ class FLACAnalyzer:
         self.sample_duration = sample_duration
         self.deep = deep
 
-    def analyze_file(self, filepath: Union[str, Path]) -> Dict:
+    def analyze_file(
+        self,
+        filepath: Union[str, Path],
+        on_progress: Optional[ProgressCallback] = None,
+    ) -> Dict:
         """Analyzes a lossless audio file and determines if it is authentic.
 
         PHASE 1 OPTIMIZATION: Creates AudioCache once and reuses it for all analyses.
@@ -105,6 +110,12 @@ class FLACAnalyzer:
         Args:
             filepath: Path to the file to analyze (FLAC/WAV/ALAC/APE). Accepts a
                 ``str`` or a ``pathlib.Path`` — a string is coerced to ``Path``.
+            on_progress: Called as each stage of THIS file starts, with a
+                :class:`~flac_detective.analysis.progress.ProgressEvent`. For an
+                application that has to show something during an hour-long track,
+                where a per-file counter cannot help (issue #11). It observes and
+                never participates: anything it raises is swallowed, and the
+                result is the same whether it is given or not.
 
         Returns:
             Dict with: filepath, filename, score, reason, cutoff_freq, metadata,
@@ -112,6 +123,10 @@ class FLACAnalyzer:
         """
         # Accept str for ergonomics; the pipeline relies on Path methods (.suffix, …).
         filepath = Path(filepath)
+        # Before the copy, not after: on an external drive that copy is itself a
+        # slow stage, and a caller that hears nothing until it ends learns the
+        # least exactly when it needs to know the most.
+        emit("prepare", filepath, on_progress)
         # I/O STABILITY STRATEGY: "Copy-to-Temp"
         # Copy (or decode) the source to a local temp file to avoid external-drive
         # I/O errors during analysis and to normalise non-native containers.
@@ -149,6 +164,8 @@ class FLACAnalyzer:
             # Check if cache loaded partial data
             is_partial_analysis = cache.is_partial()
 
+            emit("metadata", filepath, on_progress)
+
             # Read metadata. For a decoded source the original isn't soundfile-readable,
             # so read audio properties (sr / depth / channels / duration) from the
             # decoded WAV — ffmpeg preserves them — and label the real source codec.
@@ -165,6 +182,8 @@ class FLACAnalyzer:
             # Duration check uses Mutagen/Soundfile. Let's use TEMP path for safety.
             duration_check = check_duration_consistency(temp_path, metadata)
 
+            emit("spectrum", filepath, on_progress)
+
             # Spectral analysis (OPTIMIZED: uses cache -> points to TEMP)
             (
                 cutoff_freq,
@@ -174,6 +193,8 @@ class FLACAnalyzer:
                 edge_step_db,
                 floor_above_db,
             ) = analyze_spectrum(temp_path, self.sample_duration, cache=cache)
+
+            emit("quality", filepath, on_progress)
 
             # Audio quality analysis (OPTIMIZED: uses cache -> points to TEMP)
             quality_analysis = analyze_audio_quality(temp_path, metadata, cutoff_freq, cache=cache)
@@ -225,6 +246,11 @@ class FLACAnalyzer:
             # reads ``sample_rate`` and ``cutoff_std`` exactly as the rule will, and
             # those are parsed inside the scorer. Deriving them a second time here
             # would work today and drift later.
+
+            # The long stage, and the one a caller most needs named: the
+            # FLAC-equivalent re-encode alone measures 6 s to 14 s per file, and
+            # Rules 11-15 and the CNN decode on top of it.
+            emit("scoring", filepath, on_progress)
 
             score_breakdown: Dict[str, int] = {}
             # Families that testify without scoring cannot appear in a points
@@ -403,3 +429,9 @@ class FLACAnalyzer:
                     logger.debug(f"I/O STABILITY: Deleted temp file {temp_path}")
                 except Exception as e:
                     logger.warning(f"Could not delete temp file {temp_path}: {e}")
+
+            # In `finally`, so it is emitted exactly once per file whether the
+            # analysis returned a verdict or an ERROR result. A caller waiting on
+            # a file that failed must be released by the same signal as one that
+            # succeeded, or a UI hangs on precisely the files that went wrong.
+            emit("done", filepath, on_progress)

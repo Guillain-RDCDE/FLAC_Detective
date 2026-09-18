@@ -47,6 +47,21 @@ Analyzing multiple files with progress tracking:
 >>> tracker.save()
 >>> results = tracker.get_results()
 
+Showing progress during a long file (the per-file counter above cannot: a
+one-hour track is a single tick that arrives when it is already over):
+
+>>> from flac_detective import FLACAnalyzer
+>>>
+>>> def show(event):
+...     print(f"{event.stage} ({event.index}/{event.total})")
+...
+>>> result = FLACAnalyzer().analyze_file('long-track.flac', on_progress=show)
+
+The callback observes and nothing more — anything it raises is swallowed, and
+the verdict is identical with or without it. See
+``flac_detective.analysis.progress``, and ``--progress-events`` for the same
+stages as JSON lines when driving the CLI as a subprocess.
+
 See Also
 --------
 flac_detective.analysis.analyzer : Main analyzer implementation

@@ -11,15 +11,19 @@ Multi-criteria detection:
 """
 
 import argparse
+import json
 import logging
+import multiprocessing
 import os
 import sys
 import tempfile
+import threading
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterator, Optional
+from typing import Any, Callable, Iterator, Optional, Tuple
 
 from .__version__ import __version__
 
@@ -64,6 +68,7 @@ from .analysis.audio_formats import (
     is_analysable_lossless,
 )
 from .analysis.diagnostic_tracker import get_tracker, reset_tracker
+from .analysis.progress import ProgressCallback, ProgressEvent, install_queue_sink
 from .colors import Colors, colorize
 from .config import analysis_config
 from .reporting import CSVReporter, HTMLReporter, TextReporter
@@ -514,6 +519,21 @@ def parse_arguments() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--progress-events",
+        type=str,
+        default=None,
+        metavar="DEST",
+        help=(
+            "Report progress WITHIN each file, as one JSON object per line, for an "
+            "application driving this as a subprocess. '-' writes to stderr (stdout "
+            "stays reserved for the report); anything else is a file path, truncated "
+            "at start. Off by default. Each line carries event, file, stage, index and "
+            "total, where stage is prepare/metadata/spectrum/quality/scoring/done. "
+            "There is no percentage: which rules run depends on what the earlier ones "
+            "found, so the time left inside a file is not knowable when it is opened."
+        ),
+    )
+    parser.add_argument(
         "--format",
         choices=["text", "json", "csv", "html"],
         default="text",
@@ -698,7 +718,107 @@ def _create_non_flac_result(non_flac_file: Path) -> dict:
     }
 
 
-def _analyze_batch(files: list[Path], analyzer: Any, workers: int) -> Iterator[tuple[Path, dict]]:
+@contextmanager
+def _progress_event_writer(dest: Optional[str]) -> Iterator[Optional[ProgressCallback]]:
+    """Yield a callable writing one JSON object per line to ``dest``, or ``None``.
+
+    ``dest`` is ``None`` (the feature is off and nothing is created), ``-`` for
+    stderr, or a path. stderr rather than stdout because stdout already carries
+    the report under ``--format json`` and that stream has to stay parseable —
+    the same rule the banner obeys.
+
+    Every line is flushed: a consumer reading this pipe wants the event now, and
+    a block-buffered stream would hand it six at once when the file is over,
+    which is the very problem this exists to solve. ASCII-escaped (json.dumps'
+    default) so no console encoding can break a line — a filename outside the
+    console codepage crashed the CLI once already.
+    """
+    if dest is None:
+        yield None
+        return
+
+    stream: Any
+    if dest == "-":
+        stream, close = sys.stderr, False
+    else:
+        try:
+            # Line-buffered and UTF-8: the bytes are ASCII either way, and a
+            # reader tailing the file sees each event as it happens.
+            stream, close = open(dest, "w", encoding="utf-8", buffering=1), True
+        except OSError as exc:
+            # A destination that cannot be written is a mistake in the command,
+            # not a reason to analyse a library and then fail: say so and stop.
+            raise SystemExit(f"--progress-events: cannot write to {dest}: {exc}")
+
+    def write(event: ProgressEvent) -> None:
+        stream.write(json.dumps(event.as_dict()) + "\n")
+        stream.flush()
+
+    try:
+        yield write
+    finally:
+        if close:
+            stream.close()
+
+
+@contextmanager
+def _worker_event_channel(
+    on_event: Optional[ProgressCallback],
+) -> Iterator[Tuple[Optional[Callable[..., None]], tuple]]:
+    """Carry progress events from pool workers back into this process.
+
+    Yields the ``(initializer, initargs)`` pair for ``ProcessPoolExecutor``.
+    With no consumer that pair is ``(None, ())`` and nothing whatsoever is
+    built — no manager, no queue, no thread — so an ordinary scan is byte for
+    byte the run it was before this feature existed.
+
+    A manager queue rather than a plain ``multiprocessing.Queue``: its proxy is
+    picklable by contract, which is what sending it through the pool's
+    initargs needs on spawn platforms. It is bound once per worker by
+    :func:`install_queue_sink`, so nothing extra is pickled per file.
+    """
+    if on_event is None:
+        yield None, ()
+        return
+
+    manager = multiprocessing.Manager()
+    queue = manager.Queue()
+
+    def drain() -> None:
+        # None is the sentinel, not a unique object(): the queue pickles what
+        # goes through it, so identity does not survive the trip and `is` on a
+        # sentinel object would never match. An event is never None.
+        while True:
+            try:
+                item = queue.get()
+            except (EOFError, OSError):  # BrokenPipeError is an OSError
+                return
+            if item is None:
+                return
+            try:
+                on_event(item)
+            except Exception as exc:  # a closed pipe downstream, typically
+                logger.debug("Progress writer raised (%s); dropping the event", exc)
+
+    thread = threading.Thread(target=drain, name="fd-progress-drain", daemon=True)
+    thread.start()
+    try:
+        yield install_queue_sink, (queue,)
+    finally:
+        try:
+            queue.put(None)
+            thread.join(timeout=5)
+        except Exception as exc:  # pragma: no cover - manager already gone
+            logger.debug("Progress channel shutdown: %s", exc)
+        manager.shutdown()
+
+
+def _analyze_batch(
+    files: list[Path],
+    analyzer: Any,
+    workers: int,
+    on_event: Optional[ProgressCallback] = None,
+) -> Iterator[tuple[Path, dict]]:
     """Yield ``(path, result)`` for each file, in a pool or in this process.
 
     ``workers <= 1`` runs here: no pool to break, and the heavy stack is imported
@@ -709,18 +829,29 @@ def _analyze_batch(files: list[Path], analyzer: Any, workers: int) -> Iterator[t
         files: Files to analyse.
         analyzer: The analyzer; must be picklable when ``workers > 1``.
         workers: Process count. 1 or less means in-process.
+        on_event: Per-stage progress consumer (issue #11), or None for none. In
+            process the analyzer is handed the callback; in the pool the events
+            come back over a queue, because a callback does not cross a process.
 
     Yields:
         ``(path, result)`` pairs, in completion order when pooled.
     """
     if workers <= 1:
         for path in files:
-            yield path, analyzer.analyze_file(path)
+            # The call keeps its old shape when the feature is off, so anything
+            # duck-typed as an analyzer elsewhere is unaffected by this argument.
+            if on_event is None:
+                yield path, analyzer.analyze_file(path)
+            else:
+                yield path, analyzer.analyze_file(path, on_progress=on_event)
         return
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
-        for future in as_completed(futures):
-            yield futures[future], future.result()
+    with _worker_event_channel(on_event) as (initializer, initargs):
+        with ProcessPoolExecutor(
+            max_workers=workers, initializer=initializer, initargs=initargs
+        ) as executor:
+            futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
+            for future in as_completed(futures):
+                yield futures[future], future.result()
 
 
 def _process_flac_files(
@@ -728,6 +859,7 @@ def _process_flac_files(
     tracker: ProgressTracker,
     analyzer: FLACAnalyzer,
     advanced: bool = False,
+    on_event: Optional[ProgressCallback] = None,
 ):
     """Process FLAC files with multi-processing and rich progress.
 
@@ -739,6 +871,7 @@ def _process_flac_files(
         tracker: Progress tracker instance.
         analyzer: FLAC analyzer instance.
         advanced: Pass-through to the per-file console line (show score or not).
+        on_event: Per-stage progress consumer (``--progress-events``), or None.
     """
     total_files = len(files_to_process)
 
@@ -767,7 +900,7 @@ def _process_flac_files(
     def consume(files: list[Path], workers: int, progress: Any = None, task_id: Any = None) -> None:
         """Analyse ``files`` and record every result as it lands."""
         nonlocal processed_count
-        for path, result in _analyze_batch(files, analyzer, workers):
+        for path, result in _analyze_batch(files, analyzer, workers, on_event):
             done.add(path)
             tracker.add_result(result)
             processed_count += 1
@@ -837,6 +970,7 @@ def run_analysis_loop(
     sample_duration: Optional[float] = None,
     deep: bool = False,
     advanced: bool = False,
+    on_event: Optional[ProgressCallback] = None,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -849,6 +983,7 @@ def run_analysis_loop(
         deep: Run Rule 12 (ML) on every file, bypassing the authentic fast path.
             See the ``--deep`` flag.
         advanced: Show numeric scores in the per-file console line (else easy mode).
+        on_event: Per-stage progress consumer (``--progress-events``), or None.
 
     Returns:
         List of result dictionaries.
@@ -875,7 +1010,7 @@ def run_analysis_loop(
         print()
 
         # Multi-process analysis
-        _process_flac_files(files_to_process, tracker, analyzer, advanced)
+        _process_flac_files(files_to_process, tracker, analyzer, advanced, on_event)
 
         # Final save
         tracker.save()
@@ -1193,14 +1328,16 @@ def main():
         # Console handlers are WARNING-level: this is how a fallback gets seen.
         logger.warning(note)
 
-    results = run_analysis_loop(
-        all_flac_files,
-        all_non_flac_files,
-        output_dir,
-        sample_duration=args.sample_duration,
-        deep=args.deep,
-        advanced=args.advanced,
-    )
+    with _progress_event_writer(args.progress_events) as on_event:
+        results = run_analysis_loop(
+            all_flac_files,
+            all_non_flac_files,
+            output_dir,
+            sample_duration=args.sample_duration,
+            deep=args.deep,
+            advanced=args.advanced,
+            on_event=on_event,
+        )
 
     generate_final_report(
         results,

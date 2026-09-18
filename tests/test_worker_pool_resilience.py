@@ -71,8 +71,8 @@ def test_a_broken_pool_is_finished_in_process(tmp_path, monkeypatch, caplog):
     files = [tmp_path / f"{i}.flac" for i in range(5)]
     calls = []
 
-    def fake_batch(batch, analyzer, workers):
-        calls.append((list(batch), workers))
+    def fake_batch(batch, analyzer, workers, on_event=None):
+        calls.append((list(batch), workers, on_event))
         if workers > 1:
             yield batch[0], _result(batch[0])
             yield batch[1], _result(batch[1])
@@ -85,7 +85,10 @@ def test_a_broken_pool_is_finished_in_process(tmp_path, monkeypatch, caplog):
     monkeypatch.setattr(fd_main.analysis_config, "MAX_WORKERS", 8)
 
     tracker = MagicMock()
-    fd_main._process_flac_files(files, tracker, _Analyzer(), advanced=False)
+    events = []
+    fd_main._process_flac_files(
+        files, tracker, _Analyzer(), advanced=False, on_event=events.append
+    )
 
     # Every file has a result, and none was recorded twice.
     recorded = [c.args[0]["file_path"] for c in tracker.add_result.call_args_list]
@@ -97,6 +100,11 @@ def test_a_broken_pool_is_finished_in_process(tmp_path, monkeypatch, caplog):
     assert calls[1][1] == 1
     assert calls[1][0] == files[2:]
 
+    # And the progress consumer survived the fall back to this process (issue #11):
+    # a caller watching stages must not go silent precisely when the run degrades.
+    assert calls[0][2] is not None
+    assert calls[1][2] is calls[0][2]
+
     # And it said so, in terms that point at the cause rather than at the audio.
     assert any("worker pool died" in r.message for r in caplog.records)
 
@@ -105,7 +113,7 @@ def test_a_broken_pool_saves_what_it_had(tmp_path, monkeypatch):
     """Progress is flushed before the retry: a second failure must not cost the first half."""
     files = [tmp_path / f"{i}.flac" for i in range(4)]
 
-    def fake_batch(batch, analyzer, workers):
+    def fake_batch(batch, analyzer, workers, on_event=None):
         if workers > 1:
             yield batch[0], _result(batch[0])
             raise BrokenProcessPool("boom")

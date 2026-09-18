@@ -285,6 +285,7 @@ flac-detective "/staging/my-album"
 | `--output PATH`            | Write the report to this path (default: auto-named in the work directory) |
 | `--work-dir DIR`           | Where `progress.json` (resume state), the auto-named report and the console log go. Default: the scan directory; if that is read-only (external drive, container `:ro` mount) the current directory is used instead. Created if missing |
 | `--format {text,json,csv}` | Report format (default `text`; `json` = scan metadata + results; `csv` = one row per file, ranked most-suspicious first) |
+| `--progress-events DEST`   | Report the stages *within* each file as one JSON object per line, for a program driving this as a subprocess. `-` = stderr, anything else = a file path. Off by default. See the [User Guide](user-guide.md) |
 
 Examples:
 

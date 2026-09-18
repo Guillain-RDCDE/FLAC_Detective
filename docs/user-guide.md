@@ -142,6 +142,67 @@ flac-detective /music --verbose --format json
 flac-detective /music --sample-duration 15 --output quick-scan.txt
 ```
 
+### Progress inside a file (`--progress-events`)
+
+The progress bar counts **finished files**, which tells you nothing while a single
+long track is being analysed. An hour-long file is one tick that arrives when it is
+already over, so an application driving `flac-detective` as a subprocess has nothing
+to show in between and looks frozen.
+
+`--progress-events` reports the stages *within* each file, one JSON object per line:
+
+```bash
+flac-detective /music --progress-events -                 # to stderr
+flac-detective /music --progress-events events.ndjson     # to a file
+```
+
+Each line looks like this:
+
+```json
+{"event": "stage", "file": "/music/track.flac", "stage": "spectrum", "index": 3, "total": 6}
+```
+
+The stages, always in this order: `prepare` (copy to a local temp file, or decode a
+non-native container with ffmpeg), `metadata`, `spectrum`, `quality`, `scoring` — the
+long one, where the FLAC-equivalent re-encode and Rules 11–15 and the CNN live — and
+`done`. `done` is emitted **exactly once per file whatever the outcome**, including a
+file that failed, so an interface can always release what it is waiting on.
+
+**There is no percentage, on purpose.** Which rules run depends on what the earlier
+ones found: the authentic fast path returns before the expensive half, `--deep`
+bypasses it, Rule 1's container test is skipped where nothing reads the ratio, and
+Rules 11–15 each have their own entry condition. The time left inside a file is not
+knowable when the file is opened, so `index`/`total` is a position in a fixed list of
+stages, never a fraction of the work. A number here would be a progress bar that lies.
+
+`-` writes to **stderr**, never stdout, because stdout carries the report under
+`--format json` and has to stay parseable. stderr also carries the banner and the log,
+so match the lines you want and ignore the rest — every event line starts with
+`{"event"`:
+
+```python
+for line in proc.stderr:
+    if line.startswith('{"event"'):
+        handle(json.loads(line))
+```
+
+Give a **file path** instead if you want a stream with nothing else in it. Lines are
+flushed as they happen, so tailing the file works; the file is truncated at start.
+
+From Python, pass a callback instead — same stages, no subprocess:
+
+```python
+from flac_detective import FLACAnalyzer
+
+def show(event):
+    print(f"{event.stage} ({event.index}/{event.total}) {event.file}")
+
+result = FLACAnalyzer().analyze_file("track.flac", on_progress=show)
+```
+
+The callback only observes: anything it raises is swallowed, and the verdict is the
+same whether you pass one or not.
+
 ## Understanding Results
 
 ### The Four Verdicts
