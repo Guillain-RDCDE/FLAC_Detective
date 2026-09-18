@@ -36,8 +36,10 @@ from flac_detective import main as fd_main  # noqa: E402
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 from flac_detective.analysis.progress import (  # noqa: E402
     STAGES,
+    SUBSTAGES,
     ProgressEvent,
     emit,
+    emit_substage,
     get_sink,
     set_sink,
 )
@@ -64,10 +66,71 @@ def test_the_stages_arrive_in_order_once_each(audio):
     seen: list[ProgressEvent] = []
     FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
 
-    assert [e.stage for e in seen] == list(STAGES)
-    assert [e.index for e in seen] == list(range(1, len(STAGES) + 1))
-    assert {e.total for e in seen} == {len(STAGES)}
+    stages = [e for e in seen if e.detail is None]
+    assert [e.stage for e in stages] == list(STAGES)
+    assert [e.index for e in stages] == list(range(1, len(STAGES) + 1))
+    assert {e.total for e in stages} == {len(STAGES)}
     assert {e.file for e in seen} == {str(audio)}
+
+
+def test_a_1_14_0_consumer_sees_exactly_what_it_saw_before(audio):
+    """Substages were ADDED next to the stage events, never woven into them.
+
+    An integrator who wrote ``if event["event"] == "stage"`` against 1.14.0 must
+    still get six events, in order, with the same indices and the same keys. The
+    discriminator exists for precisely this; a feature that quietly renumbered
+    the stages would have broken every consumer of the version shipped hours
+    earlier.
+    """
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    old_view = [e.as_dict() for e in seen if e.as_dict()["event"] == "stage"]
+    assert [e["stage"] for e in old_view] == list(STAGES)
+    assert [e["index"] for e in old_view] == list(range(1, len(STAGES) + 1))
+    assert all(set(e) == {"event", "file", "stage", "index", "total"} for e in old_view)
+
+
+def test_the_long_stage_reports_its_steps(audio):
+    """`quality` is 87% of a long track and three passes over the audio.
+
+    One event at its start is what left the reporter's interface on a single
+    label for most of the wait, so the steps inside it are named.
+    """
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    details = [e.detail for e in seen if e.stage == "quality" and e.detail is not None]
+    assert details == list(SUBSTAGES["quality"])
+
+    # A substage carries its parent's position, and says which parent it is.
+    sub = next(e for e in seen if e.detail == "clipping")
+    assert sub.index == list(STAGES).index("quality") + 1
+    assert sub.total == len(STAGES)
+    assert sub.as_dict()["event"] == "substage"
+    assert sub.as_dict()["detail"] == "clipping"
+
+
+def test_every_substage_arrives_between_its_stage_and_the_next(audio):
+    """Ordering is the whole point: a step must not be reported out of its stage."""
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    names = [e.stage if e.detail is None else f"{e.stage}:{e.detail}" for e in seen]
+    quality_at = names.index("quality")
+    scoring_at = names.index("scoring")
+    inside = [n for n in names[quality_at:scoring_at] if ":" in n]
+    assert inside == [f"quality:{d}" for d in SUBSTAGES["quality"]]
+
+
+def test_an_unknown_substage_is_our_bug_and_is_loud():
+    """Same rule as a stage name: our mistakes are loud, the sink's are swallowed."""
+    calls: list[ProgressEvent] = []
+    with pytest.raises(KeyError):
+        emit_substage("quality", "not-a-step", "x.flac", calls.append)
+    with pytest.raises(KeyError):
+        emit_substage("spectrum", "clipping", "x.flac", calls.append)
+    assert calls == []
 
 
 def test_done_arrives_even_when_the_file_cannot_be_analysed(tmp_path):
@@ -85,6 +148,7 @@ def test_done_arrives_even_when_the_file_cannot_be_analysed(tmp_path):
     assert result["verdict"] == "ERROR"
     assert seen[-1].stage == "done"
     assert [e.stage for e in seen].count("done") == 1
+    assert seen[-1].detail is None
 
 
 def test_a_callback_that_raises_changes_nothing(audio):
@@ -174,10 +238,11 @@ def test_events_come_back_from_the_pool(tmp_path):
     )
 
     assert len(pairs) == 2
-    assert len(seen) == 2 * len(STAGES)
     for path in files:
-        stages = [e.stage for e in seen if e.file == str(path)]
-        assert stages == list(STAGES)
+        mine = [e for e in seen if e.file == str(path)]
+        assert [e.stage for e in mine if e.detail is None] == list(STAGES)
+        # The substages must survive the queue too, not just the stage events.
+        assert [e.detail for e in mine if e.detail is not None] == list(SUBSTAGES["quality"])
 
 
 def test_an_unwritable_destination_stops_before_the_scan(tmp_path):
@@ -235,6 +300,6 @@ def test_the_cli_writes_ndjson_and_keeps_stdout_parseable(tmp_path):
     assert len(report["results"]) == 1
 
     events = [json.loads(line) for line in events_path.read_text().splitlines() if line.strip()]
-    assert [e["stage"] for e in events] == list(STAGES)
-    assert all(e["event"] == "stage" for e in events)
+    assert [e["stage"] for e in events if e["event"] == "stage"] == list(STAGES)
+    assert [e["detail"] for e in events if e["event"] == "substage"] == list(SUBSTAGES["quality"])
     assert all(Path(e["file"]).name == "one.flac" for e in events)

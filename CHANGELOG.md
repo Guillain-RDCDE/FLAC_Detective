@@ -1,3 +1,43 @@
+## v1.14.1 (2026-09-18) — The long stage says where it is
+
+1.14.0 named six stages and told the reporter that `scoring` was the long one.
+Measured afterwards, on the case he actually described — a long track — that
+was wrong, and wrong in the way that matters: on a 20-minute file `quality`
+was **87% of the whole analysis** (39.3 s of 45.4 s) while `scoring` was 0.2 s.
+`scoring` is the long one on a typical library file, where Rule 1's
+FLAC-equivalent re-encode and the heavy rules run; on a long track that takes
+the authentic fast path they do not run at all, and `quality` — which is three
+separate passes over the audio — swallows the run.
+
+So 1.14.0 moved his interface from "stuck at nothing" to "stuck at stage 4 of
+6", which is better and is not what was promised.
+
+### The steps inside the long stage
+
+`quality` now reports each detector as it starts: `clipping`, `dc_offset`,
+`silence`, `bit_depth`, `upsampling`. Measured on the same 20-minute file, the
+longest gap between two events falls from **39.3 s to 12.7 s**.
+
+These are a SECOND KIND of event, `"event": "substage"`, carrying `detail` and
+the `index`/`total` of their parent stage. `STAGES` is untouched: a consumer
+written against 1.14.0 that matches `event == "stage"` still gets six events,
+in the same order, with the same indices and the same keys — pinned by a test,
+because renumbering the stages of a version published hours earlier would have
+broken every integration built on it. The discriminator was put in `as_dict`
+for exactly this, and this is the first thing to use it.
+
+No engine change, no verdict moves. The substage reporter carries the ORIGINAL
+path, never the temporary copy the analysis works on, so a caller is never
+shown a filename it cannot recognise.
+
+### Still open, and deliberately not touched here
+
+Those three passes each read the whole file, and each detector already has a
+`detect_from_data` that could work from one shared read. That is a real
+optimisation — it would cut the dominant cost of a long track — but it changes
+what the engine reads and when, so it belongs to a measured change on the
+bench, not to a correction shipped the same day.
+
 ## v1.14.0 (2026-09-18) — Six stages, no percentage
 
 Issue #11: an application driving the engine has nothing to show while one

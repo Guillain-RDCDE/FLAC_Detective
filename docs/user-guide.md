@@ -163,10 +163,28 @@ Each line looks like this:
 ```
 
 The stages, always in this order: `prepare` (copy to a local temp file, or decode a
-non-native container with ffmpeg), `metadata`, `spectrum`, `quality`, `scoring` — the
-long one, where the FLAC-equivalent re-encode and Rules 11–15 and the CNN live — and
+non-native container with ffmpeg), `metadata`, `spectrum`, `quality`, `scoring` and
 `done`. `done` is emitted **exactly once per file whatever the outcome**, including a
 file that failed, so an interface can always release what it is waiting on.
+
+**Which stage is the long one depends on the file.** On a long track it is `quality`:
+measured on a 20-minute file, it was 87% of the whole analysis, because it is three
+separate passes over the audio. On a typical library file `scoring` can dominate
+instead, when Rule 1's FLAC-equivalent re-encode and the heavy rules actually run.
+
+So the steps inside `quality` are reported too, as a **second kind of event**:
+
+```json
+{"event": "substage", "file": "...", "stage": "quality", "detail": "silence", "index": 4, "total": 6}
+```
+
+The steps are `clipping`, `dc_offset`, `silence`, `bit_depth`, `upsampling`, and a
+substage carries the `index`/`total` of its parent stage. On that same 20-minute file
+this took the longest gap between two events from 39.3 s down to 12.7 s.
+
+If you only care about the six stages, filter on `event == "stage"` and you will see
+exactly what you saw before — same order, same indices, same keys. Substages are added
+next to stage events, never woven into them.
 
 **There is no percentage, on purpose.** Which rules run depends on what the earlier
 ones found: the authentic fast path returns before the expensive half, `--deep`
@@ -195,7 +213,8 @@ From Python, pass a callback instead — same stages, no subprocess:
 from flac_detective import FLACAnalyzer
 
 def show(event):
-    print(f"{event.stage} ({event.index}/{event.total}) {event.file}")
+    where = event.stage if event.detail is None else f"{event.stage}/{event.detail}"
+    print(f"{where} ({event.index}/{event.total}) {event.file}")
 
 result = FLACAnalyzer().analyze_file("track.flac", on_progress=show)
 ```

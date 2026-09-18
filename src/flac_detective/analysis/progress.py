@@ -56,6 +56,22 @@ STAGES: Tuple[str, ...] = (
 
 _STAGE_INDEX: Dict[str, int] = {name: i + 1 for i, name in enumerate(STAGES)}
 
+#: Named steps WITHIN a stage, for the stages long enough that one event is not
+#: enough. Measured on a 20-minute track before this existed: ``quality`` was
+#: 87% of the whole analysis (39.3 s of 45.4 s) and it is three separate passes
+#: over the audio — clipping 13.1 s, DC offset 11.7 s, silence 12.9 s — while
+#: bit depth and upsampling are free. So a long track sat on one label for the
+#: entire wait, which is most of what the reporter was complaining about.
+#:
+#: These are a SECOND kind of event (``"event": "substage"``), never a change to
+#: :data:`STAGES`. A consumer that matches ``event == "stage"`` sees exactly the
+#: six events it saw before, in the same order with the same indices; one that
+#: wants finer news reads the substages too. That is what the discriminator in
+#: :meth:`ProgressEvent.as_dict` was put there for.
+SUBSTAGES: Dict[str, Tuple[str, ...]] = {
+    "quality": ("clipping", "dc_offset", "silence", "bit_depth", "upsampling"),
+}
+
 
 @dataclass(frozen=True)
 class ProgressEvent:
@@ -70,26 +86,34 @@ class ProgressEvent:
         stage: One of :data:`STAGES`.
         index: 1-based position of ``stage`` in :data:`STAGES`.
         total: ``len(STAGES)`` — a count of stages, never a percentage of time.
+        detail: The step within ``stage`` (see :data:`SUBSTAGES`), or None for
+            the stage event itself.
     """
 
     file: str
     stage: str
     index: int
     total: int
+    detail: Optional[str] = None
 
     def as_dict(self) -> Dict[str, Any]:
         """The wire form, one JSON object per line on ``--progress-events``.
 
-        ``event`` is a discriminator, so a consumer's parser keeps working if a
-        second kind of event is ever added next to this one.
+        ``event`` is the discriminator. A stage event is byte for byte what
+        1.14.0 emitted — no key added, none removed — so a consumer written
+        against that version keeps parsing it unchanged; a substage is a
+        separate kind, carrying ``detail`` and the index of its parent stage.
         """
-        return {
-            "event": "stage",
+        payload: Dict[str, Any] = {
+            "event": "stage" if self.detail is None else "substage",
             "file": self.file,
             "stage": self.stage,
             "index": self.index,
             "total": self.total,
         }
+        if self.detail is not None:
+            payload["detail"] = self.detail
+        return payload
 
 
 ProgressCallback = Callable[[ProgressEvent], None]
@@ -147,3 +171,49 @@ def emit(
         target(event)
     except Exception as exc:  # a sink must never reach the analysis
         logger.debug("Progress sink raised on stage %s (%s); continuing", stage, exc)
+
+
+def emit_substage(
+    stage: str,
+    detail: str,
+    filepath: Union[str, Any],
+    callback: Optional[ProgressCallback] = None,
+) -> None:
+    """Announce a step WITHIN ``stage``. Never raises. See :data:`SUBSTAGES`.
+
+    Args:
+        stage: One of :data:`STAGES`.
+        detail: One of ``SUBSTAGES[stage]``. An unknown pair is a bug here and
+            raises, exactly as an unknown stage does in :func:`emit`.
+        filepath: The file being analysed; coerced with ``str``.
+        callback: The caller's callback, if it passed one.
+    """
+    target = callback if callback is not None else _sink
+    if target is None:
+        return
+    if detail not in SUBSTAGES.get(stage, ()):
+        raise KeyError(f"{detail!r} is not a substage of {stage!r}")
+    event = ProgressEvent(str(filepath), stage, _STAGE_INDEX[stage], len(STAGES), detail)
+    try:
+        target(event)
+    except Exception as exc:  # a sink must never reach the analysis
+        logger.debug("Progress sink raised on substage %s/%s (%s); continuing", stage, detail, exc)
+
+
+def substage_reporter(
+    stage: str,
+    filepath: Union[str, Any],
+    callback: Optional[ProgressCallback] = None,
+) -> Callable[[str], None]:
+    """A one-argument reporter for ``stage``, bound to ``filepath``.
+
+    Handed to the code that does the work so it needs to know nothing about
+    events or paths — it calls ``report("clipping")`` and is done. It also keeps
+    the ORIGINAL path in the event: the analysis runs against a temporary copy,
+    and the caller must never be shown a name it cannot recognise.
+    """
+
+    def report(detail: str) -> None:
+        emit_substage(stage, detail, filepath, callback)
+
+    return report

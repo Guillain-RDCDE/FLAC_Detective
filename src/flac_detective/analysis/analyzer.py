@@ -23,7 +23,7 @@ from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .new_scoring.evidence import collapse_dependent_families, evidence_families
-from .progress import ProgressCallback, emit
+from .progress import ProgressCallback, emit, substage_reporter
 from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
@@ -197,7 +197,18 @@ class FLACAnalyzer:
             emit("quality", filepath, on_progress)
 
             # Audio quality analysis (OPTIMIZED: uses cache -> points to TEMP)
-            quality_analysis = analyze_audio_quality(temp_path, metadata, cutoff_freq, cache=cache)
+            # The substage reporter carries the ORIGINAL filepath, not the temp
+            # copy this call works on: the caller must never be shown a name it
+            # cannot recognise. Measured on a 20-minute track, this stage is 87%
+            # of the analysis and three separate passes over the audio, so one
+            # event at its start left a long file sitting on a single label.
+            quality_analysis = analyze_audio_quality(
+                temp_path,
+                metadata,
+                cutoff_freq,
+                cache=cache,
+                on_substage=substage_reporter("quality", filepath, on_progress),
+            )
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)
             # We must pass 'filepath' (original) for logging/reporting purposes,

@@ -7,7 +7,7 @@ a strategy pattern for different quality detectors.
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 import numpy as np
 import soundfile as sf
@@ -15,6 +15,10 @@ import soundfile as sf
 from .new_scoring.audio_loader import is_temporary_decoder_error, sf_blocks
 
 logger = logging.getLogger(__name__)
+
+
+def _ignore_substage(_detail: str) -> None:
+    """The default progress reporter: nobody is listening, so do nothing."""
 
 
 # ============================================================================
@@ -590,6 +594,7 @@ class AudioQualityAnalyzer:
         metadata: Dict | None = None,
         cutoff_freq: float = 0.0,
         cache=None,
+        on_substage: Callable[[str], None] | None = None,
     ) -> Dict[str, Any]:
         """Complete audio quality analysis of a file.
 
@@ -600,10 +605,17 @@ class AudioQualityAnalyzer:
             metadata: File metadata (optional, for bit depth/samplerate).
             cutoff_freq: Cutoff frequency (optional, for upsampling).
             cache: Optional AudioCache instance for optimization.
+            on_substage: Called with the name of each detector as it starts.
+                This stage is the long one on a long track — three separate
+                passes over the audio — so a caller showing progress needs to
+                hear something between them. See ``analysis/progress.py``.
 
         Returns:
             Dictionary with all quality analysis results.
         """
+        # A no-op rather than a branch at every call site: this runs five times
+        # per file and must cost nothing when nobody is listening.
+        note = on_substage if on_substage is not None else _ignore_substage
         results = {}
 
         # 1. Check corruption first
@@ -642,15 +654,19 @@ class AudioQualityAnalyzer:
             # Detectors will read the file themselves in a memory-efficient way.
 
             # 3. Clipping detection
+            note("clipping")
             results["clipping"] = self.detectors["clipping"].detect(filepath=filepath)
 
             # 4. DC offset detection
+            note("dc_offset")
             results["dc_offset"] = self.detectors["dc_offset"].detect(filepath=filepath)
 
             # 5. Silence detection
+            note("silence")
             results["silence"] = self.detectors["silence"].detect(filepath=filepath)
 
             # 6. Fake High-Res detection
+            note("bit_depth")
             reported_depth = self._get_reported_depth(metadata)
             results["bit_depth"] = self.detectors["bit_depth"].detect(
                 filepath=filepath, reported_depth=reported_depth
@@ -668,6 +684,7 @@ class AudioQualityAnalyzer:
             except Exception:
                 reported_rate = self._get_reported_rate(metadata, 0)
 
+            note("upsampling")
             results["upsampling"] = self._detect_upsampling(
                 filepath, reported_rate, cutoff_freq, cache
             )
@@ -795,6 +812,7 @@ def analyze_audio_quality(
     metadata: Dict | None = None,
     cutoff_freq: float = 0.0,
     cache=None,
+    on_substage: Callable[[str], None] | None = None,
 ) -> Dict[str, Any]:
     """Complete audio quality analysis (backward compatibility wrapper).
 
@@ -802,7 +820,11 @@ def analyze_audio_quality(
     """
     analyzer = AudioQualityAnalyzer()
     return analyzer.analyze(
-        filepath=filepath, metadata=metadata, cutoff_freq=cutoff_freq, cache=cache
+        filepath=filepath,
+        metadata=metadata,
+        cutoff_freq=cutoff_freq,
+        cache=cache,
+        on_substage=on_substage,
     )
 
 
