@@ -167,20 +167,25 @@ non-native container with ffmpeg), `metadata`, `spectrum`, `quality`, `scoring` 
 `done`. `done` is emitted **exactly once per file whatever the outcome**, including a
 file that failed, so an interface can always release what it is waiting on.
 
-**Which stage is the long one depends on the file.** On a long track it is `quality`:
-measured on a 20-minute file, it was 87% of the whole analysis, because it is three
-separate passes over the audio. On a typical library file `scoring` can dominate
-instead, when Rule 1's FLAC-equivalent re-encode and the heavy rules actually run.
+**Which stage is the long one depends on the file.** On a long track it is `quality`,
+which reads the audio to measure clipping, DC offset and silence. On a typical library
+file `scoring` can dominate instead, when Rule 1's FLAC-equivalent re-encode and the
+heavy rules actually run.
 
-So the steps inside `quality` are reported too, as a **second kind of event**:
+The steps inside `quality` are reported too, as a **second kind of event**:
 
 ```json
 {"event": "substage", "file": "...", "stage": "quality", "detail": "silence", "index": 4, "total": 6}
 ```
 
 The steps are `clipping`, `dc_offset`, `silence`, `bit_depth`, `upsampling`, and a
-substage carries the `index`/`total` of its parent stage. On that same 20-minute file
-this took the longest gap between two events from 39.3 s down to 12.7 s.
+substage carries the `index`/`total` of its parent stage.
+
+Note that `clipping`, `dc_offset` and `silence` arrive **together**: since 1.15.0 they
+are computed in a single pass over the audio, so all three genuinely start at the same
+moment. Announcing them one after another would describe a sequence that no longer
+happens. That single scan is now the longest gap in an analysis — about 16 s on a
+20-minute track, where the whole analysis takes 22 s.
 
 If you only care about the six stages, filter on `event == "stage"` and you will see
 exactly what you saw before — same order, same indices, same keys. Substages are added

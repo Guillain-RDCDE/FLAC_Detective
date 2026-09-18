@@ -1,3 +1,65 @@
+## v1.15.0 (2026-09-18) — One pass over the audio
+
+Instrumenting the stages for issue #11 showed where the time of a long track
+goes, and the answer was embarrassing: the quality stage was **87% of the whole
+analysis**, and its three detectors — clipping, DC offset, silence — each
+streamed the entire file on their own. 13.1 s, 11.7 s, 12.9 s on a 20-minute
+track: three equal shares, because the three passes are the same pass. The cost
+was the reading, not the arithmetic.
+
+They now share one traversal.
+
+| | v1.14.1 | now | |
+|---|---|---|---|
+| 6 complete tracks | 16.4 s/file | 7.5 s/file | **2.18x** |
+| 10 extracts of 60 s | 6.0 s/file | 4.7 s/file | **1.29x** |
+| quality scan alone, 196 files | 514.8 s | 196.0 s | **2.63x** |
+
+The gain grows with duration because only that stage changed. Bounded memory,
+which is why the stage streams in the first place, is untouched: peak
+allocation on a 160 MB track is 0.5 MB before and after.
+
+### Exact by construction, and measured anyway
+
+Criteria were registered before any pass was run
+(`ml/exchange/QUALITY_SINGLE_PASS_REGISTRATION_2026-09-18.md`, committed first)
+and answered in `QUALITY_SINGLE_PASS_MEASUREMENT_2026-09-18.md`.
+
+The same blocks are read in the same order at the same dtype, the same integer
+count is incremented, and the same Python float accumulates the same per-block
+sum in the same sequence. Nothing is reassociated. Each result dict is built by
+the detector that owns it, through the methods `detect` itself calls, so the
+two paths cannot drift apart later.
+
+Measured rather than asserted: **196 files, 0 mismatched**, compared field for
+field — equality, not tolerance, with `dc_offset_value` compared before its
+six-decimal rounding could hide a drift. Then the full pipeline on 92 files,
+before-pass from a detached worktree at `v1.14.1`: **0 verdicts moved, 0 scores
+moved, 0 quality fields changed**.
+
+A damaged file keeps its old behaviour: one shared loop could have let a single
+exception take all three detectors down, where each used to fail alone and
+report its own `severity: "error"`. The scan returns None on any failure and
+the three independent detectors run instead.
+
+This is also why the decoded audio already in `AudioCache` is NOT used, tempting
+as it is: `detect_from_data` averages per-channel means where this path takes
+one sum over one total — equal in algebra, not in floating point. That would be
+a change of result wearing the clothes of an optimisation.
+
+### What got worse
+
+`clipping`, `dc_offset` and `silence` now arrive as progress events TOGETHER,
+because all three genuinely start together; announcing them in sequence would
+describe something that no longer happens. The scan is indivisible, so it is one
+gap: on the 20-minute track the longest silence between two events goes from
+12.7 s to 15.8 s, while the whole analysis goes from 45.4 s to 21.7 s. Three
+seconds of granularity for half the wait, said plainly rather than left out.
+
+The proper answer is a progress event carrying a position inside the traversal,
+which the loop could now emit cheaply. That is a third event shape in one day,
+so it is registered as future work rather than improvised.
+
 ## v1.14.1 (2026-09-18) — The long stage says where it is
 
 1.14.0 named six stages and told the reporter that `scoring` was the long one.

@@ -21,6 +21,89 @@ def _ignore_substage(_detail: str) -> None:
     """The default progress reporter: nobody is listening, so do nothing."""
 
 
+def scan_quality_in_one_pass(
+    filepath: Path,
+    clipping: "ClippingDetector",
+    dc_offset: "DCOffsetDetector",
+    silence: "SilenceDetector",
+) -> Dict[str, Dict[str, Any]] | None:
+    """Clipping, DC offset and silence from ONE traversal of the file.
+
+    These three detectors each streamed the whole file on their own. Measured on
+    a 20-minute track, that was 87% of the analysis and the three shares were
+    equal (13.1 s, 11.7 s, 12.9 s) — because the three passes ARE the same pass.
+    The cost is the reading, not the arithmetic. See
+    ``ml/exchange/QUALITY_SINGLE_PASS_REGISTRATION_2026-09-18.md``.
+
+    **Exact by construction, not by tolerance.** The same blocks are read in the
+    same order at the same dtype, the same integer count is incremented, and the
+    same Python float accumulates the same per-block ``np.sum`` in the same
+    sequence. Nothing is reassociated or re-derived, and each result dict is
+    built by the detector that owns it, from the methods ``detect`` itself uses.
+
+    This is also why the audio already sitting in ``AudioCache`` is NOT used
+    here: ``detect_from_data`` averages per-channel means where this path takes
+    one sum over one total, which is the same number in algebra and not in
+    floating point. That would be a change of result wearing the clothes of an
+    optimisation.
+
+    Returns:
+        The three result dicts, or None if anything at all went wrong — in which
+        case the caller runs the three detectors separately, exactly as before.
+        Their individual ``try/except`` is a feature on a damaged file: one
+        detector failing must not silence the other two.
+    """
+    try:
+        info = sf.info(str(filepath))
+        total_frames = info.frames
+
+        if total_frames == 0:
+            return {
+                "clipping": clipping.empty_result(),
+                "dc_offset": dc_offset.empty_result(),
+                "silence": silence.empty_result(),
+            }
+
+        clip_threshold = clipping.threshold
+        silence_threshold = 10 ** (silence.threshold_db / 20)
+
+        clipped_samples = 0
+        sum_of_samples = 0.0
+        first_non_silent_frame = None
+        last_non_silent_frame = None
+        current_frame = 0
+
+        for chunk in sf_blocks(str(filepath), dtype="float32"):
+            clipped_samples += int(np.sum(np.abs(chunk) >= clip_threshold))
+            sum_of_samples += float(np.sum(chunk))
+            first_non_silent_frame, last_non_silent_frame = silence.scan_chunk(
+                chunk,
+                current_frame,
+                silence_threshold,
+                first_non_silent_frame,
+                last_non_silent_frame,
+            )
+            current_frame += len(chunk)
+
+        return {
+            # `info.frames` for clipping and `frames * channels` for DC: each
+            # detector's own denominator, kept as it was. They differ, and this
+            # is not the change that gets to decide whether that is right.
+            "clipping": clipping.result_from_counts(clipped_samples, total_frames),
+            "dc_offset": dc_offset.result_from_sum(sum_of_samples, total_frames * info.channels),
+            "silence": silence.result_from_bounds(
+                first_non_silent_frame, last_non_silent_frame, total_frames, info.samplerate
+            ),
+        }
+    except Exception as e:
+        logger.warning(
+            "Single-pass quality scan failed for %s (%s); falling back to three separate passes",
+            filepath.name,
+            e,
+        )
+        return None
+
+
 # ============================================================================
 # SEVERITY CALCULATION HELPERS
 # ============================================================================
@@ -142,6 +225,30 @@ class ClippingDetector(QualityDetector):
             "severity": severity,
         }
 
+    def empty_result(self) -> Dict[str, Any]:
+        """The answer for a file with no frames."""
+        return {
+            "has_clipping": False,
+            "clipping_percentage": 0.0,
+            "clipped_samples": 0,
+            "severity": "none",
+        }
+
+    def result_from_counts(self, clipped_samples: int, total_samples: int) -> Dict[str, Any]:
+        """Turn the streamed totals into the result dict.
+
+        The single source of this arithmetic: the one-pass scan
+        (:func:`scan_quality_in_one_pass`) accumulates the same two integers and
+        builds its answer here, so the two paths cannot drift apart.
+        """
+        clipping_percentage = (clipped_samples / total_samples) * 100 if total_samples > 0 else 0
+        return {
+            "has_clipping": clipping_percentage > 0.01,
+            "clipping_percentage": round(clipping_percentage, 4),
+            "clipped_samples": clipped_samples,
+            "severity": _calculate_clipping_severity(clipping_percentage),
+        }
+
     def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect clipping in audio data.
 
@@ -161,28 +268,13 @@ class ClippingDetector(QualityDetector):
             total_samples = info.frames
 
             if total_samples == 0:
-                return {  # handle empty file
-                    "has_clipping": False,
-                    "clipping_percentage": 0.0,
-                    "clipped_samples": 0,
-                    "severity": "none",
-                }
+                return self.empty_result()
 
             # Use sf_blocks to iterate
             for chunk in sf_blocks(str(filepath), dtype="float32"):
                 clipped_samples += int(np.sum(np.abs(chunk) >= self.threshold))
 
-            clipping_percentage = (
-                (clipped_samples / total_samples) * 100 if total_samples > 0 else 0
-            )
-            severity = _calculate_clipping_severity(clipping_percentage)
-
-            return {
-                "has_clipping": clipping_percentage > 0.01,
-                "clipping_percentage": round(clipping_percentage, 4),
-                "clipped_samples": clipped_samples,
-                "severity": severity,
-            }
+            return self.result_from_counts(clipped_samples, total_samples)
         except Exception as e:
             logger.warning(f"Clipping detection failed for {filepath.name}: {e}")
             return {
@@ -220,6 +312,30 @@ class DCOffsetDetector(QualityDetector):
             "severity": severity,
         }
 
+    def empty_result(self) -> Dict[str, Any]:
+        """The answer for a file with no frames."""
+        return {
+            "has_dc_offset": False,
+            "dc_offset_value": 0.0,
+            "severity": "none",
+        }
+
+    def result_from_sum(self, sum_of_samples: float, total_samples: int) -> Dict[str, Any]:
+        """Turn the streamed sum into the result dict.
+
+        Shared with :func:`scan_quality_in_one_pass`, which accumulates the very
+        same Python float in the very same block order. Note this is NOT what
+        ``detect_from_data`` computes — that one averages per-channel means,
+        which is equal in algebra and not in floating point.
+        """
+        dc_offset = sum_of_samples / total_samples if total_samples > 0 else 0.0
+        abs_offset = abs(dc_offset)
+        return {
+            "has_dc_offset": abs_offset >= self.threshold,
+            "dc_offset_value": round(dc_offset, 6),
+            "severity": _calculate_dc_offset_severity(abs_offset, self.threshold),
+        }
+
     def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect DC offset in audio data.
 
@@ -238,25 +354,13 @@ class DCOffsetDetector(QualityDetector):
             total_samples = info.frames * info.channels  # sum across all samples in all channels
 
             if total_samples == 0:
-                return {
-                    "has_dc_offset": False,
-                    "dc_offset_value": 0.0,
-                    "severity": "none",
-                }
+                return self.empty_result()
 
             # Use sf_blocks to iterate
             for chunk in sf_blocks(str(filepath), dtype="float32"):
                 sum_of_samples += float(np.sum(chunk))
 
-            dc_offset = sum_of_samples / total_samples if total_samples > 0 else 0.0
-            abs_offset = abs(dc_offset)
-            severity = _calculate_dc_offset_severity(abs_offset, self.threshold)
-
-            return {
-                "has_dc_offset": abs_offset >= self.threshold,
-                "dc_offset_value": round(dc_offset, 6),
-                "severity": severity,
-            }
+            return self.result_from_sum(sum_of_samples, total_samples)
         except Exception as e:
             logger.warning(f"DC offset detection failed for {filepath.name}: {e}")
             return {
@@ -388,6 +492,75 @@ class SilenceDetector(QualityDetector):
             "issue_type": issue_type,
         }
 
+    def empty_result(self) -> Dict[str, Any]:
+        """The answer for a file with no frames."""
+        return {
+            "has_silence_issue": False,
+            "leading_silence_sec": 0.0,
+            "trailing_silence_sec": 0.0,
+            "issue_type": "none",
+        }
+
+    def scan_chunk(
+        self,
+        chunk: np.ndarray,
+        current_frame: int,
+        threshold: float,
+        first_non_silent_frame: Any,
+        last_non_silent_frame: Any,
+    ) -> Any:
+        """Update the first/last non-silent frame from one block.
+
+        Shared with :func:`scan_quality_in_one_pass` so both paths look at the
+        block exactly the same way.
+        """
+        # Convert to mono for silence detection
+        if chunk.ndim > 1:
+            mono_chunk = np.mean(np.abs(chunk), axis=1)
+        else:
+            mono_chunk = np.abs(chunk)
+
+        non_silent_indices = np.where(mono_chunk > threshold)[0]
+
+        if non_silent_indices.size > 0:
+            if first_non_silent_frame is None:
+                first_non_silent_frame = current_frame + non_silent_indices[0]
+            last_non_silent_frame = current_frame + non_silent_indices[-1]
+
+        return first_non_silent_frame, last_non_silent_frame
+
+    def result_from_bounds(
+        self,
+        first_non_silent_frame: Any,
+        last_non_silent_frame: Any,
+        total_frames: int,
+        samplerate: int,
+    ) -> Dict[str, Any]:
+        """Turn the scanned bounds into the result dict."""
+        if first_non_silent_frame is None:  # Entire file is silent
+            return {
+                "has_silence_issue": True,
+                "leading_silence_sec": total_frames / samplerate,
+                "trailing_silence_sec": 0.0,
+                "issue_type": "full_silence",
+            }
+
+        leading_silence = first_non_silent_frame / samplerate
+        trailing_silence = (total_frames - 1 - last_non_silent_frame) / samplerate
+
+        has_issue = bool(
+            leading_silence > self.silence_threshold_sec
+            or trailing_silence > self.silence_threshold_sec
+        )
+        return {
+            "has_silence_issue": has_issue,
+            "leading_silence_sec": round(float(leading_silence), 2),
+            "trailing_silence_sec": round(float(trailing_silence), 2),
+            "issue_type": _calculate_silence_issue_type(
+                leading_silence, trailing_silence, self.silence_threshold_sec
+            ),
+        }
+
     def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect abnormal silence in audio data.
 
@@ -405,12 +578,7 @@ class SilenceDetector(QualityDetector):
             total_frames = info.frames
 
             if total_frames == 0:
-                return {  # handle empty file
-                    "has_silence_issue": False,
-                    "leading_silence_sec": 0.0,
-                    "trailing_silence_sec": 0.0,
-                    "issue_type": "none",
-                }
+                return self.empty_result()
 
             threshold = 10 ** (self.threshold_db / 20)
             first_non_silent_frame = None
@@ -418,46 +586,14 @@ class SilenceDetector(QualityDetector):
             current_frame = 0
 
             for chunk in sf_blocks(str(filepath), dtype="float32"):
-                # Convert to mono for silence detection
-                if chunk.ndim > 1:
-                    mono_chunk = np.mean(np.abs(chunk), axis=1)
-                else:
-                    mono_chunk = np.abs(chunk)
-
-                non_silent_indices = np.where(mono_chunk > threshold)[0]
-
-                if non_silent_indices.size > 0:
-                    if first_non_silent_frame is None:
-                        first_non_silent_frame = current_frame + non_silent_indices[0]
-                    last_non_silent_frame = current_frame + non_silent_indices[-1]
-
+                first_non_silent_frame, last_non_silent_frame = self.scan_chunk(
+                    chunk, current_frame, threshold, first_non_silent_frame, last_non_silent_frame
+                )
                 current_frame += len(chunk)
 
-            if first_non_silent_frame is None:  # Entire file is silent
-                return {
-                    "has_silence_issue": True,
-                    "leading_silence_sec": total_frames / samplerate,
-                    "trailing_silence_sec": 0.0,
-                    "issue_type": "full_silence",
-                }
-
-            leading_silence = first_non_silent_frame / samplerate
-            trailing_silence = (total_frames - 1 - last_non_silent_frame) / samplerate
-
-            has_issue = bool(
-                leading_silence > self.silence_threshold_sec
-                or trailing_silence > self.silence_threshold_sec
+            return self.result_from_bounds(
+                first_non_silent_frame, last_non_silent_frame, total_frames, samplerate
             )
-            issue_type = _calculate_silence_issue_type(
-                leading_silence, trailing_silence, self.silence_threshold_sec
-            )
-
-            return {
-                "has_silence_issue": has_issue,
-                "leading_silence_sec": round(float(leading_silence), 2),
-                "trailing_silence_sec": round(float(trailing_silence), 2),
-                "issue_type": issue_type,
-            }
 
         except Exception as e:
             logger.warning(f"Silence detection failed for {filepath.name}: {e}")
@@ -579,11 +715,21 @@ class AudioQualityAnalyzer:
 
     def __init__(self):
         """Initialize quality analyzer with all detectors."""
+        # The three that share one traversal are held by their own type as well
+        # as in the registry. Same objects, so a threshold set on one is the one
+        # used — this is a second name, not a second detector. The registry is
+        # typed to the base class, and the single-pass scan needs the concrete
+        # methods (`result_from_counts`, `scan_chunk`, …); a cast would assert
+        # what these attributes simply state.
+        self.clipping = ClippingDetector()
+        self.dc_offset = DCOffsetDetector()
+        self.silence = SilenceDetector()
+
         self.detectors: Dict[str, QualityDetector] = {
             "corruption": CorruptionDetector(),
-            "clipping": ClippingDetector(),
-            "dc_offset": DCOffsetDetector(),
-            "silence": SilenceDetector(),
+            "clipping": self.clipping,
+            "dc_offset": self.dc_offset,
+            "silence": self.silence,
             "bit_depth": BitDepthDetector(),
             "upsampling": UpsamplingDetector(),
         }
@@ -653,17 +799,38 @@ class AudioQualityAnalyzer:
             # No longer reading the full file here.
             # Detectors will read the file themselves in a memory-efficient way.
 
-            # 3. Clipping detection
-            note("clipping")
-            results["clipping"] = self.detectors["clipping"].detect(filepath=filepath)
+            # 3-5. Clipping, DC offset and silence — ONE traversal, not three.
+            #
+            # The three substage names are kept: they are the published contract
+            # of --progress-events (1.14.1) and a caller should not have to care
+            # that the engine stopped reading the file three times. They are
+            # emitted TOGETHER, before the scan, because that is the truth now —
+            # all three accumulate from the same blocks at the same moment.
+            # Announcing them one after another would be a sequence that no
+            # longer happens, and this stage got its substages in the first place
+            # because a progress report that misstates where the time goes is
+            # worth less than none.
+            #
+            # The gap this leaves is the scan itself, and the scan is what just
+            # got three times shorter.
+            for _step in ("clipping", "dc_offset", "silence"):
+                note(_step)
 
-            # 4. DC offset detection
-            note("dc_offset")
-            results["dc_offset"] = self.detectors["dc_offset"].detect(filepath=filepath)
+            scanned = scan_quality_in_one_pass(
+                filepath, self.clipping, self.dc_offset, self.silence
+            )
 
-            # 5. Silence detection
-            note("silence")
-            results["silence"] = self.detectors["silence"].detect(filepath=filepath)
+            if scanned is not None:
+                results["clipping"] = scanned["clipping"]
+                results["dc_offset"] = scanned["dc_offset"]
+                results["silence"] = scanned["silence"]
+            else:
+                # The fallback is the code that shipped: three independent
+                # passes, each with its own error handling, so one failing
+                # detector still leaves the other two their answer.
+                results["clipping"] = self.detectors["clipping"].detect(filepath=filepath)
+                results["dc_offset"] = self.detectors["dc_offset"].detect(filepath=filepath)
+                results["silence"] = self.detectors["silence"].detect(filepath=filepath)
 
             # 6. Fake High-Res detection
             note("bit_depth")
