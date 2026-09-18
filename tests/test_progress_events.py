@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from flac_detective import main as fd_main  # noqa: E402
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 from flac_detective.analysis.progress import (  # noqa: E402
+    SCAN_REPORTS_PER_FILE,
     STAGES,
     SUBSTAGES,
     ProgressEvent,
@@ -66,7 +67,7 @@ def test_the_stages_arrive_in_order_once_each(audio):
     seen: list[ProgressEvent] = []
     FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
 
-    stages = [e for e in seen if e.detail is None]
+    stages = [e for e in seen if e.detail is None and e.frames is None]
     assert [e.stage for e in stages] == list(STAGES)
     assert [e.index for e in stages] == list(range(1, len(STAGES) + 1))
     assert {e.total for e in stages} == {len(STAGES)}
@@ -121,6 +122,99 @@ def test_every_substage_arrives_between_its_stage_and_the_next(audio):
     scoring_at = names.index("scoring")
     inside = [n for n in names[quality_at:scoring_at] if ":" in n]
     assert inside == [f"quality:{d}" for d in SUBSTAGES["quality"]]
+
+
+def _long_enough_audio(tmp_path: Path) -> Path:
+    """Long enough that the scan crosses several reporting steps.
+
+    Blocks are 16 384 frames and a position is reported every 5% of the file, so
+    a file of a few seconds already exercises the spacing rule.
+    """
+    return _write_noise(tmp_path / "long.flac", seconds=12.0, seed=31)
+
+
+def test_the_scan_reports_where_it_is(tmp_path):
+    """The position inside the one long traversal (issue #11, third round).
+
+    The scan is indivisible, so before this the whole of it was one silent gap.
+    """
+    audio = _long_enough_audio(tmp_path)
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    scans = [e for e in seen if e.frames is not None]
+    assert scans, "the traversal must say where it is"
+    assert {e.stage for e in scans} == {"quality"}
+    assert all(e.detail is None for e in scans)
+    assert all(e.as_dict()["event"] == "scan" for e in scans)
+
+
+def test_positions_only_move_forward_and_never_overrun(tmp_path):
+    """A bar that goes backwards, or past the end, is worse than no bar."""
+    audio = _long_enough_audio(tmp_path)
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    scans = [e for e in seen if e.frames is not None]
+    positions = [e.frames for e in scans]
+    assert positions == sorted(positions)
+    assert all(e.frames <= e.frames_total for e in scans)
+    assert all(e.frames_total == scans[0].frames_total for e in scans)
+
+
+def test_the_last_position_is_the_end(tmp_path):
+    """A caller left at 95% cannot tell a finished scan from a stalled one."""
+    audio = _long_enough_audio(tmp_path)
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    scans = [e for e in seen if e.frames is not None]
+    assert scans[-1].frames == scans[-1].frames_total
+
+
+def test_the_stream_stays_bounded(tmp_path):
+    """One event per block would be 3 200 lines on a 20-minute track, not progress."""
+    audio = _long_enough_audio(tmp_path)
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    scans = [e for e in seen if e.frames is not None]
+    # The steps, plus the final exact position.
+    assert len(scans) <= SCAN_REPORTS_PER_FILE + 1
+
+
+def test_scan_events_are_added_beside_the_two_published_kinds(tmp_path):
+    """Neither earlier contract moves: this is the third kind, not a rewrite.
+
+    1.14.0 consumers match ``event == "stage"``, 1.14.1 consumers also read
+    ``substage``. Both must see exactly what they saw, keys included.
+    """
+    audio = _long_enough_audio(tmp_path)
+    seen: list[ProgressEvent] = []
+    FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=seen.append)
+
+    payloads = [e.as_dict() for e in seen]
+    stages = [p for p in payloads if p["event"] == "stage"]
+    substages = [p for p in payloads if p["event"] == "substage"]
+
+    assert [p["stage"] for p in stages] == list(STAGES)
+    assert [p["index"] for p in stages] == list(range(1, len(STAGES) + 1))
+    assert all(set(p) == {"event", "file", "stage", "index", "total"} for p in stages)
+
+    assert [p["detail"] for p in substages] == list(SUBSTAGES["quality"])
+    assert all(set(p) == {"event", "file", "stage", "index", "total", "detail"} for p in substages)
+
+
+def test_a_raising_callback_cannot_break_the_scan_either(tmp_path):
+    """The scan reports thousands of blocks' worth of progress; still untrusted."""
+    audio = _long_enough_audio(tmp_path)
+
+    def hostile(_event: ProgressEvent) -> None:
+        raise RuntimeError("no")
+
+    quiet = FLACAnalyzer(sample_duration=5.0).analyze_file(audio)
+    noisy = FLACAnalyzer(sample_duration=5.0).analyze_file(audio, on_progress=hostile)
+    assert noisy == quiet
 
 
 def test_an_unknown_substage_is_our_bug_and_is_loud():
@@ -240,9 +334,10 @@ def test_events_come_back_from_the_pool(tmp_path):
     assert len(pairs) == 2
     for path in files:
         mine = [e for e in seen if e.file == str(path)]
-        assert [e.stage for e in mine if e.detail is None] == list(STAGES)
+        assert [e.stage for e in mine if e.detail is None and e.frames is None] == list(STAGES)
         # The substages must survive the queue too, not just the stage events.
         assert [e.detail for e in mine if e.detail is not None] == list(SUBSTAGES["quality"])
+        assert [e.frames for e in mine if e.frames is not None], "positions must cross too"
 
 
 def test_an_unwritable_destination_stops_before_the_scan(tmp_path):
@@ -303,3 +398,9 @@ def test_the_cli_writes_ndjson_and_keeps_stdout_parseable(tmp_path):
     assert [e["stage"] for e in events if e["event"] == "stage"] == list(STAGES)
     assert [e["detail"] for e in events if e["event"] == "substage"] == list(SUBSTAGES["quality"])
     assert all(Path(e["file"]).name == "one.flac" for e in events)
+
+    # The positions survive the whole path too: worker process, queue, NDJSON.
+    scans = [e for e in events if e["event"] == "scan"]
+    assert scans
+    assert [e["frames"] for e in scans] == sorted(e["frames"] for e in scans)
+    assert scans[-1]["frames"] == scans[-1]["frames_total"]

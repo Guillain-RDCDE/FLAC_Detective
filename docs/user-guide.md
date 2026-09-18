@@ -184,8 +184,30 @@ substage carries the `index`/`total` of its parent stage.
 Note that `clipping`, `dc_offset` and `silence` arrive **together**: since 1.15.0 they
 are computed in a single pass over the audio, so all three genuinely start at the same
 moment. Announcing them one after another would describe a sequence that no longer
-happens. That single scan is now the longest gap in an analysis — about 16 s on a
-20-minute track, where the whole analysis takes 22 s.
+happens.
+
+### Position inside the scan
+
+That single pass is the longest step of an analysis, and it cannot be broken into
+smaller named steps. So it reports **where it is**, as a third kind of event:
+
+```json
+{"event": "scan", "file": "...", "stage": "quality", "index": 4, "total": 6, "frames": 26460000, "frames_total": 52920000}
+```
+
+`frames` out of `frames_total` is the only honest measure of progress the engine has:
+it is a position in this one traversal, counted in audio frames, not a fraction of the
+whole analysis. Positions only move forward, never exceed the total, and the last one
+is always exactly `frames_total`, so an interface can tell a finished scan from a
+stalled one.
+
+At most 21 of these per file — one every 5% of the audio, plus the final exact
+position. On a 20-minute track that brings the longest silence between two events down
+to about 5 s, from 16 s.
+
+Filtering by `event` keeps every earlier integration working: `"stage"` gives the six
+stages exactly as 1.14.0 emitted them, `"substage"` the named steps as 1.14.1 did, and
+`"scan"` is simply new.
 
 If you only care about the six stages, filter on `event == "stage"` and you will see
 exactly what you saw before — same order, same indices, same keys. Substages are added
@@ -218,6 +240,10 @@ From Python, pass a callback instead — same stages, no subprocess:
 from flac_detective import FLACAnalyzer
 
 def show(event):
+    if event.frames is not None:
+        pct = 100 * event.frames / event.frames_total
+        print(f"{event.stage} scan {pct:.0f}%")
+        return
     where = event.stage if event.detail is None else f"{event.stage}/{event.detail}"
     print(f"{where} ({event.index}/{event.total}) {event.file}")
 

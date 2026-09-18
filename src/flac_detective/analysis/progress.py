@@ -88,6 +88,9 @@ class ProgressEvent:
         total: ``len(STAGES)`` — a count of stages, never a percentage of time.
         detail: The step within ``stage`` (see :data:`SUBSTAGES`), or None for
             the stage event itself.
+        frames: Audio frames scanned so far, on a ``scan`` event; None otherwise.
+        frames_total: The file's frame count as its header reports it, on a
+            ``scan`` event; None otherwise.
     """
 
     file: str
@@ -95,17 +98,27 @@ class ProgressEvent:
     index: int
     total: int
     detail: Optional[str] = None
+    frames: Optional[int] = None
+    frames_total: Optional[int] = None
 
     def as_dict(self) -> Dict[str, Any]:
         """The wire form, one JSON object per line on ``--progress-events``.
 
-        ``event`` is the discriminator. A stage event is byte for byte what
-        1.14.0 emitted — no key added, none removed — so a consumer written
-        against that version keeps parsing it unchanged; a substage is a
-        separate kind, carrying ``detail`` and the index of its parent stage.
+        ``event`` is the discriminator, and each kind adds keys rather than
+        changing the ones before it. A stage event is byte for byte what 1.14.0
+        emitted — no key added, none removed — a substage carries ``detail``,
+        and a scan carries ``frames``/``frames_total``. A consumer written
+        against any published version keeps parsing what it already matched.
         """
+        if self.frames is not None:
+            kind = "scan"
+        elif self.detail is not None:
+            kind = "substage"
+        else:
+            kind = "stage"
+
         payload: Dict[str, Any] = {
-            "event": "stage" if self.detail is None else "substage",
+            "event": kind,
             "file": self.file,
             "stage": self.stage,
             "index": self.index,
@@ -113,6 +126,9 @@ class ProgressEvent:
         }
         if self.detail is not None:
             payload["detail"] = self.detail
+        if self.frames is not None:
+            payload["frames"] = self.frames
+            payload["frames_total"] = self.frames_total
         return payload
 
 
@@ -198,6 +214,64 @@ def emit_substage(
         target(event)
     except Exception as exc:  # a sink must never reach the analysis
         logger.debug("Progress sink raised on substage %s/%s (%s); continuing", stage, detail, exc)
+
+
+#: How many position reports one traversal may emit, at most.
+#:
+#: The scan reads 16 384 frames at a time, so a 20-minute track is about 3 200
+#: blocks and one event per block would be noise, not progress. Every 5% of the
+#: file is a number a person can read and a bar can move on, and it bounds the
+#: stream whatever the file's length.
+SCAN_REPORTS_PER_FILE = 20
+
+
+def emit_scan(
+    stage: str,
+    filepath: Union[str, Any],
+    frames: int,
+    frames_total: int,
+    callback: Optional[ProgressCallback] = None,
+) -> None:
+    """Announce a POSITION inside ``stage``'s traversal. Never raises.
+
+    The one thing the engine can honestly say about how far it is: frames read
+    out of frames the header claims. Still not a percentage of the analysis —
+    it is a position in this one traversal, and the traversal is one stage.
+
+    Args:
+        stage: One of :data:`STAGES`.
+        filepath: The file being analysed; coerced with ``str``.
+        frames: Frames scanned so far.
+        frames_total: Frames the file's header reports.
+        callback: The caller's callback, if it passed one.
+    """
+    target = callback if callback is not None else _sink
+    if target is None:
+        return
+    event = ProgressEvent(
+        str(filepath), stage, _STAGE_INDEX[stage], len(STAGES), None, frames, frames_total
+    )
+    try:
+        target(event)
+    except Exception as exc:  # a sink must never reach the analysis
+        logger.debug("Progress sink raised on scan of %s (%s); continuing", stage, exc)
+
+
+def scan_reporter(
+    stage: str,
+    filepath: Union[str, Any],
+    callback: Optional[ProgressCallback] = None,
+) -> Callable[[int, int], None]:
+    """A two-argument reporter for ``stage``, bound to ``filepath``.
+
+    Given to the loop that does the reading, which then knows nothing about
+    events: it calls ``report(frames_done, frames_total)``.
+    """
+
+    def report(frames: int, frames_total: int) -> None:
+        emit_scan(stage, filepath, frames, frames_total, callback)
+
+    return report
 
 
 def substage_reporter(

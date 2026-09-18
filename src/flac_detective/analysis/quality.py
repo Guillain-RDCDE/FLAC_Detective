@@ -13,6 +13,7 @@ import numpy as np
 import soundfile as sf
 
 from .new_scoring.audio_loader import is_temporary_decoder_error, sf_blocks
+from .progress import SCAN_REPORTS_PER_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ def scan_quality_in_one_pass(
     clipping: "ClippingDetector",
     dc_offset: "DCOffsetDetector",
     silence: "SilenceDetector",
+    on_scan: Callable[[int, int], None] | None = None,
 ) -> Dict[str, Dict[str, Any]] | None:
     """Clipping, DC offset and silence from ONE traversal of the file.
 
@@ -46,6 +48,16 @@ def scan_quality_in_one_pass(
     one sum over one total, which is the same number in algebra and not in
     floating point. That would be a change of result wearing the clothes of an
     optimisation.
+
+    Args:
+        filepath: The file to read.
+        clipping: Detector owning the clipping arithmetic.
+        dc_offset: Detector owning the DC arithmetic.
+        silence: Detector owning the silence bounds.
+        on_scan: Called with ``(frames_done, frames_total)`` as the traversal
+            advances. This scan is the longest single step of an analysis, and
+            it is indivisible, so a position inside it is the only honest thing
+            left to report while it runs.
 
     Returns:
         The three result dicts, or None if anything at all went wrong — in which
@@ -73,6 +85,13 @@ def scan_quality_in_one_pass(
         last_non_silent_frame = None
         current_frame = 0
 
+        # Report a position every 5% of the file rather than every block: blocks
+        # are 16 384 frames, so a 20-minute track is some 3 200 of them and one
+        # event each would be noise. `max(1, ...)` because a file shorter than
+        # twenty blocks must still report, and a step of 0 would report forever.
+        report_every = max(1, total_frames // SCAN_REPORTS_PER_FILE) if on_scan else 0
+        next_report = report_every
+
         for chunk in sf_blocks(str(filepath), dtype="float32"):
             clipped_samples += int(np.sum(np.abs(chunk) >= clip_threshold))
             sum_of_samples += float(np.sum(chunk))
@@ -84,6 +103,18 @@ def scan_quality_in_one_pass(
                 last_non_silent_frame,
             )
             current_frame += len(chunk)
+
+            if on_scan is not None and current_frame >= next_report:
+                on_scan(current_frame, total_frames)
+                # From where we actually are, not from the missed boundary: a
+                # block can cross several steps on a short file, and stepping
+                # from the boundary would then fire once per step in a row.
+                next_report = current_frame + report_every
+
+        if on_scan is not None:
+            # The last block rarely lands on a step, and a caller left at 95%
+            # cannot tell a finished scan from a stalled one.
+            on_scan(current_frame, total_frames)
 
         return {
             # `info.frames` for clipping and `frames * channels` for DC: each
@@ -741,6 +772,7 @@ class AudioQualityAnalyzer:
         cutoff_freq: float = 0.0,
         cache=None,
         on_substage: Callable[[str], None] | None = None,
+        on_scan: Callable[[int, int], None] | None = None,
     ) -> Dict[str, Any]:
         """Complete audio quality analysis of a file.
 
@@ -755,6 +787,8 @@ class AudioQualityAnalyzer:
                 This stage is the long one on a long track — three separate
                 passes over the audio — so a caller showing progress needs to
                 hear something between them. See ``analysis/progress.py``.
+            on_scan: Called with ``(frames_done, frames_total)`` while the shared
+                traversal runs — the position inside the longest single step.
 
         Returns:
             Dictionary with all quality analysis results.
@@ -817,7 +851,7 @@ class AudioQualityAnalyzer:
                 note(_step)
 
             scanned = scan_quality_in_one_pass(
-                filepath, self.clipping, self.dc_offset, self.silence
+                filepath, self.clipping, self.dc_offset, self.silence, on_scan=on_scan
             )
 
             if scanned is not None:
@@ -980,6 +1014,7 @@ def analyze_audio_quality(
     cutoff_freq: float = 0.0,
     cache=None,
     on_substage: Callable[[str], None] | None = None,
+    on_scan: Callable[[int, int], None] | None = None,
 ) -> Dict[str, Any]:
     """Complete audio quality analysis (backward compatibility wrapper).
 
@@ -992,6 +1027,7 @@ def analyze_audio_quality(
         cutoff_freq=cutoff_freq,
         cache=cache,
         on_substage=on_substage,
+        on_scan=on_scan,
     )
 
 

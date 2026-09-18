@@ -23,7 +23,7 @@ from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
 from .new_scoring.evidence import collapse_dependent_families, evidence_families
-from .progress import ProgressCallback, emit, substage_reporter
+from .progress import ProgressCallback, emit, scan_reporter, substage_reporter
 from .quality import analyze_audio_quality
 from .spectrum import analyze_spectrum
 
@@ -208,6 +208,7 @@ class FLACAnalyzer:
                 cutoff_freq,
                 cache=cache,
                 on_substage=substage_reporter("quality", filepath, on_progress),
+                on_scan=scan_reporter("quality", filepath, on_progress),
             )
 
             # NEW SCORING SYSTEM: 6-rule system (0-100 points, higher = more fake)

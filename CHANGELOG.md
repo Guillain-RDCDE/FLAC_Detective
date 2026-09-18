@@ -1,3 +1,56 @@
+## v1.16.0 (2026-09-18) — Where the scan is
+
+1.15.0 made the quality stage read the file once instead of three times, and
+said plainly what that cost: the scan is indivisible, so it became one silent
+gap. On a 20-minute track the longest silence between two progress events went
+from 12.7 s to 15.8 s while the analysis itself halved. The note in that entry
+said the proper answer was an event carrying a position inside the traversal.
+This is it.
+
+### A third kind of event
+
+```json
+{"event": "scan", "stage": "quality", "index": 4, "total": 6, "frames": 26460000, "frames_total": 52920000}
+```
+
+`frames` out of `frames_total` is the only honest progress the engine has to
+give: a position in ONE traversal, counted in audio frames. Still not a
+percentage of the analysis — the stages after it are not knowable in advance,
+which is why `--progress-events` has refused a percentage since 1.14.0.
+
+The longest silence between two events, on that same 20-minute track:
+
+| | longest gap |
+|---|---|
+| 1.14.0, one event for the whole stage | 39.3 s |
+| 1.14.1, three passes and three events | 12.7 s |
+| 1.15.0, one pass and one gap | 15.8 s |
+| **now** | **4.6 s** |
+
+And it is no longer in the quality stage at all: the worst wait has moved to
+`spectrum`, which is where anyone wanting the next improvement should look.
+
+### Bounded, forward-only, and exact at the end
+
+Blocks are 16 384 frames, so a 20-minute track is some 3 200 of them and one
+event per block would be noise rather than progress. A position is reported
+every 5% of the audio — at most 21 events per file, including a final one at
+the exact end, because a caller left at 95% cannot tell a finished scan from a
+stalled one. Positions only move forward and never exceed the total; all three
+properties are tested rather than intended.
+
+### Nothing published before this moves
+
+Three kinds of event now, and each adds keys rather than changing the ones
+before it. A consumer matching `event == "stage"` still gets the six stages of
+1.14.0 with the same five keys; one reading `substage` still gets the named
+steps of 1.14.1 with the same six. Both are pinned by tests that compare the
+key sets, not just the values — the third contract in a day is exactly where a
+rename would slip through.
+
+No engine change, no verdict moves: this adds reporting to a loop that already
+existed and does not touch what it computes.
+
 ## v1.15.0 (2026-09-18) — One pass over the audio
 
 Instrumenting the stages for issue #11 showed where the time of a long track
