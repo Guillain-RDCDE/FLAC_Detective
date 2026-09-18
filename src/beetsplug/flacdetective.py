@@ -17,7 +17,7 @@ Optional config (all shown with their defaults)::
 
     flacdetective:
         sample_duration: 30      # seconds of audio analysed per file
-        deep: no                 # run the ML rule on every file (slower)
+        deep: no                 # extend the ML rule to files the fast rules clear (slower)
         write: yes               # store flacdetective_* attributes
         auto: no                 # also analyse files as they are imported
 """

@@ -1,3 +1,19 @@
+## v1.13.17 (2026-09-18) — Deep scan is not a switch
+
+Issue #10: with the `[ml]` extra installed and the GUI's "Deep scan" box
+unchecked, Rule 12 (the CNN) still runs, and the reporter read that as a
+broken checkbox. The checkbox works; the wording did not. Deep was never an
+on/off switch for the CNN: Rule 12 runs on every file the fast rules leave
+in doubt, deep or not, and deep only extends it to the files they clear at
+once (the authentic fast path, where high-bitrate AAC/Vorbis transcodes
+hide). "Run the ML rule on every file" is accurate and reads as a switch.
+
+No engine change, no verdict moves. The GUI tooltip, the `--deep` help, the
+user guide, getting-started and the beets plugin's config comment now say
+what deep does and what it does not, and how to scan with no CNN at all
+(install without the extra). One test pins the behaviour the texts describe:
+off the fast path, Rule 12 runs without `--deep`.
+
 ## v1.13.16 (2026-09-15) — what is left above the edge
 
 Two Beatport AIFFs of a track whose CD and vinyl editions run to 20.5–21 kHz

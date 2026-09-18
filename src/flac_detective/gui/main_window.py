@@ -196,8 +196,10 @@ class MainWindow(QMainWindow):
 
         self._deep_check = QCheckBox("Deep scan")
         self._deep_check.setToolTip(
-            "Run the ML rule on every file, catching high-bitrate AAC/Vorbis transcodes "
-            "the fast path skips. Slower."
+            "This is not an on/off switch for the ML rule (Rule 12, the CNN). With "
+            "the [ml] extra installed, the CNN always runs on files the fast rules "
+            "leave in doubt. Deep scan extends it to the files they clear at once, "
+            "which is where high-bitrate AAC/Vorbis transcodes hide. Slower."
         )
         bar.addWidget(self._deep_check)
 

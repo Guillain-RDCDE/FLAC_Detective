@@ -66,6 +66,10 @@ pip install "flac-detective[ml]"
 Without this extra, Rule 12 is a graceful no-op and the existing 11
 heuristic rules run unchanged.
 
+Once installed, Rule 12 runs on every file the fast rules leave in doubt.
+`--deep` (the GUI's "Deep scan" box) does not switch it on or off: it
+extends it to the files the fast rules clear at once.
+
 ### Option 2: Install via Docker
 
 Pull the pre-built Docker image:

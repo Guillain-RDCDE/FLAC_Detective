@@ -358,6 +358,29 @@ class TestDeepMode:
         new_calculate_score(cutoff_freq, metadata, duration_check, Mock(spec=Path), deep=True)
         assert mock_r12.call_count == 1, "Deep mode should run Rule 12 despite the fast path"
 
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
+    def test_rule12_runs_without_deep_off_the_fast_path(
+        self, mock_rule7, mock_real_bitrate, mock_r12
+    ):
+        """Deep is not an on/off switch for Rule 12 (issue #10).
+
+        A file the fast rules leave in doubt reaches Rule 12 in a default scan.
+        The GUI tooltip, the CLI help and the user guide all say so; this pins it.
+        """
+        mock_real_bitrate.return_value = 900
+        mock_rule7.return_value = (0, [], None)
+        mock_r12.return_value = (0, [])
+
+        metadata = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
+        duration_check = {"mismatch": None, "diff_ms": 0}
+        # cutoff 19500: Rule 2 scores it, so neither short-circuit fires.
+        cutoff_freq = 19500
+
+        new_calculate_score(cutoff_freq, metadata, duration_check, Mock(spec=Path), deep=False)
+        assert mock_r12.call_count == 1, "Rule 12 runs off the fast path without --deep"
+
 
 class TestMP3BitrateConstants:
     """Test that MP3 bitrate constants are immutable and correct."""

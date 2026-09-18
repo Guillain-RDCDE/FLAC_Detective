@@ -118,6 +118,12 @@ flac-detective /music --deep
 > collection a fast scan called clean. It does **not** help with band-limited recordings
 > (early-music, 1920s, solo acoustic) — that's a genuine signal limit no tool can cross.
 
+> **`--deep` (the GUI's "Deep scan" box) is not an on/off switch for the CNN.** With the
+> `[ml]` extra installed, Rule 12 runs on every file the fast rules leave in doubt, deep or
+> not, so seeing a CNN line in a normal scan is expected. Deep only adds the files the fast
+> rules clear at once. To scan with no CNN at all, install without the extra
+> (`pip uninstall torch torchaudio`): Rule 12 is then a no-op.
+
 > **Note**: Auto-repair of corrupted FLAC files is enabled by default — no flag is
 > needed, and it's **lossless and hi-fi-safe**. It triggers *only* on files that can't be
 > decoded at all; it rebuilds a valid FLAC with the exact same PCM samples (Xiph's reference
