@@ -1,15 +1,16 @@
 # Reply posted on issue #10
 
-Written 2026-09-18, for 1.13.17. No measurement behind this one: the engine
-did what it was built to do and the wording let the reporter down (CHANGELOG
-v1.13.17). Paragraphs are kept on one line each, as GitHub renders them.
+Posted 2026-09-18, with 1.13.17 tagged and verified installable from PyPI. No
+measurement behind this one: the engine did what it was built to do and the
+wording let the reporter down (CHANGELOG v1.13.17). Paragraphs are kept on one
+line each, as GitHub renders them.
 
 ---
 
-Thanks for reporting this. Nothing is wrong on your end, and the checkbox works: the wording was the problem.
+Hey, thanks for this! You did nothing wrong, and honestly neither did the checkbox. My wording did: it reads like an on/off switch, and it isn't one.
 
-"Deep scan" was never an on/off switch for the CNN. Once the `[ml]` extra is installed, Rule 12 runs on every file the fast rules leave in doubt, box ticked or not. Files that look clean at once skip it, to keep a scan fast. Ticking "Deep scan" sends those through the CNN too, because that is where a high-bitrate AAC or Vorbis transcode hides. Slower, more thorough.
+Here's how it really works. Once you install with `[ml]`, the CNN (Rule 12) is always on. It looks at every file the quick rules aren't sure about, whether the box is ticked or not. Files that look clean right away skip it, just to keep a scan fast. Ticking "Deep scan" sends those "clean-looking" files through the CNN as well, because that's exactly where a good AAC or Vorbis transcode can hide. So: slower, but more thorough.
 
-So what you saw is expected, and what you did (`pip uninstall torch torchaudio`) is the right way to scan with no CNN at all.
+That means what you saw is normal, and uninstalling torch like you did is the right way to scan with no CNN at all.
 
-1.13.17 rewrites the tooltip, the `--deep` help and the user guide so they say this plainly. Thanks again for taking the time.
+I've just released 1.13.17 with a tooltip, `--deep` help and user guide that finally say this clearly (`pip install -U flac-detective`). Thanks for taking the time to write, it made the tool a bit better :)
