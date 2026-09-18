@@ -86,9 +86,7 @@ def test_a_broken_pool_is_finished_in_process(tmp_path, monkeypatch, caplog):
 
     tracker = MagicMock()
     events = []
-    fd_main._process_flac_files(
-        files, tracker, _Analyzer(), advanced=False, on_event=events.append
-    )
+    fd_main._process_flac_files(files, tracker, _Analyzer(), advanced=False, on_event=events.append)
 
     # Every file has a result, and none was recorded twice.
     recorded = [c.args[0]["file_path"] for c in tracker.add_result.call_args_list]
