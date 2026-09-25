@@ -47,6 +47,7 @@ import logging
 import math
 from typing import List, Optional, Tuple
 
+from ...spectrum import is_low_wall_reading
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
 from ..constants import (
     CUTOFF_VARIANCE_THRESHOLD,
@@ -145,6 +146,8 @@ def rule1_may_consult_container(
     does not, the engine silently stops measuring a case that now matters.
     ``test_rule1_gates`` pins the two together.
     """
+    if is_low_wall_reading(cutoff_freq):
+        return False
     if cutoff_freq >= 0.95 * (sample_rate / 2.0):
         return False
     if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
@@ -199,6 +202,18 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     """
     score = 0
     reasons: List[str] = []
+
+    # Safety check 0: a low wall is not an MP3 signature (v1.17.0).
+    # spectrum.low_wall_hz reports walls under 14 kHz, where detect_cutoff never
+    # answered, so the part of the 128 kbps cell below 14 kHz and its container
+    # window were never priced against anything that reads there. The first
+    # measurement of the low wall sent an 1890s gramophone recording to
+    # SUSPICIOUS 80 through exactly that cell, by the same path that caught 23
+    # of 80 mp3_64k files: nothing separated them. The wall is Rule 2's to score.
+    # See ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md (amendment).
+    if is_low_wall_reading(cutoff_freq):
+        logger.debug(f"RULE 1: Skipped (low wall at {cutoff_freq:.0f} Hz, not an MP3 cell)")
+        return (score, reasons), None
 
     # Safety check 1: Nyquist Exception (OPTIMAL)
     # If cutoff is >= 95% of Nyquist frequency, it's likely the anti-aliasing filter
@@ -506,6 +521,25 @@ def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List
     score = 0
     reasons: list[str] = []
     cutoff_threshold = get_cutoff_threshold(sample_rate)
+
+    # A low wall (v1.17.0): the cutoff came from spectrum.low_wall_hz, a wall
+    # under the 10-14 kHz reference band — the music stops there and nothing
+    # comes back up to 16 kHz. Scored on the same ramp as any cutoff, which
+    # caps at 30 = SCORE_AUTHENTIC: the reading is reported, and it does not
+    # signal on its own. A fixed score in WARNING was measured and refused
+    # before it shipped: restored 78 rpm reissues are low-passed just as
+    # steeply, at the same 3-5 kHz (1.3 % of a Dust-to-Digital catalogue).
+    # What the wall changes is what Rule 8 may claim — a spectrum that stops
+    # at 4 kHz is not "close to Nyquist". Only the reason line is different.
+    # See ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md.
+    if is_low_wall_reading(cutoff_freq):
+        score = int(min((cutoff_threshold - cutoff_freq) / 200, 30))
+        reasons.append(
+            f"R2: the audio stops at {cutoff_freq:.0f} Hz behind a wall, "
+            f"nothing above it (+{score}pts)"
+        )
+        logger.debug(f"RULE 2: +{score} points (low wall at {cutoff_freq:.0f} Hz)")
+        return score, reasons
 
     if cutoff_freq < cutoff_threshold:
         frequency_deficit = cutoff_threshold - cutoff_freq

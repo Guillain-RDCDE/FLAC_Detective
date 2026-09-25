@@ -207,3 +207,57 @@ whatever the before-cutoff was. P1, P2, P3, P5 and P6 stand. **P4 is
 withdrawn and replaced**: `mp3_64k` signalled after = 0 is the expected
 consequence of item 4, and is reported as recall given up, not as a
 prediction.
+---
+
+## RESULTS — appended 2026-09-25 after the second after-pass
+
+Before = 1.16.0 (worktree `fd-v1160`, `b17b9f8`); after = 1.16.0 plus exactly
+the two changed files (`spectrum.py`, `rules/spectral.py`; checked with
+`git diff --no-index --ignore-cr-at-eol`), frozen in `fd-r8/after_src`. Torch
+shimmed out on both sides, `--sample-duration 30`, `--workers 2`. Diff by
+`fd-r8/cmp_lw.py` (first pass) and `fd-r8/cmp_lw2.py` (second pass), verdict and
+score per file. `after2_*` for the four corpora that read a low wall; every
+other corpus had 0 movers in the first pass and has 0 under the amended code by
+construction (the amendment can only remove Rule 1 +50s, and only on low-wall
+readings).
+
+| corpus | files | signalled before → after | convicted before → after | Rule 8 protecting after | low wall read | movers |
+|---|---|---|---|---|---|---|
+| audit authentic | 80 | 2 → 2 | 0 → 0 | 64 | 0 | 0 |
+| v2 genuine | 59 | 2 → 2 | 1 → 1 | 43 | 0 | 0 |
+| full-length genuine | 12 | 0 → 0 | 0 → 0 | 12 | 0 | 0 |
+| received files | 22 | 2 → 2 | 0 → 0 | 10 | 0 | 0 |
+| **30 stress tracks** (after2) | 30 | 0 → **0** | 0 → 0 | 29 → **0** | 30 | 15 |
+| `lc_aac_32k` (after2) | 80 | 0 → 0 | 0 → 0 | 80 → **9** | 71 | 43 |
+| `lc_aac_48k` (after2) | 80 | 0 → 0 | 0 → 0 | 80 → **3** | 77 | 53 |
+| `mp3_64k` (after2) | 80 | 0 → 0 | 0 → 0 | 80 → **8** | 72 | 71 |
+| `lc_aac_64k` | 80 | 6 → 6 | 0 → 0 | 8 | 0 | 0 |
+| `mp3_96k` | 80 | 41 → 41 | 23 → 23 | 5 | 0 | 0 |
+| `he_aac_32k / 48k / 64k` | 80 each | 17 / 25 / 16, unchanged | 17 / 22 / 1, unchanged | | 0 | 0 |
+| `mp3_128` (control) | 80 | 49 → 49 | 28 → 28 | 5 | 0 | 0 |
+
+The movers' count is smaller than the low-wall count because a file whose
+Rule 8 −50 is replaced by Rule 2's +30 and then Rule 11's cassette −40 lands on
+the same clamped score it had: the reading changed, the number did not.
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | genuine newly convicted | 0 | **0 — held** |
+| A2 | genuine newly signalled | 0 | **0 — held** after the amendment; **breached in the first pass** (Berliner, SUSPICIOUS 80, see the amendment) |
+| A3 | every mover on the (amended) profile | all | **held** — every mover reads a low wall after, with the wall reason; breached in the first pass as written for one window (the spectrogram track, see the amendment) |
+| P1 | `lc_aac_32k` protection gone | ≥ 68 | **71 — held** |
+| P2 | `lc_aac_48k` protection gone | ≥ 72 | **77 — held** |
+| P3 | `mp3_64k` low wall read | ≥ 68 | **72 — held** |
+| P4 | *withdrawn by the amendment* — `mp3_64k` signalled after | — | 0; 23 in the first pass, given up with the uncalibrated cell |
+| P5 | `lc_aac_32k` / `48k` signalled after | ≤ 8 each | **0 / 0 — held** |
+| P6 | the 30 stress tracks | all AUTHENTIC with the wall reason | **30 of 30 — held** |
+| E4 | transcodes losing a signal or a conviction | 0 | **0 — held** |
+
+**Ships in 1.17.0.** What it does and does not do, in one paragraph: on 220 of
+the 240 files of the three low-rate arms that read a wall, the engine no longer
+reports a full spectrum it did not see and no longer grants Rule 8's −50; it
+says where the music stops. It signals none of them, and after the amendment
+that is by design: the one engine path that would have signalled the 64 kbps
+MP3s signalled an 1890s gramophone record by the same arithmetic. A second,
+independent reading that a restored 78 does not share is what this needs next;
+none exists here yet.

@@ -223,6 +223,107 @@ def floor_above_edge_db(
     return float(np.median(band))
 
 
+# Low-wall instrument (v1.17.0). A codec wall BELOW the reference band.
+#
+# Why it exists: detect_cutoff measures every cell against the 10-14 kHz
+# reference and starts its scan at 14 kHz. Under ~64 kbps an encoder's own
+# low-pass sits at 3-11 kHz, so the reference band is itself the codec's
+# floor: the scan compares noise with noise, finds no drop, and reports the
+# top of the band — "no cutoff". Rule 8 then read that 22,050 Hz as a full
+# spectrum and granted -50: the rule that protects full-band recordings was
+# protecting files whose music stops at 4 kHz (measured 2026-09-04,
+# ml/sbr_arm.py: lc_aac_32k read AUTHENTIC 6 of 6, ceiling 6,746 Hz).
+#
+# Neither level separates them: a 1920s 78 rpm transfer in the audit corpus
+# keeps its 10-14 kHz band as far under its midrange as an AAC 32k does, and
+# at the same absolute level. What separates is the SHAPE. A codec stops: the
+# spectrum falls 15-50 dB inside 500 Hz and nothing comes back. A dark or old
+# recording declines, ~10 dB per 500 Hz at the steepest, into its own floor.
+#
+# The reading, on 250 Hz cells of the same FFT: at each cell boundary f from
+# 2 kHz to 14 kHz, the step = mean of the two cells below f minus mean of the
+# two above (500 Hz each side), and the depth = the same "below" level minus
+# the 90th percentile of the cells from f + 1 kHz to 16 kHz. The lowest f
+# whose step and depth both clear their bars is the wall. The depth stops at
+# 16 kHz whatever the sample rate: on a 96 kHz field recording the empty band
+# above 20 kHz would otherwise make any tonal dip read as a wall (measured).
+#
+# Only consulted when detect_cutoff found nothing, so every other reading is
+# untouched; and since detect_cutoff never returns a value under 14 kHz, a
+# cutoff under 14 kHz is always a low-wall reading (see is_low_wall_reading).
+# See ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md.
+LOW_WALL_FROM_HZ = 2000.0
+LOW_WALL_TO_HZ = 14000.0
+LOW_WALL_DEPTH_TOP_HZ = 16000.0
+LOW_WALL_STEP_DB = 15.0
+LOW_WALL_DEPTH_DB = 30.0
+LOW_WALL_CELL_HZ = 250.0
+_LOW_WALL_BASE_HZ = 1000.0
+
+
+def low_wall_hz(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int) -> float:
+    """The frequency of a codec wall below the reference band, or NaN.
+
+    NaN — not a frequency, and not the top of the band — when no boundary in
+    [``LOW_WALL_FROM_HZ``, ``LOW_WALL_TO_HZ``] clears both bars. A NaN means
+    "no low wall", and the caller keeps detect_cutoff's reading unchanged.
+    """
+    top = min(LOW_WALL_DEPTH_TOP_HZ, 0.993 * samplerate / 2.0)
+    edges = np.arange(_LOW_WALL_BASE_HZ, top - LOW_WALL_CELL_HZ + 1, LOW_WALL_CELL_HZ)
+    lo_idx = np.searchsorted(frequencies, edges)
+    hi_idx = np.searchsorted(frequencies, edges + LOW_WALL_CELL_HZ)
+    cells = np.array(
+        [float(np.median(magnitude_db[a:b])) if b > a else np.nan for a, b in zip(lo_idx, hi_idx)]
+    )
+
+    def clears(f: float) -> float:
+        """The step at ``f`` if both bars are cleared there, else NaN."""
+        i = int((f - _LOW_WALL_BASE_HZ) // LOW_WALL_CELL_HZ)
+        if i + 4 >= len(cells) or i < 2:
+            return float("nan")
+        below = float(np.mean(cells[i - 2 : i]))
+        step = below - float(np.mean(cells[i : i + 2]))
+        above = cells[i + 4 :]
+        above = above[~np.isnan(above)]
+        if not above.size or np.isnan(step):
+            return float("nan")
+        depth = below - float(np.percentile(above, 90))
+        if step >= LOW_WALL_STEP_DB and depth >= LOW_WALL_DEPTH_DB:
+            return step
+        return float("nan")
+
+    f = LOW_WALL_FROM_HZ
+    while f <= LOW_WALL_TO_HZ:
+        step = clears(f)
+        if not math.isnan(step):
+            # The two-cell means straddle a wall, so the first boundary to clear
+            # the bars sits one cell early. Report the steepest boundary of the
+            # run that clears them: where the wall is, not where it is first seen.
+            best_f, best_step = f, step
+            nxt = f + LOW_WALL_CELL_HZ
+            while nxt <= LOW_WALL_TO_HZ:
+                s = clears(nxt)
+                if math.isnan(s):
+                    break
+                if s > best_step:
+                    best_f, best_step = nxt, s
+                nxt += LOW_WALL_CELL_HZ
+            return float(best_f)
+        f += LOW_WALL_CELL_HZ
+    return float("nan")
+
+
+def is_low_wall_reading(cutoff_hz: float) -> bool:
+    """True when a cutoff can only have come from :func:`low_wall_hz`.
+
+    ``detect_cutoff`` scans from ``CUTOFF_SCAN_START`` (14 kHz, scaled up for
+    hi-res) and its energy fallback only answers above 15 kHz, so it never
+    returns a value in [``LOW_WALL_FROM_HZ``, 14 kHz). A reading there is a
+    low wall. 0 (an analysis failure) is not.
+    """
+    return LOW_WALL_FROM_HZ <= cutoff_hz < spectral_config.CUTOFF_SCAN_START
+
+
 def analyze_spectrum(
     filepath: Path, sample_duration: float = 30.0, cache: "Optional[AudioCache]" = None
 ) -> Tuple[float, float, float, float, float, float]:
@@ -323,6 +424,17 @@ def analyze_spectrum(
 
             # Detect cutoff frequency (pass samplerate for adaptive detection)
             cutoff_freq = detect_cutoff(fft_freq, magnitude_db, samplerate)
+
+            # Nothing found against the 10-14 kHz reference: look for a codec
+            # wall below it before believing a full spectrum (low-wall instrument).
+            if cutoff_freq >= 0.999 * (samplerate / 2.0) or cutoff_freq >= fft_freq[-1] - 1e-6:
+                wall = low_wall_hz(fft_freq, magnitude_db, samplerate)
+                if not math.isnan(wall):
+                    logger.info(
+                        f"Low wall at {wall:.0f} Hz under an empty reference band "
+                        f"(detect_cutoff read {cutoff_freq:.0f} Hz)"
+                    )
+                    cutoff_freq = wall
 
             # Calculate high frequency energy ratio (> 16 kHz)
             energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
