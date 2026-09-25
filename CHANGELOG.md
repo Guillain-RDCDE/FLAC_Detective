@@ -1,3 +1,66 @@
+## v1.17.0 (2026-09-25) — Where the music stops, and the whole file for the stereo witness
+
+Two engine repairs and one measurement, each registered and committed before
+it was run (`ml/exchange/`).
+
+### The low wall: Rule 8 no longer protects a spectrum it did not see
+
+Under ~64 kbps an encoder's own low-pass sits at 3-11 kHz. The cutoff detector
+measures against the 10-14 kHz band and scans from 14 kHz, so on those files it
+compared the codec's floor with itself, reported 22,050 Hz, and Rule 8 granted
+−50 for "a spectrum that reaches Nyquist" on files whose music stops at 4 kHz.
+Measured on 4 September and left open until now.
+
+When the detector finds nothing, the engine now looks for a wall below its
+reference band: a fall of at least 15 dB over 500 Hz, with at least 30 dB of
+nothing above it up to 16 kHz. Level could not tell a 32 kbps AAC from a 1920s
+78 rpm transfer (both were measured); the shape can. A wall replaces the
+reading, Rule 8 stops applying, and the report says "the audio stops at X Hz
+behind a wall".
+
+| arm (80 each) | Rule 8 protecting, before → after | low wall read |
+|---|---|---|
+| AAC-LC 32 kbps | 80 → 9 | 71 |
+| AAC-LC 48 kbps | 80 → 3 | 77 |
+| MP3 64 kbps | 80 → 8 | 72 |
+
+**It does not signal these files, on purpose.** Restorers low-pass cylinder and
+78 rpm transfers just as steeply, at the same 3-5 kHz: the instrument fires on
+30 of 1,896 Dust-to-Digital tracks. A fixed WARNING score for the wall was
+withdrawn before any run for that reason, and the first after-pass sent an
+1890s gramophone recording to SUSPICIOUS 80 through Rule 1's 128 kbps cell
+under 14 kHz — a part of the cell no reading had ever reached, never
+calibrated, and the same path that caught 23 of the 64 kbps MP3s. The
+registration was amended before the second pass: Rule 1 does not read a low
+wall. Result: 0 genuine file newly signalled on 203 (the 30 stress tracks
+included: all AUTHENTIC with the wall named, 15 of them at 30 points where
+they read 0), 0 transcode lost a signal
+on any of eight low-rate arms or the MP3 128 control.
+`ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md`.
+
+### The stereo witness reads the whole file
+
+Rule 15 took its 200 frames from the first sample: about 4.7 s, the intro of a
+full track. They are now spread over the file. The witness fires on fewer
+genuine files (8.7 % → 5.8 % of 206, statistic alone), as often on the codec
+arms, and three times as often on full-length transcodes; end to end it gained
+the witness on 7 transcodes, on no genuine file, and moved no verdict.
+
+It was a suspect for "two halves of one track disagree" (4 of 12 on 3
+September) and it is not the main one: on 13 disagreeing tracks of 44, the
+halves disagree through Rule 1's +50 (9) and the CNN's +30 (9) at an edge that
+barely moves. That is the next registration.
+`ml/exchange/STEREO_SPREAD_REGISTRATION_2026-09-25.md`.
+
+### Measured, not changed: AAC through FAAC
+
+FAAC 1.40 at 128 / 192 / 256 kbps on the 80 audit sources, engine 1.16.0,
+`--deep`: 66 / 60 / 54 % signalled, 29 / 31 / 28 % convicted, against 88 % /
+48 % for ffmpeg's AAC at 128. FAAC puts its edge at 19,500 Hz at every rate,
+and **Rule 13 reads none of it** — 0 of the 234 FAAC files it ran on, where it
+reads ffmpeg's AAC. Two of six predictions failed and are reported as such.
+`ml/exchange/FAAC_REACH_REGISTRATION_2026-09-25.md`.
+
 ## v1.16.0 (2026-09-18) — Where the scan is
 
 1.15.0 made the quality stage read the file once instead of three times, and

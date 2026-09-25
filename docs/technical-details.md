@@ -513,6 +513,25 @@ Vinyl rips legitimately have:
   (> 0.2) or reduces it to -15 (> 0.15)
 - Far from Nyquist: checked by Rule 2
 
+**The low wall (v1.17.0) — when "near Nyquist" was a reading of the floor.**
+The cutoff detector measures every 250 Hz cell against the 10-14 kHz band and
+scans from 14 kHz. Under ~64 kbps an encoder's own low-pass sits at 3-11 kHz, so
+that reference band is the codec's floor: the scan compared the floor with itself,
+found nothing, reported 22,050 Hz, and this rule granted -50 to files whose music
+stops at 4 kHz. When the detector finds nothing, the engine now looks for a wall
+below the reference band (`spectrum.low_wall_hz`: a fall of at least 15 dB over
+500 Hz, with at least 30 dB of nothing above it up to 16 kHz). A wall replaces the
+reading, so this rule no longer applies; Rule 2 scores it on its usual ramp (30,
+still AUTHENTIC) and names it: "the audio stops at X Hz behind a wall". Rule 1
+does not read it as an MP3 cell.
+
+It does not signal these files, on purpose. Restorers low-pass 78 rpm and
+cylinder transfers just as steeply, at the same 3-5 kHz: the instrument fires on
+30 of 1,896 Dust-to-Digital tracks, and scoring the wall into WARNING, or letting
+Rule 1 read it, sent an 1890s gramophone record to SUSPICIOUS by the same
+arithmetic that caught the 64 kbps MP3s. Measured on 220 low-rate files and 203
+genuine ones before it shipped: `ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md`.
+
 ---
 
 ### Rule 9: Compression Artifacts — REMOVED in v1.8
@@ -740,6 +759,21 @@ the model weights:
   single-segment fragility (a quiet intro or band-limited bridge) behind several
   past measurement bugs. `infer_file_probability()` is the single source of truth
   shared by the rule and the `ml/` scripts.
+
+### Rule 15: the stereo witness reads the whole file (v1.17.0)
+
+Rule 15 reads the dead runs joint stereo leaves in the side channel above
+10 kHz, and it is a witness: no points, one evidence family. Until v1.17.0 its
+200 analysis frames were contiguous from the first sample, about 4.7 s, and the
+engine hands it the whole file, so on a full track it read the intro. The frames
+are now spread evenly over the file, as Rule 13 spreads its MDCT frames. Measured
+before it shipped: the witness fires on fewer genuine files (8.7 % to 5.8 % of
+206, statistic alone), as often on the codec arms, and three times as often on
+full-length transcodes; end to end it gained the witness on 7 transcodes and no
+genuine file, and changed no verdict. It was one suspect for "two halves of one
+track disagree", and it turned out not to be the main one: that is Rule 1's
++50 and the CNN swinging at an unchanged edge.
+`ml/exchange/STEREO_SPREAD_REGISTRATION_2026-09-25.md`.
 
 ## Fake High-Resolution Detection
 
