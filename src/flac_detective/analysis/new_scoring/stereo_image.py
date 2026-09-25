@@ -149,12 +149,25 @@ def _interior_runs(mask: np.ndarray) -> np.ndarray:
 
 
 def _spectra(signal: np.ndarray, rate: int) -> np.ndarray:
-    """|STFT| restricted to bins above ``BAND_LO_HZ``."""
+    """|STFT| restricted to bins above ``BAND_LO_HZ``, frames spread over the signal.
+
+    Until v1.17.0 the ``MAX_FRAMES`` frames were contiguous from sample 0 —
+    the first ~4.7 s of whatever it was handed — and the engine hands it the
+    whole file. On a full track the witness read the intro: a fade-in, a
+    count-in, a solo voice. That is one of the reasons two halves of the same
+    transcode disagreed (2026-09-03), and the 04/09 offset grid saw it as
+    "stereo absent at offset 0". The frames are now spread evenly over the
+    signal, the way Rule 13 samples its MDCT frames (stride rounded to HOP);
+    a signal shorter than ``MAX_FRAMES`` hops reads exactly as before.
+    Measured before it shipped: ml/exchange/STEREO_SPREAD_REGISTRATION_2026-09-25.md.
+    """
     window = np.hanning(FFT_SIZE).astype(np.float32)
     freqs = np.fft.rfftfreq(FFT_SIZE, 1.0 / rate)
     band = np.where(freqs >= BAND_LO_HZ)[0]
+    usable = len(signal) - FFT_SIZE
+    stride = max(HOP, (usable // MAX_FRAMES) // HOP * HOP) if usable > 0 else HOP
     frames = []
-    for start in range(0, len(signal) - FFT_SIZE, HOP):
+    for start in range(0, usable, stride):
         block = signal[start : start + FFT_SIZE] * window
         frames.append(np.abs(np.fft.rfft(block))[band])
         if len(frames) >= MAX_FRAMES:

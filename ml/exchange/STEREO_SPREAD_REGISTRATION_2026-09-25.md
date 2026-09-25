@@ -90,3 +90,58 @@ A1 or A2 breached: does not ship. P1 missed: the repair is reported as not
 reaching the position defect, and ships only if A1, A2, P2 and P3 hold.
 
 Results are appended below, after the runs, in a section dated after the fact.
+
+---
+
+## RESULTS — appended 2026-09-25 after the runs
+
+Before = 1.16.0 (`fd-v1160`, `b17b9f8`); after = the same tree with
+`stereo_image.py` replaced and nothing else (`fd-r15/after_src`). Torch live,
+default mode, `--sample-duration 30`, `--workers 2`. Every run exit 0, every
+file read. Diff by `fd-r15/cmp_r15.py` (verdict, score and evidence families
+per file).
+
+| corpus | files | convicted before → after | signalled before → after | `stereo` family before → after | movers |
+|---|---|---|---|---|---|
+| audit authentic | 80 | 0 → 0 | 2 → 2 | 2 → 2 | 0 |
+| wild genuine | 148 | 0 → 0 | 0 → 0 | 0 → 0 | 0 |
+| v2 genuine | 59 | 2 → 2 | 3 → 3 | 1 → 1 | 0 |
+| full-length genuine | 12 | 0 → 0 | 0 → 0 | 0 → 0 | 0 |
+| received files | 22 | 0 → 0 | 2 → 2 | 0 → 0 | 0 |
+| 8 full-length transcodes | 8 | 1 → 1 | 2 → 2 | **0 → 2** | 2 |
+| 24 full-length LAME | 24 | 17 → 17 | 18 → 18 | 9 → 9 | 0 |
+| **the 88 halves** | 88 | 30 → 30 | 42 → 42 | **14 → 19** | 5 |
+| six arms, first 40 each | 240 | 43 → 43 | 51 → 51 | 62 → 62 | 0 |
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | genuine newly convicted | 0 | **0 — held** |
+| A2 | every mover changes through `stereo` | all | **7 of 7 — held**: each gains the `stereo` witness and nothing else |
+| P1 | halves in disagreement | after ≤ before | **13 → 13 of 44 — held in the letter, and the repair does not reach the defect** |
+| P2 | convictions on the 32 full-length transcodes | after ≥ before | **18 → 18 — held** |
+| P3 | convictions on the 240 arm files | ≥ before − 3 | **43 → 43 — held** |
+| E1 | transcodes losing a conviction | ≤ 3 | **0 — held** |
+
+**Ships in 1.17.0**, as what it is: the stereo witness now reads the file it
+is given instead of its first 4.7 seconds. Where the engine consults it — and
+the default mode's authentic fast path skips it on most genuine files, which is
+why the genuine rows barely move — it testifies on 7 more files, all
+transcodes, and on no genuine file. It changed no verdict.
+
+**What the halves actually disagree on.** Read file by file from the
+after-pass reports, the 13 disagreeing tracks (12 of them LAME 128/192):
+
+* **Rule 1's +50 is present in one half only on 9 of them** — at the same
+  cutoff on 5, within 750 Hz on 3, and once with the edge itself moving
+  (Lionheart 192: 18,750 against 16,000 Hz);
+* **the CNN's +30 swings on 9**, alone on 3 (Eve 192, Periscope Up 128 and
+  192);
+* TR320_04 is the other kind: Rule 7's clean-silence −50 fires on one half.
+
+The intro was never the main reason. What moves with the half is Rule 1's
+decision at an edge that barely moves — its container window (a half's
+FLAC-equivalent size depends on what is in that half) or its gate A (the
+wander of the cutoff across three windows), the two open items named in the
+WALL_GATE registration — and the CNN's probability on different 10 s windows.
+Which Rule 1 gate decides, file by file, is not in these reports and is not
+claimed here; it is the next registration.

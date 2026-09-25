@@ -156,6 +156,39 @@ class TestGates:
         assert details["stereo_witness"] is False
 
 
+class TestTheWitnessReadsTheWholeFile:
+    """v1.17.0: the frames are spread over the file, not taken from sample 0.
+
+    Until then the witness read the first ~4.7 s of whatever it was handed, and
+    the engine hands it the whole track: an intro decided it. The first two
+    tests fail on the 1.16.0 tree; the third pins that short signals did not move.
+    """
+
+    def test_an_artefact_after_the_intro_is_read(self) -> None:
+        # 10 s of live stereo, then 50 s of a coupled side band.
+        intro = _live_stereo(10.0, seed=3)
+        body = _coupled_above(12000.0, 18000.0, seconds=50.0, seed=4)
+        run, _ = side_dead_run(np.concatenate([intro, body]).astype(np.float32), RATE)
+        assert np.isfinite(run)
+        assert run >= RUN_BAR, f"the body's coupled band read only {run:.2f}"
+
+    def test_a_clean_intro_does_not_hide_a_coupled_track_and_vice_versa(self) -> None:
+        # The mirror case: a coupled intro must not decide a live track either.
+        intro = _coupled_above(12000.0, 18000.0, seconds=10.0, seed=5)
+        body = _live_stereo(50.0, seed=6)
+        run, _ = side_dead_run(np.concatenate([intro, body]).astype(np.float32), RATE)
+        assert np.isfinite(run)
+        assert run < RUN_BAR, f"a 10 s intro decided a 60 s file: {run:.2f}"
+
+    def test_a_short_signal_reads_as_before(self) -> None:
+        # Under MAX_FRAMES hops the stride is HOP: contiguous frames, as in 1.16.0.
+        from flac_detective.analysis.new_scoring import stereo_image as si
+
+        audio = _live_stereo(3.0)[:, 0]
+        spec = si._spectra(audio, RATE)
+        assert len(spec) == len(range(0, len(audio) - si.FFT_SIZE, si.HOP))
+
+
 class TestLevelInvariance:
     """The absolute threshold is guarded, so gain must not decide the verdict.
 
