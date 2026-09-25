@@ -72,3 +72,56 @@ family, and the two instruments meant for high-rate AAC have learned ffmpeg.
 
 No repair follows from this document. Results are appended below, after the
 runs, in a section dated after the fact.
+
+---
+
+## RESULTS — appended 2026-09-25 after the runs
+
+Engine 1.16.0 at tag `v1.16.0` (worktree `fd-v1160`, `b17b9f8`, import path
+checked to resolve there), `--deep`, torch live. Arms built by `fd-r8/build.py`
+(FAAC binary re-hashed before the run, 240/240 encodes), scored by
+`fd-r8/bench_faac.cmd`, summarised by `fd-r8/summ_faac.py`. Four runs, exit 0,
+every file read.
+
+| arm | files | signalled | convicted | ERROR / NOT_ASSESSED | median cutoff |
+|---|---|---|---|---|---|
+| `aac_ff128`, first 40 (control) | 40 | 35 — **88 %** | 19 — 48 % | 0 | 17,250 Hz |
+| `faac_128` | 80 | 53 — **66 %** | 23 — 29 % | 0 | 19,500 Hz |
+| `faac_192` | 80 | 48 — **60 %** | 25 — 31 % | 0 | 19,500 Hz |
+| `faac_256` | 80 | 43 — **54 %** | 22 — 28 % | 0 | 19,500 Hz |
+
+| # | prediction | bound | result |
+|---|---|---|---|
+| F1 | control signalled | ≥ 50 % | **88 % — held** |
+| F2 | `faac_128` ≥ control − 20 points | ≥ 68 % | **66 % — FAILED by 2 points** |
+| F3 | `faac_256` mostly missed | ≤ 30 % | **54 % — FAILED**, in the good direction, and reported as a failed prediction all the same |
+| F4 | rate orders the reach | 128 ≥ 192 ≥ 256 | **66 ≥ 60 ≥ 54 — held** |
+| F5 | `cnn` or `mdct` among signalled 192 + 256 | ≥ 50 % | **59 of 91, 65 % — held**, and all of it is `cnn`: see below |
+| F6 | no ERROR / NOT_ASSESSED | 0 | **0 — held** |
+
+Read plainly.
+
+**FAAC does not low-pass by bitrate.** Its ABR mode puts the edge at
+19,500 Hz at 128, 192 and 256 kbps alike (62-64 of 80 files in that cell on
+every arm). The basis written for F2 and F3 — "a bandwidth that falls with the
+bitrate, as the ffmpeg encoder does" — was wrong. That is why F3 failed high:
+the 256 kbps arm carries the same 19.5 kHz edge as the 128 kbps arm, and the
+spectral family reads it on 20 of the 43 signalled 256 kbps files
+(`spectral|stereo|temporal`). And it is why F2 failed low: at 128 kbps the
+ffmpeg encoder's 17 kHz wall is easier to read than FAAC's 19.5 kHz one.
+
+**Rule 13 is blind to FAAC.** It ran on 234 of the 240 FAAC files and scored
+on **none**; on the ffmpeg control it ran on 4 (the other 36 sit under its
+cutoff gate) and scored on all 4. Rule 13 tests two window hypotheses, the KBD
+window of the ffmpeg encoder and the Vorbis window; neither gives a reading on
+FAAC's output. Why — window shape, quantiser, or something else — is not
+measured here. The instrument built as "the only rule that reads
+high-bitrate AAC" reads one AAC encoder. Recorded; no repair in this document.
+
+**The CNN carries the high rates.** Every `cnn`-or-`mdct` file in F5 is `cnn`.
+At 256 kbps half the signalled files rest on the spectral family instead.
+
+What this means for the other side's FAAC blind spot: this engine does not
+share it at the rates measured — 54-66 % signalled, 28-31 % convicted — but it
+reaches FAAC through the edge and the CNN, not through the frame grid that
+reads ffmpeg's AAC.
