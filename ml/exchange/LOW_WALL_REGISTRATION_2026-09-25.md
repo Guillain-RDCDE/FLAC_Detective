@@ -151,3 +151,59 @@ the repair's first duty is to stop granting it.
   the scale does not convict") is a different defect.
 
 Results are appended below, after the run, in a section dated after the fact.
+
+---
+
+## AMENDMENT — 2026-09-25, after the first after-pass, before the second
+
+The first after-pass (`fd-r8/lw/after_*`, kept) ran on the repair as
+registered above and **two A-criteria were breached**.
+
+**A2 — one genuine file newly signalled.** Emile Berliner, *Numbers and
+letters* (Dust-to-Digital, *Pictures of sound*, an 1890s gramophone
+recording): AUTHENTIC 0 → **SUSPICIOUS 80**. Its low wall reads 11,750 Hz,
+which sits in Rule 1's 128 kbps cell (10,000-15,500 Hz), and the file's
+FLAC-equivalent size falls inside that cell's container window (400-550 kbps):
+Rule 1 +50, "Constant MP3 bitrate detected (Spectral): 128 kbps", plus Rule 2's
+30. No depth instrument was involved. The 23 `mp3_64k` files newly signalled
+(P4, 0 → 23) were signalled **by exactly the same path** — Rule 1's container
+window on a low wall in the 128 cell — so nothing in the engine separates the
+gramophone from the 64 kbps MP3.
+
+The cause is a derivation error of mine: the part of the 128 kbps cell under
+14 kHz was **never reachable** before this repair (`detect_cutoff` cannot
+answer there), so its container window was never priced against anything that
+reads there. A low wall walked into an uncalibrated cell.
+
+**A3 — one mover off the registered profile.** *This is a sound spectrogram*
+(National Academy of Sciences, same album): AUTHENTIC 18 → AUTHENTIC 0, cutoff
+16,250 → 7,500 Hz. The profile said "read ≥ 0.999 × Nyquist before"; on a file
+over 90 s the engine takes the MINIMUM over three windows, and one window found
+nothing (then a low wall) while another had found an edge at 16,250. The
+profile was written for one window. The move is toward acquittal (with its
+cutoff under 19 kHz, Rule 11 read the transfer as a tape and granted −40).
+
+### The amended repair
+
+4. **Rule 1 does not read a low-wall cutoff.** When `is_low_wall_reading`,
+   Rule 1 returns before any cell or window is consulted, and
+   `rule1_may_consult_container` mirrors it (no re-encode is taken). The wall
+   is scored by Rule 2's ramp only, as the design section above already said
+   it should be; the 128 cell under 14 kHz stays out of reach until it is
+   calibrated on something.
+
+This can only remove Rule 1 +50s relative to the first after-pass. Every
+corpus with no low wall (every genuine corpus but the stress set, the `he_aac`
+arms, `lc_aac_64k`, `mp3_96k`, `mp3_128`) has 0 movers in the first pass and
+has 0 under the amended code by construction. The second pass (`after2_*`)
+re-runs the four corpora that read a low wall: the 30 stress tracks,
+`lc_aac_32k`, `lc_aac_48k`, `mp3_64k`.
+
+### Criteria, re-registered for the second pass
+
+A1, A2 and E4 stand as written. **A3's profile** becomes: every mover's
+after-cutoff is a low-wall reading ([2 kHz, 14 kHz), with the wall reason),
+whatever the before-cutoff was. P1, P2, P3, P5 and P6 stand. **P4 is
+withdrawn and replaced**: `mp3_64k` signalled after = 0 is the expected
+consequence of item 4, and is reported as recall given up, not as a
+prediction.
