@@ -152,7 +152,9 @@ def rule1_may_consult_container(
         return False
     if cutoff_freq > HIGH_QUALITY_CUTOFF_THRESHOLD:
         return False
-    if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
+    if cutoff_std > CUTOFF_VARIANCE_THRESHOLD and not floor_is_digital_silence(
+        floor_above_db, cutoff_freq
+    ):
         return False
     if edge_is_a_slope(edge_step_db, cutoff_freq, floor_above_db):
         return False
@@ -321,7 +323,18 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     # same statistic and was using a different, smaller bound (v1.13.1).
     # NaN (a single window: the wander was not computable) is not > the bar, so
     # an unknown wander does not skip Rule 1 — the same behaviour a 0.0 had.
-    if cutoff_std > CUTOFF_VARIANCE_THRESHOLD:
+    #
+    # Gate A yields to depth (v1.18.0), as gate D and the container window do:
+    # a 128 kbps wall at 16 kHz is READ 250-500 Hz apart in three windows of
+    # different music, and walked out through this gate on 6 of the 9 halves
+    # of full-length transcodes that disagreed. Over digital silence the wander
+    # is where the wall was read, not a varying spectrum. Priced on full-length
+    # tracks only (the gate needs three windows): 0 new +50 on 205 labelled
+    # genuine, on a 1,726-track library sample and on 1,896 78 rpm transfers.
+    # See ml/exchange/GATE_A_DEPTH_REGISTRATION_2026-09-26.md.
+    if cutoff_std > CUTOFF_VARIANCE_THRESHOLD and not floor_is_digital_silence(
+        floor_above_db, cutoff_freq
+    ):
         logger.debug(
             f"RULE 1: Skipped (cutoff std {cutoff_std:.1f} > {CUTOFF_VARIANCE_THRESHOLD}, variable spectrum)"
         )

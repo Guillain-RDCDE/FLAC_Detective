@@ -102,3 +102,49 @@ list, in writing, in the results.
   different 10 s windows; not addressed.
 
 Results are appended below, after the runs, in a section dated after the fact.
+
+---
+
+## RESULTS — appended 2026-09-26 after the runs
+
+Before = 1.17.0 (worktree at `v1.17.0`, `56667a0`); after = 1.17.0 with
+`rules/spectral.py` replaced and nothing else (`fd-r1w/after_src`, checked with
+`git diff --no-index --ignore-cr-at-eol`). Torch live, default mode,
+`--sample-duration 30`, `--workers 2`; every run exit 0, every file read. Diff
+by `fd-r1w/cmp_ga.py`, verdict and score per file.
+
+| corpus | files | signalled before → after | convicted before → after | movers |
+|---|---|---|---|---|
+| attested CD tracks | 28 | 0 → 0 | 0 → 0 | 0 |
+| full-length genuine | 12 | 0 → 0 | 0 → 0 | 0 |
+| received folder | 22 | 2 → 2 | 0 → 0 | 0 |
+| wild genuine | 148 | 0 → 0 | 0 → 0 | 0 |
+| unlabelled gate-A tracks (library, Dust-to-Digital, cassettes) | 246 | 14 → 16 | 0 → 1 | **5** |
+| attested CDs → LAME 128/192/256 | 84 | 74 → 78 | **46 → 61** | 15 |
+| the 88 halves | 88 | 42 → 46 | 30 → 34 | 6 |
+| `long_mp3` | 24 | 18 → 18 | 17 → 17 | 0 |
+| full-length 320 / Vorbis | 8 | 2 → 2 | 1 → 1 | 0 |
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | labelled genuine newly convicted | 0 | **0 — held** (210 files) |
+| A2 | labelled genuine newly signalled | 0 | **0 — held** |
+| A3 | every mover gains Rule 1's +50 over digital silence, nothing else | all | **26 of 26 — held** |
+| A4 | unlabelled movers | the 6 named cassette tracks, or fewer | **5 — held**: the five Papé Nziengui tracks (the Teno Afrika track did not move end to end); one of them, *Gho mitsaba na voko*, goes WARNING 50 → **FAKE_CERTAIN 80**, the album's other tracks reading as before |
+| P1 | halves in disagreement | after < 13 | **13 → 13 — FAILED** |
+| P2 | attested transcodes signalled | ≥ before + 10 | **74 → 78 — FAILED**; convictions 46 → 61 |
+| E1 | transcodes losing a signal or a conviction | 0 | **0 — held** |
+
+**Ships in 1.18.0**, with both P-criteria failed and said. What the repair does:
+on full-length transcodes of loud masters it restores Rule 1's +50 where the
+wall's reading wandered over digital silence — 15 of 84, and those become
+convictions (46 → 61), not new signals, because most were already signalled by
+other families. What it does not do is the job it was drawn for: of the 6
+halves it moved, one disagreement resolved (Eve 128: both halves now
+convicted), one was created (Wolf Drawn 128: one half WARNING 46, the other
+still held by gate A over a shallow floor), and the rest moved together or
+moved inside an existing disagreement. **The halves still disagree 13 times in
+44; 5 of the 6 gate-A halves have a floor above −58 dB and are out of the
+depth instrument's reach**, the same limit as the depth gate's ("relative to
+the programme level"). The position defect stays open, now narrowed to: gate A
+over shallow floors, the container window, and the CNN.

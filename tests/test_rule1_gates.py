@@ -45,6 +45,52 @@ class TestGateA_VarianceVsGrid:
         assert score == 0
 
 
+class TestGateA_YieldsToDepth:
+    """v1.18.0: a wandering reading over digital silence is a wall read unevenly.
+
+    A 128 kbps LAME wall at 16 kHz is read 250-500 Hz apart in three windows of
+    different music; over digital silence (floor at or under DEEP_FLOOR_DB,
+    edge under 19,500 Hz) gate A no longer skips the rule. Shallow or unknown
+    floor: unchanged. The first and the last test fail on the 1.17.0 tree.
+    """
+
+    def _wall_16k(self, **kw):
+        base = {
+            "cutoff_freq": 16000.0,
+            "container_bitrate": 520.0,
+            "cutoff_std": 353.6,
+            "residual_floor_db": float("nan"),
+            "edge_step_db": 30.0,
+        }
+        base.update(kw)
+        return _r1(**base)
+
+    def test_wander_over_digital_silence_scores(self):
+        score, est = self._wall_16k(floor_above_db=-63.0)
+        assert score == 50 and est == 160  # 16,000 Hz sits in the 160 cell
+
+    def test_wander_over_a_shallow_floor_still_exits(self):
+        score, _ = self._wall_16k(floor_above_db=-44.0)
+        assert score == 0
+
+    def test_wander_with_an_unknown_floor_still_exits(self):
+        score, _ = self._wall_16k(floor_above_db=float("nan"))
+        assert score == 0
+
+    def test_the_320_cell_is_untouched(self):
+        # Depth is only read below 19,500 Hz; from the 320 cell up gate A holds.
+        score, _ = _r1(cutoff_std=235.7, floor_above_db=-70.0)
+        assert score == 0
+
+    def test_the_mirror_follows(self):
+        from flac_detective.analysis.new_scoring.rules.spectral import (
+            rule1_may_consult_container,
+        )
+
+        assert rule1_may_consult_container(16000.0, 44100, 353.6, 30.0, -63.0)
+        assert not rule1_may_consult_container(16000.0, 44100, 353.6, 30.0, -44.0)
+
+
 class TestGateB_20kExactDecidesOnDepth:
     def test_deep_wall_at_20000_scores_despite_hf_energy(self):
         """Press noise guarantees energy > 1e-6 on wild files; depth decides."""
