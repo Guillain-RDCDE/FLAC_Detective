@@ -359,6 +359,19 @@ separates nothing, and the 320 branch already decides on the wall's depth
 (the residual floor). The gate can only withhold the +50, never add it.
 Measured in `ml/exchange/WALL_GATE_REGISTRATION_2026-09-08.md`.
 
+**Gate A yields to depth (v1.18.0).** Gate A skips Rule 1 when the cutoff
+read in the three 30 s windows of a file over 90 s wanders by more than
+130 Hz. A 128 kbps wall at 16 kHz is read 250-500 Hz apart by windows of
+different music, so full-length transcodes walked out through it. Over digital
+silence (floor above the edge at or under −58 dB, edge under 19.5 kHz) the
+wander no longer skips the rule, as gate D and the container window already
+yield to depth. Priced on full-length tracks, since the gate needs three
+windows: 0 change on 210 labelled genuine files (including 28 owner-ripped,
+AccurateRip-verified CD tracks with cutoffs under 19 kHz) and 5 on 246
+unlabelled library, 78 rpm and cassette tracks; convictions 46 → 61 on 84
+full-length LAME transcodes of those CDs.
+`ml/exchange/GATE_A_DEPTH_REGISTRATION_2026-09-26.md`.
+
 ---
 
 ### Rule 2: Cutoff Frequency vs Nyquist Threshold

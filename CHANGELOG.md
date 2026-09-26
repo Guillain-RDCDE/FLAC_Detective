@@ -1,3 +1,36 @@
+## v1.18.0 (2026-09-26) — Gate A yields to depth
+
+Rule 1 skips a file whose cutoff wanders by more than 130 Hz across its three
+30 s windows ("authentic masters have variable cutoffs"). That gate only acts
+on files over 90 s, so no 60 s corpus this project owns had ever priced it.
+Two things made it measurable this week: the halves of full-length transcodes,
+which disagreed at this gate on 6 of 9 tracks (a 128 kbps wall at 16 kHz is
+read 250-500 Hz apart by windows of different music), and 28 CD tracks ripped
+by their owner and verified (EAC, AccurateRip), loud 1995-2002 masters with
+cutoffs under 19 kHz — 8 of them pass through gate A.
+
+**The gate now yields to depth**, as gate D and the container window have since
+1.13.16: over digital silence (the band above the edge at or under −58 dB,
+edge under 19.5 kHz) a wandering reading is a wall read unevenly, and Rule 1
+still reads it. Over a shallow or unknown floor the gate decides as before.
+Removing the gate outright was priced on the same trace and rejected.
+
+| population (full-length) | files | changed |
+|---|---|---|
+| labelled genuine (attested CDs, full-length, received, wild) | 210 | **0** |
+| unlabelled library, 78 rpm and cassette tracks that reach gate A | 246 | 5 (one album already read lossy on its other tracks) |
+| attested CDs transcoded to LAME 128/192/256 | 84 | convictions **46 → 61** |
+| halves of full-length tracks | 88 | signalled 42 → 46, convicted 30 → 34 |
+
+Said as measured: the two efficacy predictions failed. Halves in disagreement
+stay at 13 of 44 — one resolved, one created — because 5 of the 6 gate-A halves
+sit over a floor shallower than −58 dB, out of the depth instrument's reach.
+The position defect is narrower now (gate A over shallow floors, the container
+window, the CNN) and still open. No transcode lost a signal.
+`ml/exchange/GATE_A_DEPTH_REGISTRATION_2026-09-26.md`; the trace tool is
+`ml/rule1_gate_trace.py`, and the probes behind 1.17.0 are now in `ml/` too
+(`low_wall_probe.py`, `stereo_spread_probe.py`).
+
 ## v1.17.0 (2026-09-25) — Where the music stops, and the whole file for the stereo witness
 
 Two engine repairs and one measurement, each registered and committed before
