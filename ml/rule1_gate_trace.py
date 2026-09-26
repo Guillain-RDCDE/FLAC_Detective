@@ -36,6 +36,8 @@ from flac_detective.analysis.new_scoring.rules.spectral import (
 )
 from flac_detective.analysis.spectrum import analyze_spectrum, is_low_wall_reading
 
+STEP_BAR = float(__import__("os").environ.get("FD_STEP_BAR", "15"))
+
 WINDOWS = {128: (400, 550), 160: (450, 650), 192: (500, 750), 224: (550, 800),
            256: (600, 850), 320: (700, 1050)}
 
@@ -53,7 +55,12 @@ def gates(v, variant):
         return "hq"
     silent_above = floor_is_digital_silence(floor, cutoff)
     if std > CUTOFF_VARIANCE_THRESHOLD:
-        if variant == "now" or (variant == "Adepth" and silent_above is False):
+        hard = (not math.isnan(step)) and step >= STEP_BAR
+        if (
+            variant == "now"
+            or (variant == "Adepth" and silent_above is False)
+            or (variant == "Astep" and silent_above is False and hard is False)
+        ):
             return "gate_A_wander"
     if edge_is_a_slope(step, cutoff, floor):
         return "gate_D_slope"
@@ -93,7 +100,7 @@ def trace(job):
     row = {"file": path.name, "path": str(path), "label": label, "seconds": round(dur, 1),
            "cutoff": cutoff, "std": round(std, 1), "step": round(step, 1),
            "floor": round(floor, 1), "resid": round(resid, 1)}
-    for variant in ("now", "noA", "Adepth"):
+    for variant in ("now", "noA", "Adepth", "Astep"):
         row[variant] = gates(v, variant)
     row["kbps"] = round(memo["k"], 1) if "k" in memo else ""
     if row["now"] in ("FIRES", "window_low", "window_high", "320_residual"):
@@ -116,7 +123,7 @@ def main():
             files = sorted(p.rglob("*.flac"))
         jobs += [(f, label) for f in files]
     keys = ["file", "path", "label", "seconds", "cutoff", "std", "step", "floor", "resid",
-            "now", "noA", "Adepth", "kbps"]
+            "now", "noA", "Adepth", "Astep", "kbps"]
     n = 0
     with ProcessPoolExecutor(3) as ex, out.open("w", newline="", encoding="utf-8") as f:
         wr = csv.DictWriter(f, fieldnames=keys, extrasaction="ignore")
