@@ -1,3 +1,41 @@
+## v1.19.0 (2026-09-27) — Rule 16, the MP3 granule grid
+
+### A second instrument, independent of the cutoff
+
+Every rule that reads MP3 in this engine reads where the spectrum stops, and
+the halves of full-length transcodes kept disagreeing because, on what those
+rules read, some MP3s and some genuine files are one reading apart
+(`ml/exchange/POSITION_REMAINDER_REFUSED_2026-09-26.md`: three repairs of the
+existing rules priced and refused). The project's own notes named the way out
+in August and did not take it: a plain MDCT at MP3's period reads MP3 at the
+null; only the real MPEG-1 Layer III analysis filterbank could.
+
+Rule 16 is that filterbank, run on the decoded audio: the ISO 32-band
+polyphase bank, an 18-point MDCT per subband, the encoder's frequency inversion
+and alias-reduction butterflies. At the one granule alignment (of 576) where
+the encoder's granules fell, the lines it quantised to zero come back as holes;
+a genuine recording has no such alignment. On the audit corpus's held-out half:
+**AUC 1.00 / 0.99 / 0.96 / 0.98 on MP3 128 / 192 / 320 / V0, chance on AAC and
+Vorbis** — it reads MP3 and nothing else, and it never looks at the cutoff. The
+approach is public since 2000 (Herre & Schug's "inverse decoder", AES 109;
+Moehrs, Herre & Geiger, AES 112).
+
+**A witness with zero points**, like Rules 14 and 15, run only where it can
+change a verdict: a file already at the conviction bar on a single family.
+Measured on 2,519 files before shipping: 4 transcodes go SUSPICIOUS →
+FAKE_CERTAIN, halves in disagreement 13 → 12, **0 genuine file moved**, 0
+transcode lost, 0 movement on the AAC and Vorbis arms.
+
+Two things said as they are. The rule decides few files, because most of what
+still separates the halves is points, not families, and a witness gives none.
+And **four genuine-labelled files read a grid as strong as a real MP3** —
+Mondkopf in the audit corpus, two tracks of a wild taper recording, one v2
+genuine file — each already read as MP3-like by other instruments. They may be
+MP3-sourced masters in genuine clothing; a detector's verdict does not settle
+that, so they stay genuine in every count, and giving Rule 16 points waits on
+their provenance. `ml/exchange/MP3_GRID_REGISTRATION_2026-09-27.md`; derivation
+tools `ml/mp3_hybrid_filterbank.py` and `ml/mp3_grid_corpus_probe.py`.
+
 ## v1.18.0 (2026-09-26) — Gate A yields to depth
 
 Rule 1 skips a file whose cutoff wanders by more than 130 Hz across its three

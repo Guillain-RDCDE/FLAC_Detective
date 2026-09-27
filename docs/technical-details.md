@@ -788,6 +788,24 @@ track disagree", and it turned out not to be the main one: that is Rule 1's
 +50 and the CNN swinging at an unchanged edge.
 `ml/exchange/STEREO_SPREAD_REGISTRATION_2026-09-25.md`.
 
+### Rule 16: the MP3 granule grid (v1.19.0)
+
+A witness, zero points, family `mp3grid`, independent of the cutoff. The
+decoded audio is passed through the encoder's own MPEG-1 Layer III analysis
+filterbank — the ISO 32-band polyphase bank, an 18-point MDCT per subband, the
+encoder's frequency inversion of odd subbands and its alias-reduction
+butterflies — and, at each of the 576 granule alignments, the share of lines
+40 dB under their local median is counted over 48 granules of the central
+30 s. An MP3 decode has one alignment where the lines the encoder quantised to
+zero return as holes; a genuine recording has none. The statistic is that
+alignment's hole share over the median across all alignments; it witnesses at
+1.6 (`GRID_BAR`). Held-out AUC 0.96-1.00 on MP3 128 to 320, chance on AAC and
+Vorbis. It runs only on a file already at the conviction bar on one family,
+the only place a witness can change a verdict. The approach is Herre and
+Schug's "inverse decoder" (AES 109, 2000). A plain MDCT at MP3's period had
+read MP3 at the null (`ml/README.md`); the hybrid bank is what it takes.
+`ml/exchange/MP3_GRID_REGISTRATION_2026-09-27.md`.
+
 ## Fake High-Resolution Detection
 
 A **separate axis** from the transcode verdict, reported as `hires_verdict`
