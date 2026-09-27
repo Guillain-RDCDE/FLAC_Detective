@@ -1,3 +1,24 @@
+## Unreleased — corrections to the 1.17.0-1.19.0 entries (2026-09-27)
+
+No engine change. Two corrections, both dated after the fact and both leaving
+the entries below as they shipped:
+
+* **The "v2 genuine" population was 59 where it is 56.** The benches of
+  1.17.0-1.19.0 took every file the raw v2 key labels genuine; three were
+  adjudicated on 2026-08-23 (one fake, MP2 in the taper's chain; two
+  unverifiable lineages). None of the three moved in any bench, so every safety
+  result stands; the counts do not. "0 genuine newly signalled on 203" (1.17.0)
+  is on **200**; the "four genuine-labelled files" that read an MP3 grid
+  (1.19.0) are **three** genuine files and one unverifiable one.
+  `ml/exchange/V2_GENUINE_COUNT_CORRECTION_2026-09-27.md`.
+* **Rule 16 gets no points, measured.** The three documented-genuine files that
+  read an MP3 grid (a pressed-CD rip verified by AccurateRip, and two tracks of
+  a board recording made during a radio show) read it more strongly (8.1-8.6)
+  than the transcodes points would rescue (5.7-7.5). Their provenance was
+  reviewed by the documentary method: nothing names a lossy link, so they stay
+  genuine and Rule 16 stays a zero-point witness. Recorded in
+  `ml/exchange/MP3_GRID_REGISTRATION_2026-09-27.md`.
+
 ## v1.19.0 (2026-09-27) — Rule 16, the MP3 granule grid
 
 ### A second instrument, independent of the cutoff

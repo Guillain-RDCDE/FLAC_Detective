@@ -109,3 +109,7 @@ information in the file: a 192 kbps LAME wall at 18.75 kHz over a −42 dB floor
 and a genuine taper recording at 18.75 kHz over a −32 dB floor, both compressing
 to ~570 kbps, are one reading apart, and that reading is not one this engine
 takes. A second instrument, independent of the cutoff, is what it would take.
+
+---
+
+**Correction, 2026-09-27:** the `v2 genuine` population used here held three files the v2 adjudications of 2026-08-23 do not call genuine (one fake, two unverifiable). No outcome changes; the counts are corrected in `V2_GENUINE_COUNT_CORRECTION_2026-09-27.md`.

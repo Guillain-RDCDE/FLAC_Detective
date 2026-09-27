@@ -145,3 +145,6 @@ wander of the cutoff across three windows), the two open items named in the
 WALL_GATE registration — and the CNN's probability on different 10 s windows.
 Which Rule 1 gate decides, file by file, is not in these reports and is not
 claimed here; it is the next registration.
+---
+
+**Correction, 2026-09-27:** the `v2 genuine` population used here held three files the v2 adjudications of 2026-08-23 do not call genuine (one fake, two unverifiable). No outcome changes; the counts are corrected in `V2_GENUINE_COUNT_CORRECTION_2026-09-27.md`.

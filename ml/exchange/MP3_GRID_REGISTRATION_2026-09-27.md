@@ -156,3 +156,29 @@ families, and a witness does not give points. Giving it points would put the
 four genuine-labelled files that read a grid — Mondkopf, pachy ×2, v2 0386 —
 at WARNING or above, and that is exactly the decision this project does not
 take on a detector's word: their provenance has to be settled first.
+---
+
+## PROVENANCE REVIEW OF THE FOUR FILES, AND THE PRICE OF POINTS — 2026-09-27, after the results
+
+Done by the documentary method of August (the `wild_fake_ledger` and the v2
+adjudications: archive.org source / lineage / taper lines, rip logs; **a
+detector's reading is never a label**). The selection is targeted — these files
+were looked at because Rule 16 read them — and is recorded as such.
+
+| file | document | ruling |
+|---|---|---|
+| v2 `0386` | archive.org `rcpm2000-05-05.flac16`: "Source: unknown > CDR", taper unknown | **already `unverifiable` (`lineage_unknown`) since 2026-08-23** in `fd-exchange-v2-2026-08-ADJUDICATIONS.json`. It should never have been in a genuine column: the bench folder was built from the raw v2 key without the adjudications (see `V2_GENUINE_COUNT_CORRECTION_2026-09-27.md`). Its Rule 16 reading (5.39) is a side-channel reading, no evidential weight, like 0469's. |
+| pachy 2025-07-31 d1t01, d1t02 | archive.org `pachy2025-07-31`, the band's own upload: "Source: SBD (Live Radio performance recorded to Audacity)" | **stays genuine.** No lossy link is named: a board feed recorded to Audacity during a radio show may be the console or the broadcast, and the document does not say. Precedent: v2 `0306` (FM line-in, no codec documented) stayed genuine on the same reasoning. |
+| Mondkopf, *Summer afternoon on the Caribbean sea* | XLD log in the direction's library: pressed CD, XLD secure mode, AccurateRip OK (v1, confidence 1/1), test CRC = copy CRC | **stays genuine**: the file is the CD, bit for bit. If Rule 16 is right, the CD's *master* went through MP3 — the "hybrid" class discussed for Set C — and nothing documents that. |
+
+**No quarantine is justified.** Three documented-genuine files read an MP3
+grid as strong as a real MP3 (8.1 to 8.6).
+
+**The price of giving Rule 16 points, computed and refused.** The files points
+would rescue are the halves that Rule 1 releases at the container window — the
+LAME 192 walls at 18,750 Hz, AUTHENTIC 6 or so. Their grids read **5.7 to
+7.5**. The three genuine files read **8.1 to 8.6** at AUTHENTIC 5 to 7. Any
+number of points that lifts those halves to WARNING lifts the three genuine
+files with them, and more strongly. There is no bar between them in the right
+direction. **Refused on its derivation**: Rule 16 stays a zero-point witness
+until provenance, not the detector, says what those three files are.

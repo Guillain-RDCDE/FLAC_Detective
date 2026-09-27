@@ -261,3 +261,6 @@ that is by design: the one engine path that would have signalled the 64 kbps
 MP3s signalled an 1890s gramophone record by the same arithmetic. A second,
 independent reading that a restored 78 does not share is what this needs next;
 none exists here yet.
+---
+
+**Correction, 2026-09-27:** the `v2 genuine` population used here held three files the v2 adjudications of 2026-08-23 do not call genuine (one fake, two unverifiable). No outcome changes; the counts are corrected in `V2_GENUINE_COUNT_CORRECTION_2026-09-27.md`.
