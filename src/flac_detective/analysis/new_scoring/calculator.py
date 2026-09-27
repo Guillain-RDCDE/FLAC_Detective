@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import calculate_apparent_bitrate, calculate_real_bitrate
-from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES
+from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES, CONVICTION_MIN_SCORE
 from .evidence import collapse_dependent_families, evidence_families
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
@@ -25,6 +25,7 @@ from .strategies import (
     Rule13MDCTAlignment,
     Rule14TemporalSeam,
     Rule15StereoSeam,
+    Rule16MP3Grid,
     Rule424BitSuspect,
     ScoringRule,
 )
@@ -213,6 +214,20 @@ def _run_rule_13(context: ScoringContext) -> None:
         logger.info(
             "RULE 8: protection withdrawn (%+d) — Rule 13 found direct evidence", -protection
         )
+
+
+def _run_rule_16_if_decisive(context: ScoringContext) -> None:
+    """Run Rule 16 only where its witness can change the verdict.
+
+    Rule 16 scores nothing; its reading matters only to a file that already
+    has the points to convict and lacks a second family. Anywhere else it could
+    not move the verdict, and the Layer III filterbank pass costs seconds, so it
+    is not taken. See ``rules.mp3_grid``.
+    """
+    if context.current_score < CONVICTION_MIN_SCORE or _is_corroborated(context):
+        return
+    _ensure_audio(context)
+    Rule16MP3Grid().apply(context)
 
 
 def _is_corroborated(context: ScoringContext) -> bool:
@@ -435,6 +450,7 @@ def _apply_scoring_rules(  # noqa: C901
                 _ensure_audio(context)
                 Rule15StereoSeam().apply(context)
             Rule12MLClassifier().apply(context)
+            _run_rule_16_if_decisive(context)
             return context.current_score, context.reasons
 
         # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
@@ -522,6 +538,10 @@ def _apply_scoring_rules(  # noqa: C901
         # adds an independent signal that boosts confidence on borderline cases
         # (cutoff 19-21 kHz, high-bitrate MP3, AAC source).
         Rule12MLClassifier().apply(context)
+
+        # Rule 16: last, because it can only complete a corroboration for a file
+        # the rules above have carried to the conviction bar on one family.
+        _run_rule_16_if_decisive(context)
 
         return context.current_score, context.reasons
 

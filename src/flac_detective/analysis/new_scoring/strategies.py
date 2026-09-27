@@ -18,6 +18,7 @@ from .rules import (
     apply_rule_13_mdct_alignment,
     apply_rule_14_temporal_seam,
     apply_rule_15_stereo_seam,
+    apply_rule_16_mp3_grid,
 )
 
 logger = logging.getLogger(__name__)
@@ -281,3 +282,24 @@ class Rule15StereoSeam(ScoringRule):
         context.stereo_dead_run = details.get("stereo_dead_run", float("nan"))
         if details.get("stereo_witness"):
             context.witness_families.add("stereo")
+
+
+class Rule16MP3Grid(ScoringRule):
+    """Rule 16 — the MP3 granule grid, a witness that testifies without scoring.
+
+    Reads the audio back through the MPEG-1 Layer III analysis filterbank and
+    looks for the alignment at which the encoder's zero-quantised lines return
+    as holes. Independent of the cutoff. Zero points, for the reason Rules 14
+    and 15 score zero. See ``rules.mp3_grid``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 16 to ``context``."""
+        score, reasons, details = apply_rule_16_mp3_grid(
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.mp3_grid_ratio = details.get("mp3_grid_ratio", float("nan"))
+        if details.get("mp3_witness"):
+            context.witness_families.add("mp3grid")

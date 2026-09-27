@@ -113,3 +113,46 @@ labelled corpus in full and, for the library, on the files the before-pass left
 A1, A2 or E1 breached: does not ship in this form.
 
 Results are appended below, after the runs, in a section dated after the fact.
+
+---
+
+## RESULTS — appended 2026-09-27 after the runs
+
+Before = 1.18.0 (worktree at `v1.18.0`, `fda788c`); after = 1.18.0 plus the
+eight Rule 16 files and nothing else (`fd-mp3grid/after_src`, checked with
+`git diff --no-index --ignore-cr-at-eol`, refreshed after `black` so the
+measured code is the shipped code). Runner `fd-mp3grid/bench_run.py`
+(`FLACAnalyzer.analyze_file`, the engine the CLI wraps), torch live, default
+mode, 30 s, 2 workers. Before-pass on 2,519 files; after-pass on the 793
+labelled ones (one worker crashed at 779 and the run was resumed; 793 of 793
+read). Four errors in the before-pass, none from the engine: the two wild
+`bdmagoo` files that no reader opens, and two library entries (one path
+corrupted by a byte-order mark in the list file, one decode failure).
+
+**The population the rule can reach.** In the whole before-pass, **5 files**
+sit at `CONVICTION_MIN_SCORE` or above on a single family: two audit arm files,
+one half, one `long_mp3` track and one Beatport AIFF. **0 of the 1,726 library
+tracks** — so by construction no library file can move, and none was re-run.
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | labelled genuine newly convicted, the four named files included | 0 | **0 — held** (none of the four reaches the bar on one family, so the rule never runs on them) |
+| A2 | every mover `SUSPICIOUS` → `FAKE_CERTAIN` by `mp3grid` alone | all | **4 of 4 — held**: Eve 192 (half A), Wolf Drawn LAME 128 (full length), Kat Onoma mp3_128, Jon Hassell mp3_192; scores unchanged |
+| A3 | library movers | listed | **none possible** (0 candidates) |
+| N1 | movers on aac_ff256 / vorbis_q8 | 0 | **0 — held** |
+| P1 | halves in disagreement | after ≤ before | **13 → 12 — held** (Eve 192: both halves now convicted) |
+| P2 | convictions on MP3 arms + full-length MP3 | after > before | **held**: arms 65 → 67, `long_mp3` 17 → 18, halves 34 → 35 |
+| E1 | transcodes losing a conviction or a signal | 0 | **0 — held** |
+
+The fifth candidate, the Beatport AIFF of DJ Hein (SUSPICIOUS 68 on the depth
+gate), reads no MP3 grid — consistent with the other side's finding that its
+codec is neither MP3 nor WMA.
+
+**Ships in 1.19.0**, said for what it is: a second instrument, independent of
+the cutoff, that reads MP3 at AUC 0.96-1.00 and nothing else; wired as a
+zero-point witness it is safe by construction and, on these corpora, it
+decides four files. Most of what still separates the halves is points, not
+families, and a witness does not give points. Giving it points would put the
+four genuine-labelled files that read a grid — Mondkopf, pachy ×2, v2 0386 —
+at WARNING or above, and that is exactly the decision this project does not
+take on a detector's word: their provenance has to be settled first.

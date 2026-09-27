@@ -91,6 +91,10 @@ POINTLESS_WITNESS_RULES: Dict[str, str] = {
     # frame alignment and of temporal variance, which is what makes it a fifth
     # family rather than a variant of any of them.
     "Rule15StereoSeam": "stereo",
+    # Rule 16 reads the MP3 GRANULE GRID — which of the 576 lines per granule an
+    # MP3 encoder zeroed, recovered through the Layer III analysis filterbank.
+    # It never reads the cutoff, the stereo image or temporal variance.
+    "Rule16MP3Grid": "mp3grid",
 }
 
 

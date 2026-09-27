@@ -9,6 +9,7 @@ from .cassette import apply_rule_11_cassette_detection
 from .consistency import apply_rule_10_multi_segment_consistency
 from .mdct_alignment import apply_rule_13_mdct_alignment, should_run_rule_13
 from .ml_classifier import apply_rule_12_ml_classifier
+from .mp3_grid import apply_rule_16_mp3_grid
 from .silence import apply_rule_7_silence_analysis
 from .spectral import (
     apply_rule_1_mp3_bitrate,
@@ -32,5 +33,6 @@ __all__ = [
     "apply_rule_13_mdct_alignment",
     "apply_rule_14_temporal_seam",
     "apply_rule_15_stereo_seam",
+    "apply_rule_16_mp3_grid",
     "should_run_rule_13",
 ]

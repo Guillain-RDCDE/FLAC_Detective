@@ -27,6 +27,7 @@ RULE_LABEL: dict[str, str] = {
     "Rule13MDCTAlignment": "MDCT frame alignment",
     "Rule14TemporalSeam": "temporal seam",
     "Rule15StereoSeam": "stereo seam",
+    "Rule16MP3Grid": "MP3 granule grid",
 }
 
 
