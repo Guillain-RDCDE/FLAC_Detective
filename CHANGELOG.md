@@ -18,6 +18,15 @@ the entries below as they shipped:
   reviewed by the documentary method: nothing names a lossy link, so they stay
   genuine and Rule 16 stays a zero-point witness. Recorded in
   `ml/exchange/MP3_GRID_REGISTRATION_2026-09-27.md`.
+* **Closed on provenance, 2026-09-28.** The wild "pachy" recording was captured
+  during a radio show with no recorder named — the only one of its uploader's
+  48 items without one — and the station's digital broadcast is an MP3 stream
+  at 192 kbps (probed): it is `undecided` in the ledger and out of the genuine
+  population (wild genuine: 146). Mondkopf: 1 track of 12 on its AccurateRip-
+  verified CD reads an MP3 grid, a probable hybrid, still genuine. And 56 of 564
+  edged tracks of the unlabelled library read a grid, three of them on
+  AccurateRip-verified pressed CDs, so points for Rule 16 stay refused.
+  `ml/exchange/MP3_GRID_PROVENANCE_CLOSURE_2026-09-28.md`.
 
 ## v1.19.0 (2026-09-27) — Rule 16, the MP3 granule grid
 

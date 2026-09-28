@@ -321,6 +321,32 @@
    }
   ]
  },
+ "63746c9fba174435b36b01caddd92356be6f4484f233f4b22d649987424f2580": {
+  "added": "2026-09-28T09:00:00Z",
+  "adjudication": {
+   "at": "2026-09-28T09:00:00Z",
+   "basis": null,
+   "by": "Guillain d'Erceville",
+   "label": "undecided",
+   "note": "UNDECIDED, and removed from every genuine population. https://archive.org/details/pachy2025-07-31 : the band's own upload reads 'Source: SBD (Live Radio performance recorded to Audacity)' - the only one of the uploader's 48 archive.org items with no recording device in its chain (the other 47 name a Tascam DR-05x or a Zoom H5). The station's digital broadcast is an MP3 stream at 192 kbps (radio-browser.info; http://phillycam.radioca.st/stream probed 2026-09-28: mp3, 192000 b/s, 44100 Hz, stereo); FM cannot carry the 18.75 kHz content the file holds. Not an admission of a lossy link, so no basis in this ledger's list can carry a 'fake': the capture chain points at the MP3 broadcast and the file cannot be shown genuine. Engine readings (18,750 Hz wall, 566 kbps FLAC-equivalent, Rule 16 MP3 grid 8.3-8.6) are recorded as side channel only and are not the basis.",
+   "referee": false,
+   "scope": "group",
+   "selection": "detector"
+  },
+  "bytes": 46958272,
+  "filename": "pachy2025-07-31__pachy2025-07-31d1t01.flac",
+  "sha256": "63746c9fba174435b36b01caddd92356be6f4484f233f4b22d649987424f2580",
+  "source": "archive.org etree pachy2025-07-31 - SBD, 'Live Radio performance recorded to Audacity', no device named; WPPM-LP 106.5 digital stream MP3 192 kbps",
+  "verdicts": [
+   {
+    "at": "2026-09-27T12:00:00Z",
+    "families": [],
+    "score": 6,
+    "verdict": "AUTHENTIC",
+    "version": "1.18.0"
+   }
+  ]
+ },
  "64e39bcae38f7f7741971caa4fcece70c58be6dc2d4d6a1cd5fd49c45271f504": {
   "added": "2026-08-21T18:56:22Z",
   "adjudication": {
@@ -692,6 +718,32 @@
     "score": 0,
     "verdict": "AUTHENTIC",
     "version": "1.11.4"
+   }
+  ]
+ },
+ "d20d4547643661de9a432146d640a3f8d5250d3bdab14b8b21f7a62270ecda60": {
+  "added": "2026-09-28T09:00:00Z",
+  "adjudication": {
+   "at": "2026-09-28T09:00:00Z",
+   "basis": null,
+   "by": "Guillain d'Erceville",
+   "label": "undecided",
+   "note": "UNDECIDED, and removed from every genuine population. https://archive.org/details/pachy2025-07-31 : the band's own upload reads 'Source: SBD (Live Radio performance recorded to Audacity)' - the only one of the uploader's 48 archive.org items with no recording device in its chain (the other 47 name a Tascam DR-05x or a Zoom H5). The station's digital broadcast is an MP3 stream at 192 kbps (radio-browser.info; http://phillycam.radioca.st/stream probed 2026-09-28: mp3, 192000 b/s, 44100 Hz, stereo); FM cannot carry the 18.75 kHz content the file holds. Not an admission of a lossy link, so no basis in this ledger's list can carry a 'fake': the capture chain points at the MP3 broadcast and the file cannot be shown genuine. Engine readings (18,750 Hz wall, 566 kbps FLAC-equivalent, Rule 16 MP3 grid 8.3-8.6) are recorded as side channel only and are not the basis.",
+   "referee": false,
+   "scope": "group",
+   "selection": "detector"
+  },
+  "bytes": 45165500,
+  "filename": "pachy2025-07-31__pachy2025-07-31d1t02.flac",
+  "sha256": "d20d4547643661de9a432146d640a3f8d5250d3bdab14b8b21f7a62270ecda60",
+  "source": "archive.org etree pachy2025-07-31 - SBD, 'Live Radio performance recorded to Audacity', no device named; WPPM-LP 106.5 digital stream MP3 192 kbps",
+  "verdicts": [
+   {
+    "at": "2026-09-27T12:00:00Z",
+    "families": [],
+    "score": 7,
+    "verdict": "AUTHENTIC",
+    "version": "1.18.0"
    }
   ]
  },
