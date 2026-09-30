@@ -1,4 +1,63 @@
-## Unreleased — corrections to the 1.17.0-1.19.0 entries (2026-09-27)
+## v1.19.1 (2026-09-30) — no tape hiss over digital silence
+
+### Rule 11 was protecting a 128 kbps transcode as a cassette
+
+A controlled bench of 33 loud 2004 hard-house CD tracks, encoded at MP3 128 and
+decoded back to FLAC, let one through as AUTHENTIC 0: a 53 dB wall at
+16,750 Hz with digital silence (−78 dB) above it, read by Rule 11 as a cassette,
+which disabled Rule 1 and applied the −40 protection.
+
+The cause is in test 11A's instrument. It band-passes from 500 Hz above the edge
+with a 5th-order filter, which starts inside its own lower skirt: on a loud,
+dense master the music just under a codec wall leaks through and reads as
+"tape hiss". On that file the filter read −52.3 dB (over the −55 bar) where the
+band's true power is −98.4 dB.
+
+**The repair: 11A credits no hiss when the band above the edge is digital
+silence**, by the depth instrument that already overrides Rule 1's gates
+(floor at or under −58 dB under 19.5 kHz). Hiss is broadband; a cassette chain
+cannot leave silence above its edge. The `why:` line says so. Over a shallow or
+unmeasured floor Rule 11 is unchanged.
+
+Registered before measuring (`ml/exchange/HISS_OVER_SILENCE_REGISTRATION_2026-09-30.md`),
+derived exhaustively: of the 225 traced files the guard can reach, one was
+protected by the cassette gate, and no labelled genuine file has a floor that
+deep. Measured before/after on 785 files with torch live:
+
+* **0 of 337 labelled genuine files moved**, and 0 of the 21 other files the
+  cassette gate protects.
+* The bench's transcode: AUTHENTIC 0 → **FAKE_CERTAIN 96**; the bench's mp3_128
+  arm is now caught **33 of 33**.
+* One unlabelled file moved, named before the passes: a track of a set sold as
+  digitised tapes, 16 kHz edge over −62 dB, AUTHENTIC 0 → SUSPICIOUS 73.
+* 0 detections lost.
+
+Refused on the same derivation: judging 11A by the band's true power instead of
+the filter would remove the protection from 13 of the 22 protected files, 78 rpm
+transfers among them.
+
+### Measured and refused: Rule 1's container window yielding to the MP3 grid
+
+Two more mp3_128 files of the bench leave Rule 1 at the container window (hard
+walls, floors of −53 and −57.5 dB, just above the depth bar; the CNN still
+flags them WARNING). Letting the window yield to a strong Rule 16 grid gives
+Rule 1's +50 to three unlabelled library tracks with hard walls even with the
+bar set above every genuine grid on record.
+`ml/exchange/WINDOW_GRID_REFUSED_2026-09-30.md`.
+
+### Also on this bench, reported as measured
+
+With the CNN live, on these loud masters: MP3 320 CBR 15 of 33, full-band VBR
+MP3 (ffmpeg `-q:a 0`, no low-pass) 0 of 33, AAC 256 and Vorbis q6 0 of 33. The
+35 CD tracks and two store files of the same titles stay AUTHENTIC.
+
+### Docs
+
+`docs/technical-details.md`: Rule 11's section still described wow/flutter
+(removed in 1.13.14) and dropouts (never measured); rewritten from the code.
+`docs/user-guide.md`: the cassette protection is −40, not −60.
+
+## Corrections to the 1.17.0-1.19.0 entries (2026-09-27, shipped with 1.19.1)
 
 No engine change. Two corrections, both dated after the fact and both leaving
 the entries below as they shipped:
