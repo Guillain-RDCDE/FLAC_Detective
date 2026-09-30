@@ -9,6 +9,7 @@ import soundfile as sf
 from scipy import signal
 
 from ..audio_loader import load_audio_segment
+from .spectral import floor_is_digital_silence
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ def apply_rule_11_cassette_detection(  # noqa: C901
     cutoff_std: float,
     sample_rate: int,
     audio_data: Optional[object] = None,
+    floor_above_db: float = float("nan"),
 ) -> Tuple[int, List[str]]:
     """Apply Rule 11: Cassette Audio Source Detection.
 
@@ -49,6 +51,9 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         cutoff_std: Standard deviation of cutoff frequency.
         sample_rate: Sample rate in Hz.
         audio_data: Optional pre-loaded audio (unused; kept for call compatibility).
+        floor_above_db: What is left above the edge, from the spectrum reader
+            (NaN when unknown). At or under ``DEEP_FLOOR_DB`` the band is
+            digital silence and test 11A credits no hiss.
 
     Returns:
         Tuple of (cassette_score, list_of_reasons)
@@ -88,8 +93,26 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         else:
             noise_band_freq = (cutoff_freq + 500, min(20000, sr / 2 - 100))
 
-        # Ensure valid range
-        if noise_band_freq[1] <= noise_band_freq[0]:
+        # No hiss over digital silence (v1.19.1). The band starts 500 Hz above
+        # the edge, inside the lower skirt of the 5th-order filter below, so on
+        # a loud master the music just under a codec wall leaks through it and
+        # reads as "hiss": a 128 kbps transcode with a 53 dB wall read -52.3 dB
+        # through the filter where the true power of the band is -98.4 dB, and
+        # collected the cassette protection with Rule 1 disabled. Tape hiss is
+        # broadband; a cassette chain cannot leave digital silence above its
+        # edge. The depth instrument that already overrides Rule 1's gates says
+        # when the band is silent, and then there is no hiss to credit.
+        # See ml/exchange/HISS_OVER_SILENCE_REGISTRATION_2026-09-30.md.
+        if floor_is_digital_silence(floor_above_db, cutoff_freq):
+            reasons.append(
+                f"R11A: no tape hiss — the band above {cutoff_freq:.0f} Hz is digital "
+                f"silence ({floor_above_db:.0f} dB), which a cassette cannot leave"
+            )
+            logger.info(
+                f"RULE 11A: Skipped (floor above the edge {floor_above_db:.1f} dB is "
+                f"digital silence: no hiss over silence)"
+            )
+        elif noise_band_freq[1] <= noise_band_freq[0]:
             logger.debug("RULE 11: Skipped 11A (invalid noise band)")
         else:
             noise_signal = bandpass_filter(audio, noise_band_freq[0], noise_band_freq[1], sr)

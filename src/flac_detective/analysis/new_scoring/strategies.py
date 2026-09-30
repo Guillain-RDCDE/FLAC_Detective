@@ -192,6 +192,7 @@ class Rule11CassetteDetection(ScoringRule):
             context.cutoff_std,
             context.audio_meta.sample_rate,
             audio_data=context.audio_data,
+            floor_above_db=context.floor_above_db,
         )
         context.cassette_score = score
         # Reasons are kept (they explain the verdict) but carry zero points.

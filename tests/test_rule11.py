@@ -14,7 +14,7 @@ average against +11.2 for transcodes. It is now a signal the calculator reads,
 never a penalty, and ``test_rule_11_never_penalises_the_score`` pins that down.
 """
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -272,7 +272,6 @@ def test_cassette_protection_is_credited_to_rule_11(monkeypatch):
     the deciding rule names an implementation detail.
     """
     from pathlib import Path
-    from unittest.mock import Mock
 
     from flac_detective.analysis.new_scoring import calculator, strategies
     from flac_detective.analysis.new_scoring.calculator import new_calculate_score
@@ -339,3 +338,84 @@ def test_11d_has_no_unreachable_branch(fake_audio, wander):
         "dummy.flac", cutoff_freq=15000, cutoff_std=wander, sample_rate=SR
     )
     assert isinstance(score, int) and score >= 0
+
+
+def _loud_wall(cutoff: float = 16750.0, seconds: float = 6.0, sr: int = SR) -> np.ndarray:
+    """Loud broadband content cut dead at ``cutoff``: a codec wall, silence above it."""
+    rng = np.random.default_rng(16750)
+    x = rng.normal(0, 0.3, int(sr * seconds))
+    spectrum = np.fft.rfft(x)
+    spectrum[np.fft.rfftfreq(x.size, 1 / sr) > cutoff] = 0
+    return np.fft.irfft(spectrum, x.size).astype(np.float64)
+
+
+def test_11a_reads_its_own_filter_leakage_over_a_wall(fake_audio):
+    """The mechanism the v1.19.1 guard exists for, pinned so it cannot be forgotten.
+
+    Nothing above 16,750 Hz, yet 11A's band-pass (from edge + 500 Hz, 5th order)
+    lets the loud content just under the wall through its skirt and reads it as
+    random "hiss" over the -55 dB bar. With the floor unknown 11A still credits
+    it, exactly as in 1.19.0.
+    """
+    fake_audio(_loud_wall())
+    _, reasons = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=16750, cutoff_std=0.0, sample_rate=SR
+    )
+    assert any(r.startswith("R11A: Tape hiss detected") for r in reasons), reasons
+
+
+def test_11a_credits_no_hiss_over_digital_silence(fake_audio):
+    """Hiss is broadband: a cassette cannot leave digital silence above its edge.
+
+    When the spectrum reader measured the band above the edge at or under
+    DEEP_FLOOR_DB, 11A credits nothing and says why. A 128 kbps transcode with
+    a 53 dB wall and -78 dB above it collected the cassette protection this way
+    (ml/exchange/HISS_OVER_SILENCE_REGISTRATION_2026-09-30.md).
+    """
+    fake_audio(_loud_wall())
+    score, reasons = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=16750, cutoff_std=0.0, sample_rate=SR, floor_above_db=-78.0
+    )
+    assert not any(r.startswith("R11A: Tape hiss detected") for r in reasons), reasons
+    assert any("digital silence" in r for r in reasons), reasons
+    assert score < CASSETTE_THRESHOLD
+
+    fake_audio(_tape_like())
+    score, reasons = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=15000, cutoff_std=150, sample_rate=SR, floor_above_db=-78.0
+    )
+    assert not any(r.startswith("R11A: Tape hiss detected") for r in reasons), reasons
+    assert score < CASSETTE_THRESHOLD, (score, reasons)
+
+
+@pytest.mark.parametrize("floor", [float("nan"), -57.9, -40.0])
+def test_11a_unchanged_over_a_shallow_or_unknown_floor(fake_audio, floor):
+    """Above DEEP_FLOOR_DB, or unmeasured, the guard does not act: 1.19.0 behaviour."""
+    fake_audio(_tape_like())
+    baseline, base_reasons = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=15000, cutoff_std=150, sample_rate=SR
+    )
+    fake_audio(_tape_like())
+    score, reasons = apply_rule_11_cassette_detection(
+        "dummy.flac", cutoff_freq=15000, cutoff_std=150, sample_rate=SR, floor_above_db=floor
+    )
+    assert (score, reasons) == (baseline, base_reasons)
+    assert score >= CASSETTE_THRESHOLD
+
+
+def test_rule11_strategy_passes_the_floor(monkeypatch):
+    """The strategy hands Rule 11 the depth reading, or the guard never runs."""
+    from flac_detective.analysis.new_scoring import strategies
+
+    seen = {}
+
+    def fake_rule(*args, **kwargs):
+        seen.update(kwargs)
+        return 0, []
+
+    monkeypatch.setattr(strategies, "apply_rule_11_cassette_detection", fake_rule)
+    context = Mock()
+    context.floor_above_db = -77.8
+    context.rule_scores = {}
+    strategies.Rule11CassetteDetection()._apply(context)
+    assert seen.get("floor_above_db") == -77.8

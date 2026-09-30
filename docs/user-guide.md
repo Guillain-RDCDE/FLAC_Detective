@@ -376,7 +376,7 @@ had *inferred*, and across 978 measured files it never once fired without Rule 1
 - Rule 6: High Quality Protection (-30)
 - Rule 7: Vinyl & Silence Analysis (-100)
 - Rule 8: Nyquist Exception (-50)
-- Rule 11: Cassette Detection (-60)
+- Rule 11: Cassette Detection (-40, and Rule 1 is not run)
 
 **Optional ML Rule** (requires `pip install "flac-detective[ml]"`):
 - Rule 12: CNN Classifier — sharpens borderline verdicts on suspect files; not applied unless the ML extra is installed

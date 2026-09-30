@@ -114,3 +114,43 @@ mp3_320, full-band VBR `-q:a 0`, aac 256, vorbis q6).
 H1, H2, H5 or H6 failing refuses the repair. The bench's own detection counts
 with torch live are reported as measured; the torch-less counts above are
 superseded by them.
+
+---
+
+## RESULTS — 2026-09-30, after both passes (appended; everything above is as committed in `5a851b8`)
+
+785 files, each run before and after (one path sat in two lists), 0 errors.
+Verdict or score moved on **2** files, both predicted by name.
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| H1 | labelled genuine moved (audit 80, v2 56, attested 28, full-length 12, received 17, wild 144 = 337) | 0 | **0** | held |
+| H2 | the 21 other files the cassette gate protects today | 0 | **0** | held |
+| H3 | the bench's cassette-protected mp3_128 transcode | leaves AUTHENTIC | **AUTHENTIC 0 → FAKE_CERTAIN 96** | held |
+| H4 | unlabelled movers | *Sk love* only | ***Sk love* only: AUTHENTIC 0 → SUSPICIOUS 73** | held |
+| H5 | transcodes losing a detection | 0 | **0** | held |
+| H6 | every other file | 0 | **0** | held |
+
+*Sk love* now reads Rule 1's +50 on its depth (16,000 Hz edge over −62 dB,
+the 160 kbps cell) and stops at SUSPICIOUS on one family. It is an unlabelled
+file of a set sold as digitised tapes; the engine's reading is not a label.
+
+The bench's detection counts, torch live, before → after (33 files per arm):
+
+| arm | caught before | caught after |
+|---|---|---|
+| mp3_128 (CBR) | 32 | **33** (31 FAKE_CERTAIN, 2 WARNING) |
+| mp3_320 (CBR) | 15 | 15 |
+| full-band VBR (`-q:a 0`, no low-pass) | 0 | 0 |
+| aac 256 (ffmpeg native) | 0 | 0 |
+| vorbis q6 | 0 | 0 |
+
+The two mp3_128 WARNINGs are the container-window misses, reached by the CNN
+alone; the window repair that would have taken them further was refused on
+its derivation (`WINDOW_GRID_REFUSED_2026-09-30.md`). The 0/33 on AAC 256,
+Vorbis q6 and full-band VBR are the engine's limit on these loud masters with
+the CNN live, reported as measured. The 35 CD sources and the two store files
+stay AUTHENTIC 37/37.
+
+Bench: `D:\fd-jamie-2026-09-30\hiss\` (`before.jsonl`, `after.jsonl`,
+`cmp.py`, `cmp_results.txt`). Suite: 877 passed, 83 skipped.

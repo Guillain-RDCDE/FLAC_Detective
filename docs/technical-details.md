@@ -602,10 +602,23 @@ score untouched. The claims audit caught the inversion in 2026-08.
 
 **Purpose**: Identify and protect cassette tape sources
 
-**Detection method**:
-- Wow & flutter (speed variations)
-- Age-related noise floor elevation
-- Dropout patterns
+**Detection method** (30 s from the middle of the file, cutoff under 19 kHz only):
+- **11A, tape hiss** (+30 evidence): a band-pass from just above the edge to
+  18-20 kHz; a level over −55 dB with a random texture reads as hiss.
+  **Since v1.19.1 it credits nothing when the band above the edge is digital
+  silence** (the depth instrument's floor at or under −58 dB): hiss is
+  broadband and a cassette chain cannot leave silence above its edge. The
+  band-pass starts inside its own lower skirt, so on a loud master the music
+  just under a codec wall leaks through and reads as "hiss" — a 128 kbps
+  transcode read −52.3 dB through the filter where the band's true power is
+  −98.4 dB, and collected the protection
+  (`ml/exchange/HISS_OVER_SILENCE_REGISTRATION_2026-09-30.md`).
+- **11B, roll-off** (+20 for a natural −3 to −6 dB/kHz slope over 12-18 kHz,
+  −20 for a cut sharper than −10 dB/kHz).
+- 11C was removed in v1.8 and 11D ("wow/flutter" read on a 250 Hz grid) in
+  v1.13.14: neither measured anything.
+
+The gate is `CASSETTE_THRESHOLD` (25) of evidence.
 
 **Scoring**: **none, by design (v1.8).**
 
