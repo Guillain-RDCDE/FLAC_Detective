@@ -1,3 +1,45 @@
+## v1.20.0 (2026-10-02) — Rule 13 before the acquittal
+
+### A default scan now reads ffmpeg-family AAC and Vorbis
+
+A full-range file the quick rules find nothing on used to leave a default scan
+at once, as AUTHENTIC, before any rule that could read a high-bitrate AAC or
+Vorbis transcode had run; only `--deep` looked there. On a bench of 33 loud CD
+tracks the default scan caught **0 of 33 AAC 256 and 0 of 33 Vorbis q6**
+transcodes.
+
+The default scan now asks **Rule 13** (the MDCT frame-alignment rule) before it
+clears such a file (cutoff ≥ 18 kHz). Reading no grid, the file leaves as before
+and its `why:` line says Rule 13 read nothing. Reading one, the file goes on to
+the witnesses `--deep` runs (Rules 14, 15, the CNN, 16) and its verdict comes
+from all of them. Rule 13 itself is unchanged. `--deep` is unchanged.
+
+Registered before the measurement was read
+(`ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md`), measured on 5,066 files
+and before/after on 1,007, torch live:
+
+* **0 of 374 labelled genuine files moved**; none of the 362 the probe read
+  goes over 1.58 (Rule 13 scores from 2.0).
+* Caught by a default scan, before → after: bench AAC 256 **0 → 32 of 33**,
+  bench Vorbis q6 **0 → 33 of 33**; audit ffmpeg AAC 256 **2 → 79 of 80**, AAC 320
+  **2 → 78 of 80**, MediaFoundation AAC 256 11 → 47, Vorbis q8 13 → 52.
+* 0 detections lost; 0 change on a 100-file control.
+* **One unlabelled library file moved**, AUTHENTIC 1 → FAKE_CERTAIN 56: a track
+  of a downloaded film-music compilation whose second disc reads a Vorbis grid on
+  16 of its 18 tracks, on recurring alignments, where its first disc reads clean.
+  `--deep` gave the same verdict on 1.19.1.
+* **Cost: about +4 s a full-range file** a default scan clears (median 4.3 →
+  8.3 s on a full CD track, 1.1 → 5.2 s on a 60 s excerpt, idle machine).
+
+Said as it is: the registration claimed that a Rule 13 reading under 3.0 could
+not move a verdict. It can, once the CNN and the witnesses add their evidence;
+the registration's results say so and name the file.
+
+**What it does not reach**: Apple's AAC encoder (the iTunes / Apple Music
+format: Rule 13 reads it on 0-13 % of files), high-bitrate MP3 and Opus. Those
+still need `--deep`. The CLI help, the GUI tooltip, the user guide, the
+reference and the technical details now say which is which.
+
 ## v1.19.1 (2026-09-30) — no tape hiss over digital silence
 
 ### Rule 11 was protecting a 128 kbps transcode as a cassette
