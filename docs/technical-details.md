@@ -296,7 +296,7 @@ and for speed.
  4. PHASE 2 — expensive rules, only when relevant (need the full decoded audio):
        • R7  silence / vinyl     if 19 kHz ≤ cutoff ≤ 21.5 kHz
        • R11 cassette            if cutoff < 19 kHz and not already run early
-       • R13 MDCT alignment      if cutoff ≥ 18 kHz and not already convicted
+       • R13 MDCT alignment      if not already convicted (any cutoff, v1.20.1)
        └─ Rule 8 re-refined now that MP3 context is known
        └─►  score ≥ 86            →  FAKE_CERTAIN   (stop)
 
@@ -669,8 +669,13 @@ measured 1.494. The review bar sits 34 % clear of that maximum, the hard bar at
 double it. ffmpeg AAC sits at 13.6–21.5 — an order of magnitude away, not a
 squeezed tail.
 
-**Gate**: cutoff ≥ 18 kHz and the file not already at FAKE_CERTAIN — below that
-the cheap spectral rules already have plenty to work with.
+**Gate**: the file not already at FAKE_CERTAIN. Until v1.20.1 it also required a
+cutoff ≥ 18 kHz, "because below that the cheap spectral rules already have plenty
+to work with". Issue #12 showed otherwise: Vorbis at `-q1` on a loud master fills
+the band above its edge with noise and the edge wanders, so every sub-18 kHz rule
+stepped aside on a file Rule 13 reads at 2.43. Under 18 kHz, 37 labelled and
+certified genuine files read at most 1.46, 45 78 rpm transfers at most 1.40, 29
+cassettes at most 1.43 (`ml/exchange/R13_LOW_CUTOFF_REGISTRATION_2026-10-02.md`).
 
 **Scope, stated plainly**: two transform hypotheses are tried per file, AAC's
 KBD (α=4) window and **Vorbis's** `sin(π/2·sin²(π/N·(n+0.5)))` window, and the
@@ -951,8 +956,8 @@ re-derive a verdict from a private cutoff.
 > ~80–87 %, see [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)). For critical decisions, confirm with a
 > visual tool such as Spek.
 >
-> **Since v1.20.0 a default scan asks Rule 13 before that fast exit**: a full-range file
-> (cutoff ≥ 18 kHz) the heuristics left silent is acquitted only if Rule 13 reads no MDCT
+> **Since v1.20.0 a default scan asks Rule 13 before that fast exit**: a file the
+> heuristics left silent is acquitted only if Rule 13 reads no MDCT
 > grid; if it reads one, the witnesses (Rules 14, 15, 12, 16) run and the verdict is
 > computed from all of them (`ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md`). That
 > reaches ffmpeg-family AAC and Vorbis; it does not reach Apple AAC, MP3 or Opus.

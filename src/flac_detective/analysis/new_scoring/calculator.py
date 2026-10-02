@@ -524,9 +524,9 @@ def _apply_scoring_rules(  # noqa: C901
             rule8.apply(context)
             logger.info("RULE 8 (refined): Score updated")
 
-        # Rule 13: MDCT frame alignment. Gated on cutoff (below ~18 kHz the cheap
-        # spectral rules already have signal) and on the file not being convicted
-        # already. It is the only rule that survives a high-bitrate encode, and it
+        # Rule 13: MDCT frame alignment. Gated on the file not being convicted
+        # already; since v1.20.1 not on the cutoff (issue #12: a Vorbis -q1 file at
+        # 16,750 Hz that every cheap rule let go). It survives a high-bitrate encode, and it
         # runs AFTER the Rule 8 refinement so that the refinement cannot re-apply a
         # protection Rule 13 has just withdrawn. See _run_rule_13.
         if should_run_rule_13(context.cutoff_freq, context.current_score):

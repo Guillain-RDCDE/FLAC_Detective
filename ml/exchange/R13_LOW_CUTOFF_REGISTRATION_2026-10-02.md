@@ -84,3 +84,50 @@ store files; a control of 100 unlabelled files at or over 18 kHz.
 L1, L3, L7 or L8 failing refuses the change; L2 failing means it does not fix
 the issue and it is not shipped as a fix. Cost (Rule 13 on files under 18 kHz
 that are not already convicted, about 4 s each) is measured and reported.
+
+
+---
+
+## RESULTS — 2026-10-03, after the four passes (appended; everything above is as committed in `37a3406`)
+
+768 files torch live, 499 torch absent, each before and after. One error in
+every one of the four passes, the same file both sides (a library track that
+fails to decode before and after), so not a movement.
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| L1 | labelled genuine moved (337 files, both modes) | 0 | **0** | held |
+| L2 | issue #12 transcode | leaves AUTHENTIC, both modes | **AUTHENTIC 16 → WARNING 41**, both modes | held |
+| L3 | issue #12 original | unchanged | **AUTHENTIC 0, unchanged** | held |
+| L4 | bench Vorbis q1, torch absent | 23 → 31 | **23 → 31** | held |
+| L5 | bench Vorbis q1, torch live | 32 → 33 | **32 → 33** | held |
+| L6 | unlabelled movers | the Red Hot Chili Peppers track only | **that track only** | held |
+| L7 | detections lost | 0 | **0** | held |
+| L8 | control (100 library files ≥ 18 kHz, 132 bench transcodes, 37 bench CD and store files) | 0 changes | **0** | held |
+
+The issue's file reaches WARNING, not more: Rule 13 reads a weak grid (2.43,
++25) and nothing else on it speaks. WARNING is the verdict for "worth a look";
+the file is no longer called authentic.
+
+### The one unlabelled mover
+
+Red Hot Chili Peppers, *Make you feel better*, CD 2 ("Mars") of *Stadium
+Arcadium* (2006), library sample: torch live WARNING 42 → **FAKE_CERTAIN 67**
+(Rule 13 2.06 +25, the CNN, Rule 15 as witness), torch absent AUTHENTIC 12 →
+WARNING 37. The folder holds covers and no rip log, so its provenance cannot
+be read. Rule 13 on both discs: **CD 1, 14 of 14 tracks at 1.19-1.36 on
+scattered alignments**; **CD 2, 11 of 14 tracks on one and the same alignment,
+960, on the Vorbis window, at 1.54-2.55**. A Vorbis stream encoded gapless and
+cut into tracks leaves exactly one alignment across the tracks; a genuine disc
+leaves none (CD 1). The same shape as the Vladimir Cosma disc of the previous
+registration. The verdict stays as computed; the file stays unlabelled.
+**Shipped on this list.**
+
+### Cost, idle machine, one file at a time
+
+12 library tracks under 18 kHz that read AUTHENTIC: median **13.1 → 17.4 s**
+(+4.3 s), the price of Rule 13 on a file it was not asked about before.
+
+Bench: `fd-r13/` (`r13low_probe_*.csv`; `passL/torch_*.jsonl`,
+`passL/notorch_*.jsonl`, `passL/cmp.py`, `passL/cmp_results.txt`,
+`passL/time_*.jsonl`).

@@ -76,10 +76,17 @@ RATIO_REVIEW = 2.0
 SCORE_HARD = 55
 SCORE_REVIEW = 25
 
-# Below this cutoff the spectral rules already have plenty to work with, and
-# running a ~4 s analysis to confirm what Rule 2 said for free is not worth the
-# scan time. Rule 13 exists for the case where the band is intact.
-MIN_CUTOFF_HZ = 18000.0
+# No cutoff gate any more (v1.20.1). It sat at 18 kHz on the argument that "below
+# that the spectral rules already have plenty to work with". Issue #12 is the
+# counter-example: Vorbis at -q1 on a loud master fills the band above its edge
+# with noise (-35 dB, so no depth reading) and the edge wanders (gate A), so every
+# sub-18 kHz instrument stepped aside and the file read AUTHENTIC 16 while this
+# rule, never asked, reads 2.43. Measured under 18 kHz before the gate came off:
+# 37 labelled and certified genuine files max 1.46; 45 78 rpm transfers (edges
+# down to 2 kHz) max 1.40; 29 cassettes max 1.43
+# (ml/exchange/R13_LOW_CUTOFF_REGISTRATION_2026-10-02.md). Kept as a name, at 0,
+# so a caller that reads it still gets the truth.
+MIN_CUTOFF_HZ = 0.0
 
 
 def apply_rule_13_mdct_alignment(
@@ -150,13 +157,10 @@ def apply_rule_13_mdct_alignment(
 def should_run_rule_13(cutoff_freq: float, current_score: int) -> bool:
     """Whether Rule 13 is worth its ~4 s on this file.
 
-    Two gates, both about value rather than correctness — the rule is safe to run
-    on anything:
-
-    * ``cutoff_freq >= MIN_CUTOFF_HZ`` — below that the cheap spectral rules are
-      already informative.
-    * not already convicted — once the score is at FAKE_CERTAIN there is no
-      verdict left to change.
+    One gate, about value rather than correctness — the rule is safe to run on
+    anything: not already convicted, since once the score is at FAKE_CERTAIN there
+    is no verdict left to change. The cutoff no longer decides (v1.20.1, see
+    ``MIN_CUTOFF_HZ``); ``cutoff_freq`` is kept for the callers.
     """
     from ..constants import SCORE_FAKE_CERTAIN
 

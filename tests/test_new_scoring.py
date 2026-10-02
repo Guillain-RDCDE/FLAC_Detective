@@ -438,12 +438,42 @@ class TestRule13BeforeTheAcquittal:
         assert "Fast analysis" not in reason
         assert score >= 55 and verdict != "AUTHENTIC"
 
-    def test_rule13_not_asked_under_its_cutoff(self):
-        """Under MIN_CUTOFF_HZ the cheap rules decide; Rule 13 keeps its own gate."""
+    def test_rule13_is_asked_whatever_the_cutoff(self):
+        """V1.20.1, issue #12: the cutoff no longer gates Rule 13; a conviction still does.
+
+        A Vorbis -q1 transcode at a 16,750 Hz edge left every sub-18 kHz
+        instrument silent while Rule 13, never asked, read its grid
+        (ml/exchange/R13_LOW_CUTOFF_REGISTRATION_2026-10-02.md).
+        """
+        from flac_detective.analysis.new_scoring.constants import SCORE_FAKE_CERTAIN
         from flac_detective.analysis.new_scoring.rules.mdct_alignment import should_run_rule_13
 
-        assert not should_run_rule_13(17999.0, 0)
-        assert should_run_rule_13(18000.0, 0)
+        for cutoff in (2000.0, 11000.0, 16750.0, 17999.0, 18000.0, 22050.0):
+            assert should_run_rule_13(cutoff, 0), cutoff
+            assert not should_run_rule_13(cutoff, SCORE_FAKE_CERTAIN), cutoff
+
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_13_mdct_alignment")
+    @patch("flac_detective.analysis.new_scoring.calculator.load_audio_with_retry")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
+    def test_issue12_shape_rule13_lifts_a_silent_low_cutoff_file(self, *mocks):
+        """The issue's file: R2 alone at 16,750 Hz, Rule 13 +25 must reach the verdict."""
+        mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12 = mocks
+        mock_real_bitrate.return_value = 900
+        mock_rule7.return_value = (0, [], None)
+        mock_load.return_value = self.AUDIO
+        mock_r12.return_value = (0, [])
+        mock_r13.return_value = (
+            25,
+            ["R13: possible MDCT alignment structure (2.4x, vorbis window) (+25pts)"],
+            {"mdct_peak_ratio": 2.43},
+        )
+        score, verdict, _confidence, reason = new_calculate_score(
+            16750, self.METADATA, self.DURATION, Mock(spec=Path), deep=False
+        )
+        assert mock_r13.call_count == 1, "Rule 13 must be asked under 18 kHz"
+        assert verdict != "AUTHENTIC", (score, reason)
 
 
 class TestMP3BitrateConstants:

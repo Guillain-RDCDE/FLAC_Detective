@@ -107,11 +107,13 @@ flac-detective /music --deep
 ```
 
 > **What a normal scan already does for AAC and Vorbis (since v1.20.0).** Before it clears a
-> full-range file the quick rules found nothing on, a normal scan asks Rule 13, which reads
-> the MDCT grid AAC and Vorbis encoders leave behind. On a bench of 33 loud CD tracks it
-> catches 32 of 33 AAC 256 (ffmpeg) and 31 of 33 Vorbis q6 transcodes, for about 10-20 s
-> more per full-range track. It does **not** read Apple's AAC encoder (the iTunes and
-> Apple Music format) well, nor MP3 320 / VBR or Opus: those still need `--deep`.
+> file the quick rules found nothing on, a normal scan asks Rule 13, which reads the MDCT
+> grid AAC and Vorbis encoders leave behind. On a bench of 33 loud CD tracks it catches
+> 32 of 33 AAC 256 (ffmpeg) and 33 of 33 Vorbis q6 transcodes, for about 4 s more per
+> file. Since v1.20.1 it also asks on files with a low cutoff, which is where a
+> low-bitrate Vorbis encode lands (`-q1`: 31 of 33 caught without the ML extra, 33 with
+> it). It does **not** read Apple's AAC encoder (the iTunes and Apple Music format) well,
+> nor MP3 320 / VBR or Opus: those still need `--deep`.
 >
 > **When to use `--deep`.** A normal scan keeps things fast by skipping the ML rule (Rule
 > 12, the CNN) on files the quick heuristic rules and Rule 13 clear. That's the right default
