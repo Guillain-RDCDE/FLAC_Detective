@@ -415,27 +415,57 @@ def _apply_scoring_rules(  # noqa: C901
             and not is_uncompressed
         ):
             if not deep:
+                # Rule 13 before the acquittal (v1.20.0). A silent full-band file is
+                # exactly where a high-bitrate AAC or Vorbis transcode hides, and this
+                # branch used to acquit it without asking the one rule that reads it:
+                # on 33 loud CD tracks encoded at AAC 256 and Vorbis q6 the default
+                # scan caught 0 of 66, --deep 66, Rule 13 alone 63. Its bars sit
+                # clear of the genuine population (877 certified files, max 2.42;
+                # 362 labelled genuine of the 2026-10-01 probe, max 1.58). When it
+                # scores — +25 from 2.0 as well as +55 from 3.0 — the file is not
+                # acquitted: it goes on to the witnesses deep mode runs (14, 15,
+                # 12, 16), exactly as --deep would take it, and the verdict comes
+                # from all of them. A +25 alone stays under WARNING; with the CNN
+                # and the witnesses it can convict (the registration's results
+                # name the one unlabelled file that did). Cost: one decode and the
+                # alignment search, measured in the registration's results.
+                # See ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md.
+                r13_before = context.rule_scores.get("Rule13MDCTAlignment", 0)
+                r13_ran = should_run_rule_13(context.cutoff_freq, context.current_score)
+                if r13_ran:
+                    _ensure_audio(context)
+                    _run_rule_13(context)
+                if context.rule_scores.get("Rule13MDCTAlignment", 0) <= r13_before:
+                    logger.info(
+                        f"OPTIMIZATION: Fast path for authentic file "
+                        f"(score={context.current_score}, no MP3"
+                        + (", Rule 13 read no grid)" if r13_ran else ")")
+                    )
+                    context.reasons.append(
+                        "⚡ Fast analysis: AUTHENTIC — heuristics silent, Rule 13 reads no "
+                        "MDCT grid"
+                        if r13_ran
+                        else "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
+                    )
+                    return context.current_score, context.reasons
                 logger.info(
-                    f"OPTIMIZATION: Fast path for authentic file "
-                    f"(score={context.current_score}, no MP3)"
+                    f"Rule 13 read an MDCT grid on a file the heuristics left silent "
+                    f"(score={context.current_score}): running the witnesses"
                 )
-                context.reasons.append(
-                    "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
+            else:
+                # Deep mode: the heuristics are silent, but a silent file is exactly where
+                # a high-bitrate AAC/Vorbis transcode hides. Skip the expensive heuristic
+                # rules (they can't help here) and run the two that can: the CNN's
+                # high-confidence WARNING floor, and Rule 13 — which reads MDCT frame
+                # alignment and is the ONLY rule with signal left once the encoder keeps
+                # the whole band. This branch is precisely the 256-320 kbps AAC blind spot.
+                logger.info(
+                    f"DEEP: heuristics silent (score={context.current_score}), running "
+                    f"Rules 12/13 anyway (fast path bypassed)"
                 )
-                return context.current_score, context.reasons
-            # Deep mode: the heuristics are silent, but a silent file is exactly where a
-            # high-bitrate AAC/Vorbis transcode hides. Skip the expensive heuristic rules
-            # (they can't help here) and run the two that can: the CNN's high-confidence
-            # WARNING floor, and Rule 13 — which reads MDCT frame alignment and is the
-            # ONLY rule with signal left once the encoder keeps the whole band. This
-            # branch is precisely the 256-320 kbps AAC blind spot.
-            logger.info(
-                f"DEEP: heuristics silent (score={context.current_score}), running Rules 12/13 "
-                f"anyway (fast path bypassed)"
-            )
-            if should_run_rule_13(context.cutoff_freq, context.current_score):
-                _ensure_audio(context)
-                _run_rule_13(context)
+                if should_run_rule_13(context.cutoff_freq, context.current_score):
+                    _ensure_audio(context)
+                    _run_rule_13(context)
             # Rule 14 must run on THIS path too. It is the branch for files whose
             # heuristics found nothing — high-bitrate AAC, Vorbis, and every Opus
             # transcode in the corpus — which is precisely the population the

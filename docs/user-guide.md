@@ -106,15 +106,21 @@ flac-detective /music --sample-duration 15
 flac-detective /music --deep
 ```
 
+> **What a normal scan already does for AAC and Vorbis (since v1.20.0).** Before it clears a
+> full-range file the quick rules found nothing on, a normal scan asks Rule 13, which reads
+> the MDCT grid AAC and Vorbis encoders leave behind. On a bench of 33 loud CD tracks it
+> catches 32 of 33 AAC 256 (ffmpeg) and 31 of 33 Vorbis q6 transcodes, for about 10-20 s
+> more per full-range track. It does **not** read Apple's AAC encoder (the iTunes and
+> Apple Music format) well, nor MP3 320 / VBR or Opus: those still need `--deep`.
+>
 > **When to use `--deep`.** A normal scan keeps things fast by skipping the ML rule (Rule
-> 12, the CNN) on files the quick heuristic rules clear instantly. That's the right default
-> for the common case (low-bitrate MP3 fakes, which the heuristics catch anyway) — but it's
-> also exactly where a **high-bitrate AAC, Opus or Vorbis** transcode hides: those leave no
-> heuristic trace, so they sail through as AUTHENTIC. `--deep` runs the CNN on **every** file;
+> 12, the CNN) on files the quick heuristic rules and Rule 13 clear. That's the right default
+> for the common case — but it's also where a **high-bitrate MP3, Apple AAC or Opus**
+> transcode hides: those leave no heuristic trace, so they sail through as AUTHENTIC. `--deep` runs the CNN on **every** file;
 > when it is highly confident a full-range file is a transcode, the verdict is lifted to
 > **WARNING** ("worth checking", never an outright "fake"). The price is speed — every file is
 > decoded and run through the CNN, so a large library takes noticeably longer. Reach for it
-> when you specifically suspect AAC/Opus/Vorbis sources, or for a thorough second pass on a
+> when you specifically suspect high-bitrate MP3, Apple AAC or Opus sources, or for a thorough second pass on a
 > collection a fast scan called clean. It does **not** help with band-limited recordings
 > (early-music, 1920s, solo acoustic) — that's a genuine signal limit no tool can cross.
 

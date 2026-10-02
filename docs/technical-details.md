@@ -951,8 +951,14 @@ re-derive a verdict from a private cutoff.
 > ~80–87 %, see [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)). For critical decisions, confirm with a
 > visual tool such as Spek.
 >
-> **`--deep` narrows this.** A default scan skips the CNN (Rule 12) on files the fast
-> heuristics clear instantly — which is exactly where a high-bitrate AAC/Opus/Vorbis
+> **Since v1.20.0 a default scan asks Rule 13 before that fast exit**: a full-range file
+> (cutoff ≥ 18 kHz) the heuristics left silent is acquitted only if Rule 13 reads no MDCT
+> grid; if it reads one, the witnesses (Rules 14, 15, 12, 16) run and the verdict is
+> computed from all of them (`ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md`). That
+> reaches ffmpeg-family AAC and Vorbis; it does not reach Apple AAC, MP3 or Opus.
+>
+> **`--deep` narrows this further.** A default scan skips the CNN (Rule 12) on files the fast
+> heuristics and Rule 13 clear — which is where a high-bitrate MP3, Apple AAC or Opus
 > transcode hides (it leaves no heuristic trace). `--deep` runs the CNN on *every* file and,
 > when it is highly confident (p ≥ 0.90) on a full-range file the heuristics left silent,
 > lifts the verdict to **WARNING**. On a 240-file calibration that surfaces ~72 % of AAC-256
@@ -1093,7 +1099,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 ### What FLAC Detective Can Do
 
 ✅ Detect MP3-to-lossless transcodes (CBR and VBR)
-✅ Detect high-bitrate **AAC / Opus / Vorbis** transcodes on full-range audio — with
+✅ Detect high-bitrate **AAC (ffmpeg-family) and Vorbis** transcodes on full-range audio in
+   a default scan (Rule 13, since v1.20.0); **Apple AAC, high-bitrate MP3 and Opus** with
    `--deep` (the CNN, surfaced as WARNING; see "On confidence" above)
 ✅ Analyze FLAC, WAV (v0.15), ALAC and APE (v0.16, via ffmpeg) sources
 ✅ Identify fake high-resolution files

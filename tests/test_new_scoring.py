@@ -7,6 +7,8 @@ from the machine specifications.
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import numpy as np
+
 from flac_detective.analysis.new_scoring import (
     MP3_STANDARD_BITRATES,
     SCORE_FAKE_CERTAIN,
@@ -380,6 +382,68 @@ class TestDeepMode:
 
         new_calculate_score(cutoff_freq, metadata, duration_check, Mock(spec=Path), deep=False)
         assert mock_r12.call_count == 1, "Rule 12 runs off the fast path without --deep"
+
+
+class TestRule13BeforeTheAcquittal:
+    """v1.20.0: the default fast path asks Rule 13 before it acquits a full-band file.
+
+    A silent full-band file is where high-bitrate AAC and Vorbis transcodes hide.
+    The fast path used to acquit it without the one rule that reads them; on 33
+    loud CD tracks the default scan caught 0 of 66 AAC 256 / Vorbis q6 transcodes
+    (ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md).
+    """
+
+    METADATA = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
+    DURATION = {"mismatch": None, "diff_ms": 0}
+    AUDIO = (np.zeros((44100 * 3, 2)), 44100)
+
+    def _score(self, r13_points, mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12):
+        mock_real_bitrate.return_value = 900
+        mock_rule7.return_value = (0, [], None)
+        mock_load.return_value = self.AUDIO
+        mock_r12.return_value = (0, [])
+        reasons = [f"R13: MDCT quantisation grid detected (+{r13_points}pts)"] if r13_points else []
+        mock_r13.return_value = (
+            r13_points,
+            reasons,
+            {"mdct_peak_ratio": 9.0 if r13_points else 1.2},
+        )
+        return new_calculate_score(22000, self.METADATA, self.DURATION, Mock(spec=Path), deep=False)
+
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_13_mdct_alignment")
+    @patch("flac_detective.analysis.new_scoring.calculator.load_audio_with_retry")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
+    def test_rule13_reads_nothing_and_the_fast_path_acquits(self, *mocks):
+        """Rule 13 is asked; reading no grid, the file leaves AUTHENTIC as before, saying so."""
+        mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12 = mocks
+        score, verdict, _confidence, reason = self._score(0, *mocks)
+        assert mock_r13.call_count == 1, "the fast path must ask Rule 13 first"
+        assert mock_r12.call_count == 0, "nothing read: the CNN stays off the fast path"
+        assert verdict == "AUTHENTIC"
+        assert "Fast analysis" in reason and "Rule 13 reads no MDCT grid" in reason
+
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_13_mdct_alignment")
+    @patch("flac_detective.analysis.new_scoring.calculator.load_audio_with_retry")
+    @patch("flac_detective.analysis.new_scoring.calculator.calculate_real_bitrate")
+    @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
+    def test_rule13_reads_a_grid_and_the_witnesses_run(self, *mocks):
+        """A grid on a silent file is not acquitted: the deep-mode witnesses run, no fast exit."""
+        mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12 = mocks
+        score, verdict, _confidence, reason = self._score(55, *mocks)
+        assert mock_r13.call_count == 1
+        assert mock_r12.call_count == 1, "the CNN must get its say once Rule 13 has read a grid"
+        assert "Fast analysis" not in reason
+        assert score >= 55 and verdict != "AUTHENTIC"
+
+    def test_rule13_not_asked_under_its_cutoff(self):
+        """Under MIN_CUTOFF_HZ the cheap rules decide; Rule 13 keeps its own gate."""
+        from flac_detective.analysis.new_scoring.rules.mdct_alignment import should_run_rule_13
+
+        assert not should_run_rule_13(17999.0, 0)
+        assert should_run_rule_13(18000.0, 0)
 
 
 class TestMP3BitrateConstants:

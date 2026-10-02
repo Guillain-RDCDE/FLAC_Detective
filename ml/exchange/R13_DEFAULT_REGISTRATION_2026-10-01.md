@@ -84,3 +84,72 @@ are outside Rule 13's reach (it reads AAC and Vorbis windows) and stay
 `--deep`'s, through the CNN; reported, not judged. Apple AAC is also outside
 its reach (fires on 0-13 % at 128-320 kbps in the calibration), and is the
 store format: this change does not close that, and the docs will say so.
+
+
+---
+
+## RESULTS — 2026-10-02, after the probe and both passes (appended; everything above is as committed in `a67ef47`)
+
+**Probe**, 5,066 files with a cutoff ≥ 18 kHz. 78 unread: 74 transcodes or
+adjudicated files no longer on disk (halves, `long_mp3`, 2 v2 and 2 wild files
+taken out of the genuine populations in September), 2 Dust-to-Digital files too
+short to read (Rule 13 abstains, returns 0).
+
+| population | files read | median | max | ≥ 2.0 | ≥ 3.0 |
+|---|---|---|---|---|---|
+| labelled genuine (audit, v2, attested, full-length, received, wild, bench CDs) | 362 | 1.28 | **1.58** | 0 | 0 |
+| unlabelled (library 1,672, Dust-to-Digital, Awesome Tapes) | 3,796 | 1.28 | 2.99 | **1** | 0 |
+
+**Passes**, 1,007 files each way, 0 errors.
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| R1 | labelled genuine read ≥ 3.0 | 0 | **0** (max 1.58) | held |
+| R2 | labelled genuine moved (337 + 37 bench) | 0 | **0** | held |
+| R3 | bench CD and store files moved | 0 | **0 of 37** | held |
+| R4 | bench AAC 256 + Vorbis q6 caught by default | ≥ 60 of 66 | **65 of 66** (32 + 33; 0 before) | held |
+| R5 | audit arms newly caught by default | most of `--deep` | aac_ff256 **2 → 79**, aac_ff320 **2 → 78**, aacmf_256 11 → 47, vorbis_q8 13 → 52, opus_256 31 → 31 | held |
+| R6 | unlabelled reading ≥ 3.0 | listed | **none ≥ 3.0**; one at 2.99, listed below | see below |
+| R7 | 100-file control | 0 changes | **0** | held |
+| R8 | detections lost | 0 | **0** | held |
+
+The bench's MP3 320 (15) and full-band VBR (0) arms did not move, as predicted.
+
+### A sentence of the registration was false, and the one unlabelled mover
+
+The registration said "a lone +25 lands under WARNING: only a reading at or
+over 3.0 can move a file's verdict". **That is not what the change does.** Any
+Rule 13 score, +25 included, sends the file past the fast exit to the
+witnesses deep mode runs, and the CNN and the witnesses can then add their
+own evidence. The code was written that way; the comment that repeated the
+false sentence is corrected in the same commit as the change.
+
+The one file it reaches: Vladimir Cosma, *Courage fuyons*, CD 2 of *Les plus
+belles musiques de films* (library sample, unlabelled). AUTHENTIC 1 →
+**FAKE_CERTAIN 56**: Rule 13 2.99 (Vorbis window, +25), the CNN +30
+(p 0.98), Rules 14 and 15 as witnesses, four families. `--deep` would have
+reached the same verdict on 1.19.1.
+
+Its provenance, read by the documentary method: a release note ("Source: CD",
+no rip log, no AccurateRip), so unverifiable. Read off the record, Rule 13 on
+both discs of the release: **CD 1, 18 of 18 tracks at 1.19-1.45**, the genuine
+level; **CD 2, 16 of 18 at 2.14-6.14, all on the Vorbis window, on recurring
+alignments** (174 seven times, 686 four, 814 and 942 twice). A gapless Vorbis
+encode cut into tracks leaves exactly that, and the genuine population never
+reads over 2.42 in 877. The verdict stays as computed; the file stays
+unlabelled. **Shipped on this list.**
+
+### Cost, measured on an idle machine, one file at a time
+
+| | before | after |
+|---|---|---|
+| 10 attested full CD tracks, median | 4.3 s | **8.3 s** |
+| 10 audit 60 s excerpts, median | 1.1 s | **5.2 s** |
+
+About +4 s a file the fast path acquits at a full-band cutoff, under the
++9.5 s estimated above (that estimate timed Rule 13 cold, in a separate
+process). The pass timings (up to 120 s median) were taken with two
+two-worker passes sharing four cores and are not a cost figure.
+
+Bench: `fd-r13/` (`r13_probe_*.csv`; `pass/before.jsonl`, `pass/after.jsonl`,
+`pass/cmp.py`, `pass/cmp_results.txt`, `pass/time_*.jsonl`).

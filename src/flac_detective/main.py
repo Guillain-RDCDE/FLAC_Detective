@@ -484,8 +484,9 @@ def parse_arguments() -> argparse.Namespace:
         help=(
             "Deep mode: run the ML rule (12) on every file, even ones the fast "
             "heuristics clear instantly. Slower (decode + CNN per file), but catches "
-            "high-bitrate AAC/Vorbis transcodes that leave no heuristic trace and are "
-            "otherwise skipped by the fast path. Surfaces them as WARNING for review. "
+            "high-bitrate MP3, Apple AAC and Opus transcodes that leave no heuristic "
+            "trace (ffmpeg-family AAC and Vorbis are already read by Rule 13 in a normal "
+            "scan). Surfaces them as WARNING for review. "
             "Not an on/off switch: with the [ml] extra installed, the ML rule runs on "
             "files the fast heuristics leave in doubt whether or not this flag is given."
         ),
