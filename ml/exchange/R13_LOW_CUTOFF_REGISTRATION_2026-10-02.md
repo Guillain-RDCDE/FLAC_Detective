@@ -88,7 +88,7 @@ that are not already convicted, about 4 s each) is measured and reported.
 
 ---
 
-## RESULTS — 2026-10-03, after the four passes (appended; everything above is as committed in `37a3406`)
+## RESULTS — 2026-10-02, after the four passes (appended; everything above is as committed in `37a3406`)
 
 768 files torch live, 499 torch absent, each before and after. One error in
 every one of the four passes, the same file both sides (a library track that

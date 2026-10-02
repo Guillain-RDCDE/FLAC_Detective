@@ -8,7 +8,7 @@ __version__ = "1.20.1"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-10-03"
+__release_date__ = "2026-10-02"
 __release_name__ = "Where the scan is"
 
 # Metadata

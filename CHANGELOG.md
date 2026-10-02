@@ -1,4 +1,4 @@
-## v1.20.1 (2026-10-03) — Rule 13 under 18 kHz (issue #12)
+## v1.20.1 (2026-10-02) — Rule 13 under 18 kHz (issue #12)
 
 ### A low-bitrate Vorbis transcode read AUTHENTIC
 
