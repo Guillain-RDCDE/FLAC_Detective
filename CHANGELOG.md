@@ -1,3 +1,43 @@
+## v1.20.1 (2026-10-03) — Rule 13 under 18 kHz (issue #12)
+
+### A low-bitrate Vorbis transcode read AUTHENTIC
+
+Reported in issue #12 with the files: a Bandcamp FLAC encoded with
+`oggenc -q1` (~80 kbps) and decoded back read **AUTHENTIC 16**, default and
+`--deep`, with and without the ML extra. Reproduced on the reporter's files.
+
+At `-q1` on a loud master Vorbis fills the band above its edge with noise
+(−35 dB) and the edge wanders between windows, so every rule this engine uses
+under 18 kHz stepped aside, and the CNN read it as genuine (p 0.02). Rule 13,
+which reads the Vorbis window, was never asked: it only ran on cutoffs of
+18 kHz and over. Asked, it reads a grid on that file.
+
+**The repair: Rule 13 no longer looks at the cutoff.** It is asked on every file
+not already convicted. Bars and points unchanged.
+
+Registered before the passes (`ml/exchange/R13_LOW_CUTOFF_REGISTRATION_2026-10-02.md`).
+Under 18 kHz, 37 labelled and certified genuine files read at most 1.46 (Rule
+13 scores from 2.0), 45 78 rpm transfers at most 1.40, 29 cassettes at most
+1.43. Before/after, torch live and torch absent:
+
+* **0 of 337 labelled genuine files moved**, in either mode; 0 change on 269
+  control and bench files; 0 detections lost.
+* The issue's file: AUTHENTIC 16 → **WARNING 41**, both modes. Its original
+  stays AUTHENTIC 0.
+* 33 loud CD tracks at Vorbis `-q1`: caught **23 → 31** without the ML extra,
+  **32 → 33** with it.
+* One unlabelled library track moved, named before the passes: CD 2 of a 2006
+  double album whose 11 tracks out of 14 read a Vorbis grid on one and the same
+  alignment, where CD 1 reads clean.
+* Cost: about **+4 s** a file under 18 kHz that is not already convicted.
+
+### Docs
+
+The user guide's v1.20.0 paragraph carried the estimates written before that
+release was measured ("10-20 s more", "31 of 33 Vorbis q6"); it now carries the
+measured figures (about 4 s, 33 of 33). The technical details describe Rule 13's
+gate as it now is.
+
 ## v1.20.0 (2026-10-02) — Rule 13 before the acquittal
 
 ### A default scan now reads ffmpeg-family AAC and Vorbis
