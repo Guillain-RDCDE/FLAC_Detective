@@ -1,3 +1,90 @@
+## v2.0.0 (2026-10-03) — nothing written unasked
+
+The twelve defects the 1.21.0 audit listed, fixed and measured. No rule, bar or
+point moved: on the 59-file set of 1.21.0 (12 labelled genuine, 3 per lossy arm,
+14 of the Rule 13 bench) plus 10 under `--deep`, **0 verdicts, 0 scores and 0
+evidence families changed**. The fields that did change are listed below, each
+with its reason. Major version because two behaviours a user can see are
+different on purpose: a scan no longer writes into the library, and a clipping
+percentage means what it says.
+
+### A scan writes nothing into your library (`--repair-in-place` to allow it)
+
+When a FLAC could not be decoded at all, the loader rebuilt it losslessly and
+then **replaced the file in the library** with the rebuilt one, leaving a
+`.corrupted.bak` beside it — by default, on every scan, because the analyzer
+always passed the source path and the loader took that as permission. The
+repair still runs (same tool, same samples, tags kept) but on the temp copy the
+analysis reads; the user's file is replaced only with the new `--repair-in-place`
+flag (`FLACAnalyzer(repair_in_place=True)` from Python). Two smaller defects of
+the same path: the repair's temp files were named after the track, so two workers
+repairing two tracks of the same name overwrote each other mid-decode (unique
+names now), and the repair ran after a non-temporary error too (it still does: a
+corrupted FLAC's first error is rarely "temporary", and the repair is what reads
+through it).
+
+### The repair tool keeps the bit depth
+
+`python -m flac_detective.repair` re-encoded through soundfile reading float32
+and writing PCM_16 for "compression levels" 0-5 — and 5 was the default — so
+**every 24-bit file it repaired lost its low 8 bits**. It now reads 32-bit
+integers and writes the source's own subtype; the level is flac's 0-8 and only
+changes the file size. Pinned by a 16-bit and a 24-bit round trip, sample-exact.
+
+### The diagnostic report is no longer empty with workers
+
+Reading issues (retries, partial reads, repairs) were recorded in the tracker of
+the PROCESS that met them — a pool worker's — and the parent, which writes the
+end-of-run diagnostic report and prints "files with reading issues", never saw
+one. Every result row now carries its file's issues under `reading_issues` (a
+new JSON field, a list of objects), and the collector absorbs them. An ERROR row
+counts as a file analysed, which it did not.
+
+### Measured differences, none of them a verdict
+
+* **Clipping percentage over samples, not frames.** The count of clipped samples
+  spans both channels; the denominator was the frame count, so a stereo file
+  could read up to 200 % and a lightly clipped one crossed the 0.01 % bar it had
+  not reached. On the 59-file set: 39 `clipping_percentage` values halved (the
+  stereo files), 5 `clipping_severity` labels and 4 `has_clipping` flags
+  changed with them. Clipping never scored.
+* **Rule 2 prints what it scored.** The reason said `+14pts` on a line that had
+  added 13 (rounded in the text, truncated in the score): 8 reason strings on
+  the set, every score unchanged.
+* **Rule 15 is asked at its own gate.** The calculator loaded the audio for it
+  from 12 kHz while the rule's bar is 17 kHz, so files between the two paid a
+  decode for a rule that then declined. 9 `score_breakdown` rows on the set
+  lose a `Rule15StereoSeam: 0` entry; nothing else moves.
+* **Rule 10 reads a hi-res file at its own rate.** Its five segment cutoffs were
+  taken with the 44.1 kHz reference band and scan start whatever the file's
+  rate. Measured on the 54 files above 48 kHz of the library sample (88.2, 96 and 192 kHz): all 54 read AUTHENTIC before and after, and none reached Rule 10's 30-point gate, so the change is measured as harmless there, not as effective; a hi-res transcode bench is for a later registration.
+* **Rule 10 reads through the shared decode** instead of opening its own
+  `AudioCache` on the same temp file (same reads, same floats, one decode).
+* **Rule 4's reason line is in English.**
+
+### Smaller repairs
+
+* The corruption check looked for NaN/Inf in the last block only, and raised on
+  an unbound name when a file had no block at all; every block is checked.
+* `ffmpeg` found by `which` and gone by `run` leaked the temp WAV (OSError is
+  now handled like a subprocess error).
+* A failed spectrum is logged at WARNING, not DEBUG; an analysis error keeps
+  its traceback in the log.
+* GUI: a folder's lossy files are reported as NON_FLAC rows, as the CLI does,
+  instead of being handed to the analyzer; the worker runs on the CLI's batch
+  runner and so inherits the fallback when the pool dies, and carries the
+  reading issues; the JSON export is the CLI's document, `scan_info` included.
+* `tests/benchmarks` call the current `AudioCache` constructor.
+
+### Not changed, deliberately
+
+Two findings of the audit are engine behaviour, not code defects, and wait for
+their own registration: Rule 4's vinyl safeguard can never fire (Rule 7, which
+sets the silence ratio it reads, runs later), and the Rule 8 refinement is a
+no-op in practice (Rule 1 sets a bitrate only below 0.95 x Nyquist, Rule 8
+scores only above it) and is kept because the boundary rests on one float ulp.
+Both are documented in the code.
+
 ## v1.21.0 (2026-10-03) — the refactoring pass
 
 No rule, bar, point or formula moved. The engine's full JSON output on a fixed
