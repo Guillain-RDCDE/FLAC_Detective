@@ -1,4 +1,4 @@
-## Unreleased (2026-10-03) — the refactoring pass
+## v1.21.0 (2026-10-03) — the refactoring pass
 
 No rule, bar, point or formula moved. The engine's full JSON output on a fixed
 set of 59 files (12 labelled genuine, 3 per lossy arm of the audit corpus, 14 of
