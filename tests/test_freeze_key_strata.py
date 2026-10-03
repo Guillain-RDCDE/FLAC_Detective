@@ -15,13 +15,8 @@ sealed only at release time proves nothing about when it was fixed.
 
 import hashlib
 import json
-import sys
-from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
-
 from freeze_exchange_set import KeyRefused, build_key, write_key  # noqa: E402
 
 SEED = 20260831

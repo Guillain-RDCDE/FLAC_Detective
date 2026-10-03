@@ -17,10 +17,6 @@ all 280 files and therefore harmless only by luck.
 """
 
 import subprocess
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
 
 import freeze_exchange_set as fez  # noqa: E402
 

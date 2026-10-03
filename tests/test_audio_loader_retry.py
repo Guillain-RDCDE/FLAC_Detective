@@ -1,16 +1,14 @@
 """Test script for audio loading retry mechanism."""
 
 import logging
-import sys
-from pathlib import Path
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
     is_temporary_decoder_error,
     load_audio_with_retry,
 )
+
+# Add src to path
+
 
 # Configure logging
 logging.basicConfig(

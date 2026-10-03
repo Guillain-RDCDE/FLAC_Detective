@@ -1,10 +1,7 @@
-# Include essential documentation and license
+# Include essential documentation and license (pyproject.toml is always in the sdist)
 include README.md
 include LICENSE
 include CHANGELOG.md
-
-# Include configuration files
-include pyproject.toml
 
 # Exclude development tooling and the ML pipeline from the sdist
 prune scripts

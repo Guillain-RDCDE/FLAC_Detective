@@ -12,10 +12,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Europe/Paris"
-    # Automatically merge minor and patch updates
     open-pull-requests-limit: 10
-    reviewers:
-      - "Guillain-RDCDE"
     assignees:
       - "Guillain-RDCDE"
     labels:
@@ -54,15 +51,15 @@ updates:
         patterns:
           - "sphinx*"
           - "myst-parser"
-    # Only update to compatible versions
-    versioning-strategy: increase
+    # This is a library: its runtime requirements are LOWER BOUNDS
+    # (numpy>=1.20.0, ...). `increase` would raise them on every release of
+    # a dependency and shut out users on older but perfectly compatible
+    # versions. `increase-if-necessary` only moves a bound when the new
+    # version no longer satisfies it. The exact pins of the gating linters
+    # in the `dev` extra are deliberate and move by hand (see pyproject).
+    versioning-strategy: increase-if-necessary
     # Allow automatic rebasing when target branch updates
     rebase-strategy: auto
-    # Ignore specific dependencies if needed
-    ignore:
-      # Example: Pin specific version if needed
-      # - dependency-name: "numpy"
-      #   versions: ["2.x"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -73,8 +70,6 @@ updates:
       time: "09:00"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 5
-    reviewers:
-      - "Guillain-RDCDE"
     assignees:
       - "Guillain-RDCDE"
     labels:

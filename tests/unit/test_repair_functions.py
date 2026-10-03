@@ -8,13 +8,9 @@ NOTE: These tests require Python 3.8-3.12 due to scipy/numpy compatibility.
 """
 
 # Add src to path for imports
-import sys
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
     _extract_metadata,

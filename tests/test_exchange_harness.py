@@ -17,13 +17,11 @@ correct answer is known and different from the obvious one.
 
 import csv
 import json
-import sys
 from pathlib import Path
 
 import pytest
 
 ML = Path(__file__).resolve().parent.parent / "ml"
-sys.path.insert(0, str(ML))
 
 import prepare_setA_return  # noqa: E402
 import prepare_setB_key  # noqa: E402

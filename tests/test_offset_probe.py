@@ -12,7 +12,6 @@ its first run — a control that printed its reassuring conclusion while its
 denominator was zero.
 """
 
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +19,6 @@ import pytest
 import soundfile as sf
 
 ML = Path(__file__).resolve().parent.parent / "ml"
-sys.path.insert(0, str(ML))
 
 import read_offset_fixed_window as probe  # noqa: E402
 import score_v3_return  # noqa: E402

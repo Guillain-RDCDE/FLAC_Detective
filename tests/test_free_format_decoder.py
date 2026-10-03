@@ -14,13 +14,9 @@ looking like data.
 
 import hashlib
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
-
 from free_format import DecoderRefused, decode_free_format, verify_decoder  # noqa: E402
 
 

@@ -30,8 +30,6 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
 from flac_detective import main as fd_main  # noqa: E402
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 from flac_detective.analysis.progress import (  # noqa: E402

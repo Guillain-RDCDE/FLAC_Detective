@@ -18,15 +18,11 @@ ONE fixed level, whatever it arrived in. These tests pin that property from the
 compression-level side, so it cannot regress unnoticed the way it once did.
 """
 
-import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 import soundfile as sf
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
 from test_container_independence import SAMPLE_RATE, _reported_signal  # noqa: E402
 
 import flac_detective.analysis.analyzer as analyzer_module  # noqa: E402

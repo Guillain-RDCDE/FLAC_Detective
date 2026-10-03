@@ -17,11 +17,6 @@ Both halves are pinned here: what the table must now say, and what the tally mus
 no longer be mistaken for.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
 from flac_detective.reporting.text_reporter import TextReporter  # noqa: E402
 
 

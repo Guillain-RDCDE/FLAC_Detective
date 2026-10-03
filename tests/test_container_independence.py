@@ -25,14 +25,11 @@ the check that would have caught it.
 
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 import soundfile as sf
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 

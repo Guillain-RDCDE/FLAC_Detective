@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """Test script for Rule 1 enhancement - Bitrate detection."""
 
-import sys
-from pathlib import Path
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from flac_detective.analysis.new_scoring.constants import (  # noqa: E402
     BITRATE_CRITICAL_THRESHOLD,
     BITRATE_RED_FLAG_THRESHOLD,
@@ -14,6 +8,9 @@ from flac_detective.analysis.new_scoring.constants import (  # noqa: E402
 from flac_detective.analysis.new_scoring.rules.spectral import (  # noqa: E402
     apply_rule_1_mp3_bitrate,
 )
+
+# Add src to path
+
 
 print("=" * 80)
 print("Rule 1 Enhancement Test - Container Bitrate Detection")

@@ -11,7 +11,6 @@ comforting number about nothing.
 So both guards are tested here for their ability to REFUSE, not merely to run.
 """
 
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -19,7 +18,6 @@ import pytest
 import soundfile as sf
 
 ML = Path(__file__).resolve().parent.parent / "ml"
-sys.path.insert(0, str(ML))
 
 import sbr_arm  # noqa: E402
 

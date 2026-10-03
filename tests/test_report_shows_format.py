@@ -11,11 +11,6 @@ one fact missing.
 A verdict without the reading it was made from is an opinion.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
 from flac_detective.reporting.text_reporter import TextReporter  # noqa: E402
 
 

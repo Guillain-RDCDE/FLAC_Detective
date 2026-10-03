@@ -13,10 +13,6 @@ the set. These tests exist so that cannot happen silently again.
 """
 
 import logging
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
 
 from freeze_exchange_set import audit_own_output  # noqa: E402
 

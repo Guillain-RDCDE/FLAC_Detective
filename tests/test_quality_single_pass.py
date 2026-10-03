@@ -19,14 +19,11 @@ is entirely silent, one that clips on every sample, a DC-shifted one, mono
 against stereo, 24-bit, and a file the reader cannot get through at all.
 """
 
-import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 import soundfile as sf
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from flac_detective.analysis.quality import (  # noqa: E402
     ClippingDetector,

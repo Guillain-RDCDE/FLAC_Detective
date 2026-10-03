@@ -1,7 +1,12 @@
 # Pre-commit hooks configuration for FLAC Detective
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
-# Update hooks: pre-commit autoupdate
+#
+# The Python hooks are pinned to the SAME versions as the `dev` extra in
+# pyproject.toml, which is what the CI's "Code Quality Checks" job installs. A
+# hook that formats with a different black or isort than the gate is a second
+# opinion, not a pre-check: it rewrites code the gate then rejects. When a pin
+# moves there, it moves here in the same commit.
 
 repos:
   # General file checks
@@ -49,42 +54,36 @@ repos:
       - id: mixed-line-ending
         args: ['--fix=lf']
 
-  # Python code formatting with Black
+  # Python code formatting with Black (pinned as in pyproject [dev])
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 26.5.1
     hooks:
       - id: black
         language_version: python3
         args: ['--config=pyproject.toml']
 
-  # Python import sorting with isort
+  # Python import sorting with isort (pinned as in pyproject [dev])
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 9.0.1
     hooks:
       - id: isort
         args: ['--settings-path=pyproject.toml']
 
-  # Python linting with flake8
+  # Python linting with flake8: the configuration is `.flake8`, the same file the
+  # CI reads, so the hook and the gate agree on complexity, ignores and excludes.
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.1
+    rev: 7.3.0
     hooks:
       - id: flake8
-        args: [
-          '--max-line-length=100',
-          '--extend-ignore=E203,W503,E501',  # E203: whitespace before ':', W503: line break before binary operator, E501: line too long (handled by Black)
-          '--max-complexity=10',
-          '--exclude=.git,__pycache__,.venv,build,dist,.eggs'
-        ]
         additional_dependencies: [
-          'flake8-docstrings',
-          'flake8-bugbear',
-          'flake8-comprehensions',
-          # 'flake8-simplify'  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
+          'flake8-docstrings==1.7.0',
+          'flake8-bugbear==25.11.29',
+          'flake8-comprehensions==3.17.0',
         ]
 
-  # Python type checking with mypy
+  # Python type checking with mypy (pinned as in pyproject [dev])
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v2.3.1
     hooks:
       - id: mypy
         args: ['--config-file=pyproject.toml']
@@ -117,7 +116,11 @@ repos:
 default_language_version:
   python: python3
 
-# Files to exclude from all hooks
+# Files to exclude from all hooks.
+#
+# The exchange evidence under ml/ is hashed as bytes and its SHA-256 has been
+# published (see .gitattributes): a hook that fixes a line ending or strips a
+# trailing space there changes a hash a third party already holds.
 exclude: |
   (?x)^(
     \.git/|
@@ -132,7 +135,10 @@ exclude: |
     \.pytest_cache/|
     \.coverage|
     htmlcov/|
-    tests/test_data/
+    tests/test_data/|
+    ml/exchange/received/|
+    ml/exchange/MANIFEST.*\.sha256$|
+    ml/verdicts_set.*\.csv$
   )
 
 # Run hooks in parallel for speed

@@ -144,9 +144,6 @@ warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
 ignore_missing_imports = true
-exclude = [
-    "src/flac_detective/repair\\.py$",  # Compatibility wrapper - intentional module shadow
-]
 
 [[tool.mypy.overrides]]
 module = [
@@ -166,10 +163,10 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--showlocals",
-    "--cov=flac_detective",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
+    # Coverage is NOT switched on here: the CI's coverage step passes the
+    # `--cov*` flags itself, and a plain local `pytest` run used to write
+    # htmlcov/ and coverage.xml into the (synchronised) working tree on every
+    # invocation — see [tool.coverage.run] for what that cost on Windows.
     # NOTE: --cov-fail-under intentionally not set. Current coverage (~30%)
     # reflects that CLI/repair/reporter modules are tested by manual usage
     # rather than unit tests. Raising it would either require gating release
@@ -236,15 +233,4 @@ version_files = [
 bump_message = "bump: version $current_version → $new_version"
 major_version_zero = false
 
-# Flake8 configuration
-# Note: flake8 doesn't support pyproject.toml natively yet, so .flake8 file is still needed
-[tool.flake8]
-max-line-length = 100
-extend-ignore = ["E203", "E266", "E501", "W503", "D100", "D104", "D107"]
-max-complexity = 12
-exclude = [".git", "__pycache__", ".venv", "venv", "build", "dist", ".eggs", "*.egg-info", ".mypy_cache", ".pytest_cache"]
-per-file-ignores = [
-    "tests/*:D100,D101,D102,D103,S101",
-    "__init__.py:F401,D104"
-]
-docstring-convention = "google"
+# flake8 does not read pyproject.toml: its configuration lives in `.flake8`.
