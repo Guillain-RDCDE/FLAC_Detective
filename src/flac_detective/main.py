@@ -1,1298 +1,110 @@
 #!/usr/bin/env python3
-"""FLAC Detective v0.1 - Advanced FLAC Authenticity Analyzer.
+"""FLAC Detective - Advanced FLAC Authenticity Analyzer.
 
 Hunting Down Fake FLACs Since 2025
 
-Multi-criteria detection:
-- Spectral frequency analysis (MP3 cutoff detection)
-- High-frequency energy ratio (context-aware)
-- Metadata consistency validation
-- Duration integrity checking
+The command-line entry point. The work is done by the ``flac_detective.cli``
+package, one concern per module; this module wires them together in ``main``
+and keeps every name it has historically exported (scripts and tests import
+them from here).
 """
 
-import argparse
-import json
 import logging
-import multiprocessing
-import os
 import sys
-import tempfile
-import threading
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from concurrent.futures.process import BrokenProcessPool
-from contextlib import contextmanager
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Iterator, Optional, Tuple
+from typing import Optional
 
 from .__version__ import __version__
-
-# RICH INTEGRATION
-try:
-    from rich.console import Console
-    from rich.logging import RichHandler
-    from rich.progress import (
-        BarColumn,
-        Progress,
-        SpinnerColumn,
-        TaskProgressColumn,
-        TextColumn,
-        TimeRemainingColumn,
-    )
-    from rich.theme import Theme
-
-    # Custom theme for FLAC Detective
-    custom_theme = Theme(
-        {
-            "info": "dim cyan",
-            "warning": "yellow",
-            "error": "bold red",
-            "success": "bold green",
-            "fake": "bold red",
-            "suspicious": "bold yellow",
-            "authentic": "bold green",
-        }
-    )
-
-    console: Optional[Console] = Console(theme=custom_theme)
-    HAS_RICH = True
-except ImportError:
-    HAS_RICH = False
-    console = None
-
-from .analysis import FLACAnalyzer
-from .analysis.audio_formats import (
-    LOSSY_SUFFIXES,
-    PROBE_SUFFIXES,
-    discover_audio_files,
-    is_analysable_lossless,
-)
-from .analysis.diagnostic_tracker import get_tracker, reset_tracker
-from .analysis.progress import ProgressCallback, ProgressEvent, install_queue_sink
+from .analysis.diagnostic_tracker import reset_tracker
+from .cli import args as _args
+from .cli import console as _console
+from .cli import discovery as _discovery
+from .cli import logsetup as _logsetup
+from .cli import output as _output
+from .cli import pool as _pool
+from .cli import workdir as _workdir
+from .cli.args import get_user_input_path, parse_arguments
+from .cli.console import HAS_RICH, VERDICT_DISPLAY, console
+from .cli.discovery import REJECTABLE_SUFFIXES, scan_files
+from .cli.logsetup import ResilientFileHandler, setup_logging
+from .cli.output import REAL_STDOUT, generate_final_report
+from .cli.pool import run_analysis_loop
+from .cli.workdir import resolve_work_dir
 from .colors import Colors, colorize
 from .config import analysis_config
-from .reporting import CSVReporter, HTMLReporter, TextReporter
-from .tracker import ProgressTracker
 from .utils import LOGO
-
-# Fix Windows console encoding for UTF-8 support (Standard approach)
-if sys.platform == "win32":
-    os.system("chcp 65001 > nul 2>&1")
-
-
-# Configure Logging
-# If Rich is available, we use RichHandler for beautiful console logs
-# But we ALWAYS keep a FileHandler for the persistent log file
-class _ResilientFileHandler(logging.FileHandler):
-    """A FileHandler that disables itself on the first write/flush failure.
-
-    The console log is written next to the scanned files. If that location turns
-    out to be read-only or on a flaky external drive, a plain FileHandler raises
-    (e.g. ``PermissionError`` on flush) for *every* record — and Python prints a
-    full traceback each time, which on a large scan both floods the output and
-    cripples throughput (the main thread blocks on logging once per file). Instead
-    we no-op after the first failure and carry on console-only.
-
-    We deliberately don't touch the logger's handler list from ``handleError``
-    (lock-ordering risk while emitting); flipping a flag + closing the stream is
-    enough to stop both the retries and the traceback flood.
-    """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._disabled = False
-
-    def emit(self, record: logging.LogRecord) -> None:
-        if self._disabled:
-            return
-        super().emit(record)
-
-    def handleError(self, record: logging.LogRecord) -> None:
-        if not self._disabled:
-            self._disabled = True
-            try:
-                self.close()
-            except Exception:
-                pass
-
-
-def _writable_log_file(preferred: Path) -> Optional[Path]:
-    """Pick a writable console-log path: prefer the scan dir, fall back to temp.
-
-    A music archive often lives on a read-only or external drive, so writing the
-    log into the scanned tree can fail. We probe each candidate by actually
-    writing **and flushing** (the failure mode is a flush error, not an open
-    error), returning the first that works — or ``None`` if none is writable, in
-    which case logging stays console-only.
-
-    Args:
-        preferred: First-choice directory (usually the scan directory).
-
-    Returns:
-        A writable log-file path, or None if no candidate location is writable.
-    """
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    name = f"flac_console_log_{timestamp}.txt"
-    for base in (preferred, Path(tempfile.gettempdir())):
-        candidate = base / name
-        try:
-            with open(candidate, "w", encoding="utf-8") as probe:
-                probe.write("flac-detective console log\n")
-                probe.flush()
-            return candidate
-        except OSError:
-            continue
-    return None
-
-
-def _is_writable_dir(path: Path) -> bool:
-    """Return True if we can actually create and write a file in ``path``.
-
-    ``os.access(W_OK)`` lies on read-only mounts, network shares and Windows
-    ACLs, so we probe by really writing a scratch file and flushing it — the same
-    approach as `_writable_log_file` — and remove it afterwards.
-    """
-    try:
-        if not path.is_dir():
-            return False
-        with tempfile.NamedTemporaryFile(
-            dir=path, prefix=".flac-detective-probe-", suffix=".tmp", delete=True
-        ) as probe:
-            probe.write(b"probe")
-            probe.flush()
-        return True
-    except OSError:
-        return False
-
-
-def resolve_work_dir(paths: list[Path], work_dir: Optional[Path] = None) -> tuple[Path, list[str]]:
-    """Decide where ``progress.json``, the report and the console log go.
-
-    * ``--work-dir`` given → that directory (created if needed). It must be
-      writable, otherwise we fail early with a clear message rather than after a
-      full scan.
-    * Otherwise, the scan directory (first path, or its parent for a file) — the
-      historical default, chosen so that re-running ``flac-detective /same/dir``
-      from anywhere resumes an interrupted scan.
-    * If the scan directory is read-only (external drive, container ``:ro``
-      mount, immutable archive), fall back to the current working directory —
-      which is what the old comment always promised. Resume then works as long
-      as you re-run from the same working directory.
-    * If even the CWD is read-only, fall back to the system temp directory so
-      the scan can still complete and produce a report.
-
-    Args:
-        paths: The user's scan roots (non-empty).
-        work_dir: Explicit ``--work-dir`` value, or None.
-
-    Returns:
-        ``(directory, notes)`` — a writable directory, and warnings to show the
-        user when a fallback was taken (empty when the default or an explicit
-        ``--work-dir`` was used). Returned rather than logged because this runs
-        before logging is configured (logging needs the directory).
-
-    Raises:
-        SystemExit: when an explicit ``--work-dir`` cannot be created or written.
-    """
-    if work_dir is not None:
-        try:
-            work_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
-            print(
-                colorize(f"--work-dir {work_dir}: cannot create directory ({e})", Colors.RED),
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        if not _is_writable_dir(work_dir):
-            print(
-                colorize(f"--work-dir {work_dir}: directory is not writable", Colors.RED),
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        return work_dir, []
-
-    scan_dir = paths[0] if paths[0].is_dir() else paths[0].parent
-    if _is_writable_dir(scan_dir):
-        return scan_dir, []
-
-    cwd = Path.cwd()
-    if _is_writable_dir(cwd):
-        return cwd, [
-            f"Scan directory is read-only ({scan_dir}); progress, report and log "
-            f"will be written to the current directory instead: {cwd}",
-            "Re-run from this same directory to resume an interrupted scan "
-            "(or pass --work-dir DIR to choose the location).",
-        ]
-
-    tmp = Path(tempfile.gettempdir())
-    return tmp, [
-        f"Neither the scan directory ({scan_dir}) nor the current directory ({cwd}) "
-        f"is writable; falling back to the system temp directory: {tmp}",
-        "Use --work-dir DIR to choose where progress and reports are written.",
-    ]
-
-
-def setup_logging(output_dir: Path) -> Optional[Path]:
-    """Setup logging: Rich for console (if avail), File for persistence.
-
-    The console-log file is placed in ``output_dir`` when writable, otherwise in
-    the system temp dir; if neither is writable, logging stays console-only. This
-    keeps a read-only / external scan drive from crippling a large scan with a
-    per-record ``PermissionError``. See `_writable_log_file` and
-    `_ResilientFileHandler`.
-
-    Args:
-        output_dir: Preferred directory for the log file (usually the scan dir).
-
-    Returns:
-        Path to the created log file, or None if file logging is unavailable.
-    """
-    log_file = _writable_log_file(output_dir)
-
-    # Root logger
-    root_log = logging.getLogger()
-    root_log.setLevel(logging.INFO)
-
-    # Remove existing handlers to avoid duplicates
-    root_log.handlers = []
-
-    file_formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
-    )
-
-    # File Handler (Always detailed) — only when a writable location was found.
-    if log_file is not None:
-        file_handler = _ResilientFileHandler(log_file, encoding="utf-8")
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(file_formatter)
-        root_log.addHandler(file_handler)
-
-    # Console Handler
-    if HAS_RICH:
-        # Rich Handler for beautiful output
-        rich_handler = RichHandler(
-            console=console,
-            show_time=True,
-            omit_repeated_times=False,
-            show_path=False,
-            rich_tracebacks=True,
-        )
-        # Set to WARNING to reduce noise from retry/partial read messages
-        # All details are still saved to the log file
-        rich_handler.setLevel(logging.WARNING)
-        root_log.addHandler(rich_handler)
-    else:
-        # Standard Console Handler (Legacy fallback)
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.WARNING)
-        console_handler.setFormatter(file_formatter)
-        root_log.addHandler(console_handler)
-
-    logger = logging.getLogger(__name__)
-
-    if log_file is None:
-        warning = (
-            "Could not create a console-log file (scan dir and temp dir both "
-            "unwritable); continuing with console output only."
-        )
-        if HAS_RICH and console is not None:
-            console.print(f"[yellow]{warning}[/yellow]")
-        else:
-            logger.warning(warning)
-    elif not HAS_RICH:
-        logger.info(f"Console log will be saved to: {log_file}")
-    else:
-        assert console is not None
-        console.print(f"[dim]Log file: {log_file}[/dim]")
-
-    return log_file
-
 
 logger = logging.getLogger(__name__)
 
-# The real stdout, captured before anything can redirect it. When --format asks
-# for machine-readable output and no --output path is given, the report goes
-# here and every decorative print goes to stderr instead — see main().
-_REAL_STDOUT = sys.stdout
+# Historical names, kept so that `from flac_detective.main import ...` keeps
+# working for scripts and tests written against the single-module CLI.
+_ResilientFileHandler = ResilientFileHandler
+_writable_log_file = _logsetup.writable_log_file
+_cleanup_console_log_if_empty = _logsetup.cleanup_console_log_if_empty
+_is_writable_dir = _workdir.is_writable_dir
+_parse_multiple_paths = _args.parse_multiple_paths
+_clean_path_string = _args.clean_path_string
+_validate_paths = _args.validate_paths
+_print_banner = _console.print_banner
+_make_streams_utf8_safe = _console.make_streams_utf8_safe
+_log_formatted_result = _console.log_formatted_result
+_VERDICT_DISPLAY = VERDICT_DISPLAY
+_LOSSY_SUFFIXES = REJECTABLE_SUFFIXES
+_create_non_flac_result = _discovery.create_non_flac_result
+_add_non_flac_results = _discovery.add_non_flac_results
+_progress_event_writer = _pool.progress_event_writer
+_worker_event_channel = _pool.worker_event_channel
+_analyze_batch = _pool.analyze_batch
+_process_flac_files = _pool.process_flac_files
+_write_report = _output.write_report
+_REAL_STDOUT = REAL_STDOUT
+
+__all__ = [
+    "__version__",
+    "main",
+    "parse_arguments",
+    "get_user_input_path",
+    "scan_files",
+    "resolve_work_dir",
+    "setup_logging",
+    "run_analysis_loop",
+    "generate_final_report",
+    "HAS_RICH",
+    "console",
+    "analysis_config",
+    "Colors",
+    "colorize",
+    "LOGO",
+]
 
 # Work directory chosen by main() — read by the KeyboardInterrupt handler so the
 # "progress saved in …" message names the real location (see resolve_work_dir).
 _WORK_DIR: Optional[Path] = None
 
 
-def _parse_multiple_paths(user_input: str) -> list[str]:
-    """Parse user input potentially containing multiple paths.
-
-    Args:
-        user_input: String entered by the user.
-
-    Returns:
-        List of raw paths (uncleaned).
-    """
-    if ";" in user_input:
-        return [p.strip() for p in user_input.split(";")]
-    elif "," in user_input:
-        return [p.strip() for p in user_input.split(",")]
-    return [user_input]
-
-
-def _clean_path_string(path_str: str) -> str:
-    """Cleans quotes from a path string.
-
-    Args:
-        path_str: Path string potentially surrounded by quotes.
-
-    Returns:
-        Cleaned path.
-    """
-    if path_str.startswith('"') and path_str.endswith('"'):
-        return path_str[1:-1]
-    elif path_str.startswith("'") and path_str.endswith("'"):
-        return path_str[1:-1]
-    return path_str
-
-
-def _validate_paths(raw_paths: list[str]) -> list[Path]:
-    """Validates and converts a list of raw paths to Path objects.
-
-    Args:
-        raw_paths: List of path strings.
-
-    Returns:
-        List of valid (existing) Paths.
-    """
-    valid_paths = []
-    for raw_path in raw_paths:
-        if not raw_path:
-            continue
-
-        cleaned = _clean_path_string(raw_path)
-        path = Path(cleaned)
-
-        if path.exists():
-            valid_paths.append(path)
-            print(f"  {colorize('[OK]', Colors.GREEN)} Added : {path.absolute()}")
-        else:
-            print(f"  {colorize('[!!]', Colors.YELLOW)} Ignored (does not exist) : {raw_path}")
-
-    return valid_paths
-
-
-def _print_banner(machine_readable: bool = False) -> None:
-    """The logo, on stderr when stdout is carrying machine-readable output."""
-    print(LOGO, file=sys.stderr if machine_readable else sys.stdout)
-
-
-def get_user_input_path() -> list[Path]:
-    """Asks user to enter one or more paths via interactive interface.
-
-    Returns:
-        List of paths (folders or files) to analyze.
-    """
-    print(LOGO)
-    print("\n" + colorize("═" * 75, Colors.CYAN))
-    print(f"  {colorize('INTERACTIVE MODE', Colors.BRIGHT_WHITE)}")
-    print(colorize("═" * 75, Colors.CYAN))
-    print("  Drag and drop one or more folders/files below")
-    print("  (You can separate multiple paths with commas or semicolons)")
-    print("  (Or press Enter to analyze current folder)")
-    print(colorize("═" * 75, Colors.CYAN))
-
-    while True:
-        try:
-            user_input = input(f"\n  {colorize('Path(s)', Colors.BRIGHT_YELLOW)} : ").strip()
-
-            # If empty, use current directory
-            if not user_input:
-                return [Path.cwd()]
-
-            # Parse and validate paths
-            raw_paths = _parse_multiple_paths(user_input)
-            valid_paths = _validate_paths(raw_paths)
-
-            if valid_paths:
-                print(f"\n  Total : {len(valid_paths)} location(s) selected")
-                return valid_paths
-            else:
-                print(f"  {colorize('[XX]', Colors.RED)} No valid path found. Please try again.")
-
-        except KeyboardInterrupt:
-            print(f"\n\n{colorize('Goodbye !', Colors.CYAN)}")
-            sys.exit(0)
-
-
-def parse_arguments() -> argparse.Namespace:
-    """Parse CLI arguments and (if none provided) prompt the user interactively.
-
-    Returns:
-        argparse.Namespace with `.paths` (list[Path]) and the rest of the
-        options. `.paths` is always non-empty on return — either provided on
-        the command line or collected interactively.
-    """
-    parser = argparse.ArgumentParser(
-        prog="flac-detective",
-        description="Advanced FLAC authenticity analyzer — detects MP3-to-FLAC transcodes.",
-        epilog="If no paths are given, an interactive prompt is shown.",
-    )
-    parser.add_argument(
-        "paths",
-        nargs="*",
-        type=Path,
-        help="One or more FLAC files or directories to analyze.",
-    )
-    parser.add_argument(
-        "-V",
-        "--version",
-        action="version",
-        version=f"flac-detective {__version__}",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Verbose output: log level DEBUG, show per-rule scoring details.",
-    )
-    parser.add_argument(
-        "--sample-duration",
-        type=float,
-        default=None,
-        metavar="SECS",
-        help=(
-            "Seconds of audio read per window, three windows per file (default: 30, "
-            "range 5-120). Every published accuracy figure was measured at 30. A "
-            "longer sample reads different audio, not the same audio better; a "
-            "verdict that changes with this number is sitting on a reading boundary "
-            "(see ml/exchange/SAMPLE_DURATION_MEASUREMENT_2026-09-07.md)."
-        ),
-    )
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=None,
-        metavar="N",
-        help=(
-            f"Number of parallel worker processes (default: CPU count, capped at "
-            f"{analysis_config.WORKER_CAP}). Use 1 to analyse in this process, with no "
-            "workers to spawn at all — the answer if the run dies with 'WinError 1450' "
-            "or a BrokenProcessPool, which is a start-up failure and not a problem with "
-            "your files."
-        ),
-    )
-    parser.add_argument(
-        "--deep",
-        action="store_true",
-        help=(
-            "Deep mode: run the ML rule (12) on every file, even ones the fast "
-            "heuristics clear instantly. Slower (decode + CNN per file), but catches "
-            "high-bitrate MP3, Apple AAC and Opus transcodes that leave no heuristic "
-            "trace (ffmpeg-family AAC and Vorbis are already read by Rule 13 in a normal "
-            "scan). Surfaces them as WARNING for review. "
-            "Not an on/off switch: with the [ml] extra installed, the ML rule runs on "
-            "files the fast heuristics leave in doubt whether or not this flag is given."
-        ),
-    )
-    parser.add_argument(
-        "--advanced",
-        action="store_true",
-        help=(
-            "Advanced output: show the plumbing — numeric scores, detected cutoff and "
-            "MP3 bitrate, and the per-rule reasoning. Default ('easy') mode hides all "
-            "that and prints a plain-language verdict and recommended action per file."
-        ),
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-        metavar="PATH",
-        help="Path of the report file to write (default: auto-named in the work directory).",
-    )
-    parser.add_argument(
-        "--work-dir",
-        type=Path,
-        default=None,
-        metavar="DIR",
-        help=(
-            "Directory for progress.json (resume state), the auto-named report and the "
-            "console log. Default: the scan directory; if that is read-only (external "
-            "drive, container ':ro' mount) the current directory is used instead. "
-            "Created if missing."
-        ),
-    )
-    parser.add_argument(
-        "--progress-events",
-        type=str,
-        default=None,
-        metavar="DEST",
-        help=(
-            "Report progress WITHIN each file, as one JSON object per line, for an "
-            "application driving this as a subprocess. '-' writes to stderr (stdout "
-            "stays reserved for the report); anything else is a file path, truncated "
-            "at start. Off by default. Each line carries event, file, stage, index and "
-            "total, where stage is prepare/metadata/spectrum/quality/scoring/done. "
-            "There is no percentage: which rules run depends on what the earlier ones "
-            "found, so the time left inside a file is not knowable when it is opened."
-        ),
-    )
-    parser.add_argument(
-        "--format",
-        choices=["text", "json", "csv", "html"],
-        default="text",
-        help=(
-            "Report format: 'text' (human-readable, default), 'json' (machine-readable), "
-            "'csv' (one row per file, ranked most-suspicious first — for triaging a "
-            "whole library in a spreadsheet), or 'html' (a single self-contained page "
-            "with a sortable triage table and a spectrum plot for each flagged file)."
-        ),
-    )
-    args = parser.parse_args()
-
-    # Bounds check sample-duration (argparse `choices` only does discrete values)
-    if args.sample_duration is not None and not (5.0 <= args.sample_duration <= 120.0):
-        parser.error(
-            f"--sample-duration must be between 5 and 120 seconds (got {args.sample_duration})"
-        )
-
-    # A worker count is a resource decision, so it is applied to the config here
-    # and read from there everywhere — the CLI, the GUI worker and the pool all
-    # take the same number rather than each having an opinion.
-    if args.workers is not None:
-        if args.workers < 1:
-            parser.error(f"--workers must be 1 or more (got {args.workers})")
-        analysis_config.MAX_WORKERS = args.workers
-
-    if not args.paths:
-        args.paths = get_user_input_path()
-        return args
-
-    invalid_paths = [p for p in args.paths if not p.exists()]
-    if invalid_paths:
-        logger.error(f"Invalid paths : {', '.join(str(p) for p in invalid_paths)}")
-        sys.exit(1)
-    # The banner goes to stderr whenever stdout carries data rather than a
-    # report for a human. `--format json | jq .` failed on the first byte
-    # because the ANSI-coloured logo was in front of the JSON (Provir,
-    # 2026-08-31). stderr is what decoration is for; the data stream stays clean.
-    _print_banner(machine_readable=args.format != "text")
-    return args
-
-
-# Audio extensions that are lossy, or (the probe-able containers) only conditionally
-# lossless: a directly-passed file with one of these that isn't analysable lossless
-# is reported as a non-FLAC reject rather than silently ignored.
-_LOSSY_SUFFIXES = LOSSY_SUFFIXES | PROBE_SUFFIXES
-
-
-def scan_files(paths: list[Path]) -> tuple[list[Path], list[Path]]:
-    """Scan paths for FLAC and non-FLAC audio files.
-
-    Args:
-        paths: List of paths to scan.
-
-    Returns:
-        Tuple of (all_flac_files, all_non_flac_files).
-    """
-    all_flac_files = []
-    all_non_flac_files = []
-
-    for path in paths:
-        if path.is_file():
-            # Analyse any lossless source on its own merits: FLAC/WAV natively, plus
-            # ALAC (.m4a) / APE etc. detected by probing the real codec. A lossy file
-            # (mp3, an AAC .m4a, …) goes to the "replace with a real FLAC" reject list.
-            if is_analysable_lossless(path):
-                all_flac_files.append(path)
-                logger.info(f"File added : {path.name}")
-            elif path.suffix.lower() in _LOSSY_SUFFIXES:
-                all_non_flac_files.append(path)
-            else:
-                logger.warning(f"Ignored (not an analysable audio file or folder) : {path}")
-        elif path.is_dir():
-            # One walk, the same decision per file as for a file passed directly:
-            # native formats by extension, probe-able containers by their real
-            # codec, lossy extensions to the reject list. (Until v1.13.16 the
-            # directory scan took .flac and .wav by name and probed the lossy
-            # extensions only, so an .aiff in a folder was never analysed.)
-            analysable, rejects = discover_audio_files(path)
-            for candidate in analysable:
-                if candidate.suffix.lower() not in (".flac", ".wav"):
-                    logger.info(
-                        f"Lossless {candidate.suffix} added for analysis : {candidate.name}"
-                    )
-            all_flac_files.extend(analysable)
-            all_non_flac_files.extend(rejects)
-        else:
-            logger.warning(f"Ignored (not a FLAC/WAV file or folder) : {path}")
-
-    return all_flac_files, all_non_flac_files
-
-
-# Authoritative verdict -> (icon, Rich style). Single source of truth for the
-# thresholds is new_scoring/constants.py via determine_verdict(); the console only
-# renders the label it produced — it must NOT recompute its own from the score.
-_VERDICT_DISPLAY = {
-    "FAKE_CERTAIN": ("❌", "fake", "FAKE"),
-    "SUSPICIOUS": ("⚠️ ", "suspicious", "SUSPICIOUS"),
-    "WARNING": ("❓", "warning", "WARNING"),
-    "AUTHENTIC": ("✅", "authentic", "AUTHENTIC"),
-    "NON_FLAC": ("🚫", "fake", "NON_FLAC"),
-    "NOT_ASSESSED": ("🔍", "warning", "NOT ASSESSED"),
-    "ERROR": ("⁉️ ", "warning", "ERROR"),
-}
-
-
-def _log_formatted_result(result: dict, processed: int, total: int, advanced: bool = False):
-    """Log one analysis result, styled by its authoritative verdict.
-
-    Args:
-        result: Analysis result dict. Its ``verdict`` (from determine_verdict) is
-            the source of truth — the console renders that label, never its own.
-        processed: Number of files processed.
-        total: Total number of files.
-        advanced: If True, show the numeric score (plumbing). Default 'easy' mode
-            shows a plain verdict label only.
-    """
-    score = result.get("score", 0)
-    verdict = result.get("verdict", "UNKNOWN")
-    filename = result["filename"]
-    icon, style, label = _VERDICT_DISPLAY.get(verdict, ("•", "info", verdict))
-
-    # Truncate filename gracefully
-    if len(filename) > 50:
-        filename = filename[:47] + "..."
-
-    # Easy mode hides the 0-150 score; advanced shows it.
-    score_field = f" {score:>3}/100" if advanced else ""
-    if HAS_RICH:
-        # We rely on RichHandler for the timestamp and base formatting
-        # Here we just construct the nice message content
-        msg = f"[{style}]{icon} {label:<12}{score_field}[/]  {filename}"
-        logger.info(msg, extra={"markup": True})
-    else:
-        # Fallback for standard logging
-        msg = f"[{processed:03d}/{total:03d}] {icon} {label:<12}{score_field}  {filename}"
-        logger.info(msg)
-
-
-def _create_non_flac_result(non_flac_file: Path) -> dict:
-    """Create a result dictionary for a non-FLAC audio file.
-
-    Args:
-        non_flac_file: Path to the non-FLAC file.
-
-    Returns:
-        Result dictionary.
-    """
-    extension = non_flac_file.suffix.upper()[1:]  # Remove the dot and uppercase
-    return {
-        "filepath": str(non_flac_file),
-        "filename": non_flac_file.name,
-        "score": 100,  # Maximum fake score for non-FLAC
-        "verdict": "NON_FLAC",
-        "confidence": "CERTAIN",
-        "reason": f"NON-FLAC FILE ({extension}) - Must be replaced with authentic FLAC",
-        "cutoff_freq": 0,
-        "sample_rate": "N/A",
-        "bit_depth": "N/A",
-        "encoder": extension,
-        "duration_mismatch": None,
-        "duration_metadata": "N/A",
-        "duration_real": "N/A",
-        "duration_diff": "N/A",
-        "has_clipping": False,
-        "clipping_severity": "n/a",
-        "clipping_percentage": 0.0,
-        "has_dc_offset": False,
-        "dc_offset_severity": "n/a",
-        "dc_offset_value": 0.0,
-        "is_corrupted": False,
-        "corruption_error": None,
-        "has_silence_issue": False,
-        "silence_issue_type": "n/a",
-        "is_fake_high_res": False,
-        "estimated_bit_depth": 0,
-        "is_upsampled": False,
-        "suspected_original_rate": 0,
-        "estimated_mp3_bitrate": 0,
-        "hires_verdict": "NOT_HIRES",
-        "hires_reason": "",
-    }
-
-
-@contextmanager
-def _progress_event_writer(dest: Optional[str]) -> Iterator[Optional[ProgressCallback]]:
-    """Yield a callable writing one JSON object per line to ``dest``, or ``None``.
-
-    ``dest`` is ``None`` (the feature is off and nothing is created), ``-`` for
-    stderr, or a path. stderr rather than stdout because stdout already carries
-    the report under ``--format json`` and that stream has to stay parseable —
-    the same rule the banner obeys.
-
-    Every line is flushed: a consumer reading this pipe wants the event now, and
-    a block-buffered stream would hand it six at once when the file is over,
-    which is the very problem this exists to solve. ASCII-escaped (json.dumps'
-    default) so no console encoding can break a line — a filename outside the
-    console codepage crashed the CLI once already.
-    """
-    if dest is None:
-        yield None
-        return
-
-    stream: Any
-    if dest == "-":
-        stream, close = sys.stderr, False
-    else:
-        try:
-            # Line-buffered and UTF-8: the bytes are ASCII either way, and a
-            # reader tailing the file sees each event as it happens.
-            stream, close = open(dest, "w", encoding="utf-8", buffering=1), True
-        except OSError as exc:
-            # A destination that cannot be written is a mistake in the command,
-            # not a reason to analyse a library and then fail: say so and stop.
-            raise SystemExit(f"--progress-events: cannot write to {dest}: {exc}")
-
-    def write(event: ProgressEvent) -> None:
-        stream.write(json.dumps(event.as_dict()) + "\n")
-        stream.flush()
-
-    try:
-        yield write
-    finally:
-        if close:
-            stream.close()
-
-
-@contextmanager
-def _worker_event_channel(
-    on_event: Optional[ProgressCallback],
-) -> Iterator[Tuple[Optional[Callable[..., None]], tuple]]:
-    """Carry progress events from pool workers back into this process.
-
-    Yields the ``(initializer, initargs)`` pair for ``ProcessPoolExecutor``.
-    With no consumer that pair is ``(None, ())`` and nothing whatsoever is
-    built — no manager, no queue, no thread — so an ordinary scan is byte for
-    byte the run it was before this feature existed.
-
-    A manager queue rather than a plain ``multiprocessing.Queue``: its proxy is
-    picklable by contract, which is what sending it through the pool's
-    initargs needs on spawn platforms. It is bound once per worker by
-    :func:`install_queue_sink`, so nothing extra is pickled per file.
-    """
-    if on_event is None:
-        yield None, ()
-        return
-
-    manager = multiprocessing.Manager()
-    queue = manager.Queue()
-
-    def drain() -> None:
-        # None is the sentinel, not a unique object(): the queue pickles what
-        # goes through it, so identity does not survive the trip and `is` on a
-        # sentinel object would never match. An event is never None.
-        while True:
-            try:
-                item = queue.get()
-            except (EOFError, OSError):  # BrokenPipeError is an OSError
-                return
-            if item is None:
-                return
-            try:
-                on_event(item)
-            except Exception as exc:  # a closed pipe downstream, typically
-                logger.debug("Progress writer raised (%s); dropping the event", exc)
-
-    thread = threading.Thread(target=drain, name="fd-progress-drain", daemon=True)
-    thread.start()
-    try:
-        yield install_queue_sink, (queue,)
-    finally:
-        try:
-            queue.put(None)
-            thread.join(timeout=5)
-        except Exception as exc:  # pragma: no cover - manager already gone
-            logger.debug("Progress channel shutdown: %s", exc)
-        manager.shutdown()
-
-
-def _analyze_batch(
-    files: list[Path],
-    analyzer: Any,
-    workers: int,
-    on_event: Optional[ProgressCallback] = None,
-) -> Iterator[tuple[Path, dict]]:
-    """Yield ``(path, result)`` for each file, in a pool or in this process.
-
-    ``workers <= 1`` runs here: no pool to break, and the heavy stack is imported
-    once instead of once per worker. That is the fallback path, and it is also
-    what ``--workers 1`` gives anyone whose machine cannot spawn workers at all.
-
-    Args:
-        files: Files to analyse.
-        analyzer: The analyzer; must be picklable when ``workers > 1``.
-        workers: Process count. 1 or less means in-process.
-        on_event: Per-stage progress consumer (issue #11), or None for none. In
-            process the analyzer is handed the callback; in the pool the events
-            come back over a queue, because a callback does not cross a process.
-
-    Yields:
-        ``(path, result)`` pairs, in completion order when pooled.
-    """
-    if workers <= 1:
-        for path in files:
-            # The call keeps its old shape when the feature is off, so anything
-            # duck-typed as an analyzer elsewhere is unaffected by this argument.
-            if on_event is None:
-                yield path, analyzer.analyze_file(path)
-            else:
-                yield path, analyzer.analyze_file(path, on_progress=on_event)
-        return
-    with _worker_event_channel(on_event) as (initializer, initargs):
-        with ProcessPoolExecutor(
-            max_workers=workers, initializer=initializer, initargs=initargs
-        ) as executor:
-            futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
-            for future in as_completed(futures):
-                yield futures[future], future.result()
-
-
-def _process_flac_files(
-    files_to_process: list[Path],
-    tracker: ProgressTracker,
-    analyzer: FLACAnalyzer,
-    advanced: bool = False,
-    on_event: Optional[ProgressCallback] = None,
-):
-    """Process FLAC files with multi-processing and rich progress.
-
-    Falls back to this process if the worker pool dies. See ``run`` below.
-
-
-    Args:
-        files_to_process: List of FLAC files to analyze.
-        tracker: Progress tracker instance.
-        analyzer: FLAC analyzer instance.
-        advanced: Pass-through to the per-file console line (show score or not).
-        on_event: Per-stage progress consumer (``--progress-events``), or None.
-    """
-    total_files = len(files_to_process)
-
-    # Define Progress Bar Columns
-    columns = [
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        TimeRemainingColumn(),
-    ]
-
-    # Use Rich Progress if available
-    progress_ctx: Any
-    if HAS_RICH:
-        progress_ctx = Progress(*columns, console=console)
-    else:
-        # Dummy context manager for no-rich mode
-        from contextlib import nullcontext
-
-        progress_ctx = nullcontext()
-
-    processed_count = 0
-    done: set[Path] = set()
-
-    def consume(files: list[Path], workers: int, progress: Any = None, task_id: Any = None) -> None:
-        """Analyse ``files`` and record every result as it lands."""
-        nonlocal processed_count
-        for path, result in _analyze_batch(files, analyzer, workers, on_event):
-            done.add(path)
-            tracker.add_result(result)
-            processed_count += 1
-            if progress is not None:
-                progress.update(task_id, advance=1)
-                # Logged inside the progress block so RichHandler puts it above the bar.
-                _log_formatted_result(result, processed_count, total_files, advanced)
-            else:
-                _log_formatted_result(result, processed_count, total_files)
-            if processed_count % analysis_config.SAVE_INTERVAL == 0:
-                tracker.save()
-
-    def run(progress: Any = None, task_id: Any = None) -> None:
-        """Run the pool, and finish the job by hand if the pool dies.
-
-        A BrokenProcessPool used to reach the user as a bare traceback with every
-        remaining file unanalysed. The pool dies for reasons that have nothing to
-        do with the audio — most often a worker killed while importing, which on
-        Windows is `WinError 1450` — so the right answer is to stop asking for
-        workers, not to stop working. What is already recorded stays recorded;
-        the rest is finished in this process, slower and reliably.
-        """
-        workers = max(1, int(analysis_config.MAX_WORKERS))
-        try:
-            consume(files_to_process, workers, progress, task_id)
-        except BrokenProcessPool:
-            left = [f for f in files_to_process if f not in done]
-            logger.error(
-                "The worker pool died after %d of %d files. This is a start-up failure "
-                "in the workers, not a problem with your audio — on Windows it is usually "
-                "'WinError 1450' while importing. Finishing the remaining %d file(s) in "
-                "this process. Use --workers to set a lower number next time.",
-                len(done),
-                total_files,
-                len(left),
-            )
-            tracker.save()
-            consume(left, 1, progress, task_id)
-
-    if HAS_RICH:
-        with progress_ctx as progress:
-            task_id = progress.add_task("[cyan]Analyzing audio files...", total=total_files)
-            run(progress, task_id)
-    else:
-        run()
-
-
-def _add_non_flac_results(all_non_flac_files: list[Path], tracker: ProgressTracker):
-    """Add non-FLAC audio files to results.
-
-    Args:
-        all_non_flac_files: List of non-FLAC files.
-        tracker: Progress tracker instance.
-    """
-    for non_flac_file in all_non_flac_files:
-        result = _create_non_flac_result(non_flac_file)
-        tracker.add_result(result)
-
-    if all_non_flac_files:
-        logger.info(f"\n{len(all_non_flac_files)} non-FLAC audio files added to report")
-
-
-def run_analysis_loop(
-    all_flac_files: list[Path],
-    all_non_flac_files: list[Path],
-    output_dir: Path,
-    sample_duration: Optional[float] = None,
-    deep: bool = False,
-    advanced: bool = False,
-    on_event: Optional[ProgressCallback] = None,
-) -> list[dict]:
-    """Run the main analysis loop on the provided files.
-
-    Args:
-        all_flac_files: List of FLAC files to analyze.
-        all_non_flac_files: List of non-FLAC files to report.
-        output_dir: Directory for saving progress and reports.
-        sample_duration: Override the default audio sample duration (seconds).
-            None falls back to `analysis_config.SAMPLE_DURATION`.
-        deep: Run Rule 12 (ML) on every file, bypassing the authentic fast path.
-            See the ``--deep`` flag.
-        advanced: Show numeric scores in the per-file console line (else easy mode).
-        on_event: Per-stage progress consumer (``--progress-events``), or None.
-
-    Returns:
-        List of result dictionaries.
-    """
-    effective_duration = (
-        sample_duration if sample_duration is not None else analysis_config.SAMPLE_DURATION
-    )
-    analyzer = FLACAnalyzer(sample_duration=effective_duration, deep=deep)
-    tracker = ProgressTracker(progress_file=output_dir / "progress.json")
-
-    # Filter already processed files
-    files_to_process = [f for f in all_flac_files if not tracker.is_processed(str(f))]
-
-    if not files_to_process:
-        logger.info("All files have already been processed!")
-        logger.info("Delete progress.json to restart analysis")
-    else:
-        tracker.set_total(len(all_flac_files))
-        processed, total = tracker.get_progress()
-
-        logger.info(f"Resuming: {processed}/{total} files already processed")
-        logger.info(f"{len(files_to_process)} files remaining to analyze")
-        logger.info(f"Multi-processing: {analysis_config.MAX_WORKERS} workers")
-        print()
-
-        # Multi-process analysis
-        _process_flac_files(files_to_process, tracker, analyzer, advanced, on_event)
-
-        # Final save
-        tracker.save()
-
-    # Add non-FLAC audio files to results
-    _add_non_flac_results(all_non_flac_files, tracker)
-
-    # Clean up progress file after successful completion
-    tracker.cleanup()
-
-    return tracker.get_results()
-
-
-def _cleanup_console_log_if_empty(log_file: Optional[Path]) -> bool:
-    """Delete console log file if it's empty or contains no errors/warnings.
-
-    Args:
-        log_file: Path to the console log file, or None if file logging was
-            unavailable (read-only scan dir + temp).
-
-    Returns:
-        True if log file was kept (has errors/warnings), False if deleted/absent.
-    """
-    if log_file is None:
-        return False
-    try:
-        # Close all file handlers to allow file deletion on Windows
-        root_logger = logging.getLogger()
-        file_handlers = [h for h in root_logger.handlers if isinstance(h, logging.FileHandler)]
-
-        for handler in file_handlers:
-            handler.flush()
-            handler.close()
-            root_logger.removeHandler(handler)
-
-        if not log_file.exists():
-            return False
-
-        # Check if file is empty or contains only INFO messages
-        with open(log_file, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-
-        # If empty, delete
-        if not content:
-            log_file.unlink()
-            return False
-
-        # Check if there are any ERROR or WARNING messages
-        has_errors = "ERROR" in content or "WARNING" in content
-
-        if not has_errors:
-            # No errors or warnings, safe to delete
-            log_file.unlink()
-            return False
-
-        # Keep the log file (has errors/warnings)
-        return True
-
-    except Exception as e:
-        # If we can't check/delete, keep the file
-        logger.warning(f"Could not cleanup log file: {e}")
-        return True
-
-
-def _write_report(
-    results: list[dict],
-    output_file: Path,
-    report_format: str,
-    input_paths: list[Path],
-    all_flac_files: list[Path],
-    all_non_flac_files: list[Path],
-    advanced: bool = False,
-) -> None:
-    """Write ``results`` to ``output_file`` in the requested format.
-
-    Splits the format dispatch out of ``generate_final_report`` so that function
-    stays within the complexity budget as new formats are added.
-
-    Args:
-        results: Per-file analysis result dicts.
-        output_file: Destination path (extension already chosen by the caller).
-        report_format: "text", "json", "csv" or "html".
-        input_paths: Scan roots (passed to reporters for relative paths / scan_info).
-        all_flac_files: All FLAC files analyzed (json scan_info only).
-        all_non_flac_files: All non-FLAC files found (json scan_info only).
-        advanced: Text report verbosity — easy (plain language) vs advanced (plumbing).
-    """
-    if report_format == "json":
-        import json
-
-        payload = {
-            "scan_info": {
-                "timestamp": datetime.now().isoformat(),
-                "analyzer_version": __version__,
-                "scan_paths": [str(p) for p in input_paths],
-                "total_flac_files": len(all_flac_files),
-                "total_non_flac_files": len(all_non_flac_files),
-            },
-            "results": results,
-        }
-        with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
-    elif report_format == "csv":
-        CSVReporter().generate_report(results, output_file, scan_paths=input_paths)
-    elif report_format == "html":
-        HTMLReporter().generate_report(results, output_file, scan_paths=input_paths)
-    else:
-        TextReporter(advanced=advanced).generate_report(
-            results, output_file, scan_paths=input_paths
-        )
-
-
-def generate_final_report(  # noqa: C901
-    results: list[dict],
-    output_dir: Path,
-    all_flac_files: list[Path],
-    all_non_flac_files: list[Path],
-    log_file: Optional[Path],
-    input_paths: list[Path],
-    output_path: Optional[Path] = None,
-    report_format: str = "text",
-    advanced: bool = False,
-):
-    """Generate the final report and print summary.
-
-    Args:
-        results: List of analysis results.
-        output_dir: Directory to save the report.
-        all_flac_files: List of FLAC files analyzed.
-        all_non_flac_files: List of non-FLAC files found.
-        log_file: Path to the console log file.
-        input_paths: List of user input paths (scan roots).
-        output_path: Explicit output path; if None, auto-named in `output_dir`.
-        report_format: "text", "json", "csv" or "html".
-        advanced: Text report verbosity — easy (default) vs advanced (plumbing).
-    """
-    logger.info("\nGenerating report...")
-
-    if output_path is not None:
-        output_file = output_path
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-    else:
-        ext = {"json": "json", "csv": "csv", "html": "html"}.get(report_format, "txt")
-        output_file = output_dir / f"flac_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
-
-    _write_report(
-        results,
-        output_file,
-        report_format,
-        input_paths,
-        all_flac_files,
-        all_non_flac_files,
-        advanced=advanced,
-    )
-
-    # …and onto the real stdout when that is where the caller is reading. Piping
-    # is the whole point of a machine-readable format; before this the report
-    # existed only as a file whose name the caller had to guess.
-    if report_format != "text" and output_path is None:
-        try:
-            _REAL_STDOUT.write(output_file.read_text(encoding="utf-8"))
-            _REAL_STDOUT.flush()
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.warning("could not echo the report to stdout: %s", exc)
-
-    # Generate diagnostic report if there were issues
-    tracker = get_tracker()
-    stats = tracker.get_statistics()
-    diagnostic_report_path = None
-
-    if stats["files_with_issues"] > 0:
-        diagnostic_report_path = (
-            output_dir / f"flac_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        )
-        diagnostic_report = tracker.generate_report()
-
-        with open(diagnostic_report_path, "w", encoding="utf-8") as f:
-            f.write(diagnostic_report)
-
-        logger.warning(
-            f"\n⚠️  {stats['files_with_issues']} file(s) had reading issues during analysis"
-        )
-        logger.warning(f"   Diagnostic report saved to: {diagnostic_report_path.name}")
-
-    # Summary — count by the authoritative verdict (determine_verdict), not by
-    # ad-hoc score cut points, so these stay consistent with the reports/API.
-    suspicious_flac = [r for r in results if r.get("verdict") in ("SUSPICIOUS", "FAKE_CERTAIN")]
-    fake_certain = [r for r in results if r.get("verdict") == "FAKE_CERTAIN"]
-    non_flac_count = len(all_non_flac_files)
-
-    # Check if console log contains errors/warnings, delete if empty or no issues
-    log_file_kept = _cleanup_console_log_if_empty(log_file)
-
-    print()
-    print(colorize("=" * 70, Colors.CYAN))
-    print(f"  {colorize('ANALYSIS COMPLETE', Colors.BRIGHT_GREEN)}")
-    print(colorize("=" * 70, Colors.CYAN))
-    print(f"  FLAC files analyzed: {len(all_flac_files)}")
-    print(
-        f"  {colorize('Fake/Suspicious FLAC files', Colors.RED)}: {len(suspicious_flac)} (including {len(fake_certain)} certain fakes)"
-    )
-    if non_flac_count > 0:
-        print(f"  {colorize('Non-FLAC files (need replacement)', Colors.RED)}: {non_flac_count}")
-
-    # Triage view: the most suspicious files, ranked, so a library scan surfaces
-    # what to check first without opening the full report. Advanced shows the raw
-    # score; easy mode shows the plain verdict label instead.
-    if suspicious_flac:
-        from .presentation import verdict_plain
-
-        top = sorted(suspicious_flac, key=lambda r: r.get("score", 0) or 0, reverse=True)
-        print(f"\n  {colorize('Most suspicious (top of the list):', Colors.YELLOW)}")
-        for r in top[:5]:
-            if advanced:
-                lead = f"{r.get('score', 0):>4}  {r.get('verdict', ''):<12}"
-            else:
-                icon, label, _ = verdict_plain(r.get("verdict", ""))
-                lead = f"{icon}  {label:<14}"
-            print(f"    {lead}  {r.get('filename', '')}")
-        if len(top) > 5:
-            print(f"    … and {len(top) - 5} more (full ranking in the report)")
-
-    # Show diagnostic warning if there were issues
-    if stats["files_with_issues"] > 0:
-        print(
-            f"  {colorize('⚠️  Files with reading issues', Colors.YELLOW)}: {stats['files_with_issues']} ({stats['critical_failures']} critical)"
-        )
-
-    print(f"  Report ({report_format}): {output_file.name}")
-    if diagnostic_report_path:
-        print(f"  {colorize('Diagnostic report', Colors.YELLOW)}: {diagnostic_report_path.name}")
-    if log_file_kept and log_file is not None:
-        print(f"  Console log: {log_file.name}")
-    print(colorize("=" * 70, Colors.CYAN))
-
-
-def _make_streams_utf8_safe() -> None:
-    """Stop a Windows console codepage from killing the process before it starts.
-
-    Reported by Provir 2026-08-31 against 1.13.0 from PyPI, Windows 11, stock
-    cmd/PowerShell: `flac-detective --version` dies with UnicodeEncodeError
-    before a single argument is parsed, because `parse_arguments()` prints a
-    banner containing box-drawing glyphs and Python gives `sys.stdout` the
-    console's ANSI codepage (cp1252), where those glyphs have no mapping.
-
-    **The tool did not start at all on a default Windows terminal.** No
-    invocation worked, `--help` included, and no CI job caught it because the
-    GitHub runners default to UTF-8 — the case that catches it is a stock user
-    console, which is the one case nobody tests.
-
-    `errors="replace"` rather than a fallback banner: a console that cannot draw
-    a box should print a question mark and keep going, never raise. Wrapped in
-    its own try/except because a stream that cannot be reconfigured (a pipe on
-    an old Python, a captured stream under pytest) is not a reason to fail
-    either.
-    """
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
-        except Exception:  # pragma: no cover - depends on the host console
-            pass
-
-
-def main():
-    """Main function."""
-    # Before ANY output: see _make_streams_utf8_safe.
-    _make_streams_utf8_safe()
+def _run() -> None:
+    """The scan, start to finish: arguments, discovery, analysis, report."""
+    global _WORK_DIR
+
+    # Before ANY output: see cli.console.make_streams_utf8_safe.
+    _console.make_streams_utf8_safe()
+    # Fix Windows console encoding for UTF-8 support (standard approach). Once,
+    # here, rather than at import: spawned workers re-import this module.
+    _console.enable_utf8_console()
     # Reset diagnostic tracker at the start of analysis
     reset_tracker()
 
     args = parse_arguments()
 
     # A machine-readable format with no --output means stdout carries DATA, so
-    # every decorative print in this module has to go somewhere else. Reported by
+    # every decorative print in the CLI has to go somewhere else. Reported by
     # Provir 2026-08-31: `--format json file.flac | jq .` failed on the first
     # byte, because stdout held the banner and the summary and the report itself
     # was quietly written to a timestamped file the caller never asked for.
     #
-    # Rebinding sys.stdout is the surgical fix: 44 print() calls in this module
-    # become correct at once, without auditing each one, and the report is
-    # written to _REAL_STDOUT at the end. The file is still written as before —
+    # Rebinding sys.stdout is the surgical fix: every print() in the CLI
+    # becomes correct at once, without auditing each one, and the report is
+    # written to REAL_STDOUT at the end. The file is still written as before —
     # this adds a stream, it does not take one away.
     machine_stdout = args.format != "text" and not args.output
     if machine_stdout:
@@ -1319,7 +131,6 @@ def main():
     # Work directory for progress.json, the auto-named report and the console log:
     # --work-dir if given, else the scan directory, else (read-only scan dir) the
     # current directory. See resolve_work_dir().
-    global _WORK_DIR
     output_dir, work_dir_notes = resolve_work_dir(args.paths, args.work_dir)
     _WORK_DIR = output_dir
 
@@ -1329,7 +140,7 @@ def main():
         # Console handlers are WARNING-level: this is how a fallback gets seen.
         logger.warning(note)
 
-    with _progress_event_writer(args.progress_events) as on_event:
+    with _pool.progress_event_writer(args.progress_events) as on_event:
         results = run_analysis_loop(
             all_flac_files,
             all_non_flac_files,
@@ -1353,9 +164,15 @@ def main():
     )
 
 
-if __name__ == "__main__":
+def main():
+    """Console-script entry point (``flac-detective``).
+
+    Ctrl-C is handled HERE, not only under ``if __name__ == "__main__"``: the
+    installed command calls this function directly, and used to show a raw
+    traceback where the script form printed where the progress was saved.
+    """
     try:
-        main()
+        _run()
     except KeyboardInterrupt:
         print(f"\n\n{colorize('Interrupted by user', Colors.YELLOW)}")
         where = _WORK_DIR / "progress.json" if _WORK_DIR is not None else "progress.json"
@@ -1365,3 +182,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

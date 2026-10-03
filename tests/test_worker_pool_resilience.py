@@ -16,15 +16,12 @@ Three defects, one report: no cap on the worker count, no way for the user to
 lower it, and no recovery when the pool dies. These tests cover all three.
 """
 
-import sys
+from concurrent.futures.process import BrokenProcessPool  # noqa: E402
 from pathlib import Path
 from unittest.mock import MagicMock
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
-from concurrent.futures.process import BrokenProcessPool  # noqa: E402
-
-from flac_detective import main as fd_main  # noqa: E402
+from flac_detective.cli import console as fd_console  # noqa: E402
+from flac_detective.cli import pool as fd_main  # noqa: E402
 from flac_detective.config import AnalysisConfig  # noqa: E402
 
 
@@ -56,7 +53,7 @@ def test_the_worker_count_is_capped():
 def test_one_worker_runs_in_process(tmp_path):
     """--workers 1 must spawn nothing at all, not spawn one."""
     files = [tmp_path / f"{i}.flac" for i in range(3)]
-    pairs = list(fd_main._analyze_batch(files, _Analyzer(), workers=1))
+    pairs = list(fd_main.analyze_batch(files, _Analyzer(), workers=1))
     assert [p for p, _ in pairs] == files
     assert all(r["verdict"] == "AUTHENTIC" for _, r in pairs)
 
@@ -80,13 +77,13 @@ def test_a_broken_pool_is_finished_in_process(tmp_path, monkeypatch, caplog):
         for path in batch:
             yield path, _result(path)
 
-    monkeypatch.setattr(fd_main, "_analyze_batch", fake_batch)
-    monkeypatch.setattr(fd_main, "HAS_RICH", False)
+    monkeypatch.setattr(fd_main, "analyze_batch", fake_batch)
+    monkeypatch.setattr(fd_console, "HAS_RICH", False)
     monkeypatch.setattr(fd_main.analysis_config, "MAX_WORKERS", 8)
 
     tracker = MagicMock()
     events = []
-    fd_main._process_flac_files(files, tracker, _Analyzer(), advanced=False, on_event=events.append)
+    fd_main.process_flac_files(files, tracker, _Analyzer(), advanced=False, on_event=events.append)
 
     # Every file has a result, and none was recorded twice.
     recorded = [c.args[0]["file_path"] for c in tracker.add_result.call_args_list]
@@ -118,10 +115,10 @@ def test_a_broken_pool_saves_what_it_had(tmp_path, monkeypatch):
         for path in batch:
             yield path, _result(path)
 
-    monkeypatch.setattr(fd_main, "_analyze_batch", fake_batch)
-    monkeypatch.setattr(fd_main, "HAS_RICH", False)
+    monkeypatch.setattr(fd_main, "analyze_batch", fake_batch)
+    monkeypatch.setattr(fd_console, "HAS_RICH", False)
     monkeypatch.setattr(fd_main.analysis_config, "MAX_WORKERS", 4)
 
     tracker = MagicMock()
-    fd_main._process_flac_files(files, tracker, _Analyzer(), advanced=False)
+    fd_main.process_flac_files(files, tracker, _Analyzer(), advanced=False)
     assert tracker.save.called, "the pool died and nothing was written to disk"

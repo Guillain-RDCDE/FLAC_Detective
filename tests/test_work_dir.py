@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 from flac_detective import main as m
+from flac_detective.cli import workdir
 
 # ---------------------------------------------------------------------------
 # _is_writable_dir — the probe
@@ -27,19 +28,19 @@ from flac_detective import main as m
 
 
 def test_is_writable_dir_true_for_tmp(tmp_path):
-    assert m._is_writable_dir(tmp_path) is True
+    assert workdir.is_writable_dir(tmp_path) is True
     # The probe must not leave anything behind.
     assert list(tmp_path.iterdir()) == []
 
 
 def test_is_writable_dir_false_for_missing_dir(tmp_path):
-    assert m._is_writable_dir(tmp_path / "nope") is False
+    assert workdir.is_writable_dir(tmp_path / "nope") is False
 
 
 def test_is_writable_dir_false_for_a_file(tmp_path):
     f = tmp_path / "file.txt"
     f.write_text("x")
-    assert m._is_writable_dir(f) is False
+    assert workdir.is_writable_dir(f) is False
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="chmod is not enforced on Windows")
@@ -51,7 +52,7 @@ def test_is_writable_dir_false_for_chmod_555(tmp_path):
     ro.mkdir()
     ro.chmod(0o555)
     try:
-        assert m._is_writable_dir(ro) is False
+        assert workdir.is_writable_dir(ro) is False
     finally:
         ro.chmod(0o755)
 
@@ -63,16 +64,16 @@ def test_is_writable_dir_false_for_chmod_555(tmp_path):
 
 def test_explicit_work_dir_is_created_and_returned(tmp_path):
     wd = tmp_path / "state" / "nested"
-    wd_out, notes = m.resolve_work_dir([tmp_path], wd)
+    wd_out, notes = workdir.resolve_work_dir([tmp_path], wd)
     assert wd_out == wd
     assert notes == []
     assert wd.is_dir()
 
 
 def test_explicit_work_dir_unwritable_exits_early(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(m, "_is_writable_dir", lambda p: False)
+    monkeypatch.setattr(workdir, "is_writable_dir", lambda p: False)
     with pytest.raises(SystemExit) as exc:
-        m.resolve_work_dir([tmp_path], tmp_path / "wd")
+        workdir.resolve_work_dir([tmp_path], tmp_path / "wd")
     assert exc.value.code == 2
     assert "not writable" in capsys.readouterr().err
 
@@ -80,7 +81,7 @@ def test_explicit_work_dir_unwritable_exits_early(tmp_path, monkeypatch, capsys)
 def test_default_uses_scan_directory(tmp_path):
     scan = tmp_path / "music"
     scan.mkdir()
-    assert m.resolve_work_dir([scan]) == (scan, [])
+    assert workdir.resolve_work_dir([scan]) == (scan, [])
 
 
 def test_default_uses_parent_when_first_path_is_a_file(tmp_path):
@@ -88,7 +89,7 @@ def test_default_uses_parent_when_first_path_is_a_file(tmp_path):
     scan.mkdir()
     f = scan / "a.flac"
     f.write_bytes(b"")
-    assert m.resolve_work_dir([f]) == (scan, [])
+    assert workdir.resolve_work_dir([f]) == (scan, [])
 
 
 def test_readonly_scan_dir_falls_back_to_cwd(tmp_path, monkeypatch):
@@ -97,9 +98,9 @@ def test_readonly_scan_dir_falls_back_to_cwd(tmp_path, monkeypatch):
     cwd = tmp_path / "cwd"
     cwd.mkdir()
     monkeypatch.chdir(cwd)
-    real = m._is_writable_dir
-    monkeypatch.setattr(m, "_is_writable_dir", lambda p: False if p == scan else real(p))
-    out, notes = m.resolve_work_dir([scan])
+    real = workdir.is_writable_dir
+    monkeypatch.setattr(workdir, "is_writable_dir", lambda p: False if p == scan else real(p))
+    out, notes = workdir.resolve_work_dir([scan])
     assert out == cwd
     # The user is told what happened and how to resume / override.
     assert any("read-only" in n for n in notes)
@@ -111,8 +112,8 @@ def test_nothing_writable_falls_back_to_tempdir(tmp_path, monkeypatch):
     scan.mkdir()
     monkeypatch.chdir(tmp_path)
     tmp = Path(tempfile.gettempdir())
-    monkeypatch.setattr(m, "_is_writable_dir", lambda p: p == tmp)
-    out, notes = m.resolve_work_dir([scan])
+    monkeypatch.setattr(workdir, "is_writable_dir", lambda p: p == tmp)
+    out, notes = workdir.resolve_work_dir([scan])
     assert out == tmp
     assert any("temp" in n for n in notes)
 
@@ -131,7 +132,7 @@ def test_readonly_scan_dir_real_chmod_falls_back_to_cwd(tmp_path, monkeypatch):
     cwd.mkdir()
     monkeypatch.chdir(cwd)
     try:
-        out, notes = m.resolve_work_dir([scan])
+        out, notes = workdir.resolve_work_dir([scan])
         assert out == cwd
         assert notes
     finally:
