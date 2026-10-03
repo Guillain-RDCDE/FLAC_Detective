@@ -1,17 +1,24 @@
 """Main scoring calculator for FLAC analysis."""
 
+import gc
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import calculate_apparent_bitrate, calculate_real_bitrate
-from .constants import CASSETTE_THRESHOLD, CONVICTION_MIN_FAMILIES, CONVICTION_MIN_SCORE
+from .constants import (
+    CASSETTE_THRESHOLD,
+    CONVICTION_MIN_FAMILIES,
+    CONVICTION_MIN_SCORE,
+    SCORE_FAKE_CERTAIN,
+)
 from .evidence import collapse_dependent_families, evidence_families
 from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .rules.mdct_alignment import should_run_rule_13
 from .rules.spectral import rule1_may_consult_container
+from .rules.temporal_seam import MIN_CUTOFF_HZ as TEMPORAL_MIN_CUTOFF_HZ
 from .strategies import (
     Rule1MP3Bitrate,
     Rule2Cutoff,
@@ -247,10 +254,223 @@ def _is_corroborated(context: ScoringContext) -> bool:
     return len(families) >= CONVICTION_MIN_FAMILIES
 
 
-def _apply_scoring_rules(  # noqa: C901
-    context: ScoringContext, deep: bool = False
-) -> Tuple[int, List[str]]:
-    """Apply all scoring rules using the Strategy pattern.
+# The pipeline's own gates, named once. Values are the engine's and do not move
+# here: every one of them was calibrated on labelled files (see CHANGELOG).
+_SILENT_HEURISTICS_MAX_SCORE = 10
+"""Below this, with Rule 1 silent, the cheap rules are said to have found nothing."""
+
+_RULE10_MIN_SCORE = 30
+"""Rule 10 is asked only once a file is already suspect (also checked inside the rule)."""
+
+_UNCOMPRESSED_RATIO = 0.92
+"""real/apparent bitrate above this means a PCM container (WAV): no lossless-compression signal."""
+
+_CASSETTE_BONUS = -40
+"""Credited to Rule 11 when its evidence reaches CASSETTE_THRESHOLD."""
+
+_RULE11_MAX_CUTOFF_HZ = 19000
+_RULE7_CUTOFF_RANGE_HZ = (19000, 21500)
+
+# Rule 15's own gate is stereo_seam.MIN_CUTOFF_HZ (17 kHz) and the rule enforces
+# it internally; this older 12 kHz figure only decides whether the audio is
+# LOADED before the rule is asked. Raising it would change which files raise
+# on a failed load, not any score, so it is kept as is and named for what it is.
+_RULE15_LOAD_CUTOFF_HZ = 12000.0
+
+
+def _is_uncompressed_input(bm: BitrateMetrics) -> bool:
+    """True for a PCM container (e.g. WAV): real ≈ apparent bitrate.
+
+    The ratio is only allowed to decide anything when it was MEASURED on the
+    audio (the reference re-encode). When it was not — the analyzer skips that
+    measurement at cutoffs where Rule 1 cannot reach its container test — the
+    number on hand is the size of the file on disk, which is a fact about the
+    wrapper: 0.60 for a FLAC and 1.00 for the WAV holding the same samples.
+    Letting that through is issue #7 itself, so an unmeasured ratio reads as
+    "not uncompressed" for every container alike.
+    """
+    return bool(
+        bm.ratio_measured
+        and bm.apparent_bitrate > 0
+        and (bm.real_bitrate / bm.apparent_bitrate) > _UNCOMPRESSED_RATIO
+    )
+
+
+def _credit_cassette_bonus(context: ScoringContext, rule11: ScoringRule) -> None:
+    """Apply the cassette bonus, credited to Rule 11 rather than to the calculator.
+
+    The -40 is Rule 11's verdict acted upon, and a "why" line reading "offset by
+    _calculator -40" (issue #8's screenshot, 2026-09-08) names nothing.
+    """
+    logger.info("R11: MP3 signature cancelled (cassette source detected)")
+    logger.info(
+        f"CASSETTE DETECTED (evidence {context.cassette_score} >= {CASSETTE_THRESHOLD}). "
+        f"Disabling Rule 1 (MP3 Bitrate)."
+    )
+    previous_rule = context.active_rule
+    context.active_rule = rule11.name
+    try:
+        context.add_score(_CASSETTE_BONUS, ["R11: Authentic cassette audio source (bonus -40pts)"])
+    finally:
+        context.active_rule = previous_rule
+
+
+def _fast_rules(context: ScoringContext, is_uncompressed: bool) -> List[ScoringRule]:
+    """The cheap rules (<0.01 s together), in the order they are asked.
+
+    Rule 1 is left out only for a detected cassette source. On uncompressed input
+    it RUNS: gate D (v1.12) used to remove it here ("no lossless-compression
+    signal"), which put every WAV structurally beyond the rule's reach and was one
+    of the four mechanisms behind the engine reading 8.8 % on the owner-attested
+    wild 53 (all WAV). Gate C inside the rule now treats a PCM-level container
+    bitrate as uninformative rather than as a failure, and the rule's other guards
+    (variance, residual floor, Nyquist) are container-agnostic.
+    """
+    rules: List[ScoringRule] = []
+    if context.cassette_score < CASSETTE_THRESHOLD:
+        if is_uncompressed:
+            logger.info(
+                "UNCOMPRESSED input (e.g. WAV): Rule 1 runs with the container "
+                "bitrate treated as uninformative (v1.12 gates C+D)."
+            )
+        rules.append(Rule1MP3Bitrate())
+    rules += [
+        Rule2Cutoff(),
+        Rule424BitSuspect(),
+        Rule5HighVariance(),
+        Rule6HighQualityProtection(),
+    ]
+    return rules
+
+
+def _run_rules_14_and_15(context: ScoringContext) -> None:
+    """The temporal and stereo witnesses, each behind its cutoff gate.
+
+    Both run BEFORE the gate they should inform (short-circuit 3), and on both
+    paths through the pipeline — a witness that arrives after the gate it should
+    have informed is what Provir calls dressing.
+    """
+    if context.cutoff_freq >= TEMPORAL_MIN_CUTOFF_HZ:
+        _ensure_audio(context)
+        Rule14TemporalSeam().apply(context)
+    if context.cutoff_freq >= _RULE15_LOAD_CUTOFF_HZ:
+        _ensure_audio(context)
+        Rule15StereoSeam().apply(context)
+
+
+def _silent_heuristics_path(context: ScoringContext, deep: bool) -> Tuple[int, List[str]]:
+    """Finish a file whose cheap rules found nothing (gate E, issue #7).
+
+    This branch does not merely skip some rules, it ACQUITS: Rules 7 and 10 and
+    the Rule 8 refinement never run. It must not be entered on uncompressed input,
+    where Rule 1's silence is an absence of measurement, not a negative result
+    (the caller checks that).
+
+    Default scan: Rule 13 before the acquittal (v1.20.0). A silent full-band file
+    is exactly where a high-bitrate AAC or Vorbis transcode hides, and this branch
+    used to acquit it without asking the one rule that reads it: on 33 loud CD
+    tracks encoded at AAC 256 and Vorbis q6 the default scan caught 0 of 66,
+    --deep 66, Rule 13 alone 63. When Rule 13 scores the file is not acquitted:
+    it goes on to the witnesses deep mode runs (14, 15, 12, 16), exactly as
+    --deep would take it. See ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md.
+
+    Deep scan: the heuristics are silent, but that is precisely the 256-320 kbps
+    AAC blind spot, so Rule 13 and the witnesses run regardless.
+    """
+    if not deep:
+        r13_before = context.rule_scores.get("Rule13MDCTAlignment", 0)
+        r13_ran = should_run_rule_13(context.cutoff_freq, context.current_score)
+        if r13_ran:
+            _ensure_audio(context)
+            _run_rule_13(context)
+        if context.rule_scores.get("Rule13MDCTAlignment", 0) <= r13_before:
+            logger.info(
+                f"OPTIMIZATION: Fast path for authentic file "
+                f"(score={context.current_score}, no MP3"
+                + (", Rule 13 read no grid)" if r13_ran else ")")
+            )
+            context.reasons.append(
+                "⚡ Fast analysis: AUTHENTIC — heuristics silent, Rule 13 reads no MDCT grid"
+                if r13_ran
+                else "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
+            )
+            return context.current_score, context.reasons
+        logger.info(
+            f"Rule 13 read an MDCT grid on a file the heuristics left silent "
+            f"(score={context.current_score}): running the witnesses"
+        )
+    else:
+        logger.info(
+            f"DEEP: heuristics silent (score={context.current_score}), running "
+            f"Rules 12/13 anyway (fast path bypassed)"
+        )
+        if should_run_rule_13(context.cutoff_freq, context.current_score):
+            _ensure_audio(context)
+            _run_rule_13(context)
+    # Rule 14 must run on THIS path too: it is the branch for files whose
+    # heuristics found nothing — high-bitrate AAC, Vorbis, every Opus transcode —
+    # which is precisely the population the temporal witness exists for
+    # (test_verdict_reachability).
+    _run_rules_14_and_15(context)
+    Rule12MLClassifier().apply(context)
+    _run_rule_16_if_decisive(context)
+    return context.current_score, context.reasons
+
+
+def _refine_rule_8(
+    context: ScoringContext,
+    rule8: ScoringRule,
+    initial_score: int,
+    initial_reasons: List[str],
+) -> None:
+    """Re-run Rule 8 now that Rule 1's MP3 bitrate is known.
+
+    The initial contribution is rolled back by exact-match reason filtering —
+    fragile but acceptable as long as Rule 8's reasons stay deterministic for a
+    given context. In practice this moves no score (Rule 1 only sets a bitrate
+    below 0.95·Nyquist, Rule 8 only scores at or above it), but at that boundary
+    the two can disagree by one float ulp, so it is kept exactly as it was.
+    """
+    context.current_score -= initial_score
+    context.rule_scores["Rule8NyquistException"] = (
+        context.rule_scores.get("Rule8NyquistException", 0) - initial_score
+    )
+    for reason in initial_reasons:
+        if reason in context.reasons:
+            context.reasons.remove(reason)
+    rule8.apply(context)
+    logger.info("RULE 8 (refined): Score updated")
+
+
+def _release_audio(context: ScoringContext) -> None:
+    """Drop the decoded audio held by the context and collect at once.
+
+    The buffer is the largest allocation of the run; releasing it eagerly (and
+    collecting) avoided bad_alloc in long loops. With a shared AudioCache the
+    cache still holds its own copy until the analyzer clears it.
+    """
+    if context.audio_data is not None:
+        logger.debug("OPTIMIZATION: Releasing audio buffer memory")
+        context.audio_data = None
+        context.loaded_sample_rate = None
+        gc.collect()
+
+
+def _apply_scoring_rules(context: ScoringContext, deep: bool = False) -> Tuple[int, List[str]]:
+    """Apply the scoring rules, in the one order the engine was calibrated in.
+
+    The order is load-bearing, not incidental: several gates read the CURRENT
+    score and evidence families at the moment they are reached, and the list of
+    reasons is output in the order the rules append to it.
+
+    1. Rule 8 first (its protection is snapshotted for a later refinement).
+    2. Rule 11 early, below 19 kHz, so a cassette source can disable Rule 1.
+    3. The cheap rules (1, 2, 4, 5, 6).
+    4. Short-circuit 1: convicted and corroborated.
+    5. Short-circuit 2: the cheap rules found nothing — ``_silent_heuristics_path``.
+    6. Rule 7 (19-21.5 kHz), the Rule 8 refinement, Rule 13, Rules 14 and 15.
+    7. Short-circuit 3: convicted and corroborated.
+    8. Rule 10 (once suspect), Rule 12, Rule 16 where it can decide.
 
     Args:
         context: The scoring context containing all necessary data.
@@ -261,123 +481,33 @@ def _apply_scoring_rules(  # noqa: C901
     Returns:
         Tuple of (total_score, list_of_reasons)
     """
-    # ========== RULE 8: NYQUIST EXCEPTION (ALWAYS FIRST) ==========
-    # This rule MUST be calculated first and applied before any short-circuit
+    # Rule 8 MUST be calculated first and applied before any short-circuit.
     logger.debug("OPTIMIZATION: Calculating Rule 8 (Nyquist Exception) FIRST...")
     rule8 = Rule8NyquistException()
     rule8.apply(context)
-
-    # Store initial R8 score/reasons to allow refinement later
     initial_r8_score = context.current_score
     initial_r8_reasons = list(context.reasons)
-
     logger.info(f"RULE 8 (pre-calculated): {initial_r8_score} points")
 
-    # ========== PRIORITY RULE 11: CASSETTE DETECTION ==========
-    # R11 must run before R1 to disable MP3-bitrate scoring on authentic cassette rips.
-    # Trade-off: R11 is expensive (bandpass filtering) but only triggered when cutoff < 19 kHz.
-    rule11 = Rule11CassetteDetection()
-    run_rule11_early = context.cutoff_freq < 19000
-
-    # MEMORY OPTIMIZATION: Manage audio buffer scope
     try:
-        if run_rule11_early:
+        # Rule 11 before Rule 1, so an authentic cassette rip can switch MP3-bitrate
+        # scoring off. Expensive (bandpass filtering), hence the cutoff gate.
+        rule11 = Rule11CassetteDetection()
+        if context.cutoff_freq < _RULE11_MAX_CUTOFF_HZ:
             logger.info("Executing Rule 11 (Cassette) EARLY as priority...")
-
-            # Pre-load audio for R11 (and Rule 13 later)
             logger.debug("OPTIMIZATION: Pre-loading full audio for Rule 11...")
             _ensure_audio(context)
             rule11.apply(context)
 
-        # ========== PHASE 1: FAST RULES (R1-R6) ==========
-        # These are cheap (<0.01s total), always execute
         logger.debug("OPTIMIZATION: Executing fast rules (R1-R6)...")
-
-        # Filter rules based on cassette detection
-        fast_rules: List[ScoringRule] = []
-
-        # Uncompressed input (e.g. WAV): real ≈ apparent bitrate, so there is no
-        # lossless-compression signal for the container-bitrate rules to read.
-        # Rules 1 (MP3-bitrate signature) and 3 (source-vs-container) become
-        # meaningless and would misfire; the spectral rules still see the MP3
-        # cliff, so we gate 1 & 3 off (same idea as the cassette gate below).
-        #
-        # The ratio is only allowed to decide anything when it was MEASURED on the
-        # audio (the reference re-encode). When it was not — the analyzer skips that
-        # measurement at cutoffs where Rule 1 cannot reach its container test — the
-        # number on hand is the size of the file on disk, which is a fact about the
-        # wrapper: 0.60 for a FLAC and 1.00 for the WAV holding the same samples.
-        # Letting that through is issue #7 itself, so an unmeasured ratio reads as
-        # "not uncompressed" for every container alike. Both then behave exactly as
-        # a FLAC does today, which is also why this changes no released behaviour.
-        bm = context.bitrate_metrics
-        is_uncompressed = (
-            bm.ratio_measured
-            and bm.apparent_bitrate > 0
-            and (bm.real_bitrate / bm.apparent_bitrate) > 0.92
-        )
-
+        is_uncompressed = _is_uncompressed_input(context.bitrate_metrics)
         # Threshold lowered 30 -> 15 in v1.8, purely to preserve behaviour: test 11C
         # was a constant +15 (it keyed off Rule 9C, which measured at chance) and has
         # been removed, so every remaining test keeps the weight it always had.
         if context.cassette_score >= CASSETTE_THRESHOLD:
-            logger.info("R11: MP3 signature cancelled (cassette source detected)")
-            logger.info(
-                f"CASSETTE DETECTED (evidence {context.cassette_score} >= {CASSETTE_THRESHOLD}). "
-                f"Disabling Rule 1 (MP3 Bitrate)."
-            )
-            # Credited to Rule 11, not to the calculator: the -40 is Rule 11's
-            # verdict acted upon, and a "why" line reading "offset by
-            # _calculator -40" (issue #8's screenshot, 2026-09-08) names nothing.
-            previous_rule = context.active_rule
-            context.active_rule = rule11.name
-            try:
-                context.add_score(-40, ["R11: Authentic cassette audio source (bonus -40pts)"])
-            finally:
-                context.active_rule = previous_rule
-
-            # Skip Rule 1
-            fast_rules = [
-                Rule2Cutoff(),
-                Rule424BitSuspect(),
-                Rule5HighVariance(),
-                Rule6HighQualityProtection(),
-            ]
-        elif is_uncompressed:
-            # GATE D, repaired in v1.12. Rule 1 used to be removed here entirely
-            # ("no lossless-compression signal") — which put every WAV
-            # structurally beyond the rule's reach and was one of the four
-            # mechanisms behind the engine reading 8.8 % on the owner-attested
-            # wild 53 (all WAV). Gate C inside the rule now treats a PCM-level
-            # container bitrate as uninformative rather than as a failure, and
-            # the rule's other guards (variance, residual floor, Nyquist) are
-            # container-agnostic, so the rule runs. Found by G4's first
-            # end-to-end firing: the offline G-series called the rule function
-            # and could not see the dispatch. (Rule 3 no longer exists.)
-            logger.info(
-                "UNCOMPRESSED input (e.g. WAV): Rule 1 runs with the container "
-                "bitrate treated as uninformative (v1.12 gates C+D)."
-            )
-            fast_rules = [
-                Rule1MP3Bitrate(),
-                Rule2Cutoff(),
-                Rule424BitSuspect(),
-                Rule5HighVariance(),
-                Rule6HighQualityProtection(),
-            ]
-        else:
-            # Standard execution
-            fast_rules = [
-                Rule1MP3Bitrate(),
-                Rule2Cutoff(),
-                Rule424BitSuspect(),
-                Rule5HighVariance(),
-                Rule6HighQualityProtection(),
-            ]
-
-        for rule in fast_rules:
+            _credit_cassette_bonus(context, rule11)
+        for rule in _fast_rules(context, is_uncompressed):
             rule.apply(context)
-
         logger.info(f"OPTIMIZATION: Fast rules + R8 (+R11?) score = {context.current_score}")
 
         # SHORT-CIRCUIT 1: already convicted — but only if the conviction is
@@ -385,206 +515,86 @@ def _apply_scoring_rules(  # noqa: C901
         # self-defeating: the rules that could corroborate it (12 and 13) live
         # further down, so an early exit guarantees the file can never reach two
         # families, and the corroboration gate would end up measuring this
-        # short-circuit rather than the evidence.
-        if context.current_score >= 86 and _is_corroborated(context):
+        # short-circuit rather than the evidence. (The two gates are written
+        # inline on purpose: test_verdict_reachability reads them from this
+        # function's source.)
+        if context.current_score >= SCORE_FAKE_CERTAIN and _is_corroborated(context):
             logger.info(
-                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 (corroborated)"
+                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ "
+                f"{SCORE_FAKE_CERTAIN} (corroborated)"
             )
             context.reasons.append(
                 "⚡ Fast analysis: FAKE_CERTAIN detected without expensive rules"
             )
             return context.current_score, context.reasons
 
-        # SHORT-CIRCUIT 2: If very low score and no MP3 detected, likely authentic
-        #
-        # GATE E, added for issue #7. This branch does not merely skip some rules,
-        # it ACQUITS: everything after it — 7, 10, 12, 13, 14, 15 — never runs, and
-        # the file leaves as AUTHENTIC. It reads `mp3_bitrate_detected is None` as
-        # "Rule 1 looked and found nothing". On uncompressed input that is not what
-        # it means: Rule 1's container window has nothing to read there, so None is
-        # an absence of measurement, not a negative result. The engine has no
-        # standing to acquit on it — the same principle assessability.py already
-        # applies at the verdict, applied here, where the rules are chosen.
-        #
-        # With the container-independent sizing upstream this is now rare (it takes
-        # audio that is genuinely incompressible), and it costs those files the full
-        # rule set instead of an unearned pass. That is the right way round.
+        # SHORT-CIRCUIT 2: the cheap rules found nothing (gate E, issue #7).
+        # `mp3_bitrate_detected is None` reads as "Rule 1 looked and found nothing";
+        # on uncompressed input Rule 1's container window has nothing to read, so
+        # None is an absence of measurement and the engine has no standing to
+        # acquit on it — the principle assessability.py applies at the verdict,
+        # applied here, where the rules are chosen.
         if (
-            context.current_score < 10
+            context.current_score < _SILENT_HEURISTICS_MAX_SCORE
             and context.mp3_bitrate_detected is None
             and not is_uncompressed
         ):
-            if not deep:
-                # Rule 13 before the acquittal (v1.20.0). A silent full-band file is
-                # exactly where a high-bitrate AAC or Vorbis transcode hides, and this
-                # branch used to acquit it without asking the one rule that reads it:
-                # on 33 loud CD tracks encoded at AAC 256 and Vorbis q6 the default
-                # scan caught 0 of 66, --deep 66, Rule 13 alone 63. Its bars sit
-                # clear of the genuine population (877 certified files, max 2.42;
-                # 362 labelled genuine of the 2026-10-01 probe, max 1.58). When it
-                # scores — +25 from 2.0 as well as +55 from 3.0 — the file is not
-                # acquitted: it goes on to the witnesses deep mode runs (14, 15,
-                # 12, 16), exactly as --deep would take it, and the verdict comes
-                # from all of them. A +25 alone stays under WARNING; with the CNN
-                # and the witnesses it can convict (the registration's results
-                # name the one unlabelled file that did). Cost: one decode and the
-                # alignment search, measured in the registration's results.
-                # See ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md.
-                r13_before = context.rule_scores.get("Rule13MDCTAlignment", 0)
-                r13_ran = should_run_rule_13(context.cutoff_freq, context.current_score)
-                if r13_ran:
-                    _ensure_audio(context)
-                    _run_rule_13(context)
-                if context.rule_scores.get("Rule13MDCTAlignment", 0) <= r13_before:
-                    logger.info(
-                        f"OPTIMIZATION: Fast path for authentic file "
-                        f"(score={context.current_score}, no MP3"
-                        + (", Rule 13 read no grid)" if r13_ran else ")")
-                    )
-                    context.reasons.append(
-                        "⚡ Fast analysis: AUTHENTIC — heuristics silent, Rule 13 reads no "
-                        "MDCT grid"
-                        if r13_ran
-                        else "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
-                    )
-                    return context.current_score, context.reasons
-                logger.info(
-                    f"Rule 13 read an MDCT grid on a file the heuristics left silent "
-                    f"(score={context.current_score}): running the witnesses"
-                )
-            else:
-                # Deep mode: the heuristics are silent, but a silent file is exactly where
-                # a high-bitrate AAC/Vorbis transcode hides. Skip the expensive heuristic
-                # rules (they can't help here) and run the two that can: the CNN's
-                # high-confidence WARNING floor, and Rule 13 — which reads MDCT frame
-                # alignment and is the ONLY rule with signal left once the encoder keeps
-                # the whole band. This branch is precisely the 256-320 kbps AAC blind spot.
-                logger.info(
-                    f"DEEP: heuristics silent (score={context.current_score}), running "
-                    f"Rules 12/13 anyway (fast path bypassed)"
-                )
-                if should_run_rule_13(context.cutoff_freq, context.current_score):
-                    _ensure_audio(context)
-                    _run_rule_13(context)
-            # Rule 14 must run on THIS path too. It is the branch for files whose
-            # heuristics found nothing — high-bitrate AAC, Vorbis, and every Opus
-            # transcode in the corpus — which is precisely the population the
-            # temporal witness exists for. Wiring it only into the main path left
-            # it unreachable for its own target, exactly the failure this
-            # repository has a test for (test_verdict_reachability): a witness
-            # that arrives after the branch it was meant to inform.
-            if context.cutoff_freq >= 15000.0:
-                _ensure_audio(context)
-                Rule14TemporalSeam().apply(context)
-            if context.cutoff_freq >= 12000.0:
-                _ensure_audio(context)
-                Rule15StereoSeam().apply(context)
-            Rule12MLClassifier().apply(context)
-            _run_rule_16_if_decisive(context)
-            return context.current_score, context.reasons
+            return _silent_heuristics_path(context, deep)
 
-        # ========== PHASE 2: CONDITIONAL EXPENSIVE RULES ==========
-        # Determine which expensive rules to run
-        run_rule7 = 19000 <= context.cutoff_freq <= 21500
-        # Logic fix: if R11 already ran early (cutoff < 19000), we don't run it here.
-        # Check if R11 needed and NOT ran yet
-        run_rule11 = (context.cutoff_freq < 19000) and (not run_rule11_early)
-
-        expensive_rules: List[ScoringRule] = []
-        if run_rule7:
-            expensive_rules.append(Rule7SilenceAnalysis())
-        if run_rule11:
-            expensive_rules.append(Rule11CassetteDetection())
-
-        if expensive_rules:
-            # Check if we need to load audio (if NOT already loaded by R11 early)
-            need_full_audio = any(isinstance(r, Rule11CassetteDetection) for r in expensive_rules)
-
-            if need_full_audio:
-                _ensure_audio(context)
-
-            # Sequential execution: ScoringContext.add_score mutates shared state,
-            # so concurrent rules would race without locking. Cost is acceptable.
-            for rule in expensive_rules:
-                rule.apply(context)
+        # PHASE 2: Rule 7 in the 19-21.5 kHz band. (Rule 11 cannot be due here:
+        # below 19 kHz it has already run above.)
+        low, high = _RULE7_CUTOFF_RANGE_HZ
+        if low <= context.cutoff_freq <= high:
+            Rule7SilenceAnalysis().apply(context)
         else:
             logger.info("OPTIMIZATION: Skipping expensive rules (R7/R11)")
 
-        # Rule 8: refine with MP3 detection context if it became available after Phase 2.
-        # We rollback the initial R8 contribution by exact-match reason filtering — fragile but
-        # acceptable as long as R8's reasons stay deterministic for a given context.
+        # Rule 8 refined with the MP3 bitrate Rule 1 may have set.
         if context.mp3_bitrate_detected is not None:
-            context.current_score -= initial_r8_score
-            context.rule_scores["Rule8NyquistException"] = (
-                context.rule_scores.get("Rule8NyquistException", 0) - initial_r8_score
-            )
-            for reason in initial_r8_reasons:
-                if reason in context.reasons:
-                    context.reasons.remove(reason)
-            rule8.apply(context)
-            logger.info("RULE 8 (refined): Score updated")
+            _refine_rule_8(context, rule8, initial_r8_score, initial_r8_reasons)
 
         # Rule 13: MDCT frame alignment. Gated on the file not being convicted
         # already; since v1.20.1 not on the cutoff (issue #12: a Vorbis -q1 file at
-        # 16,750 Hz that every cheap rule let go). It survives a high-bitrate encode, and it
-        # runs AFTER the Rule 8 refinement so that the refinement cannot re-apply a
-        # protection Rule 13 has just withdrawn. See _run_rule_13.
+        # 16,750 Hz that every cheap rule let go). It runs AFTER the Rule 8
+        # refinement so that the refinement cannot re-apply a protection Rule 13
+        # has just withdrawn. See _run_rule_13.
         if should_run_rule_13(context.cutoff_freq, context.current_score):
             _ensure_audio(context)
             _run_rule_13(context)
 
-        # Rule 14: the temporal seam. Runs beside Rule 13 because the audio is
-        # already in hand, and BEFORE short-circuit 3 so its witness is available
-        # to the same gate — a witness that arrives after the gate it should have
-        # informed is what Provir calls dressing.
-        if context.cutoff_freq >= 15000.0:
-            _ensure_audio(context)
-            Rule14TemporalSeam().apply(context)
+        _run_rules_14_and_15(context)
 
-        # Rule 15: the stereo image. Same placement reasoning as Rule 14 — before
-        # the gate it should inform, and on BOTH paths, since the early-return
-        # branch carries the silent-heuristic files this family reads best.
-        if context.cutoff_freq >= 12000.0:
-            _ensure_audio(context)
-            Rule15StereoSeam().apply(context)
-
-        # SHORT-CIRCUIT 3: same rule as above — an uncorroborated score must not
-        # skip Rule 12, which is one of the few rules that can corroborate it.
-        if context.current_score >= 86 and _is_corroborated(context):
+        # SHORT-CIRCUIT 3: an uncorroborated score must not skip Rule 12, which is
+        # one of the few rules that can corroborate it.
+        if context.current_score >= SCORE_FAKE_CERTAIN and _is_corroborated(context):
             logger.info(
-                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ 86 after expensive rules"
+                f"OPTIMIZATION: Short-circuit at {context.current_score} ≥ "
+                f"{SCORE_FAKE_CERTAIN} after expensive rules"
             )
             return context.current_score, context.reasons
 
-        # Rule 10: Only if score > 30 (already suspect)
-        if context.current_score > 30:
-            logger.info(f"OPTIMIZATION: Activating Rule 10 (score {context.current_score} > 30)")
+        if context.current_score > _RULE10_MIN_SCORE:
+            logger.info(
+                f"OPTIMIZATION: Activating Rule 10 (score {context.current_score} > "
+                f"{_RULE10_MIN_SCORE})"
+            )
             Rule10Consistency().apply(context)
         else:
-            logger.info(f"OPTIMIZATION: Skipping Rule 10 (score {context.current_score} ≤ 30)")
+            logger.info(
+                f"OPTIMIZATION: Skipping Rule 10 (score {context.current_score} ≤ "
+                f"{_RULE10_MIN_SCORE})"
+            )
 
-        # Rule 12: ML-based transcode detection. No-op if torch / model unavailable.
-        # Runs after Rule 10 so the heuristic score is established first; the CNN
-        # adds an independent signal that boosts confidence on borderline cases
-        # (cutoff 19-21 kHz, high-bitrate MP3, AAC source).
+        # Rule 12 after Rule 10 so the heuristic score is established first; the
+        # CNN adds an independent signal on borderline cases. Rule 16 last, because
+        # it can only complete a corroboration for a file carried to the bar on one
+        # family.
         Rule12MLClassifier().apply(context)
-
-        # Rule 16: last, because it can only complete a corroboration for a file
-        # the rules above have carried to the conviction bar on one family.
         _run_rule_16_if_decisive(context)
-
         return context.current_score, context.reasons
 
     finally:
-        # CLEANUP MEMORY
-        if context.audio_data is not None:
-            logger.debug("OPTIMIZATION: Releasing audio buffer memory")
-            context.audio_data = None
-            context.loaded_sample_rate = None
-            # Force GC to avoid bad_alloc in loop
-            import gc
-
-            gc.collect()
+        _release_audio(context)
 
 
 def new_calculate_score(
@@ -645,7 +655,8 @@ def new_calculate_score(
         breakdown_out: Optional dict, updated in place with the per-rule score
             attribution for this file (``{"Rule2Cutoff": 25, …}``). Used by
             ml/rule_audit.py to measure each rule's discriminative power in
-            isolation. Rules that contributed nothing are omitted.
+            isolation. A rule that ran is listed even when it added 0; a rule
+            the gates never asked is absent.
     """
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 

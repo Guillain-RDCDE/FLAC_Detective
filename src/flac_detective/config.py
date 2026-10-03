@@ -39,22 +39,6 @@ class AnalysisConfig:
 
 
 @dataclass
-class ScoringConfig:
-    """Configuration for the scoring system."""
-
-    # Score thresholds
-    AUTHENTIC_THRESHOLD: int = 90  # >= 90% = Authentic
-    PROBABLY_AUTHENTIC_THRESHOLD: int = 70  # >= 70% = Probably authentic
-    SUSPECT_THRESHOLD: int = 50  # >= 50% = Suspect
-    # < 50% = Fake
-
-    # Penalties
-    PENALTY_LOW_ENERGY: int = 30
-    PENALTY_DURATION_MISMATCH: int = 20
-    PENALTY_SUSPICIOUS_METADATA: int = 10
-
-
-@dataclass
 class SpectralConfig:
     """Configuration for spectral analysis."""
 
@@ -95,8 +79,7 @@ class RepairConfig:
     REENCODE_TIMEOUT: int = 300
 
 
-# Instances globales (singleton pattern)
+# Process-wide instances (singleton pattern)
 analysis_config = AnalysisConfig()
-scoring_config = ScoringConfig()
 spectral_config = SpectralConfig()
 repair_config = RepairConfig()

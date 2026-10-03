@@ -129,8 +129,7 @@ class Rule7SilenceAnalysis(ScoringRule):
 
     def _apply(self, context: ScoringContext) -> None:
         """Apply Rule 7 to ``context``."""
-        # Check activation condition locally or rely on the inner function
-        # The inner function checks 19k-21.5k range
+        # The rule function checks its own 19-21.5 kHz activation range.
         score, reasons, ratio = apply_rule_7_silence_analysis(
             str(context.filepath), context.cutoff_freq, context.audio_meta.sample_rate
         )
@@ -142,22 +141,19 @@ class Rule8NyquistException(ScoringRule):
     """Rule 8 — Nyquist exception handling for high-cutoff files."""
 
     def _apply(self, context: ScoringContext) -> None:
-        """Apply Rule 8 to ``context``."""
-        # This rule might be applied multiple times (initial and refined)
-        # The context handles score accumulation, so we need to be careful not to double count
-        # if this is called twice.
-        # However, the calculator logic handles the "refinement" by removing previous score.
-        # Here we just apply what we know.
+        """Apply Rule 8 to ``context``.
+
+        Applied twice on some files: first before any other rule, then again
+        once Rule 1 has set the MP3 bitrate. The calculator rolls the first
+        contribution back before the second application (``_refine_rule_8``);
+        this method only ever adds what the rule function returns.
+        """
         score, reasons = apply_rule_8_nyquist_exception(
             context.cutoff_freq,
             context.audio_meta.sample_rate,
             context.mp3_bitrate_detected,
             context.silence_ratio,
         )
-        # Note: The caller (calculator) is responsible for managing the "update" logic
-        # (subtracting old score) if this is a re-run.
-        # Or we can make this rule smart enough to know?
-        # For now, let's assume the calculator handles the flow control.
         context.add_score(score, reasons)
 
 

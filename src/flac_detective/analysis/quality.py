@@ -44,10 +44,10 @@ def scan_quality_in_one_pass(
     built by the detector that owns it, from the methods ``detect`` itself uses.
 
     This is also why the audio already sitting in ``AudioCache`` is NOT used
-    here: ``detect_from_data`` averages per-channel means where this path takes
-    one sum over one total, which is the same number in algebra and not in
-    floating point. That would be a change of result wearing the clothes of an
-    optimisation.
+    here: an in-memory pass would average per-channel means where this path
+    takes one sum over one total, which is the same number in algebra and not
+    in floating point. That would be a change of result wearing the clothes of
+    an optimisation.
 
     Args:
         filepath: The file to read.
@@ -239,23 +239,6 @@ class ClippingDetector(QualityDetector):
         """
         self.threshold = threshold
 
-    def detect_from_data(self, data: np.ndarray) -> Dict[str, Any]:
-        """Detect clipping from an in-memory numpy array."""
-        if data.ndim > 1:
-            data = data.flatten()
-
-        clipped_samples = int(np.sum(np.abs(data) >= self.threshold))
-        total_samples = data.size
-        clipping_percentage = (clipped_samples / total_samples) * 100 if total_samples > 0 else 0
-        severity = _calculate_clipping_severity(clipping_percentage)
-
-        return {
-            "has_clipping": clipping_percentage > 0.01,
-            "clipping_percentage": round(clipping_percentage, 4),
-            "clipped_samples": clipped_samples,
-            "severity": severity,
-        }
-
     def empty_result(self) -> Dict[str, Any]:
         """The answer for a file with no frames."""
         return {
@@ -327,22 +310,6 @@ class DCOffsetDetector(QualityDetector):
         """
         self.threshold = threshold
 
-    def detect_from_data(self, data: np.ndarray) -> Dict[str, Any]:
-        """Detect DC offset from an in-memory numpy array."""
-        if data.ndim > 1:
-            dc_offset = float(np.mean([np.mean(data[:, i]) for i in range(data.shape[1])]))
-        else:
-            dc_offset = float(np.mean(data))
-
-        abs_offset = abs(dc_offset)
-        severity = _calculate_dc_offset_severity(abs_offset, self.threshold)
-
-        return {
-            "has_dc_offset": abs_offset >= self.threshold,
-            "dc_offset_value": round(dc_offset, 6),
-            "severity": severity,
-        }
-
     def empty_result(self) -> Dict[str, Any]:
         """The answer for a file with no frames."""
         return {
@@ -355,9 +322,9 @@ class DCOffsetDetector(QualityDetector):
         """Turn the streamed sum into the result dict.
 
         Shared with :func:`scan_quality_in_one_pass`, which accumulates the very
-        same Python float in the very same block order. Note this is NOT what
-        ``detect_from_data`` computes — that one averages per-channel means,
-        which is equal in algebra and not in floating point.
+        same Python float in the very same block order. Note this is NOT a mean
+        of per-channel means (as the audio in ``AudioCache`` would invite), which
+        is equal in algebra and not in floating point.
         """
         dc_offset = sum_of_samples / total_samples if total_samples > 0 else 0.0
         abs_offset = abs(dc_offset)
@@ -484,45 +451,6 @@ class SilenceDetector(QualityDetector):
         self.threshold_db = threshold_db
         self.silence_threshold_sec = silence_threshold_sec
 
-    def detect_from_data(self, data: np.ndarray, samplerate: int) -> Dict[str, Any]:
-        """Detect silence from an in-memory numpy array."""
-        if data.ndim > 1:
-            data = np.mean(np.abs(data), axis=1)
-        else:
-            data = np.abs(data)
-
-        threshold = 10 ** (self.threshold_db / 20)
-        non_silent = np.where(data > threshold)[0]
-
-        if len(non_silent) == 0:
-            return {
-                "has_silence_issue": True,
-                "leading_silence_sec": len(data) / samplerate,
-                "trailing_silence_sec": 0.0,
-                "issue_type": "full_silence",
-            }
-
-        start_idx = non_silent[0]
-        end_idx = non_silent[-1]
-
-        leading_silence = start_idx / samplerate
-        trailing_silence = (len(data) - 1 - end_idx) / samplerate
-
-        has_issue = bool(
-            leading_silence > self.silence_threshold_sec
-            or trailing_silence > self.silence_threshold_sec
-        )
-        issue_type = _calculate_silence_issue_type(
-            leading_silence, trailing_silence, self.silence_threshold_sec
-        )
-
-        return {
-            "has_silence_issue": has_issue,
-            "leading_silence_sec": round(float(leading_silence), 2),
-            "trailing_silence_sec": round(float(trailing_silence), 2),
-            "issue_type": issue_type,
-        }
-
     def empty_result(self) -> Dict[str, Any]:
         """The answer for a file with no frames."""
         return {
@@ -638,22 +566,6 @@ class SilenceDetector(QualityDetector):
 
 class BitDepthDetector(QualityDetector):
     """Checks true bit depth (detects fake high-res)."""
-
-    def detect_from_data(self, data: np.ndarray, reported_depth: int) -> Dict[str, Any]:
-        """Detect true bit depth from an in-memory numpy array."""
-        if reported_depth <= 16:
-            return {"is_fake_high_res": False, "estimated_depth": reported_depth}
-
-        sample = data[:10000] if data.ndim == 1 else data[:10000, 0]
-        scaled = sample * 32768.0
-        residuals = np.abs(scaled - np.round(scaled))
-        is_16bit = bool(np.all(residuals < 1e-4))
-
-        return {
-            "is_fake_high_res": is_16bit,
-            "estimated_depth": 16 if is_16bit else 24,
-            "details": "24-bit file contains only 16-bit data" if is_16bit else "True 24-bit",
-        }
 
     def detect(self, **kwargs: Any) -> Dict[str, Any]:
         """Detect true bit depth.
@@ -1029,41 +941,3 @@ def analyze_audio_quality(
         on_substage=on_substage,
         on_scan=on_scan,
     )
-
-
-def detect_clipping(data: np.ndarray, threshold: float = 0.99) -> Dict[str, Any]:
-    """Detects audio clipping (backward compatibility wrapper)."""
-    detector = ClippingDetector(threshold=threshold)
-    return detector.detect_from_data(data=data)
-
-
-def detect_dc_offset(data: np.ndarray, threshold: float = 0.001) -> Dict[str, Any]:
-    """Detects DC offset (backward compatibility wrapper)."""
-    detector = DCOffsetDetector(threshold=threshold)
-    return detector.detect_from_data(data=data)
-
-
-def detect_corruption(filepath: Path) -> Dict[str, Any]:
-    """Checks if audio file is readable (backward compatibility wrapper)."""
-    detector = CorruptionDetector()
-    return detector.detect(filepath=filepath)
-
-
-def detect_silence(
-    data: np.ndarray, samplerate: int, threshold_db: float = -60.0
-) -> Dict[str, Any]:
-    """Detects abnormal silence (backward compatibility wrapper)."""
-    detector = SilenceDetector(threshold_db=threshold_db)
-    return detector.detect_from_data(data=data, samplerate=samplerate)
-
-
-def detect_true_bit_depth(data: np.ndarray, reported_depth: int) -> Dict[str, Any]:
-    """Checks true bit depth (backward compatibility wrapper)."""
-    detector = BitDepthDetector()
-    return detector.detect_from_data(data=data, reported_depth=reported_depth)
-
-
-def detect_upsampling(cutoff_freq: float, samplerate: int) -> Dict[str, Any]:
-    """Detects sample rate upsampling (backward compatibility wrapper)."""
-    detector = UpsamplingDetector()
-    return detector.detect(cutoff_freq=cutoff_freq, samplerate=samplerate)

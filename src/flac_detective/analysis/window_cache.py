@@ -1,7 +1,13 @@
-"""Window cache for optimized signal processing.
+"""Process-wide cache of Hann windows, keyed by size.
 
-Phase 2 Optimization: Pre-calculate and cache Hann windows to avoid
-redundant calculations.
+Both getters share ONE dictionary keyed only by the window length, so whichever
+of ``scipy.signal.windows.hann`` or ``numpy.hanning`` fills a size first is what
+every later caller of either getter receives. The two differ by up to 4.4e-16
+per sample. Rule 7's 30 s music segment and the spectrum pass's 30 s window are
+the same length, so on files over 90 s Rule 7 already gets the scipy window.
+Separating the keys is therefore a measured change to the engine (last-digit
+floats move), not a refactor: leave the shared dictionary alone unless a
+before/after pass on labelled files is part of the change.
 """
 
 import logging
@@ -54,22 +60,3 @@ def get_hanning_window(size: int) -> np.ndarray:
         logger.debug(f"⚡ WINDOW CACHE: Using cached Hanning window of size {size}")
 
     return _window_cache[size]
-
-
-def clear_window_cache():
-    """Clear the window cache to free memory."""
-    size = len(_window_cache)
-    _window_cache.clear()
-    logger.debug(f"⚡ WINDOW CACHE: Cleared {size} cached windows")
-
-
-def get_cache_stats() -> Dict[str, int]:
-    """Get statistics about the window cache.
-
-    Returns:
-        Dictionary with cache statistics
-    """
-    return {
-        "cached_windows": len(_window_cache),
-        "total_samples": sum(len(w) for w in _window_cache.values()),
-    }

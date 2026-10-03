@@ -64,6 +64,8 @@ BAND_HZ: Tuple[float, float] = (2000.0, 16000.0)
 
 # A bin counts as a hole at this depth below its local neighbourhood median.
 HOLE_DEPTH_DB = 40.0
+# Width (bins) of the running median that stands for the local neighbourhood.
+REF_SIZE = 33
 
 # Reliability gate. peak_ratio is a ratio, so it is only meaningful while its
 # denominator is. Material whose 2-16 kHz band is nearly empty — a handful of
@@ -139,7 +141,7 @@ def alignment_curve(
     window: np.ndarray,
     n_frames: int = 24,
     offsets: Optional[Sequence[int]] = None,
-    ref_size: int = 33,
+    ref_size: int = REF_SIZE,
     depth_db: float = HOLE_DEPTH_DB,
 ) -> np.ndarray:
     """Hole fraction per frame alignment.

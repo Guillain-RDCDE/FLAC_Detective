@@ -168,6 +168,14 @@ def apply_rule_5_high_variance(
     return score, reasons
 
 
+# Rule 6's three bars. RULE6_MIN_VARIANCE is NOT the module's
+# VARIANCE_THRESHOLD (100, Rule 5's): the two rules read the same statistic
+# against different bars, and a local uppercase name used to shadow the import.
+RULE6_MIN_BITRATE_KBPS = 700  # Raised from 600 kbps
+RULE6_MIN_CUTOFF_HZ = 19000  # Minimum HF content
+RULE6_MIN_VARIANCE = 50  # Minimum variance for natural VBR
+
+
 def apply_rule_6_variable_bitrate_protection(
     mp3_bitrate_detected: Optional[int],
     bitrate_conteneur: float,
@@ -209,16 +217,11 @@ def apply_rule_6_variable_bitrate_protection(
         logger.debug("RULE 6: Skipped (bitrate variance not measured)")
         return score, reasons
 
-    # Thresholds for high-quality FLAC protection
-    BITRATE_THRESHOLD = 700  # Raised from 600 kbps
-    CUTOFF_THRESHOLD = 19000  # Minimum HF content
-    VARIANCE_THRESHOLD = 50  # Minimum variance for natural VBR
-
     # Check all conditions
     is_variable_bitrate = mp3_bitrate_detected is None
-    is_high_bitrate = bitrate_conteneur > BITRATE_THRESHOLD
-    has_hf_content = cutoff_freq >= CUTOFF_THRESHOLD
-    has_variance = bitrate_variance > VARIANCE_THRESHOLD
+    is_high_bitrate = bitrate_conteneur > RULE6_MIN_BITRATE_KBPS
+    has_hf_content = cutoff_freq >= RULE6_MIN_CUTOFF_HZ
+    has_variance = bitrate_variance > RULE6_MIN_VARIANCE
 
     # All conditions must be true
     if is_variable_bitrate and is_high_bitrate and has_hf_content and has_variance:
@@ -228,8 +231,9 @@ def apply_rule_6_variable_bitrate_protection(
             f"cutoff {cutoff_freq:.0f} Hz, variance {bitrate_variance:.0f} kbps) → Authentic (-30pts)"
         )
         logger.info(
-            f"RULE 6: -30 points (high quality: bitrate {bitrate_conteneur:.0f} > {BITRATE_THRESHOLD}, "
-            f"cutoff {cutoff_freq:.0f} >= {CUTOFF_THRESHOLD}, variance {bitrate_variance:.0f} > {VARIANCE_THRESHOLD})"
+            f"RULE 6: -30 points (high quality: bitrate {bitrate_conteneur:.0f} > "
+            f"{RULE6_MIN_BITRATE_KBPS}, cutoff {cutoff_freq:.0f} >= {RULE6_MIN_CUTOFF_HZ}, "
+            f"variance {bitrate_variance:.0f} > {RULE6_MIN_VARIANCE})"
         )
     else:
         # Log why the rule didn't trigger
@@ -237,13 +241,13 @@ def apply_rule_6_variable_bitrate_protection(
             logger.debug("RULE 6: Skipped (MP3 signature detected)")
         elif not is_high_bitrate:
             logger.debug(
-                f"RULE 6: Skipped (bitrate {bitrate_conteneur:.0f} <= {BITRATE_THRESHOLD})"
+                f"RULE 6: Skipped (bitrate {bitrate_conteneur:.0f} <= {RULE6_MIN_BITRATE_KBPS})"
             )
         elif not has_hf_content:
-            logger.debug(f"RULE 6: Skipped (cutoff {cutoff_freq:.0f} < {CUTOFF_THRESHOLD})")
+            logger.debug(f"RULE 6: Skipped (cutoff {cutoff_freq:.0f} < {RULE6_MIN_CUTOFF_HZ})")
         elif not has_variance:
             logger.debug(
-                f"RULE 6: Skipped (variance {bitrate_variance:.0f} <= {VARIANCE_THRESHOLD})"
+                f"RULE 6: Skipped (variance {bitrate_variance:.0f} <= {RULE6_MIN_VARIANCE})"
             )
 
     return score, reasons

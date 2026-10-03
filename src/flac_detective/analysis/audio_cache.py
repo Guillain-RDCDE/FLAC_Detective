@@ -1,7 +1,4 @@
-"""Audio cache for optimized file reading and spectral analysis.
-
-Phase 3 Optimization: Avoid multiple file reads and spectrum calculations.
-"""
+"""Per-file audio cache: one decode, shared by every rule that reads the audio."""
 
 import logging
 from pathlib import Path
@@ -9,18 +6,17 @@ from threading import Lock
 from typing import Dict, Optional, Tuple
 
 import numpy as np
-from scipy.fft import rfft, rfftfreq, set_workers
 
 from .new_scoring.audio_loader import load_audio_with_retry, sf_blocks_partial
-from .window_cache import get_hann_window
 
 logger = logging.getLogger(__name__)
 
 
 class AudioCache:
-    """Cache for audio data and spectral analysis results.
+    """Cache for the decoded audio of one file (full read and segments).
 
-    Avoids multiple file reads and redundant FFT calculations.
+    Created by the analyzer for each file and cleared when the file is done, so
+    the spectrum, quality and scoring passes read the file from disk once.
     """
 
     def __init__(self, filepath: Path, original_filepath: Optional[Path] = None):
@@ -34,8 +30,6 @@ class AudioCache:
         self.original_filepath = original_filepath or filepath
         self._full_audio: Optional[Tuple[np.ndarray, int]] = None
         self._segments: Dict[Tuple[int, int], Tuple[np.ndarray, int]] = {}
-        self._spectrum: Optional[Tuple[np.ndarray, np.ndarray, int]] = None
-        self._cutoff: Optional[float] = None
         self._lock = Lock()
         self._is_partial = False  # Track if audio data is partial
 
@@ -134,82 +128,8 @@ class AudioCache:
 
         return self._segments[key]
 
-    def get_spectrum(self, segment_duration: float = 10.0) -> Tuple[np.ndarray, np.ndarray, int]:
-        """Get spectrum analysis (cached).
-
-        Analyzes first segment_duration seconds of the file.
-
-        Args:
-            segment_duration: Duration in seconds to analyze
-
-        Returns:
-            Tuple of (frequencies, magnitude_db, sample_rate)
-        """
-        if self._spectrum is None:
-            logger.debug(f"CACHE: Computing spectrum for {self.filepath.name}")
-
-            data, sr = self.get_full_audio()
-
-            # Use first segment_duration seconds
-            frames_to_use = int(segment_duration * sr)
-            if len(data) > frames_to_use:
-                data = data[:frames_to_use]
-
-            # Convert to mono
-            if data.shape[1] > 1:
-                data = np.mean(data, axis=1)
-            else:
-                data = data[:, 0]
-
-            # Windowing
-            # PHASE 2 OPTIMIZATION: Use cached window
-            window = get_hann_window(len(data))
-            data_windowed = data * window
-
-            # FFT
-            # PHASE 3 OPTIMIZATION: Use parallel FFT
-            with set_workers(1):
-                fft_vals = rfft(data_windowed)
-            fft_freq = rfftfreq(len(data_windowed), 1 / sr)
-
-            magnitude = np.abs(fft_vals)
-            magnitude_db = 20 * np.log10(magnitude + 1e-10)
-
-            magnitude_db = 20 * np.log10(magnitude + 1e-10)
-
-            with self._lock:
-                self._spectrum = (fft_freq, magnitude_db, sr)
-        else:
-            logger.debug(f"CACHE: Using cached spectrum for {self.filepath.name}")
-
-        assert self._spectrum is not None
-        return self._spectrum
-
-    def get_cutoff(self) -> float:
-        """Get cutoff frequency (cached).
-
-        Uses cached spectrum if available.
-
-        Returns:
-            Cutoff frequency in Hz
-        """
-        if self._cutoff is None:
-            from ..spectrum import detect_cutoff
-
-            logger.debug(f"CACHE: Computing cutoff for {self.filepath.name}")
-            frequencies, magnitude_db, _ = self.get_spectrum()
-            cutoff = detect_cutoff(frequencies, magnitude_db)
-            with self._lock:
-                self._cutoff = cutoff
-        else:
-            logger.debug(f"CACHE: Using cached cutoff for {self.filepath.name}")
-
-        return self._cutoff
-
     def clear(self):
         """Clear all cached data."""
         logger.debug(f"CACHE: Clearing cache for {self.filepath.name}")
         self._full_audio = None
         self._segments.clear()
-        self._spectrum = None
-        self._cutoff = None

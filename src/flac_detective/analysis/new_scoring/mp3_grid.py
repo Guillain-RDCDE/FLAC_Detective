@@ -46,6 +46,8 @@ from typing import Tuple
 
 import numpy as np
 
+from .mdct import HOLE_DEPTH_DB, REF_SIZE
+
 # ISO/IEC 11172-3 analysis window C[0..256], scaled by 2^21.
 _HALF_WINDOW = (
     0,
@@ -334,10 +336,9 @@ _AB_B = np.array([[18 * sb + i for i in range(8)] for sb in range(1, 32)])
 GRANULE = 576
 # Measured, not tuned in the dark: 48 granules spread over a 30 s excerpt and
 # a hole at 40 dB under the local median gave the widest genuine-to-arm gap on
-# the development half (see the registration). REF_SIZE is Rule 13's.
+# the development half (see the registration). The hole depth and the
+# reference-filter width are Rule 13's own, imported rather than restated.
 N_GRANULES = 48
-HOLE_DEPTH_DB = 40.0
-REF_SIZE = 33
 EXCERPT_SECONDS = 30.0
 
 

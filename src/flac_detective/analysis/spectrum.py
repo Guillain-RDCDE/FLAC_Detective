@@ -17,6 +17,67 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Top of the band every "above the edge" reading stops at, as a fraction of
+# Nyquist: the last few bins carry the anti-alias filter, not the music.
+FLOOR_TOP_FRACTION = 0.993
+
+# A cutoff at or above this fraction of Nyquist (or at the last FFT bin) is
+# ``detect_cutoff`` saying "nothing found", not an edge.
+_NO_EDGE_FRACTION = 0.999
+
+
+def _reference_band(samplerate: int) -> Tuple[int, int, int]:
+    """(reference low, reference high, scan start) in Hz for this sample rate.
+
+    Standard resolution (44.1/48 kHz) uses the fixed values optimised for MP3
+    detection; hi-res (88.2/96/176.4/192 kHz) scales them proportionally,
+    truncated to whole Hz as they always were. The ``<= 48000`` boundary and the
+    ``int()`` truncation are load-bearing: every cutoff the scan returns lands on
+    the grid ``scan_start + k * TRANCHE_SIZE``.
+    """
+    if samplerate <= 48000:
+        return (
+            spectral_config.REFERENCE_FREQ_LOW,
+            spectral_config.REFERENCE_FREQ_HIGH,
+            spectral_config.CUTOFF_SCAN_START,
+        )
+    scale = samplerate / 44100.0
+    return (
+        int(spectral_config.REFERENCE_FREQ_LOW * scale),
+        int(spectral_config.REFERENCE_FREQ_HIGH * scale),
+        int(spectral_config.CUTOFF_SCAN_START * scale),
+    )
+
+
+def _no_edge(cutoff_hz: float, frequencies: np.ndarray, samplerate: int) -> bool:
+    """True when ``cutoff_hz`` is ``detect_cutoff``'s "nothing found" reading."""
+    return (
+        cutoff_hz >= _NO_EDGE_FRACTION * (samplerate / 2.0) or cutoff_hz >= frequencies[-1] - 1e-6
+    )
+
+
+def _magnitude_spectrum(
+    data: np.ndarray, samplerate: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Mono-mix, Hann-window and FFT one block of ``(frames, channels)`` audio.
+
+    Returns ``(frequencies, magnitude, magnitude_db)``. The FFT runs on one
+    worker: in a process pool, threads inside the FFT multiply instead of adding.
+    The expressions are the engine's own, in their original order; nothing here
+    may be reassociated, as every cutoff reading rests on them.
+    """
+    if data.shape[1] > 1:
+        mono = np.mean(data, axis=1)
+    else:
+        mono = data[:, 0]
+    windowed = mono * get_hann_window(len(mono))
+    with set_workers(1):
+        fft_vals = rfft(windowed)
+    frequencies = rfftfreq(len(windowed), 1 / samplerate)
+    magnitude = np.abs(fft_vals)
+    magnitude_db = 20 * np.log10(magnitude + 1e-10)
+    return frequencies, magnitude, magnitude_db
+
 
 def _welch_magnitude_db(
     data_mono: np.ndarray, samplerate: int, nfft: int = 16384
@@ -71,7 +132,7 @@ def compute_residual_floor_db(
             return float("nan")
         nyq = samplerate / 2.0
         ref_mask = (freq >= 0.45 * nyq) & (freq <= 0.65 * nyq)
-        top_mask = (freq >= 0.961 * nyq) & (freq <= 0.993 * nyq)
+        top_mask = (freq >= 0.961 * nyq) & (freq <= FLOOR_TOP_FRACTION * nyq)
         if not (np.any(ref_mask) and np.any(top_mask)):
             return float("nan")
         ref = float(np.median(magnitude_db[ref_mask]))
@@ -115,15 +176,7 @@ def cell_profile_db(
     first cell's start frequency and the list of cell levels; a cell with no
     bins is NaN. Scales with the sample rate the way ``detect_cutoff`` does.
     """
-    if samplerate <= 48000:
-        ref_low = spectral_config.REFERENCE_FREQ_LOW
-        ref_high = spectral_config.REFERENCE_FREQ_HIGH
-        first = spectral_config.CUTOFF_SCAN_START
-    else:
-        scale = samplerate / 44100.0
-        ref_low = int(spectral_config.REFERENCE_FREQ_LOW * scale)
-        ref_high = int(spectral_config.REFERENCE_FREQ_HIGH * scale)
-        first = int(spectral_config.CUTOFF_SCAN_START * scale)
+    ref_low, ref_high, first = _reference_band(samplerate)
     ref_mask = (frequencies >= ref_low) & (frequencies <= ref_high)
     if not np.any(ref_mask):
         return float(first), []
@@ -150,7 +203,7 @@ def edge_step_db(
     must be treated as "unknown" by every consumer; Rule 1's gate D lets an
     unknown step through, exactly as gate A lets an unknown wander through.
     """
-    if cutoff_hz >= 0.999 * (samplerate / 2.0) or cutoff_hz >= frequencies[-1] - 1e-6:
+    if _no_edge(cutoff_hz, frequencies, samplerate):
         return float("nan")
     first, cells = cell_profile_db(frequencies, magnitude_db, samplerate)
     if not cells:
@@ -191,7 +244,6 @@ def edge_step_db(
 # (compute_residual_floor_db) rules and this instrument abstains.
 FLOOR_GAP_HZ = 1000.0
 FLOOR_MIN_CELLS = 4
-FLOOR_TOP_FRACTION = 0.993
 
 
 def floor_above_edge_db(
@@ -206,7 +258,7 @@ def floor_above_edge_db(
     unknown step leaves gate D alone.
     """
     nyquist = samplerate / 2.0
-    if cutoff_hz >= 0.999 * nyquist or cutoff_hz >= frequencies[-1] - 1e-6:
+    if _no_edge(cutoff_hz, frequencies, samplerate):
         return float("nan")
     first, cells = cell_profile_db(frequencies, magnitude_db, samplerate)
     if not cells:
@@ -268,7 +320,7 @@ def low_wall_hz(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: i
     [``LOW_WALL_FROM_HZ``, ``LOW_WALL_TO_HZ``] clears both bars. A NaN means
     "no low wall", and the caller keeps detect_cutoff's reading unchanged.
     """
-    top = min(LOW_WALL_DEPTH_TOP_HZ, 0.993 * samplerate / 2.0)
+    top = min(LOW_WALL_DEPTH_TOP_HZ, FLOOR_TOP_FRACTION * samplerate / 2.0)
     edges = np.arange(_LOW_WALL_BASE_HZ, top - LOW_WALL_CELL_HZ + 1, LOW_WALL_CELL_HZ)
     lo_idx = np.searchsorted(frequencies, edges)
     hi_idx = np.searchsorted(frequencies, edges + LOW_WALL_CELL_HZ)
@@ -322,6 +374,67 @@ def is_low_wall_reading(cutoff_hz: float) -> bool:
     low wall. 0 (an analysis failure) is not.
     """
     return LOW_WALL_FROM_HZ <= cutoff_hz < spectral_config.CUTOFF_SCAN_START
+
+
+def _window_bounds(
+    i: int, num_samples: int, total_duration: float, sample_duration: float, samplerate: int
+) -> Tuple[int, int]:
+    """(start frame, frames to read) of window ``i`` of ``num_samples``.
+
+    Windows are centred at ``(i + 1) / (num_samples + 1)`` of the duration and
+    clamped at the start of the file.
+    """
+    start_time = (total_duration / (num_samples + 1)) * (i + 1) - sample_duration / 2
+    start_time = max(0, start_time)
+    return int(start_time * samplerate), int(sample_duration * samplerate)
+
+
+def _analyze_window(
+    full_audio: np.ndarray,
+    samplerate: int,
+    bounds: Tuple[int, int],
+    actual_frames: int,
+    i: int,
+    num_samples: int,
+) -> Tuple[float, float, float, float]:
+    """Cutoff, HF energy ratio, edge step and floor above the edge of one window.
+
+    Returns ``(0.0, 0.0, nan, nan)`` for a window that lies entirely beyond the
+    audio actually read (partial files).
+    """
+    start_frame, frames_to_read = bounds
+    # Ensure we don't read beyond available data (for partial files)
+    if start_frame + frames_to_read > actual_frames:
+        frames_to_read = max(0, actual_frames - start_frame)
+        if frames_to_read == 0:
+            logger.warning(f"Sample {i+1} beyond available data, skipping")
+            return 0.0, 0.0, float("nan"), float("nan")
+
+    logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
+    data = full_audio[start_frame : start_frame + frames_to_read]
+    fft_freq, magnitude, magnitude_db = _magnitude_spectrum(data, samplerate)
+
+    # Detect cutoff frequency (pass samplerate for adaptive detection)
+    cutoff_freq = detect_cutoff(fft_freq, magnitude_db, samplerate)
+
+    # Nothing found against the 10-14 kHz reference: look for a codec
+    # wall below it before believing a full spectrum (low-wall instrument).
+    if _no_edge(cutoff_freq, fft_freq, samplerate):
+        wall = low_wall_hz(fft_freq, magnitude_db, samplerate)
+        if not math.isnan(wall):
+            logger.info(
+                f"Low wall at {wall:.0f} Hz under an empty reference band "
+                f"(detect_cutoff read {cutoff_freq:.0f} Hz)"
+            )
+            cutoff_freq = wall
+
+    # Calculate high frequency energy ratio (> 16 kHz)
+    energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
+    # How far the spectrum falls across that edge (Rule 1's gate D).
+    step_db = edge_step_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
+    # What is left above that edge (Rule 1's depth gate).
+    floor_db = floor_above_edge_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
+    return cutoff_freq, energy_ratio, step_db, floor_db
 
 
 def analyze_spectrum(
@@ -378,78 +491,17 @@ def analyze_spectrum(
         num_samples = 3 if total_duration > 90 else 1
         sample_duration = min(sample_duration, total_duration / num_samples)
 
-        cutoff_freqs = []
-        energy_ratios = []
-
-        def _analyze_sample(i: int) -> Tuple[float, float, float, float]:
-            """Analyze a single sample."""
-            # Start position of this sample
-            start_time = (total_duration / (num_samples + 1)) * (i + 1) - sample_duration / 2
-            start_time = max(0, start_time)
-            start_frame = int(start_time * samplerate)
-            frames_to_read = int(sample_duration * samplerate)
-
-            # Ensure we don't read beyond available data (for partial files)
-            if start_frame + frames_to_read > actual_frames:
-                frames_to_read = max(0, actual_frames - start_frame)
-                if frames_to_read == 0:
-                    logger.warning(f"Sample {i+1} beyond available data, skipping")
-                    return 0.0, 0.0, float("nan"), float("nan")
-
-            # Extract segment from cached full audio
-            logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
-            data = full_audio[start_frame : start_frame + frames_to_read]
-
-            # Convert to mono if stereo
-            if data.shape[1] > 1:
-                data = np.mean(data, axis=1)
-            else:
-                data = data[:, 0]
-
-            # Apply Hann window to reduce spectral leakage
-            # PHASE 2 OPTIMIZATION: Use cached window
-            window = get_hann_window(len(data))
-            data_windowed = data * window
-
-            # Calculate FFT
-            # PHASE 3 OPTIMIZATION: Use parallel FFT
-            # Limit FFT to 1 worker to avoid thread explosion in multiprocess context
-            with set_workers(1):
-                fft_vals = rfft(data_windowed)
-            fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
-
-            # Spectral magnitude (in dB)
-            magnitude = np.abs(fft_vals)
-            magnitude_db = 20 * np.log10(magnitude + 1e-10)
-
-            # Detect cutoff frequency (pass samplerate for adaptive detection)
-            cutoff_freq = detect_cutoff(fft_freq, magnitude_db, samplerate)
-
-            # Nothing found against the 10-14 kHz reference: look for a codec
-            # wall below it before believing a full spectrum (low-wall instrument).
-            if cutoff_freq >= 0.999 * (samplerate / 2.0) or cutoff_freq >= fft_freq[-1] - 1e-6:
-                wall = low_wall_hz(fft_freq, magnitude_db, samplerate)
-                if not math.isnan(wall):
-                    logger.info(
-                        f"Low wall at {wall:.0f} Hz under an empty reference band "
-                        f"(detect_cutoff read {cutoff_freq:.0f} Hz)"
-                    )
-                    cutoff_freq = wall
-
-            # Calculate high frequency energy ratio (> 16 kHz)
-            energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
-
-            # How far the spectrum falls across that edge (Rule 1's gate D).
-            step_db = edge_step_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
-
-            # What is left above that edge (Rule 1's depth gate).
-            floor_db = floor_above_edge_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
-
-            return cutoff_freq, energy_ratio, step_db, floor_db
-
-        # PHASE 4 OPTIMIZATION: Parallelize sample analysis
-        # Draw samples sequentially to avoid thread overhead
-        results = [_analyze_sample(i) for i in range(num_samples)]
+        results = [
+            _analyze_window(
+                full_audio,
+                samplerate,
+                _window_bounds(i, num_samples, total_duration, sample_duration, samplerate),
+                actual_frames,
+                i,
+                num_samples,
+            )
+            for i in range(num_samples)
+        ]
         cutoff_freqs = [r[0] for r in results]
         energy_ratios = [r[1] for r in results]
         step_dbs = [r[2] for r in results]
@@ -537,23 +589,9 @@ def detect_cutoff(  # noqa: C901
     Returns:
         Detected cutoff frequency in Hz.
     """
-    # Adaptive parameters based on sample rate
-    # For high-res files (>48kHz), scale reference zone and scan start proportionally
     nyquist_freq = samplerate / 2.0
-
-    # Calculate adaptive parameters (as percentage of Nyquist frequency)
-    # Reference zone: 45-65% of Nyquist for standard files, adjusted for hi-res
-    if samplerate <= 48000:
-        # Standard resolution (44.1/48 kHz) - use fixed values optimized for MP3 detection
-        reference_freq_low = spectral_config.REFERENCE_FREQ_LOW
-        reference_freq_high = spectral_config.REFERENCE_FREQ_HIGH
-        cutoff_scan_start = spectral_config.CUTOFF_SCAN_START
-    else:
-        # High resolution (88.2/96/176.4/192 kHz) - scale proportionally
-        scale_factor = samplerate / 44100.0
-        reference_freq_low = int(spectral_config.REFERENCE_FREQ_LOW * scale_factor)
-        reference_freq_high = int(spectral_config.REFERENCE_FREQ_HIGH * scale_factor)
-        cutoff_scan_start = int(spectral_config.CUTOFF_SCAN_START * scale_factor)
+    # Reference zone and scan start, scaled for hi-res (see _reference_band).
+    reference_freq_low, reference_freq_high, cutoff_scan_start = _reference_band(samplerate)
 
     # Focus on frequencies > reference_freq_low
     high_freq_mask = frequencies > reference_freq_low
@@ -623,182 +661,66 @@ def detect_cutoff(  # noqa: C901
     # No cutoff detected with slice method -> try energy-based fallback
     # This catches MP3 upscales that have noise in high frequencies
     logger.debug("No cutoff detected with slice method, trying energy-based detection")
-
-    # Energy-based detection: find where 90% of cumulative energy is reached
-    # Convert dB back to linear magnitude: magnitude = 10^(magnitude_db/20)
-    magnitude_linear = 10 ** (magnitude_db / 20.0)
-    energy = magnitude_linear**2  # Energy is square of linear magnitude
-    cumulative_energy = np.cumsum(energy)
-    total_energy = cumulative_energy[-1]
-
-    if total_energy > 0:
-        # Find where we reach 90% of total energy
-        energy_90_idx = np.where(cumulative_energy >= 0.90 * total_energy)[0]
-        if len(energy_90_idx) > 0:
-            energy_cutoff = frequencies[energy_90_idx[0]]
-
-            # If energy-based cutoff is significantly lower than Nyquist, use it
-            # This indicates energy concentration in lower frequencies (MP3 signature)
-            # BUT: Only if it's in the realistic MP3 cutoff range (15kHz+)
-            # Very low cutoffs (< 10kHz) are usually just bass concentration, not transcoding
-            if 15000 < energy_cutoff < nyquist_freq * 0.95:  # Realistic MP3 range
-                logger.debug(
-                    f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)"
-                )
-                return float(energy_cutoff)
-            elif energy_cutoff < 15000:
-                logger.debug(f"Energy concentration at {energy_cutoff:.0f} Hz (bass, not cutoff)")
-                # Bass concentration but no MP3 cutoff signature - likely authentic
-                return float(freq_max)
+    energy_cutoff = _energy_fallback_cutoff(frequencies, magnitude_db, nyquist_freq, freq_max)
+    if energy_cutoff is not None:
+        return energy_cutoff
 
     # If energy-based also didn't find anything suspicious, truly authentic
     logger.debug(f"No cutoff detected, full spectrum up to {freq_max:.0f} Hz")
     return float(freq_max)
 
 
+def _energy_fallback_cutoff(
+    frequencies: np.ndarray, magnitude_db: np.ndarray, nyquist_freq: float, freq_max: float
+) -> Optional[float]:
+    """Where 90 % of the cumulative energy is reached, when that reads as a cutoff.
+
+    Returns the energy cutoff when it sits in the realistic MP3 range (15 kHz to
+    0.95 x Nyquist); ``freq_max`` when the energy is concentrated below 15 kHz
+    (bass, not a cutoff — likely authentic); None when the fallback has nothing
+    to say and the caller keeps its own "full spectrum" answer.
+    """
+    # Convert dB back to linear magnitude: magnitude = 10^(magnitude_db/20)
+    magnitude_linear = 10 ** (magnitude_db / 20.0)
+    energy = magnitude_linear**2  # Energy is square of linear magnitude
+    cumulative_energy = np.cumsum(energy)
+    total_energy = cumulative_energy[-1]
+    if not total_energy > 0:
+        return None
+    energy_90_idx = np.where(cumulative_energy >= 0.90 * total_energy)[0]
+    if len(energy_90_idx) == 0:
+        return None
+    energy_cutoff = frequencies[energy_90_idx[0]]
+    if 15000 < energy_cutoff < nyquist_freq * 0.95:  # Realistic MP3 range
+        logger.debug(
+            f"Energy-based cutoff detected at {energy_cutoff:.0f} Hz (90% energy threshold)"
+        )
+        return float(energy_cutoff)
+    if energy_cutoff < 15000:
+        logger.debug(f"Energy concentration at {energy_cutoff:.0f} Hz (bass, not cutoff)")
+        return float(freq_max)
+    return None
+
+
 class EdgeReading(NamedTuple):
     """What ``detect_cutoff`` cannot say, because it can only return one float.
 
     ``detect_cutoff`` returns Nyquist in three unrelated situations: the spectrum
-    genuinely runs to the top, the energy is concentrated in the bass and no wall was
-    looked for, and nothing was found at all. A caller reading 22,050 Hz cannot tell
-    a measurement from a shrug, and any median computed over a mixture of the two is
-    partly a median of failures.
+    genuinely runs to the top, the energy is concentrated in the bass and no wall
+    was looked for, and nothing was found at all. ``found`` is the sentinel that
+    separates a measurement from a shrug; ``width_hz`` is how fast the spectrum
+    falls across the edge, NaN (never a magic number) when it cannot be read.
 
-    This project already knows that lesson from Rule 15's mono gate — "the correct
-    behaviour being silence, not a low score, because a low score is still an
-    opinion" — and did not apply it here. Jamie Dodd's engine returns an explicit
-    *no wall found* sentinel, which is why his lawful population reads as a sentinel
-    rather than as a pile of numbers near Nyquist.
+    Width was measured on 2026-08-20 and does not become a rule here (AUC
+    0.48-0.62 bolted onto our edge-finder). The full record — Provir's figures,
+    his retractions and corrections, the three "brickwall" genuine files that
+    turned out to be the reporting grid, and the typed-absence rule this class
+    embodies — is in ``ml/exchange/EDGE_READING_NOTES_2026-08.md``.
 
-    ``found`` is that sentinel. ``width_hz`` is the second half, and it is the more
-    valuable one.
-
-    Why width
-    ---------
-    His measurement, given after retracting the frequency he had handed over: an edge
-    POSITION does not separate lawful masters from MP3 transcodes at all. Of his 17
-    real 2009 DJ-master MP3s, 11 carry a sharp wall topping out at 21,479 Hz and 6
-    have no wall up to 22,023 Hz — while 28 of his 75 lawful masters sit above 21,570.
-    Both populations live on both sides of any line.
-
-    Disclosed by him 2026-08-20, stamped here because we quote the figure: the "6
-    have no wall" half derives from his width field returning a magic ``1500.0``
-    when no 30 dB drop is found — a sentinel living in a numeric field,
-    indistinguishable from a measurement to any caller (his own words: our
-    ``detect_cutoff`` returning Nyquist for three conditions, in his code). He
-    verified the claim survives, because 1500.0 there really does mean "found
-    nothing" — but a file genuinely measuring 1500 Hz of transition would be
-    silently reclassified. The figure rests on a magic float, not a typed absence.
-
-    What separates is how FAST the spectrum falls. In his engine frequency is only a
-    gate (21,350-21,650 Hz) and the test underneath is a transition width, used as a
-    conjunction rather than a threshold: his MP3 positives return 390-519 Hz.
-
-    With his own caveat, given unprompted: of 75 lawful files inside that window, 5
-    do show a sharp wall (409-900 Hz). Width does the work and is still not a
-    separator on its own, which is why the conjunction exists.
-
-    RETRACTED BY HIM 2026-08-20 (evening), stamped wherever we quote the range: the
-    390-519 was not measured under the gate he quoted it against. It came from a
-    characterisation sweep that applies NO admission gate; under his own 160 Hz
-    edge-stability rule the 11 wild MP3s reduce to 4 admissible (398-474 Hz), and
-    BOTH endpoints of the quoted interval come from files the gate refuses (the 390
-    carries an edge std of 263.7, the 519 of 363.3). Same species as our Rule 1
-    residual floor: a statistic computed across a population the rule cannot read —
-    third instance of the species across the two engines in one week. His lawful
-    409-900 and drive 373-837 figures were re-checked and stand.
-    -------------------------------------
-    Different smoothing, different reference band, different definition of where a
-    transition starts and stops. His own standing rule applies to us here: never
-    quote an absolute edge figure without naming the instrument that produced it. So
-    ``width_hz`` is calibrated against our own corpus or not at all, and his 390-519
-    is context, never a threshold to import.
-
-    MEASURED 2026-08-20: width does not become a rule here
-    -------------------------------------------------------
-    ``ml/edge_step_probe.py``, 120 genuine and 40 per arm. Width separates at AUC
-    0.48-0.62 — 0.48 on ``aac_ff320``, i.e. below chance — and at a 5 % genuine cost
-    it fires on 0-5 % of each arm. Against a stereo family at 92 % and an MDCT rule
-    at AUC 0.99, that is not an axis.
-
-    It was measured twice. The first run reused ``detect_cutoff``'s size-100
-    smoothing kernel and was invalid: at 2.69 Hz per bin that kernel spans 269 Hz,
-    and every width it produced (137-215 Hz median) sat below its own filter. The
-    synthetic control passed anyway, because a step function survives any kernel —
-    the same failure as the MP3-geometry probe that validated against a control
-    sharing its defect. Fixing it to 9 bins gave the statistic real dynamic range
-    (a synthetic brickwall went 70 Hz -> 11 Hz against a rolloff at ~200 Hz) and
-    changed the corpus answer not at all.
-
-    So the honest statement is narrow: **width does not work bolted onto our
-    edge-finder.** Our position comes from a 269 Hz-smoothed curve and the width
-    search starts 250 Hz below it, so the two halves are not one coherent
-    instrument. This says nothing about whether it works in Provir's, where it does.
-
-    CORRECTED 2026-08-20, by him, before we could build on the contrast: Provir's
-    is not one coherent instrument either. His edge comes from an 8192-point FFT
-    (p90 across 5 s chunks, whole file, ref -15 dB), his width from a 32768-point
-    one (mean power, first 90 s, ref -30 dB); the width search starts at
-    edge - 300 Hz, his gate admits edges wandering by up to 160 Hz, and the width
-    is quoted to 1.35 Hz. His fire test (width < 600 Hz) is blunt enough that the
-    wander "probably" does not reach it — "probably" flagged by him as unmeasured.
-    So the better-specified question, his phrasing, ours to answer as much as his:
-    does width fail bolted onto ANY separately-derived edge? Answered by
-    ``ml/edge_width_selfanchored_probe.py``, which finds and measures the
-    transition on one curve, one pass, no separate edge-finder.
-
-    One thing did fall out, and it is not a result
-    ----------------------------------------------
-    Exactly 3 of our 39 measurable genuine files read as near-perfect brickwalls —
-    2.7 Hz, 0.0 Hz and 18.8 Hz, at 21,000 / 21,000 / 20,250 Hz. Either they are
-    transcodes mislabelled in our own genuine corpus, or the statistic is spurious on
-    them. **This cannot be settled with the statistic under test**, and excluding them
-    because they look like transcodes is precisely the circularity this whole exchange
-    is about. They are adjudication candidates for ``ml/wild_fake_ledger.py``, whose
-    ``basis`` field exists for this, and nothing more until a human with evidence
-    rules on them.
-
-    For the record, and stated as a bound rather than as a finding: if all three were
-    transcodes, the 5 %-cost fire rates would rise to 7.5-25 % per arm. Still not an
-    axis, so the question does not change the decision — which is the only reason it
-    is safe to write down.
-
-    RESOLVED 2026-08-20, the same day, by his two follow-up observations. Both were
-    right. The roundness is our own reporting grid — ``detect_cutoff`` returns slice
-    boundaries, so 21,000 / 21,000 / 20,250 are 250 Hz cells, and two files
-    "agreeing to the Hz" merely share a cell. And the widths were below the
-    instrument's own floor because the bolted search window opened already under the
-    -6 dB level at its first bin — on those three files and on ~98 % of the corpus.
-    Re-measured self-anchored and off-grid (``ml/edge_width_selfanchored_probe.py``):
-    their true -6 dB edges sit at 15,735 / 18,755 / 15,291 Hz with falls of 5,020 /
-    1,973 / 4,729 Hz, resolution-stable — ordinary gentle rolloffs, no walls at all.
-    The observation is withdrawn as an observation about files (it described the
-    anchor), the 7.5-25 % bound is moot, and nothing goes to the adjudication
-    ledger.
-
-    THE TYPED-ABSENCE RULE, registered 2026-08-29 — the species, third instance
-    ---------------------------------------------------------------------------
-    This class exists because ``detect_cutoff`` signals "nothing found" by
-    returning Nyquist: an absence wearing the clothes of a measurement. Provir's
-    ``width`` does the same with ``1500.0``. On 2026-08-29 he reported the third
-    instance, on his side and in the other direction: a guard reading, in effect,
-    ``(edge_std or 999) < 160``, where a measured std of exactly **0.0** is falsy,
-    becomes the sentinel, and the file leaves the stability window on the
-    coercion rather than on the measurement. A zero std is a legitimate reading —
-    every window agreed — and it is the strongest evidence for an edge, not the
-    weakest.
-
-        An absence is TYPED. It is never a value, and never a falsy value.
-        Test ``is None`` (or ``math.isnan``). Never test a measurement for
-        truth, and never coerce one with ``or``: 0.0, 0 and "" are readings.
-
-    Enforced rather than asserted: ``ml/typed_absence_audit.py`` walks the AST of
-    every module under ``src/`` and ``ml/`` and exits non-zero on either shape.
-    It is also why ``found`` is a separate bool here and ``width_hz`` is ``nan``
-    rather than a magic number — a caller that ignores ``found`` gets a ``nan``,
-    which poisons a median loudly, instead of a plausible float that poisons it
-    silently.
+    An absence is TYPED. It is never a value, and never a falsy value. Test
+    ``is None`` (or ``math.isnan``); never test a measurement for truth, and
+    never coerce one with ``or``: 0.0, 0 and "" are readings.
+    ``ml/typed_absence_audit.py`` enforces both shapes on ``src/`` and ``ml/``.
     """
 
     cutoff_hz: float
@@ -871,21 +793,14 @@ def detect_cutoff_detailed(
     median is the actual harm. See :class:`EdgeReading`.
     """
     cutoff = float(detect_cutoff(frequencies, magnitude_db, samplerate))
-    nyquist = samplerate / 2.0
 
     # detect_cutoff signals "nothing found" by returning the top of the band. That is
     # the ambiguity this function exists to resolve, so it is resolved here rather
     # than by the caller guessing.
-    if cutoff >= frequencies[-1] - 1e-6 or cutoff >= 0.999 * nyquist:
+    if _no_edge(cutoff, frequencies, samplerate):
         return EdgeReading(cutoff_hz=cutoff, found=False, width_hz=float("nan"))
 
-    if samplerate <= 48000:
-        ref_low = spectral_config.REFERENCE_FREQ_LOW
-        ref_high = spectral_config.REFERENCE_FREQ_HIGH
-    else:
-        scale = samplerate / 44100.0
-        ref_low = int(spectral_config.REFERENCE_FREQ_LOW * scale)
-        ref_high = int(spectral_config.REFERENCE_FREQ_HIGH * scale)
+    ref_low, ref_high, _scan_start = _reference_band(samplerate)
 
     ref_mask = (frequencies >= ref_low) & (frequencies <= ref_high)
     if not np.any(ref_mask):
@@ -945,17 +860,53 @@ def calculate_high_frequency_energy(frequencies: np.ndarray, magnitude: np.ndarr
     if not np.any(high_freq_idx):
         return 0.0
 
-    # Analysis by 1 kHz slices
+    # Analysis by 1 kHz slices. The total is the same sum over the same array for
+    # every slice, so it is taken once (an exact hoist, not a reassociation).
+    total_energy = float(np.sum(magnitude**2))
     tranche_energies: list[float] = []
     for f_start in range(spectral_config.HIGH_FREQ_THRESHOLD, int(frequencies[-1]), 1000):
         f_mask = (frequencies >= f_start) & (frequencies < f_start + 1000)
         if np.any(f_mask):
             tranche_energy = float(np.sum(magnitude[f_mask] ** 2))
-            total_energy = float(np.sum(magnitude**2))
             tranche_energies.append(tranche_energy / total_energy if total_energy > 0 else 0.0)
 
     # A real FLAC has energy in ALL slices
     return float(np.mean(tranche_energies)) if tranche_energies else 0.0
+
+
+# Rule 10's segment reader: 10 s windows, and the two std bars of its
+# progressive decision (coherent under 500 Hz, dynamic over 1000 Hz).
+_R10_SEGMENT_SECONDS = 10.0
+_R10_COHERENT_STD_HZ = 500
+_R10_DYNAMIC_STD_HZ = 1000
+
+
+def _segment_cutoff(
+    cache: "AudioCache", total_duration: float, samplerate: int, center_ratio: float
+) -> float:
+    """The cutoff of the 10 s segment centred at ``center_ratio`` of the file, or 0.0.
+
+    0.0 — Rule 10's own "no reading" value, filtered out by its callers — on an
+    empty read or any failure. The cutoff is read at the default 44.1 kHz band
+    layout whatever the file's rate, as Rule 10 has always been calibrated.
+    """
+    center_time = total_duration * center_ratio
+    start_time = max(0, center_time - (_R10_SEGMENT_SECONDS / 2))
+    # Ensure we don't go past end
+    if start_time + _R10_SEGMENT_SECONDS > total_duration:
+        start_time = max(0, total_duration - _R10_SEGMENT_SECONDS)
+    start_frame = int(start_time * samplerate)
+    frames_to_read = int(_R10_SEGMENT_SECONDS * samplerate)
+    try:
+        logger.debug(f"⚡ CACHE: Reading segment at {center_ratio*100:.0f}% via cache")
+        data, _ = cache.get_segment(start_frame, frames_to_read)
+        if len(data) == 0:
+            return 0.0
+        fft_freq, _magnitude, magnitude_db = _magnitude_spectrum(data, samplerate)
+        return detect_cutoff(fft_freq, magnitude_db)
+    except Exception as e:
+        logger.warning(f"Error analyzing segment at {center_ratio*100:.0f}%: {e}")
+        return 0.0
 
 
 def analyze_segment_consistency(  # noqa: C901
@@ -991,55 +942,8 @@ def analyze_segment_consistency(  # noqa: C901
         total_duration = info.duration
         samplerate = info.samplerate
 
-        segment_duration = 10.0  # 10 seconds per segment
-
         def analyze_single_segment(center_ratio: float) -> float:
-            """Analyze a single segment and return its cutoff."""
-            center_time = total_duration * center_ratio
-            start_time = max(0, center_time - (segment_duration / 2))
-
-            # Ensure we don't go past end
-            if start_time + segment_duration > total_duration:
-                start_time = max(0, total_duration - segment_duration)
-
-            start_frame = int(start_time * samplerate)
-            frames_to_read = int(segment_duration * samplerate)
-
-            try:
-                # OPTIMIZATION: Use cache instead of direct sf.read
-                logger.debug(f"⚡ CACHE: Reading segment at {center_ratio*100:.0f}% via cache")
-                data, _ = cache.get_segment(start_frame, frames_to_read)
-
-                if len(data) < frames_to_read and len(data) == 0:
-                    return 0.0
-
-                # Convert to mono
-                if data.shape[1] > 1:
-                    data = np.mean(data, axis=1)
-                else:
-                    data = data[:, 0]
-
-                # Windowing
-                # PHASE 2 OPTIMIZATION: Use cached window
-                window = get_hann_window(len(data))
-                data_windowed = data * window
-
-                # FFT
-                # PHASE 3 OPTIMIZATION: Use parallel FFT
-                # Limit FFT to 1 worker
-                with set_workers(1):
-                    fft_vals = rfft(data_windowed)
-                fft_freq = rfftfreq(len(data_windowed), 1 / samplerate)
-
-                magnitude = np.abs(fft_vals)
-                magnitude_db = 20 * np.log10(magnitude + 1e-10)
-
-                cutoff = detect_cutoff(fft_freq, magnitude_db)
-                return cutoff
-
-            except Exception as e:
-                logger.warning(f"Error analyzing segment at {center_ratio*100:.0f}%: {e}")
-                return 0.0
+            return _segment_cutoff(cache, total_duration, samplerate, center_ratio)
 
         # PHASE 1: Analyze Start + End (2 segments)
         # Analyze Start + End (Sequential)
@@ -1064,7 +968,7 @@ def analyze_segment_consistency(  # noqa: C901
         # PHASE 2: Progressive decision
         if progressive:
             # If variance < 500 Hz, segments are coherent -> STOP
-            if variance < 500:
+            if variance < _R10_COHERENT_STD_HZ:
                 logger.info(
                     f"⚡ OPTIMIZATION R10: Early stop - Coherent segments (variance {variance:.1f} < 500 Hz)"
                 )
@@ -1072,7 +976,7 @@ def analyze_segment_consistency(  # noqa: C901
                 return cutoffs, variance
 
             # If variance > 1000 Hz, already know it's dynamic -> STOP
-            if variance > 1000:
+            if variance > _R10_DYNAMIC_STD_HZ:
                 logger.info(
                     f"⚡ OPTIMIZATION R10: Early stop - High variance detected ({variance:.1f} > 1000 Hz)"
                 )

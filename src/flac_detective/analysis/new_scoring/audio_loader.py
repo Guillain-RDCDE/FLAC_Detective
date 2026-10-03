@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 
 from ..diagnostic_tracker import IssueType, get_tracker
 
-# Type variable for mutagen availability
+# Whether mutagen is importable; the tag read/restore paths are skipped without it.
 MUTAGEN_AVAILABLE: bool
 
 try:
