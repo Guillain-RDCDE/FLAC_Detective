@@ -388,7 +388,9 @@ def decode_to_wav(path: Path) -> Optional[Path]:
             tmp.unlink(missing_ok=True)
             return None
         return tmp
-    except subprocess.SubprocessError as e:
+    except (subprocess.SubprocessError, OSError) as e:
+        # OSError too: ffmpeg found by `which` and gone by `run` (or not
+        # executable) used to escape this handler and leak the temp file.
         logger.warning(f"ffmpeg decode error for {path}: {e}")
         tmp.unlink(missing_ok=True)
         return None

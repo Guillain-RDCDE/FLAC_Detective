@@ -32,7 +32,7 @@ class TestAudioLoadingBenchmarks:
 
     def test_audio_cache_creation(self, benchmark, benchmark_audio_file):
         """Benchmark AudioCache initialization."""
-        result = benchmark(AudioCache, benchmark_audio_file, 30.0)
+        result = benchmark(AudioCache, benchmark_audio_file)
         assert result is not None
 
     def test_audio_cache_reuse(self, benchmark, benchmark_audio_file):
@@ -68,7 +68,7 @@ class TestCachePerformance:
 
     def test_cache_creation_overhead(self, benchmark, benchmark_audio_file):
         """Benchmark AudioCache creation overhead."""
-        benchmark(AudioCache, benchmark_audio_file, 30.0)
+        benchmark(AudioCache, benchmark_audio_file)
 
     def test_cache_hit_performance(self, benchmark, benchmark_audio_file):
         """Benchmark cache hit (already loaded)."""

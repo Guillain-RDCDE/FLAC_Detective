@@ -197,12 +197,15 @@ uncompressed and the rule would wrongly switch off.
 
 ## Repair: lossless reconstruction, only when needed
 
-Analysis is **read-only**. There is exactly one case where FLAC Detective writes: when a
-FLAC is **so corrupted it cannot be decoded at all**, even after the loader's retry/backoff.
-A file that won't decode can't be analysed — so, rather than skip it, the tool rebuilds a
-**valid, byte-identical FLAC** from whatever the audio data still allows, and then analyses
-that. This is the opposite of "tinkering with the sound": **nothing in the audio is
-processed, resampled, normalised or 'enhanced'.**
+Analysis is **read-only**. Since 2.0 that is true without exception: a scan writes
+nothing into your library. When a FLAC is **so corrupted it cannot be decoded at all**,
+even after the loader's retry/backoff, the tool rebuilds a **valid, byte-identical FLAC**
+from whatever the audio data still allows *in the temp directory*, analyses that, and
+discards it. Pass `--repair-in-place` to have the repaired file replace the broken one in
+your library (a `.corrupted.bak` is kept beside it) — until 2.0 that replacement was the
+default, which is not what a scan should do unasked. Either way, this is the opposite of
+"tinkering with the sound": **nothing in the audio is processed, resampled, normalised or
+'enhanced'.**
 
 ### Why it's lossless (the part that matters for hi-fi)
 
@@ -225,17 +228,19 @@ corrupted .flac  ── can't be decoded after retries
    4. restore metadata         (tags + pictures put back, untouched)
    5. verify                   (flac --test: refuse to proceed unless the
    │                            rebuilt file is provably valid)
-   6. replace original         (only after a .corrupted.bak backup is written)
+   6. analyse the repaired copy; with --repair-in-place ONLY, replace the
+   │                            original (after a .corrupted.bak is written)
    ▼
- valid .flac  ── now analysable; backup of the original kept beside it
+ valid .flac  ── analysable; your library untouched unless you asked
 ```
 
 ### Safety guarantees
 
-- **Only broken files.** A file that decodes normally is *never* rewritten. Healthy music is
-  read and left exactly as it is.
-- **A backup is always kept.** The original is copied to `<name>.flac.corrupted.bak` *before*
-  anything replaces it — you can always go back.
+- **Nothing is written unless asked.** The repair happens on a temp copy; only
+  `--repair-in-place` lets it replace the file in your library, and only a file that could
+  not be decoded at all. Healthy music is read and left exactly as it is.
+- **A backup is always kept** when it does replace. The original is copied to
+  `<name>.flac.corrupted.bak` *before* anything replaces it — you can always go back.
 - **Verified before trusted.** If the rebuilt file fails `flac --test`, repair aborts and the
   original is left untouched.
 - **Metadata preserved.** Tags and embedded artwork are carried across verbatim.
@@ -245,9 +250,11 @@ corrupted .flac  ── can't be decoded after retries
 
 There are two entry points to the same lossless machinery:
 
-- **Automatic**, during analysis — triggered only by the undecodable-file case above, so a
-  scan of a healthy library never writes anything.
+- **Automatic**, during analysis — triggered only by the undecodable-file case above, on a
+  temp copy; `--repair-in-place` to keep the result in your library.
 - **Standalone**, `python -m flac_detective.repair /path` — a duration-header fixer for FLACs
+  (since 2.0 it re-encodes at the file's own bit depth: a 24-bit file comes out 24-bit; until
+  then its default setting wrote 16-bit)
   whose declared length disagrees with their actual decoded length (also a lossless re-encode,
   also with a `.bak` backup).
 

@@ -556,13 +556,15 @@ def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List
 
     if cutoff_freq < cutoff_threshold:
         frequency_deficit = cutoff_threshold - cutoff_freq
-        cutoff_penalty = min(frequency_deficit / 200, 30)
-        score += int(cutoff_penalty)
+        # Truncated, as it is scored. The reason used to print the rounded
+        # value: "+13pts" on a line that had added 12.
+        cutoff_penalty = int(min(frequency_deficit / 200, 30))
+        score += cutoff_penalty
         reasons.append(
-            f"R2: Cutoff {cutoff_freq:.0f} Hz < {cutoff_threshold:.0f} Hz (+{cutoff_penalty:.0f}pts)"
+            f"R2: Cutoff {cutoff_freq:.0f} Hz < {cutoff_threshold:.0f} Hz (+{cutoff_penalty}pts)"
         )
         logger.debug(
-            f"RULE 2: +{cutoff_penalty:.0f} points "
+            f"RULE 2: +{cutoff_penalty} points "
             f"(cutoff {cutoff_freq:.0f} <threshold {cutoff_threshold:.0f})"
         )
 

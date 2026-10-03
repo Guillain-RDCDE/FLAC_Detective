@@ -79,7 +79,13 @@ def apply_rule_4_24bit_suspect(
     has_low_cutoff = cutoff_freq < MAX_SUSPICIOUS_CUTOFF
 
     # SAFEGUARD: Protect authentic vinyl rips
-    # If Rule 7 detected vinyl noise (ratio < 0.15), skip this rule
+    # If Rule 7 detected vinyl noise (ratio < 0.15), skip this rule.
+    #
+    # KNOWN INERT (2.0 audit, left as is on purpose): Rule 4 runs among the
+    # fast rules and Rule 7 — the only writer of silence_ratio — runs after
+    # them, so this value is always None here and the safeguard has never
+    # fired. Moving Rule 7 ahead of Rule 4 is an engine change that needs its
+    # own registration and before/after pass on the labelled corpora.
     is_vinyl_rip = silence_ratio is not None and silence_ratio < 0.15
 
     if is_vinyl_rip:
@@ -92,7 +98,8 @@ def apply_rule_4_24bit_suspect(
     if is_24bit and has_low_mp3_source and has_low_cutoff:
         score += 30
         reasons.append(
-            f"R4: 24-bit avec bitrate source {mp3_bitrate_detected} kbps et cutoff {cutoff_freq:.0f} Hz (upscale suspect)"
+            f"R4: 24-bit with a {mp3_bitrate_detected} kbps source bitrate and a "
+            f"{cutoff_freq:.0f} Hz cutoff (suspected upscale)"
         )
         logger.info(
             f"RULE 4: +30 points (24-bit with MP3 source {mp3_bitrate_detected} kbps < {MIN_24BIT_BITRATE} "

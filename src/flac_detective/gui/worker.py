@@ -1,21 +1,27 @@
 """Background analysis worker for the GUI.
 
-Runs the same multiprocess analysis as the CLI (``ProcessPoolExecutor`` over
-``FLACAnalyzer.analyze_file``) but on a Qt ``QThread`` so the UI stays responsive,
-emitting a signal per completed file plus progress and lifecycle signals. Supports
-cooperative cancellation.
+Runs the CLI's own batch runner (``flac_detective.cli.pool.analyze_batch``) on a
+Qt ``QThread`` so the UI stays responsive, emitting a signal per completed file
+plus progress and lifecycle signals. Supports cooperative cancellation.
+
+Until v2.0 this class carried its own copy of the process pool, without the
+CLI's fallback when the pool dies (every remaining file was lost on a
+BrokenProcessPool) and without the reading issues the diagnostic report is
+built from. It now takes both from the one implementation.
 """
 
 from __future__ import annotations
 
 import logging
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from typing import List
 
 from PySide6.QtCore import QThread, Signal
 
 from ..analysis import FLACAnalyzer
+from ..analysis.diagnostic_tracker import get_tracker
+from ..cli.pool import analyze_batch
 from ..config import analysis_config
 
 logger = logging.getLogger(__name__)
@@ -54,31 +60,33 @@ class AnalysisWorker(QThread):
             return
 
         analyzer = FLACAnalyzer(sample_duration=self._sample_duration, deep=self._deep)
-        done = 0
+        done: set[Path] = set()
+
+        def consume(files: List[Path], workers: int) -> None:
+            for path, res in analyze_batch(
+                files, analyzer, workers, should_stop=lambda: self._cancel
+            ):
+                done.add(path)
+                get_tracker().absorb_result(res)
+                self.result.emit(res)
+                self.progress.emit(len(done), total)
+
         try:
-            # Match the CLI: a process pool keeps a big scan fast. One worker may be
-            # plenty on small selections, but reuse the configured cap for parity.
-            with ProcessPoolExecutor(max_workers=analysis_config.MAX_WORKERS) as executor:
-                futures = {executor.submit(analyzer.analyze_file, f): f for f in self._files}
-                for future in as_completed(futures):
-                    if self._cancel:
-                        executor.shutdown(wait=False, cancel_futures=True)
-                        break
-                    try:
-                        res = future.result()
-                    except Exception as exc:  # one file failing must not kill the run
-                        logger.warning("Analysis failed for %s: %s", futures[future], exc)
-                        res = {
-                            "filepath": str(futures[future]),
-                            "filename": Path(futures[future]).name,
-                            "score": 0,
-                            "verdict": "ERROR",
-                            "reason": f"Error: {exc}",
-                            "hires_verdict": "UNKNOWN",
-                        }
-                    self.result.emit(res)
-                    done += 1
-                    self.progress.emit(done, total)
+            workers = max(1, int(analysis_config.MAX_WORKERS))
+            try:
+                consume(self._files, workers)
+            except BrokenProcessPool:
+                # The CLI's answer, same reasoning: the pool dying is a start-up
+                # failure in the workers, not a verdict on the audio. Finish the
+                # rest here, slower and reliably.
+                left = [f for f in self._files if f not in done]
+                logger.error(
+                    "The worker pool died after %d of %d files; finishing %d in this process",
+                    len(done),
+                    total,
+                    len(left),
+                )
+                consume(left, 1)
         except Exception as exc:  # pool-level failure
             logger.error("Analysis run aborted: %s", exc)
             self.failed.emit(str(exc))

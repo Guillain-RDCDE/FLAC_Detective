@@ -55,6 +55,7 @@ def load_audio_with_retry(
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
     original_filepath: Optional[str] = None,
+    repair_in_place: bool = False,
     **kwargs: Any,
 ) -> Tuple[Optional[np.ndarray], Optional[int]]:
     """Load audio file with retry mechanism for temporary decoder errors.
@@ -68,6 +69,10 @@ def load_audio_with_retry(
         initial_delay: Initial delay between retries in seconds (default: 0.2)
         backoff_multiplier: Multiplier for exponential backoff (default: 2.0)
         original_filepath: Original file path for diagnostic reporting (default: None)
+        repair_in_place: When True AND a repair succeeds, ``original_filepath``
+            is replaced by the repaired file (a ``.corrupted.bak`` is kept).
+            Off by default since 2.0: a scan does not write to a library
+            unless asked (``--repair-in-place``).
         **kwargs: Additional keyword arguments to pass to soundfile.read()
 
     Returns:
@@ -122,18 +127,27 @@ def load_audio_with_retry(
                 )
                 break
 
-    # All attempts failed, try to repair and load again
+    # All attempts failed, try to repair and load again.
+    #
+    # The repaired file lives in the temp directory and is read from there.
+    # The user's own file is replaced only when asked (repair_in_place). Until
+    # v2.0 this call passed replace_source=True whenever a source path was
+    # known — which the AudioCache always supplies — so a plain scan rewrote
+    # files in the library (with a .corrupted.bak beside each) without being
+    # asked to.
     logger.debug(f"All attempts to load {file_path} failed. Attempting repair...")
     get_tracker().record_issue(
         filepath=tracking_path,
         issue_type=IssueType.REPAIR_ATTEMPTED,
-        message="Attempting FLAC repair after read failures",
+        message=(
+            "Attempting FLAC repair after read failures"
+            + (" (will replace the source)" if repair_in_place else " (temp copy only)")
+        ),
     )
-    # Repair the corrupted file and replace the original source if successful
     repaired_path = repair_flac_file(
         corrupted_path=file_path,
         source_path=original_filepath,
-        replace_source=True,  # Replace source file on successful repair
+        replace_source=repair_in_place,
     )
 
     if repaired_path:
@@ -377,6 +391,13 @@ def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> boo
         return False
 
 
+def _unique_temp_path(prefix: str, suffix: str) -> str:
+    """A fresh, unique path in the temp directory (the file is created empty)."""
+    fd, path = tempfile.mkstemp(prefix=prefix, suffix=suffix)
+    os.close(fd)
+    return path
+
+
 def repair_flac_file(  # noqa: C901
     corrupted_path: str, source_path: Optional[str] = None, replace_source: bool = False
 ) -> Optional[str]:
@@ -403,10 +424,12 @@ def repair_flac_file(  # noqa: C901
     metadata: Optional[Dict[str, Any]] = None
 
     try:
-        temp_dir: str = tempfile.gettempdir()
+        # Unique names: two workers repairing two files of the same name (one
+        # per album folder, say) used to share "repair_<name>.wav" and overwrite
+        # each other mid-decode.
         base_name: str = os.path.splitext(os.path.basename(corrupted_path))[0]
-        wav_path = os.path.join(temp_dir, f"repair_{base_name}.wav")
-        repaired_path = os.path.join(temp_dir, f"repaired_{os.path.basename(corrupted_path)}")
+        wav_path = _unique_temp_path(f"repair_{base_name}_", ".wav")
+        repaired_path = _unique_temp_path(f"repaired_{base_name}_", ".flac")
 
         display_name: str = (
             os.path.basename(source_path) if source_path else os.path.basename(corrupted_path)
@@ -430,6 +453,7 @@ def repair_flac_file(  # noqa: C901
             "--decode",
             "--decode-through-errors",  # Continue decoding despite errors
             "--silent",  # Reduce noise in logs
+            "-f",  # The unique temp path already exists (created empty): overwrite it
             corrupted_path,
             "-o",
             wav_path,

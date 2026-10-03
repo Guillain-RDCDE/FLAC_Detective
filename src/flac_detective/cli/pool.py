@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Optional, Tuple
 
 from ..analysis import FLACAnalyzer
+from ..analysis.diagnostic_tracker import get_tracker
 from ..analysis.progress import ProgressCallback, ProgressEvent, install_queue_sink
 from ..config import analysis_config
 from ..tracker import ProgressTracker
@@ -122,6 +123,7 @@ def analyze_batch(
     analyzer: Any,
     workers: int,
     on_event: Optional[ProgressCallback] = None,
+    should_stop: Optional[Callable[[], bool]] = None,
 ) -> Iterator[tuple[Path, dict]]:
     """Yield ``(path, result)`` for each file, in a pool or in this process.
 
@@ -136,12 +138,17 @@ def analyze_batch(
         on_event: Per-stage progress consumer (issue #11), or None for none. In
             process the analyzer is handed the callback; in the pool the events
             come back over a queue, because a callback does not cross a process.
+        should_stop: Polled before each file (in process) or after each result
+            (pooled). When it answers True the batch ends: queued files are
+            cancelled and in-flight ones are left to finish. The GUI's cancel.
 
     Yields:
         ``(path, result)`` pairs, in completion order when pooled.
     """
     if workers <= 1:
         for path in files:
+            if should_stop is not None and should_stop():
+                return
             # The call keeps its old shape when the feature is off, so anything
             # duck-typed as an analyzer elsewhere is unaffected by this argument.
             if on_event is None:
@@ -155,6 +162,9 @@ def analyze_batch(
         ) as executor:
             futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
             for future in as_completed(futures):
+                if should_stop is not None and should_stop():
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    return
                 yield futures[future], future.result()
 
 
@@ -210,6 +220,9 @@ def process_flac_files(
         nonlocal processed_count
         for path, result in analyze_batch(files, analyzer, workers, on_event):
             done.add(path)
+            # A worker's reading issues ride in the result; the parent's
+            # tracker is the one the diagnostic report is written from.
+            get_tracker().absorb_result(result)
             tracker.add_result(result)
             processed_count += 1
             if progress is not None:
@@ -262,6 +275,7 @@ def run_analysis_loop(
     deep: bool = False,
     advanced: bool = False,
     on_event: Optional[ProgressCallback] = None,
+    repair_in_place: bool = False,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.
 
@@ -275,6 +289,8 @@ def run_analysis_loop(
             See the ``--deep`` flag.
         advanced: Show numeric scores in the per-file console line (else easy mode).
         on_event: Per-stage progress consumer (``--progress-events``), or None.
+        repair_in_place: Replace undecodable files with their lossless repair
+            (``--repair-in-place``); off by default.
 
     Returns:
         List of result dictionaries.
@@ -282,7 +298,9 @@ def run_analysis_loop(
     effective_duration = (
         sample_duration if sample_duration is not None else analysis_config.SAMPLE_DURATION
     )
-    analyzer = FLACAnalyzer(sample_duration=effective_duration, deep=deep)
+    analyzer = FLACAnalyzer(
+        sample_duration=effective_duration, deep=deep, repair_in_place=repair_in_place
+    )
     tracker = ProgressTracker(progress_file=output_dir / "progress.json")
 
     # Filter already processed files

@@ -567,7 +567,9 @@ def analyze_spectrum(
         )
 
     except Exception as e:
-        logger.debug(f"Spectral analysis error: {e}")
+        # A whole spectrum lost is worth a WARNING: the file goes on with a
+        # 0 Hz cutoff, which every rule reads as "no reading".
+        logger.warning(f"Spectral analysis error: {e}")
         return 0, 0, 0, float("nan"), float("nan"), float("nan")
 
 
@@ -887,8 +889,9 @@ def _segment_cutoff(
     """The cutoff of the 10 s segment centred at ``center_ratio`` of the file, or 0.0.
 
     0.0 — Rule 10's own "no reading" value, filtered out by its callers — on an
-    empty read or any failure. The cutoff is read at the default 44.1 kHz band
-    layout whatever the file's rate, as Rule 10 has always been calibrated.
+    empty read or any failure. The cutoff is read with the file's own sample
+    rate (until v2.0 the call omitted it, so a 96 kHz file was scanned with the
+    44.1 kHz reference band and scan start).
     """
     center_time = total_duration * center_ratio
     start_time = max(0, center_time - (_R10_SEGMENT_SECONDS / 2))
@@ -903,7 +906,7 @@ def _segment_cutoff(
         if len(data) == 0:
             return 0.0
         fft_freq, _magnitude, magnitude_db = _magnitude_spectrum(data, samplerate)
-        return detect_cutoff(fft_freq, magnitude_db)
+        return detect_cutoff(fft_freq, magnitude_db, samplerate)
     except Exception as e:
         logger.warning(f"Error analyzing segment at {center_ratio*100:.0f}%: {e}")
         return 0.0

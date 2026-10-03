@@ -5,10 +5,10 @@ a detailed diagnostic report at the end.
 """
 
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +37,42 @@ class FileIssue:
     retry_count: int = 0
     timestamp: str = ""
 
+    def as_dict(self) -> Dict[str, Any]:
+        """A plain, picklable, JSON-ready form (the enum as its value)."""
+        d = asdict(self)
+        d["issue_type"] = self.issue_type.value
+        return d
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "FileIssue":
+        """The inverse of :meth:`as_dict`."""
+        d = dict(d)
+        d["issue_type"] = IssueType(d["issue_type"])
+        return cls(**d)
+
+
+# Result-dict key under which a file's reading issues travel back from a
+# worker process. See DiagnosticTracker.absorb_result.
+RESULT_ISSUES_KEY = "reading_issues"
+
 
 class DiagnosticTracker:
-    """Tracks all analysis issues for diagnostic reporting."""
+    """Tracks all analysis issues for diagnostic reporting.
+
+    One instance per PROCESS. The analyzer records issues into the instance of
+    the process it runs in — a pool worker's, in a multi-worker scan — so the
+    parent never saw them and its end-of-run diagnostic report was empty
+    whenever more than one worker ran (until v2.0). The analyzer therefore
+    exports a file's issues into its result dict (``RESULT_ISSUES_KEY``), and
+    whoever collects results calls :meth:`absorb_result`, which is idempotent:
+    in-process runs, where the parent's tracker already holds the issues, end
+    with the same counts.
+    """
 
     def __init__(self):
         """Initialize the diagnostic tracker."""
         self._issues: Dict[str, List[FileIssue]] = {}
-        self._files_analyzed: int = 0
-        self._files_with_issues: int = 0
+        self._analyzed: Set[str] = set()
 
     def record_issue(
         self,
@@ -78,16 +105,34 @@ class DiagnosticTracker:
             timestamp=datetime.now().strftime("%H:%M:%S"),
         )
 
-        if filepath not in self._issues:
-            self._issues[filepath] = []
-            self._files_with_issues += 1
-
-        self._issues[filepath].append(issue)
+        self._issues.setdefault(filepath, []).append(issue)
         logger.debug(f"DIAGNOSTIC: Recorded {issue_type.value} for {Path(filepath).name}")
 
+    def note_analyzed(self, filepath: str) -> None:
+        """Count ``filepath`` as analysed (once, however many times it is noted)."""
+        self._analyzed.add(filepath)
+
     def increment_files_analyzed(self):
-        """Increment the counter of files analyzed."""
-        self._files_analyzed += 1
+        """Deprecated: kept for callers of the pre-2.0 API; prefer note_analyzed."""
+        self._analyzed.add(f"<anonymous {len(self._analyzed)}>")
+
+    def export_issues(self, filepath: str) -> List[Dict[str, Any]]:
+        """This file's issues as plain dicts, to ride in a result across a process."""
+        return [issue.as_dict() for issue in self._issues.get(filepath, [])]
+
+    def absorb_result(self, result: Dict[str, Any]) -> None:
+        """Take the issues a result carries (from a worker) into this tracker.
+
+        Replaces, never appends, so absorbing the same result twice — or a
+        result produced in this very process — changes nothing.
+        """
+        filepath = result.get("filepath")
+        if not filepath:
+            return
+        self._analyzed.add(filepath)
+        carried = result.get(RESULT_ISSUES_KEY) or []
+        if carried:
+            self._issues[filepath] = [FileIssue.from_dict(d) for d in carried]
 
     def get_files_with_issues(self) -> List[str]:
         """Get list of all files that had issues.
@@ -129,10 +174,12 @@ class DiagnosticTracker:
         Returns:
             Dictionary with diagnostic statistics
         """
+        files_analyzed = len(self._analyzed)
+        files_with_issues = len(self._issues)
         stats: Dict[str, Any] = {
-            "total_files": self._files_analyzed,
-            "files_with_issues": self._files_with_issues,
-            "clean_files": self._files_analyzed - self._files_with_issues,
+            "total_files": files_analyzed,
+            "files_with_issues": files_with_issues,
+            "clean_files": files_analyzed - files_with_issues,
             "issue_types": {},
             "critical_failures": 0,
         }
@@ -224,8 +271,7 @@ class DiagnosticTracker:
     def clear(self):
         """Clear all tracked issues."""
         self._issues.clear()
-        self._files_analyzed = 0
-        self._files_with_issues = 0
+        self._analyzed.clear()
 
 
 # Global instance for tracking across the application

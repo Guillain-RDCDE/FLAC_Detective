@@ -167,6 +167,7 @@ class Rule10Consistency(ScoringRule):
             context.current_score,
             context.audio_meta.sample_rate,
             context.bitrate_metrics.real_bitrate,
+            cache=context.cache,
         )
         context.add_score(score, reasons)
 

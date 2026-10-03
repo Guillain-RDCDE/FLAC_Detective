@@ -149,6 +149,7 @@ def _run() -> None:
             deep=args.deep,
             advanced=args.advanced,
             on_event=on_event,
+            repair_in_place=args.repair_in_place,
         )
 
     generate_final_report(

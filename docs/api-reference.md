@@ -377,8 +377,10 @@ print(f"Report saved to {report_file}")
 
 Repair is **enabled by default** inside the analysis pipeline. When `FLACAnalyzer`
 encounters a file it cannot read, it routes through `repair_flac_file` automatically,
-preserves metadata, and re-analyses the repaired copy transparently. You do not need
-to call the repair API in normal use.
+preserves metadata, and analyses the repaired copy from the temp directory. The user's
+file is replaced only with `FLACAnalyzer(repair_in_place=True)` (the CLI's
+`--repair-in-place`), never by default. You do not need to call the repair API in normal
+use.
 
 For advanced cases where you want to run the duration-fix repair pass directly
 (e.g. on a known-bad file outside the analyser), use the `FLACDurationFixer` class:

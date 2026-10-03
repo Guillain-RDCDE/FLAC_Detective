@@ -117,10 +117,12 @@ def scan_quality_in_one_pass(
             on_scan(current_frame, total_frames)
 
         return {
-            # `info.frames` for clipping and `frames * channels` for DC: each
-            # detector's own denominator, kept as it was. They differ, and this
-            # is not the change that gets to decide whether that is right.
-            "clipping": clipping.result_from_counts(clipped_samples, total_frames),
+            # Both counts run over every sample of every channel, so both
+            # denominators are frames * channels. Until v2.0 the clipping one
+            # was `frames`: a stereo file read up to 200 % clipped, and a file
+            # with one clipped sample per 10 000 frames read "clipped" on a
+            # 0.01 % bar it did not actually reach.
+            "clipping": clipping.result_from_counts(clipped_samples, total_frames * info.channels),
             "dc_offset": dc_offset.result_from_sum(sum_of_samples, total_frames * info.channels),
             "silence": silence.result_from_bounds(
                 first_non_silent_frame, last_non_silent_frame, total_frames, info.samplerate
@@ -279,7 +281,7 @@ class ClippingDetector(QualityDetector):
         try:
             # Get total frames from file info to avoid iterating just for the count
             info = sf.info(str(filepath))
-            total_samples = info.frames
+            total_samples = info.frames * info.channels  # the count below spans channels
 
             if total_samples == 0:
                 return self.empty_result()
@@ -379,18 +381,19 @@ class CorruptionDetector(QualityDetector):
             # Use sf.info for a quick header check
             info = sf.info(str(filepath))
 
-            # Iterate through all blocks to ensure the whole file is decodable
+            # Iterate through all blocks to ensure the whole file is decodable,
+            # checking EVERY block for NaN/Inf (until v2.0 only the last block
+            # was looked at, and a file with no blocks at all raised on an
+            # unbound name that was then reported as a corruption).
             for chunk in sf_blocks(str(filepath)):
                 frames_read += len(chunk)
-
-            # Check for NaN or Inf in the last chunk as a sample check
-            if chunk is not None and (np.any(np.isnan(chunk)) or np.any(np.isinf(chunk))):
-                return {
-                    "is_corrupted": True,
-                    "readable": True,
-                    "error": "File contains NaN or Inf values",
-                    "frames_read": frames_read,
-                }
+                if not np.all(np.isfinite(chunk)):
+                    return {
+                        "is_corrupted": True,
+                        "readable": True,
+                        "error": "File contains NaN or Inf values",
+                        "frames_read": frames_read,
+                    }
 
             if frames_read != info.frames:
                 return {

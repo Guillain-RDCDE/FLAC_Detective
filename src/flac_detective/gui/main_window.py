@@ -41,7 +41,13 @@ from PySide6.QtWidgets import (
 )
 
 from ..__version__ import __version__
-from ..analysis.audio_formats import NATIVE_SUFFIXES, PROBE_SUFFIXES, discover_audio_files
+from ..analysis.audio_formats import (
+    NATIVE_SUFFIXES,
+    PROBE_SUFFIXES,
+    discover_audio_files,
+    is_analysable_lossless,
+)
+from ..cli.discovery import create_non_flac_result
 from ..presentation import plain_explanation, verdict_plain
 from ..reporting.evidence import deciding_evidence
 from . import style
@@ -404,17 +410,27 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Nothing to analyse", "No audio files in the selection.")
             return
 
+        # The same decision per file as the CLI's: a lossless source is
+        # analysed, a lossy one is reported as NON_FLAC. Until v2.0 the rejects
+        # of a folder walk were handed to the analyzer, which read an MP3 as a
+        # corrupt lossless file instead of saying what it was.
+        analysable = [f for f in files if is_analysable_lossless(f)]
+        rejects = [f for f in files if f not in analysable]
+        self._scan_counts = (len(analysable), len(rejects))
+
         self._results.clear()
         self._table.setRowCount(0)
         self._show_empty_detail()
         self._summary_label.setText("")
-        self._progress.setRange(0, len(files))
+        self._progress.setRange(0, len(analysable))
         self._progress.setValue(0)
+        for reject in rejects:
+            self._on_result(create_non_flac_result(reject))
 
         from .worker import AnalysisWorker  # heavy (scipy) — imported on first run
 
         self._worker = AnalysisWorker(
-            files, self._duration_spin.value(), self._deep_check.isChecked()
+            analysable, self._duration_spin.value(), self._deep_check.isChecked()
         )
         self._worker.result.connect(self._on_result)
         self._worker.progress.connect(self._on_progress)
@@ -668,8 +684,14 @@ class MainWindow(QMainWindow):
             elif out.suffix.lower() == ".json" or "JSON" in selected:
                 import json
 
+                from ..cli.output import json_payload
+
+                # The CLI's document, scan_info included, so a GUI export and a
+                # `--format json` run read the same to whatever consumes them.
+                n_flac, n_rejects = getattr(self, "_scan_counts", (len(self._results), 0))
+                payload = json_payload(self._results, list(self._targets), n_flac, n_rejects)
                 with open(out, "w", encoding="utf-8") as fh:
-                    json.dump({"results": self._results}, fh, indent=2, default=str)
+                    json.dump(payload, fh, indent=2, ensure_ascii=False, default=str)
             else:
                 HTMLReporter().generate_report(self._results, out)
         except Exception as exc:

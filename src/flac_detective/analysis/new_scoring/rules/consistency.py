@@ -2,16 +2,23 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from ...spectrum import analyze_segment_consistency
+
+if TYPE_CHECKING:
+    from ...audio_cache import AudioCache
 from .spectral import apply_rule_1_mp3_bitrate, apply_rule_2_cutoff
 
 logger = logging.getLogger(__name__)
 
 
 def apply_rule_10_multi_segment_consistency(
-    filepath: str, current_score: int, sample_rate: int, container_bitrate: float
+    filepath: str,
+    current_score: int,
+    sample_rate: int,
+    container_bitrate: float,
+    cache: "Optional[AudioCache]" = None,
 ) -> Tuple[int, List[str]]:
     """Apply Rule 10: Multi-Segment Consistency (NEW - PRIORITY 3).
 
@@ -35,6 +42,8 @@ def apply_rule_10_multi_segment_consistency(
         current_score: Current accumulated score from other rules
         sample_rate: Sample rate in Hz
         container_bitrate: Container bitrate in kbps
+        cache: The file's AudioCache when the analyzer has one, so the five
+            segments are read through the same decode as every other rule.
 
     Returns:
         Tuple of (score_delta, list_of_reasons)
@@ -51,7 +60,7 @@ def apply_rule_10_multi_segment_consistency(
 
     # Analyze segments
     # Returns list of cutoffs and their variance
-    cutoffs, variance = analyze_segment_consistency(Path(filepath))
+    cutoffs, variance = analyze_segment_consistency(Path(filepath), cache=cache)
 
     if not cutoffs:
         logger.warning("RULE 10: Analysis failed (no cutoffs returned)")

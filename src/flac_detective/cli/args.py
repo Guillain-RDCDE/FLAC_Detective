@@ -175,6 +175,17 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--repair-in-place",
+        action="store_true",
+        help=(
+            "When a FLAC cannot be decoded at all and the lossless repair (Xiph's flac "
+            "tool, same samples, tags kept) succeeds, replace the file in your library "
+            "with the repaired one, keeping a .corrupted.bak beside it. Off by default: "
+            "a scan reads your library and writes nothing in it. Without this flag the "
+            "repaired copy is analysed from the temp directory and discarded."
+        ),
+    )
+    parser.add_argument(
         "--advanced",
         action="store_true",
         help=(

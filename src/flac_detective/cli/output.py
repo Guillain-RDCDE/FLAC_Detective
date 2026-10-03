@@ -35,17 +35,20 @@ _REPORT_EXTENSION = {"json": "json", "csv": "csv", "html": "html"}
 def json_payload(
     results: list[dict],
     input_paths: list[Path],
-    all_flac_files: list[Path],
-    all_non_flac_files: list[Path],
+    total_flac_files: int,
+    total_non_flac_files: int,
 ) -> dict:
-    """The ``--format json`` document: scan metadata plus every result row."""
+    """The ``--format json`` document: scan metadata plus every result row.
+
+    Shared with the GUI's export, so both read the same to a consumer.
+    """
     return {
         "scan_info": {
             "timestamp": datetime.now().isoformat(),
             "analyzer_version": __version__,
             "scan_paths": [str(p) for p in input_paths],
-            "total_flac_files": len(all_flac_files),
-            "total_non_flac_files": len(all_non_flac_files),
+            "total_flac_files": total_flac_files,
+            "total_non_flac_files": total_non_flac_files,
         },
         "results": results,
     }
@@ -72,7 +75,7 @@ def write_report(
         advanced: Text report verbosity — easy (plain language) vs advanced (plumbing).
     """
     if report_format == "json":
-        payload = json_payload(results, input_paths, all_flac_files, all_non_flac_files)
+        payload = json_payload(results, input_paths, len(all_flac_files), len(all_non_flac_files))
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
     elif report_format == "csv":

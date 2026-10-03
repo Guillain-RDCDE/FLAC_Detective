@@ -19,15 +19,23 @@ class AudioCache:
     the spectrum, quality and scoring passes read the file from disk once.
     """
 
-    def __init__(self, filepath: Path, original_filepath: Optional[Path] = None):
+    def __init__(
+        self,
+        filepath: Path,
+        original_filepath: Optional[Path] = None,
+        repair_in_place: bool = False,
+    ):
         """Initialize cache for a specific file.
 
         Args:
             filepath: Path to the audio file (may be temporary)
             original_filepath: Original file path (for diagnostic reporting)
+            repair_in_place: Replace ``original_filepath`` when a repair of an
+                undecodable file succeeds (``--repair-in-place``); off by default.
         """
         self.filepath = filepath
         self.original_filepath = original_filepath or filepath
+        self.repair_in_place = repair_in_place
         self._full_audio: Optional[Tuple[np.ndarray, int]] = None
         self._segments: Dict[Tuple[int, int], Tuple[np.ndarray, int]] = {}
         self._lock = Lock()
@@ -47,6 +55,7 @@ class AudioCache:
                         str(self.filepath),
                         always_2d=True,
                         original_filepath=str(self.original_filepath),
+                        repair_in_place=self.repair_in_place,
                     )
 
                     if data is None or sr is None:
@@ -115,6 +124,7 @@ class AudioCache:
                         frames=frames,
                         always_2d=True,
                         original_filepath=str(self.original_filepath),
+                        repair_in_place=self.repair_in_place,
                     )
                     if data is None or sr is None:
                         # Segment load failure is less critical, maybe return empty?

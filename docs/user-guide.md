@@ -135,8 +135,10 @@ flac-detective /music --deep
 > **Note**: Auto-repair of corrupted FLAC files is enabled by default — no flag is
 > needed, and it's **lossless and hi-fi-safe**. It triggers *only* on files that can't be
 > decoded at all; it rebuilds a valid FLAC with the exact same PCM samples (Xiph's reference
-> `flac` tool), preserves tags/artwork, keeps a `.corrupted.bak` backup, and verifies the
-> result before replacing anything. Healthy files are never rewritten. See
+> `flac` tool), preserves tags/artwork, verifies the result, and analyses that copy from the
+> temp directory. Your library is not written to unless you pass `--repair-in-place`, which
+> replaces the broken file and keeps a `.corrupted.bak` beside it. Healthy files are never
+> rewritten. See
 > [Technical Details → Repair](technical-details.md#repair-lossless-reconstruction-only-when-needed)
 > for the full procedure.
 
@@ -148,6 +150,9 @@ flac-detective /music --verbose --format json
 
 # Fast scan with custom output
 flac-detective /music --sample-duration 15 --output quick-scan.txt
+
+# Let a successful lossless repair replace an undecodable file (keeps a .corrupted.bak)
+flac-detective /music --repair-in-place
 ```
 
 ### Progress inside a file (`--progress-events`)

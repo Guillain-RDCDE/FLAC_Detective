@@ -22,7 +22,7 @@ from .audio_formats import (
     needs_ffmpeg_decode,
     probe_codec,
 )
-from .diagnostic_tracker import get_tracker
+from .diagnostic_tracker import RESULT_ISSUES_KEY, get_tracker
 from .hires import classify_hires
 from .metadata import check_duration_consistency, read_metadata
 from .new_scoring import estimate_mp3_bitrate, new_calculate_score
@@ -234,6 +234,7 @@ def _error_result(filepath: Path, error: Exception) -> Dict:
         "suspected_original_rate": 0,
         "hires_verdict": "UNKNOWN",
         "hires_reason": "",
+        RESULT_ISSUES_KEY: get_tracker().export_issues(str(filepath)),
     }
 
 
@@ -253,7 +254,9 @@ def _cleanup(cache: Optional[AudioCache], temp_path: Optional[Path], filepath: P
 class FLACAnalyzer:
     """FLAC file analyzer to detect MP3 transcoding."""
 
-    def __init__(self, sample_duration: float = 30.0, deep: bool = False):
+    def __init__(
+        self, sample_duration: float = 30.0, deep: bool = False, repair_in_place: bool = False
+    ):
         """Initializes the analyzer.
 
         Args:
@@ -261,9 +264,14 @@ class FLACAnalyzer:
             deep: If True, run Rule 12 (ML) on every file, bypassing the authentic
                 fast path — needed for the high-confidence WARNING floor to catch
                 silent-heuristic AAC/Vorbis transcodes. Slower. See the ``--deep`` flag.
+            repair_in_place: When a file cannot be decoded at all and the lossless
+                repair succeeds, replace the user's file with the repaired one (a
+                ``.corrupted.bak`` is kept). Off by default: a scan does not write
+                to a library unless asked. See the ``--repair-in-place`` flag.
         """
         self.sample_duration = sample_duration
         self.deep = deep
+        self.repair_in_place = repair_in_place
 
     def analyze_file(
         self,
@@ -304,7 +312,9 @@ class FLACAnalyzer:
 
             # Every subsequent read hits the LOCAL copy. The original path travels
             # along for diagnostic reporting only.
-            cache = AudioCache(temp_path, original_filepath=filepath)
+            cache = AudioCache(
+                temp_path, original_filepath=filepath, repair_in_place=self.repair_in_place
+            )
             logger.debug(f"⚡ OPTIMIZATION: Created AudioCache for {filepath.name}")
             is_partial_analysis = cache.is_partial()
 
@@ -383,8 +393,6 @@ class FLACAnalyzer:
             )
             hires_verdict, hires_reasons = _hires_axis(metadata, quality_analysis)
 
-            get_tracker().increment_files_analyzed()
-
             return {
                 "filepath": str(filepath),
                 "filename": filepath.name,
@@ -437,12 +445,17 @@ class FLACAnalyzer:
                         cutoff_freq,
                     )
                 ),
+                # The reading issues met on the way (retries, partial reads,
+                # repairs), so a pool worker's diagnostics reach the parent.
+                RESULT_ISSUES_KEY: get_tracker().export_issues(str(filepath)),
             }
 
         except Exception as e:
-            logger.error(f"Analysis error {filepath.name}: {e}")
+            logger.error(f"Analysis error {filepath.name}: {e}", exc_info=True)
             return _error_result(filepath, e)
         finally:
+            # Counted here, so an ERROR row is a file analysed too.
+            get_tracker().note_analyzed(str(filepath))
             _cleanup(cache, temp_path, filepath)
             # In `finally`, so it is emitted exactly once per file whether the
             # analysis returned a verdict or an ERROR result. A caller waiting on

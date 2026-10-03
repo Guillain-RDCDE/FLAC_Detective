@@ -18,6 +18,7 @@ from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics, ScoringContext
 from .rules.mdct_alignment import should_run_rule_13
 from .rules.spectral import rule1_may_consult_container
+from .rules.stereo_seam import MIN_CUTOFF_HZ as STEREO_MIN_CUTOFF_HZ
 from .rules.temporal_seam import MIN_CUTOFF_HZ as TEMPORAL_MIN_CUTOFF_HZ
 from .strategies import (
     Rule1MP3Bitrate,
@@ -271,12 +272,6 @@ _CASSETTE_BONUS = -40
 _RULE11_MAX_CUTOFF_HZ = 19000
 _RULE7_CUTOFF_RANGE_HZ = (19000, 21500)
 
-# Rule 15's own gate is stereo_seam.MIN_CUTOFF_HZ (17 kHz) and the rule enforces
-# it internally; this older 12 kHz figure only decides whether the audio is
-# LOADED before the rule is asked. Raising it would change which files raise
-# on a failed load, not any score, so it is kept as is and named for what it is.
-_RULE15_LOAD_CUTOFF_HZ = 12000.0
-
 
 def _is_uncompressed_input(bm: BitrateMetrics) -> bool:
     """True for a PCM container (e.g. WAV): real ≈ apparent bitrate.
@@ -353,7 +348,10 @@ def _run_rules_14_and_15(context: ScoringContext) -> None:
     if context.cutoff_freq >= TEMPORAL_MIN_CUTOFF_HZ:
         _ensure_audio(context)
         Rule14TemporalSeam().apply(context)
-    if context.cutoff_freq >= _RULE15_LOAD_CUTOFF_HZ:
+    # Rule 15's gate is the rule's own (17 kHz, stereo_seam.MIN_CUTOFF_HZ); the
+    # calculator used to load the audio from 12 kHz, a figure the rule had
+    # outgrown, so files between 12 and 17 kHz paid a decode for nothing.
+    if context.cutoff_freq >= STEREO_MIN_CUTOFF_HZ:
         _ensure_audio(context)
         Rule15StereoSeam().apply(context)
 

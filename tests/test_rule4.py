@@ -15,7 +15,7 @@ class TestRule4Safeguards:
 
         assert score == 30, "Should penalize 24-bit with low MP3 source and low cutoff"
         assert len(reasons) == 1
-        assert "upscale suspect" in reasons[0].lower()
+        assert "suspected upscale" in reasons[0].lower()
 
     def test_rule4_skips_when_cutoff_is_high(self):
         """Rule 4 should NOT trigger if cutoff is >= 19 kHz (acceptable for 24-bit)."""
