@@ -1,3 +1,82 @@
+## Unreleased (2026-10-03) — the refactoring pass
+
+No rule, bar, point or formula moved. The engine's full JSON output on a fixed
+set of 59 files (12 labelled genuine, 3 per lossy arm of the audit corpus, 14 of
+the Rule 13 bench) plus 10 under `--deep` is byte-identical before and after,
+every field of every row; the suite is green on the same code.
+
+### Removed
+
+Dead code, verified unused by grep over `src/`, `tests/`, `ml/`, `scripts/`,
+`examples/` and `docs/`: the pre-v1 scorer `analysis/scoring.py` (its
+`estimate_mp3_bitrate` and `MP3_SIGNATURES` were already duplicated in
+`new_scoring`), the `FileReadCache` singleton (`analysis/file_cache.py`), the
+`repair.py` shim at the package root (a `repair/` package shadowed it, so it
+could never be imported — and if it could, it imported itself), the second
+`setup_logging` in `logging_config.py` with the example that was its only
+caller, `AudioCache.get_spectrum`/`get_cutoff` (the latter imported a module
+that does not exist), the six `detect_*` wrappers and four `detect_from_data`
+methods in `quality.py`, `ScoringConfig` (thresholds of a scale the engine
+left years ago), `filter_suspicious`, two window-cache helpers, a `[tool.flake8]`
+block flake8 never reads, the `trigger-coverage` workflow (a third run of the
+suite per push), and the branch of the scoring pipeline that re-asked Rule 11
+after it had already run (its condition was always false).
+
+### Restructured, same behaviour
+
+* `_apply_scoring_rules` is now a short function that reads as the list of
+  gates it is, with the silent-heuristics branch, the cassette credit, the
+  Rule 8 refinement and the Rules 14/15 pair as named helpers. The two
+  corroboration gates stay inline on purpose: `test_verdict_reachability`
+  reads them from the source. The pipeline's own numbers (10, 30, 0.92, -40,
+  19/21.5 kHz, 86) are named once.
+* `analyze_file` is split into the stages it runs (local copy, metadata,
+  assessability, the hi-res axis, the error row, cleanup); the 40-line
+  comment on the FLAC-equivalent ruler lives with `flac_equivalent_size`.
+* `spectrum.py`: the hi-res reference band, the "no edge" test and the
+  mono/Hann/FFT/dB step were each written three or four times and are now one
+  helper each, with the expressions unchanged and in the same order; the
+  three-window loop and Rule 10's segment reader are module-level functions;
+  the 143-line correspondence in the `EdgeReading` docstring moved to
+  `ml/exchange/EDGE_READING_NOTES_2026-08.md`.
+* `main.py` (1,367 lines) became `flac_detective.cli` — `console`,
+  `logsetup`, `workdir`, `args`, `discovery`, `pool`, `output` — with
+  `main.py` keeping every name it ever exported.
+* Reporting: one `verdict_of`, one `rank_by_score`, one `display_path` in
+  `reporting/common.py` instead of five, five and two copies; the spectrum
+  curve the HTML report and the GUI both draw is `reporting/spectrum_curve.py`;
+  `calculate_statistics` lost fourteen dead ternaries and
+  `TextReporter.generate_report` is five named blocks.
+* Rule 16 imports Rule 13's hole depth and filter width instead of restating
+  them; Rule 6's three bars are module constants and no longer shadow Rule 5's
+  `VARIANCE_THRESHOLD` with a local of the same name and a different value.
+* Tests: `src/` and `ml/` go on the path once (`conftest.py`) instead of in
+  seventeen files; the two tests that monkeypatch the pool and the work-dir
+  probe target the new modules.
+
+### Fixed, as a side effect of the move
+
+* Ctrl-C from the installed `flac-detective` command prints where the
+  progress was saved, as the `python -m` form always did: the handler lived
+  under `if __name__ == "__main__"` only.
+* `--advanced` shows the score on the per-file console line without Rich
+  installed; the plain-logging branch dropped the flag.
+* The GUI's file dialog offers every suffix the scan accepts (AIFF, Matroska
+  masters, ...), not the four it listed.
+* `chcp 65001` runs once in the CLI's main, not at import in every spawned
+  worker.
+
+### Tooling
+
+The pre-commit hooks are pinned to the SAME black/isort/flake8/mypy as the CI
+gate (they were two major versions behind and formatted differently), read
+`.flake8` instead of carrying their own ignore list, and skip the exchange
+evidence whose hashes are published. `pytest` no longer writes `htmlcov/` and
+`coverage.xml` into the working tree on every local run (the CI passes the
+flags itself). Dependabot moves a runtime lower bound only when it has to
+(`increase-if-necessary`). The CI's `pre-commit run` step, which gated nothing
+(`continue-on-error`) in all nine matrix jobs, is gone.
+
 ## v1.20.1 (2026-10-02) — Rule 13 under 18 kHz (issue #12)
 
 ### A low-bitrate Vorbis transcode read AUTHENTIC
