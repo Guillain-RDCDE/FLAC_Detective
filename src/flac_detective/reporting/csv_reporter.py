@@ -12,6 +12,8 @@ import csv
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .common import rank_by_score
+
 # Columns written, in order. Kept stable so downstream scripts/spreadsheets can rely on it.
 _FIELDNAMES = [
     "rank",
@@ -43,7 +45,7 @@ class CSVReporter:
             output_file: Destination CSV path.
             scan_paths: Unused; accepted for interface parity with TextReporter.
         """
-        ranked = sorted(results, key=lambda r: r.get("score", 0) or 0, reverse=True)
+        ranked = rank_by_score(results)
 
         with open(output_file, "w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=_FIELDNAMES, extrasaction="ignore")

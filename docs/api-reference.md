@@ -342,11 +342,12 @@ results = [analyzer.analyze_file(f) for f in flac_files]
 # Calculate statistics
 stats = calculate_statistics(results)
 
-print(f"Total files: {stats['total_files']}")
-print(f"Authentic: {stats['authentic_count']} ({stats['authentic_percentage']:.1f}%)")
-print(f"Suspicious: {stats['suspicious_count']} ({stats['suspicious_percentage']:.1f}%)")
-print(f"Fake: {stats['fake_count']} ({stats['fake_percentage']:.1f}%)")
-print(f"Average score: {stats['average_score']:.1f}")
+print(f"Total files: {stats['total']}")
+print(f"Authentic: {stats['authentic']} ({stats['authentic_pct']})")
+print(f"Warning: {stats['probably_authentic']} ({stats['probably_authentic_pct']})")
+print(f"Suspicious: {stats['suspect']} ({stats['suspect_pct']})")
+print(f"Fake: {stats['fake']} ({stats['fake_pct']})")
+# Every counter has a "<name>_pct" twin, already formatted ("12.5%").
 ```
 
 ### Report Generation

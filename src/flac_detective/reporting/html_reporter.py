@@ -29,7 +29,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..__version__ import __version__
-from ..analysis.new_scoring import determine_verdict
+from .common import display_path, rank_by_score, verdict_of
+from .spectrum_curve import compute_spectrum_curve
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,6 @@ _VERDICT_META: Dict[str, Tuple[str, str]] = {
     "NOT_ASSESSED": ("Not assessed", "v-error"),
     "ERROR": ("Error", "v-error"),
 }
-
-# Spectrum-curve sampling: a 10 s middle segment, downsampled to this many points
-# for the SVG polyline (enough to render the cliff cleanly, small enough to keep
-# the HTML compact).
-_CURVE_POINTS = 240
-_CURVE_SECONDS = 10.0
-_DB_FLOOR = -100.0  # clamp the normalised magnitude floor (peak = 0 dB)
 
 # Each detail card re-decodes its file to draw the spectrum (an I/O + FFT pass).
 # On a full-library scan that flags thousands of files this would be very slow and
@@ -83,8 +77,8 @@ class HTMLReporter:
         """
         logger.info(f"Generating HTML report: {output_file}")
 
-        ranked = sorted(results, key=lambda r: r.get("score", 0) or 0, reverse=True)
-        flagged = [r for r in ranked if self._verdict_of(r) in _FLAGGED_VERDICTS]
+        ranked = rank_by_score(results)
+        flagged = [r for r in ranked if verdict_of(r) in _FLAGGED_VERDICTS]
 
         parts: List[str] = [
             self._document_head(),
@@ -100,25 +94,13 @@ class HTMLReporter:
 
     @staticmethod
     def _verdict_of(result: Dict[str, Any]) -> str:
-        """The authoritative verdict for a result (falls back to score-derived)."""
-        return result.get("verdict") or determine_verdict(result.get("score", 0))[0]
+        """The authoritative verdict for a result (see ``reporting.common``)."""
+        return verdict_of(result)
 
     @staticmethod
     def _display_path(result: Dict[str, Any], scan_paths: Optional[List[Path]]) -> str:
         """Path shown to the user — relative to a scan root when possible."""
-        name = result.get("filename", "Unknown")
-        filepath = result.get("filepath", "")
-        if scan_paths and filepath:
-            try:
-                p = Path(filepath)
-                for root in scan_paths:
-                    try:
-                        return str(p.relative_to(root))
-                    except ValueError:
-                        continue
-            except Exception:
-                pass
-        return str(name)
+        return display_path(result, scan_paths)
 
     # ------------------------------------------------------------ doc sections
 
@@ -335,56 +317,8 @@ class HTMLReporter:
 def _compute_spectrum_curve(
     filepath: str,
 ) -> Optional[Tuple[List[float], List[float], float]]:
-    """Compute a downsampled, peak-normalised magnitude spectrum for a file.
-
-    Reads a middle segment, mono-mixes, applies a Hann window, takes the rfft,
-    converts to dB, downsamples to ``_CURVE_POINTS`` (max-per-bin, which preserves
-    the cliff edge), and normalises so the peak is 1.0 and ``_DB_FLOOR`` is 0.0.
-
-    Returns ``(freqs_hz, norm_0_1, nyquist_hz)`` or ``None`` if the file cannot be
-    read (the caller renders a placeholder instead of failing).
-    """
-    if not filepath:
-        return None
-    try:
-        import numpy as np
-        import soundfile as sf
-
-        info = sf.info(filepath)
-        sr = int(info.samplerate)
-        total_frames = int(info.frames)
-        if sr <= 0 or total_frames <= 0:
-            return None
-
-        seg_frames = min(int(_CURVE_SECONDS * sr), total_frames)
-        start = max(0, (total_frames - seg_frames) // 2)
-        data, sr = sf.read(filepath, start=start, frames=seg_frames, always_2d=True)
-        if data.size == 0:
-            return None
-
-        mono = data.mean(axis=1)
-        window = np.hanning(len(mono))
-        mag = np.abs(np.fft.rfft(mono * window))
-        freqs = np.fft.rfftfreq(len(mono), 1.0 / sr)
-        mag_db = 20.0 * np.log10(mag + 1e-10)
-
-        # Downsample to a fixed number of points by max-per-bin (keeps the cliff).
-        n = min(_CURVE_POINTS, len(mag_db))
-        if n < 2:
-            return None
-        idx = np.linspace(0, len(mag_db), n + 1).astype(int)
-        ds_db = np.array([mag_db[idx[i] : max(idx[i] + 1, idx[i + 1])].max() for i in range(n)])
-        ds_freq = np.array([float(freqs[min(idx[i], len(freqs) - 1)]) for i in range(n)])
-
-        # Peak-normalise to 0..1 with a fixed dB floor.
-        peak = float(ds_db.max())
-        norm = (ds_db - peak - _DB_FLOOR) / (-_DB_FLOOR)
-        norm = np.clip(norm, 0.0, 1.0)
-
-        return ds_freq.tolist(), norm.tolist(), float(sr) / 2.0
-    except Exception as exc:  # pragma: no cover - defensive: any decode/read failure
-        logger.debug(f"Spectrum curve unavailable for {filepath}: {exc}")
-        return None
+    """The shared display curve; see ``reporting.spectrum_curve``."""
+    return compute_spectrum_curve(filepath)
 
 
 _HTML_HEAD = """<!DOCTYPE html>

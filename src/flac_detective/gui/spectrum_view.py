@@ -1,7 +1,7 @@
 """A matplotlib spectrum panel for the GUI, reused from the HTML report's curve.
 
 Plots the magnitude spectrum of the selected file (peak-normalised, the same
-``_compute_spectrum_curve`` the HTML report uses) and marks the detected cutoff —
+``compute_spectrum_curve`` the HTML report uses) and marks the detected cutoff —
 so the MP3 "cliff" is visible to the eye, exactly as in the static report.
 """
 
@@ -12,19 +12,20 @@ from typing import Any, Dict
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from ..reporting.html_reporter import _compute_spectrum_curve
+from ..reporting.spectrum_curve import compute_spectrum_curve
+from . import style
 
 
 class SpectrumView(FigureCanvasQTAgg):
     """A small matplotlib canvas showing one file's spectrum with the cutoff marked."""
 
-    # Palette aligned with gui.style (kept local to avoid an import cycle pull).
-    _BG = "#ffffff"
-    _INK = "#1d1d1f"
-    _MUTED = "#6e6e73"
-    _HAIRLINE = "#d2d2d7"
-    _ACCENT = "#0071e3"
-    _CUTOFF = "#c1121f"
+    # The GUI palette, from the one place it is defined.
+    _BG = style.CARD_BG
+    _INK = style.TEXT
+    _MUTED = style.TEXT_SECONDARY
+    _HAIRLINE = style.HAIRLINE
+    _ACCENT = style.ACCENT
+    _CUTOFF = style.VERDICT_THEME["FAKE_CERTAIN"][0]
 
     def __init__(self) -> None:
         self._fig = Figure(figsize=(5, 3), tight_layout=True, facecolor=self._BG)
@@ -65,7 +66,7 @@ class SpectrumView(FigureCanvasQTAgg):
 
     def show_file(self, result: Dict[str, Any]) -> None:
         """Plot the spectrum for ``result``'s file, marking its detected cutoff."""
-        curve = _compute_spectrum_curve(result.get("filepath", ""))
+        curve = compute_spectrum_curve(result.get("filepath", ""))
         if curve is None:
             self.clear("Spectrum unavailable (file not natively readable).")
             return

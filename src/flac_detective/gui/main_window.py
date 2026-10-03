@@ -358,8 +358,9 @@ class MainWindow(QMainWindow):
             self._set_targets([Path(folder)])
 
     def _choose_files(self) -> None:
+        audio_filter = "Audio (" + " ".join(f"*{ext}" for ext in _AUDIO_GLOB_EXTS) + ")"
         files, _ = QFileDialog.getOpenFileNames(
-            self, "Choose audio files", "", "Audio (*.flac *.wav *.m4a *.ape);;All files (*)"
+            self, "Choose audio files", "", f"{audio_filter};;All files (*)"
         )
         if files:
             self._set_targets([Path(f) for f in files])
