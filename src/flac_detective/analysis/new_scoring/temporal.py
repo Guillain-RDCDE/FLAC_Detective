@@ -4,9 +4,10 @@ The observable, and why it is a fourth kind
 -------------------------------------------
 The cliff, the hole count and the lattice are all spectral geometry — they ask
 where energy sits and on what grid. Every one of them recovers coefficient
-*values*, so every one of them dies when anything resamples. That was measured
-twice: Rule 13 reads Opus at the null because CELT works at 48 kHz whatever it is
-fed, and the lattice reads it at AUC 0.48 for the same reason.
+*values*, so every one of them was thought to die when anything resamples: Rule
+13 read Opus at the null, and the lattice at AUC 0.48. (Since 2.1.0 Rule 13 does
+read Opus — the cause was the CELT decoder's de-emphasis, not the resampling; see
+``codec_grids``. This witness keeps its place: it reads something else.)
 
 This asks nothing about where the energy is. It asks whether each frequency bin
 still *varies over time*.

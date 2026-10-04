@@ -19,6 +19,8 @@ from .rules import (
     apply_rule_14_temporal_seam,
     apply_rule_15_stereo_seam,
     apply_rule_16_mp3_grid,
+    apply_rule_17_sbr_replication,
+    apply_rule_18_side_step,
 )
 
 logger = logging.getLogger(__name__)
@@ -231,6 +233,8 @@ class Rule13MDCTAlignment(ScoringRule):
         )
         context.add_score(score, reasons)
         context.mdct_peak_ratio = details.get("mdct_peak_ratio", float("nan"))
+        context.vorbis_switch_ratio = details.get("vorbis_switch_ratio", float("nan"))
+        context.celt_ratio = details.get("celt_ratio", float("nan"))
 
 
 class Rule14TemporalSeam(ScoringRule):
@@ -301,3 +305,43 @@ class Rule16MP3Grid(ScoringRule):
         context.mp3_grid_ratio = details.get("mp3_grid_ratio", float("nan"))
         if details.get("mp3_witness"):
             context.witness_families.add("mp3grid")
+
+
+class Rule17SBRReplication(ScoringRule):
+    """Rule 17 — spectral band replication: the high band copies a lower one.
+
+    Reads the phase-locked copy a SBR decoder makes (HE-AAC v1/v2, mp3PRO). Its own
+    evidence family, ``sbr``. See ``rules.sbr_replication``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 17 to ``context``."""
+        score, reasons, details = apply_rule_17_sbr_replication(
+            str(context.filepath),
+            context.cutoff_freq,
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.sbr_coherence = details.get("sbr_coherence", float("nan"))
+
+
+class Rule18SideStep(ScoringRule):
+    """Rule 18 — the side-channel step, a stereo witness that testifies without scoring.
+
+    Reads the step a joint-stereo coder leaves in the side/mid ratio, under the
+    file's own cutoff. Family ``stereo``, with Rule 15. See ``rules.joint_stereo_step``.
+    """
+
+    def _apply(self, context: ScoringContext) -> None:
+        """Apply Rule 18 to ``context``."""
+        score, reasons, details = apply_rule_18_side_step(
+            str(context.filepath),
+            context.cutoff_freq,
+            audio_data=context.audio_data,
+            sample_rate=context.loaded_sample_rate,
+        )
+        context.add_score(score, reasons)
+        context.side_step_db = details.get("side_step_db", float("nan"))
+        if details.get("step_witness"):
+            context.witness_families.add("stereo")

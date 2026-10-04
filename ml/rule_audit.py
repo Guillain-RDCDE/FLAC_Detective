@@ -65,6 +65,7 @@ RULES: Tuple[str, ...] = (
     "Rule11CassetteDetection",
     "Rule12MLClassifier",
     "Rule13MDCTAlignment",
+    "Rule17SBRReplication",
     "_calculator",
 )
 

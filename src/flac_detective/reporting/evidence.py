@@ -28,6 +28,8 @@ RULE_LABEL: dict[str, str] = {
     "Rule14TemporalSeam": "temporal seam",
     "Rule15StereoSeam": "stereo seam",
     "Rule16MP3Grid": "MP3 granule grid",
+    "Rule17SBRReplication": "band replication (SBR)",
+    "Rule18SideStep": "stereo side-channel step",
 }
 
 

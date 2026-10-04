@@ -66,6 +66,9 @@ RULE_FAMILY: Dict[str, str] = {
     "Rule7SilenceAnalysis": "silence",
     "Rule12MLClassifier": "cnn",
     "Rule13MDCTAlignment": "mdct",
+    # Rule 17 reads a phase-locked copy between subbands (SBR). Not the cutoff, not
+    # a frame grid, not the stereo image: its own family.
+    "Rule17SBRReplication": "sbr",
     # Rule 14 contributes no points, so it can never appear here — a points map
     # cannot express a witness that does not score. See ``witnesses`` below.
 }
@@ -95,6 +98,10 @@ POINTLESS_WITNESS_RULES: Dict[str, str] = {
     # MP3 encoder zeroed, recovered through the Layer III analysis filterbank.
     # It never reads the cutoff, the stereo image or temporal variance.
     "Rule16MP3Grid": "mp3grid",
+    # Rule 18 reads the side/mid step joint-stereo coding leaves. The same physical
+    # question as Rule 15 (does the coder stop sending the difference?), asked
+    # relative to the file's own image and under its own cutoff, so the same family.
+    "Rule18SideStep": "stereo",
 }
 
 

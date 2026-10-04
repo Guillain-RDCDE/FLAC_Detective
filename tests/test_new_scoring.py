@@ -422,7 +422,7 @@ class TestRule13BeforeTheAcquittal:
         assert mock_r13.call_count == 1, "the fast path must ask Rule 13 first"
         assert mock_r12.call_count == 0, "nothing read: the CNN stays off the fast path"
         assert verdict == "AUTHENTIC"
-        assert "Fast analysis" in reason and "Rule 13 reads no MDCT grid" in reason
+        assert "Fast analysis" in reason and "Rules 13 and 17 read no codec grid" in reason
 
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_12_ml_classifier")
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_13_mdct_alignment")

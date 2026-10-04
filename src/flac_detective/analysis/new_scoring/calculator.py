@@ -34,6 +34,8 @@ from .strategies import (
     Rule14TemporalSeam,
     Rule15StereoSeam,
     Rule16MP3Grid,
+    Rule17SBRReplication,
+    Rule18SideStep,
     Rule424BitSuspect,
     ScoringRule,
 )
@@ -204,9 +206,47 @@ def _run_rule_13(context: ScoringContext) -> None:
     26.2 % in the audit. Hence this explicit precedence rule rather than a
     points arms race between the two.
     """
-    before = context.rule_scores.get("Rule13MDCTAlignment", 0)
-    Rule13MDCTAlignment().apply(context)
-    gained = context.rule_scores.get("Rule13MDCTAlignment", 0) - before
+    _run_with_rule_8_precedence(
+        context,
+        Rule13MDCTAlignment(),
+        "R13 found a positive MDCT quantisation signature",
+    )
+
+
+def _run_rule_17(context: ScoringContext) -> None:
+    """Run Rule 17 and, if it found evidence, withdraw Rule 8's protection.
+
+    Same precedence as Rule 13, and a stronger reason for it: Rule 8 protects a
+    spectrum that runs up to Nyquist, and band replication is exactly the
+    mechanism that manufactures one.
+    """
+    _run_with_rule_8_precedence(
+        context,
+        Rule17SBRReplication(),
+        "R17 found the high band to be a copy of a lower one (band replication)",
+    )
+
+
+def _run_codec_rules(context: ScoringContext) -> None:
+    """Rule 13, then Rule 17, each behind the same not-yet-convicted gate.
+
+    Rule 17 comes second so that a file Rule 13 has already convicted does not
+    pay for it. Every path that asks Rule 13 asks Rule 17 the same way: a reader
+    of codecs that only one path consulted would be a gate measuring itself.
+    """
+    if should_run_rule_13(context.cutoff_freq, context.current_score):
+        _ensure_audio(context)
+        _run_rule_13(context)
+    if should_run_rule_13(context.cutoff_freq, context.current_score):
+        _ensure_audio(context)
+        _run_rule_17(context)
+
+
+def _run_with_rule_8_precedence(context: ScoringContext, rule: ScoringRule, finding: str) -> None:
+    """Apply ``rule``; if it scored, Rule 8's full-band protection no longer stands."""
+    before = context.rule_scores.get(rule.name, 0)
+    rule.apply(context)
+    gained = context.rule_scores.get(rule.name, 0) - before
     if gained <= 0:
         return
 
@@ -215,12 +255,12 @@ def _run_rule_13(context: ScoringContext) -> None:
         context.add_score(
             -protection,
             [
-                "R8 protection withdrawn: R13 found a positive MDCT quantisation "
-                "signature, so a full-range spectrum is no longer evidence of authenticity"
+                f"R8 protection withdrawn: {finding}, so a full-range spectrum is no "
+                f"longer evidence of authenticity"
             ],
         )
         logger.info(
-            "RULE 8: protection withdrawn (%+d) — Rule 13 found direct evidence", -protection
+            "RULE 8: protection withdrawn (%+d) — %s found direct evidence", -protection, rule.name
         )
 
 
@@ -236,6 +276,13 @@ def _run_rule_16_if_decisive(context: ScoringContext) -> None:
         return
     _ensure_audio(context)
     Rule16MP3Grid().apply(context)
+
+
+def _codec_rule_points(context: ScoringContext) -> int:
+    """Points Rules 13 and 17 have scored so far: what the fast path watches."""
+    return context.rule_scores.get("Rule13MDCTAlignment", 0) + context.rule_scores.get(
+        "Rule17SBRReplication", 0
+    )
 
 
 def _is_corroborated(context: ScoringContext) -> bool:
@@ -354,6 +401,10 @@ def _run_rules_14_and_15(context: ScoringContext) -> None:
     if context.cutoff_freq >= STEREO_MIN_CUTOFF_HZ:
         _ensure_audio(context)
         Rule15StereoSeam().apply(context)
+    # Rule 18 has no cutoff gate: it reads only the bands under the file's own
+    # cutoff, relative to its own stereo image (see rules.joint_stereo_step).
+    _ensure_audio(context)
+    Rule18SideStep().apply(context)
 
 
 def _silent_heuristics_path(context: ScoringContext, deep: bool) -> Tuple[int, List[str]]:
@@ -376,25 +427,25 @@ def _silent_heuristics_path(context: ScoringContext, deep: bool) -> Tuple[int, L
     AAC blind spot, so Rule 13 and the witnesses run regardless.
     """
     if not deep:
-        r13_before = context.rule_scores.get("Rule13MDCTAlignment", 0)
-        r13_ran = should_run_rule_13(context.cutoff_freq, context.current_score)
-        if r13_ran:
-            _ensure_audio(context)
-            _run_rule_13(context)
-        if context.rule_scores.get("Rule13MDCTAlignment", 0) <= r13_before:
+        before = _codec_rule_points(context)
+        asked = should_run_rule_13(context.cutoff_freq, context.current_score)
+        if asked:
+            _run_codec_rules(context)
+        if _codec_rule_points(context) <= before:
             logger.info(
                 f"OPTIMIZATION: Fast path for authentic file "
                 f"(score={context.current_score}, no MP3"
-                + (", Rule 13 read no grid)" if r13_ran else ")")
+                + (", Rules 13 and 17 read no codec)" if asked else ")")
             )
             context.reasons.append(
-                "⚡ Fast analysis: AUTHENTIC — heuristics silent, Rule 13 reads no MDCT grid"
-                if r13_ran
+                "⚡ Fast analysis: AUTHENTIC — heuristics silent, Rules 13 and 17 read no "
+                "codec grid or band replication"
+                if asked
                 else "⚡ Fast analysis: AUTHENTIC detected without expensive rules"
             )
             return context.current_score, context.reasons
         logger.info(
-            f"Rule 13 read an MDCT grid on a file the heuristics left silent "
+            f"Rule 13 or 17 read a codec on a file the heuristics left silent "
             f"(score={context.current_score}): running the witnesses"
         )
     else:
@@ -402,9 +453,7 @@ def _silent_heuristics_path(context: ScoringContext, deep: bool) -> Tuple[int, L
             f"DEEP: heuristics silent (score={context.current_score}), running "
             f"Rules 12/13 anyway (fast path bypassed)"
         )
-        if should_run_rule_13(context.cutoff_freq, context.current_score):
-            _ensure_audio(context)
-            _run_rule_13(context)
+        _run_codec_rules(context)
     # Rule 14 must run on THIS path too: it is the branch for files whose
     # heuristics found nothing — high-bitrate AAC, Vorbis, every Opus transcode —
     # which is precisely the population the temporal witness exists for
@@ -556,9 +605,8 @@ def _apply_scoring_rules(context: ScoringContext, deep: bool = False) -> Tuple[i
         # 16,750 Hz that every cheap rule let go). It runs AFTER the Rule 8
         # refinement so that the refinement cannot re-apply a protection Rule 13
         # has just withdrawn. See _run_rule_13.
-        if should_run_rule_13(context.cutoff_freq, context.current_score):
-            _ensure_audio(context)
-            _run_rule_13(context)
+        # Rule 17 follows under the same gate (_run_codec_rules).
+        _run_codec_rules(context)
 
         _run_rules_14_and_15(context)
 

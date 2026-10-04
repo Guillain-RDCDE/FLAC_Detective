@@ -75,6 +75,12 @@ class ScoringContext:
     temporal_seam: float = float("nan")
     stereo_dead_run: float = float("nan")
     mp3_grid_ratio: float = float("nan")
+    # Rule 13's two 2.1.0 readings, Rule 17's coherence and Rule 18's step (NaN =
+    # not read). Kept for reporting, like the statistics above.
+    vorbis_switch_ratio: float = float("nan")
+    celt_ratio: float = float("nan")
+    sbr_coherence: float = float("nan")
+    side_step_db: float = float("nan")
     witness_families: Set[str] = field(default_factory=set)
     current_score: int = 0
     reasons: List[str] = field(default_factory=list)

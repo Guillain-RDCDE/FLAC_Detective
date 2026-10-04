@@ -36,12 +36,14 @@ Scope, stated plainly, and measured rather than assumed:
   AAC's window measures AUC 0.806; reading it with its own measures 0.984.
 * **MP3 is not** — a hybrid polyphase filterbank plus an 18-point MDCT matches none
   of this geometry. The cutoff rules already convict there.
-* **Opus is not, and cannot be.** CELT transforms at 48 kHz regardless of input, so
-  a 44.1 kHz source is resampled up, encoded, decoded and resampled back down.
-  Resampling destroys the sample-exact alignment the whole statistic rests on.
-  Measured at Opus's own 960-sample geometry: 1.26 against a genuine baseline of
-  1.29 — the null. This gap is physics, not a missing hypothesis, and no window
-  choice will close it.
+* **Opus is not read by this module**, and the reason it gave until 2.1.0 was
+  wrong. It said resampling destroys the alignment, measured at Opus's own
+  960-sample geometry as 1.26 against a genuine 1.29, and called the gap
+  physics. The measurement was right and the cause was not: the CELT decoder
+  ends with a de-emphasis IIR that smears every zeroed coefficient. Back at
+  48 kHz with that filter undone, the grid is there (issue #12: 3.9 against the
+  original's 1.1). That reading lives in ``codec_grids``, with its own
+  certification, so this module's two hypotheses and their bars are untouched.
 """
 
 from __future__ import annotations
@@ -194,12 +196,11 @@ def alignment_curve(
 # Transform hypotheses tried, in order. Each is (name, window factory).
 #
 # Only the window differs: AAC and Vorbis share the 2048-sample long block, so one
-# basis serves both. Opus is deliberately absent and that is a measurement, not an
-# omission — CELT transforms at 48 kHz whatever you feed it, so a 44.1 kHz source is
-# resampled up, encoded, decoded and resampled back. Resampling destroys the
-# sample-exact alignment this statistic depends on, and no window can recover it.
-# Measured: Opus reads 1.26 against a genuine baseline of 1.29 at its own 960-sample
-# geometry — the null. That gap is physics, not a missing hypothesis.
+# basis serves both. Opus is absent from THIS tuple, which stays certified as it is:
+# its reading needs a 48 kHz view with the decoder's de-emphasis undone, a
+# different geometry and a different genuine baseline, and lives in
+# ``codec_grids.celt_ratio`` (2.1.0). The old note here, "that gap is physics",
+# was wrong about the cause; see the module docstring.
 HYPOTHESES = (("kbd", kbd_window), ("vorbis", vorbis_window))
 
 # ========== WHY THIS COUNT IS A CONSTANT AND NOT JUST len(HYPOTHESES) ==========

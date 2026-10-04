@@ -170,10 +170,12 @@ EXPECTED_REACHABLE = [
     # is. That is deliberate — and it is exactly why the early exit had to start
     # requiring corroboration in v1.9, or it would have measured itself.
     {"spectral", "container"},
-    # Short-circuit 3: after Rules 7, 13 and 14, before Rule 12. The temporal
-    # witness must be here — it is the family that reaches Opus, and a witness
-    # arriving after the gate it should inform is what Provir calls dressing.
-    {"spectral", "container", "silence", "mdct", "temporal", "stereo"},
+    # Short-circuit 3: after Rules 7, 13, 17, 14, 15 and 18, before Rule 12. The
+    # temporal witness must be here — it is the family that reaches Opus, and a
+    # witness arriving after the gate it should inform is what Provir calls
+    # dressing. `sbr` joined in 2.1.0 (Rule 17 runs with Rule 13, issue #12): a
+    # replicated band and a stereo witness are two families before this exit.
+    {"spectral", "container", "silence", "mdct", "sbr", "temporal", "stereo"},
 ]
 
 
@@ -194,23 +196,39 @@ def _all_families() -> dict:
 
 
 def _rules_by_function(tree: ast.AST) -> dict:
-    """Rule classes instantiated inside each function, by function name."""
+    """Rule classes each function can run, directly or through helpers it calls.
+
+    Transitive since 2.1.0: ``_run_codec_rules`` calls ``_run_rule_13``, which
+    instantiates the rule. Following only one level of helper made Rules 13 and 17
+    vanish from the pipeline as far as this guard could see — the defect the
+    guard exists to catch, produced by the guard itself.
+    """
     RULE_FAMILY = _all_families()
 
-    inside: dict = {}
+    direct: dict = {}
+    calls: dict = {}
     for node in ast.walk(tree):
         if not isinstance(node, ast.FunctionDef):
             continue
-        names = {
+        called = {
             child.func.id
             for child in ast.walk(node)
-            if isinstance(child, ast.Call)
-            and isinstance(child.func, ast.Name)
-            and child.func.id in RULE_FAMILY
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
         }
-        if names:
-            inside[node.name] = names
-    return inside
+        direct[node.name] = {name for name in called if name in RULE_FAMILY}
+        calls[node.name] = called - direct[node.name]
+
+    inside = {name: set(rules) for name, rules in direct.items()}
+    changed = True
+    while changed:
+        changed = False
+        for name, callees in calls.items():
+            for callee in callees:
+                extra = inside.get(callee, set()) - inside[name]
+                if extra:
+                    inside[name] |= extra
+                    changed = True
+    return {name: rules for name, rules in inside.items() if rules}
 
 
 def _terminal(body: List[ast.stmt]) -> bool:
