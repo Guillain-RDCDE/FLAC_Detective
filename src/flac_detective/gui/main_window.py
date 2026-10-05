@@ -205,8 +205,8 @@ class MainWindow(QMainWindow):
             "This is not an on/off switch for the ML rule (Rule 12, the CNN). With "
             "the [ml] extra installed, the CNN always runs on files the fast rules "
             "leave in doubt. Deep scan extends it to the files they clear at once, "
-            "which is where high-bitrate MP3, Apple AAC and Opus transcodes hide "
-            "(a normal scan already reads ffmpeg AAC and Vorbis). Slower."
+            "which is where high-bitrate MP3 and Apple AAC transcodes hide "
+            "(a normal scan already reads ffmpeg AAC, Vorbis, Opus and HE-AAC v2). Slower."
         )
         bar.addWidget(self._deep_check)
 

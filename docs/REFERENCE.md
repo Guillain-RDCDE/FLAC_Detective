@@ -67,7 +67,7 @@ flac-detective                             # interactive (prompts for a path)
 
 flac-detective /music --format csv  -o triage.csv   # spreadsheet, worst-first
 flac-detective /music --format html -o report.html  # visual report (see above)
-flac-detective /music --deep                        # also high-bitrate MP3, Apple AAC, Opus (slower)
+flac-detective /music --deep                        # also high-bitrate MP3 and Apple AAC (slower)
 flac-detective /music --advanced                    # show the plumbing: scores, cutoff, per-rule detail
 
 flac-detective /music --progress-events -           # stage-by-stage progress as NDJSON, for another program

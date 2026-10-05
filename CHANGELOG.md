@@ -1,3 +1,104 @@
+## v2.1.0 (2026-10-05) — Opus, Vorbis at every quality and HE-AAC v2 in a normal scan
+
+Issue #12, second round. The reporter's four recipes from one Bandcamp FLAC, read
+by 2.0.0 and by this release:
+
+| recipe | 2.0.0 | 2.1.0 |
+|---|---|---|
+| `oggenc -q1` | WARNING 41 | **FAKE_CERTAIN 71** |
+| `oggenc -q10` | AUTHENTIC 0 | **SUSPICIOUS** (one line of evidence) |
+| `opusenc --bitrate=64` | AUTHENTIC 0 | **FAKE_CERTAIN** |
+| HE-AAC v2 128 kbps (fdk-aac) | AUTHENTIC 0 | **FAKE_CERTAIN 55** |
+| the original | AUTHENTIC 0 | AUTHENTIC 0 |
+
+Same verdicts with and without the ML extra. A conviction still needs two
+independent families; nothing about that rule changed.
+
+### Rule 13 reads Vorbis block switching and Opus
+
+* **Vorbis moves its own grid.** After every run of short blocks the long-block
+  grid shifts by a multiple of 128 samples, so loud, transient-heavy material has
+  eight alignments, not one. A new reading lets each frame keep the best of the
+  eight; on the issue's `-q1` file it reads 5.3 where the old one read 2.4. At
+  high quality Vorbis keeps its zeros per channel, so the reading is taken on the
+  left and right channels (`-q10`: 3.0, against 1.2 on the mono mix).
+* **Opus was not out of reach.** The documentation said resampling destroys the
+  alignment. It was the CELT decoder's de-emphasis filter: back at 48 kHz with it
+  undone, the 20 ms grid is there (the issue's Opus file 6.0, its original 1.4).
+
+Both readings have their own bars, calibrated on 1,151 labelled genuine files,
+none of which reaches either review bar. Rule 13's two original hypotheses and
+their bars are untouched.
+
+### Rule 17: band replication (new, family `sbr`)
+
+HE-AAC rebuilds the top of the spectrum by copying lower subbands up, so the file
+reaches 20 kHz and every cutoff rule called it clean. The copy keeps its phase:
+the coherence between a high subband and the one it was copied from reads 0.64 to
+0.79 on HE-AAC v2, at most 0.36 on the genuine files. It scores 25 / 55, runs in
+a normal scan before anything is acquitted, and withdraws Rule 8's full-band
+protection when it scores. It abstains on a spectrum that does not move (a test
+tone, a fixed waveform: the repository's own clean test signal had read FAKE_CERTAIN
+116 before that guard) and on a high band that is empty. It does **not** reach
+HE-AAC v1 at 64 kbps (6 of 40): there the empty top subbands dilute the reading, and
+the two broader repairs tried both failed their registered criteria — one lifted a
+genuine recording over the bar, the other silenced HE-AAC v2 files (registration,
+amendments 1-3).
+
+### Rule 18: the side-channel step (new, a stereo witness)
+
+Low-quality Vorbis and low-bitrate Opus stop coding the difference between the
+channels above some frequency; the side channel steps down ~20 dB there. Rule 18
+reads that step under the file's own cutoff and testifies for the `stereo`
+family, with no points, as Rules 14 and 15 do. It is the second family that
+convicts the issue's `-q1` and Opus files.
+
+### Measured (`ml/exchange/ISSUE12_CODEC_GRIDS_REGISTRATION_2026-10-04.md`)
+
+Registered and pushed before the engine ran; four passes, 2,843 files with the
+ML extra and 1,692 without, before and after:
+
+* **1,151 labelled genuine files: 0 verdicts and 0 scores moved**, in both modes;
+  the 40 certified sources of the held-out set: 0 moved; **0 detections lost**
+  on any arm.
+* A held-out set no instrument had read (40 certified tracks of every genre, 9
+  arms), caught before → after with the ML extra, of 40: Opus 64 **0 → 32**,
+  Opus 96 **0 → 37**, Opus 128 **0 → 40**, Vorbis q10 **4 → 31**, q5 35 → 40, q1
+  34 → 39, HE-AAC v2 **7 → 38**. Without it: Opus 64 30, Opus 128 40, Vorbis q10
+  29, HE-AAC v2 37.
+* The audit corpus already in the repository: Opus 256 caught **31 → 73** of 80,
+  Vorbis q8 **53 → 80**; AAC and MP3 arms unchanged.
+* What did not hold is written down in the registration's results: Vorbis q10
+  caught 28 and 29 against a bound of 30 (my derivation counted review-tier
+  readings as catches), Opus 64 held-out 30 against a prediction of 38, HE-AAC
+  v1 6 of 40.
+* Unlabelled: of the 591 library, cassette and 78 rpm files the change could
+  move or that served as controls, three moved, all as registered.
+* Found after the passes, by the test suite: the repository's clean synthetic
+  test signal read FAKE_CERTAIN 116, and a sine or a chord could be read as a
+  codec. Two guards fixed it (no reading on a spectrum that does not move, no
+  replication read on a high band with no content); they abstain on none of the
+  5,281 real files measured, so every verdict above is the shipped engine's. Two
+  broader repairs were tried on the way and refused by their own registered
+  criteria; the three amendments are in the registration.
+
+### Changed for you
+
+* `--deep` is now about Apple AAC and high-bitrate MP3 only; the help, the GUI
+  tooltip and the guides say so.
+* Four new fields in the scoring context (`vorbis_switch_ratio`, `celt_ratio`,
+  `sbr_coherence`, `side_step_db`) and two new rule names in `score_breakdown`
+  (`Rule17SBRReplication`, `Rule18SideStep`).
+* **About 3.4 s more per file** on a genuine track that takes the fast path
+  (median 8.9 → 12.5 s, measured idle, one file at a time, 12 certified tracks,
+  identical verdicts): the price of asking Rules 13 and 17 their new questions
+  before a file is acquitted.
+* `tests/test_rule_audit_guard.py`: the family-independence guard reads a lift
+  only where at least 5 genuine files carry the pair. The regenerated audit is the
+  first to show the witness families (Rules 14-16) to this guard, and its two
+  co-firing genuine files out of 80 (Rule 15, identical under 2.0.0) read lifts of
+  11 to 40 by arithmetic alone. A planted alias on 10 files still fails it.
+
 ## v2.0.0 (2026-10-03) — nothing written unasked
 
 The twelve defects the 1.21.0 audit listed, fixed and measured. No rule, bar or

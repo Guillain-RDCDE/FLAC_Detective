@@ -722,12 +722,14 @@ the genuine ceiling across its 100 wild archive.org taper recordings is **1.420*
 against **1.427** measured on 80 certified CD rips. Two corpora of entirely
 different provenance, the same ceiling.
 
-**Opus is out of reach by construction, and this was measured.** CELT transforms
-at 48 kHz whatever you feed it, so a 44.1 kHz source is resampled in and back
-out, and resampling destroys the sample-exact alignment the statistic depends
-on. Measured reading on Opus 256k under both hypotheses: **median 1.30, against a
-1.28 genuine median — AUC 0.575.** Indistinguishable, and no threshold fixes it. MP3 has different framing
-entirely, and the cutoff rules already convict there.
+**Opus was thought out of reach by construction; it was not (v2.1.0).** CELT
+transforms at 48 kHz whatever you feed it, so a 44.1 kHz source is resampled in and
+back out, and the reading at Opus's own geometry measured the null (Opus 256k:
+median 1.30 against a 1.28 genuine median, AUC 0.575). The measurement was right and
+the explanation was not: the CELT decoder ends with a de-emphasis filter
+(y[n] = x[n] + 0.85 y[n-1]) that smears every zeroed coefficient. Back at 48 kHz with
+that filter undone, the grid is there. See
+[the 2.1.0 readings](#rule-13-the-21-readings-vorbis-block-switching-and-opus) below.
 
 **MP3 is out of reach too, for a different reason, and this was also measured.**
 MP3 does not resample, so unlike Opus its alignment survives — it simply lives at
@@ -812,6 +814,71 @@ genuine file, and changed no verdict. It was one suspect for "two halves of one
 track disagree", and it turned out not to be the main one: that is Rule 1's
 +50 and the CNN swinging at an unchanged edge.
 `ml/exchange/STEREO_SPREAD_REGISTRATION_2026-09-25.md`.
+
+### Rule 13: the 2.1 readings, Vorbis block switching and Opus
+
+Issue #12 brought three files Rule 13 could not read, each for a reason that is a
+property of the codec (`analysis/new_scoring/codec_grids.py`). When Rule 13's own
+reading does not reach its hard bar, two more are taken, each against bars of its
+own; the rule still scores once, the strongest tier any reading reaches, family
+`mdct`. Its two certified hypotheses and their bars are untouched.
+
+* **Vorbis with block switching**, read on the left and right channels. A run of k
+  short blocks between two long ones advances the long-block grid by 1024 + 128 k
+  samples, so transient-heavy material carries eight alignments, not one: each read
+  frame keeps the best of the eight phases of a residue, and residues are compared
+  with residues. At high quality Vorbis keeps its zeros per channel, not in the mono
+  mix, hence the channel views. The triage reads evenly spread positions — the
+  loudest frames of such material are its short-block frames.
+* **Opus (CELT)**: the file is brought back to 48 kHz (160/147, segment by segment on
+  the shared 48 kHz grid), the decoder's de-emphasis is undone with its FIR inverse,
+  and 960-sample frames are read through CELT's own low-overlap window.
+
+Bars, from 1,151 labelled genuine files alone: Vorbis block-switch review 1.7, hard
+2.4 (genuine p99.9 1.301, max 1.612); CELT review 2.2, hard 3.2 (p99.9 1.696, max
+1.732). No labelled genuine file reaches either review bar. The MDCT is computed as a
+TDAC fold plus a DCT-IV, which is exactly the transform and about six times cheaper.
+`ml/exchange/ISSUE12_CODEC_GRIDS_REGISTRATION_2026-10-04.md`.
+
+### Rule 17: band replication (v2.1.0)
+
+Scores 25 / 55, family `sbr`. HE-AAC (and mp3PRO) code the lower spectrum and rebuild
+the upper one by copying complex QMF subbands up a fixed number of subbands, so a file
+arrives with energy to the top of the band that was never in the master, and every
+cutoff rule reads it as untouched. The copy keeps its phase evolution: on a 128-point
+STFT with a 64-sample hop (the QMF geometry), the complex coherence between a high
+subband and the one p subbands below — sign-corrected for odd p, median over the
+subbands from 5.5 kHz and 32 segments, maximum over p from 6 to 40 — reads 0.64 to
+0.79 on HE-AAC v2 and at most 0.363 on 1,151 genuine files (median 0.086). Bars 0.40
+and 0.55. It runs wherever Rule 13 runs, before any acquittal, and when it scores it
+withdraws Rule 8's full-band protection, since replication is what manufactures a full
+band. Two abstentions, found after the passes by the test suite (amendments 1 and 2
+of the registration): the 2.1 readings of Rules 13 and 17 do not read a spectrum that
+does not move (`stationarity.py`: median over 1-16 kHz bins of the std over time of
+the dB magnitude under 2 dB — tones and fixed waveforms read 0.04-0.39 dB, music
+17-30), and Rule 17 does not read a high band with no content at all, not one cell
+within 50 dB of its segment's strongest subband (a four-sine chord's leakage read
+0.713 there). **Limit**: HE-AAC v1 at 64 kbps reads 0.12-0.27, inside the genuine
+tail: empty top subbands dilute the median there. Two broader repairs were measured
+and refused by their registered criteria: a floor that dropped quiet cells (read v1
+at 0.56-0.89, but lifted a labelled genuine recording to 0.470) and a "half the band
+populated" gate (silenced 11 of 40 HE-AAC v2 files, whose rebuilt band stops well
+under 20 kHz).
+`analysis/new_scoring/sbr.py`.
+
+### Rule 18: the side-channel step (v2.1.0)
+
+A witness, zero points, family `stereo` (with Rule 15). Vorbis point stereo and CELT
+intensity stereo stop coding the difference between the channels above a frequency
+the encoder chooses, so the side channel falls ~20 dB against the mid there while it
+stays at the music's own ratio below. Read on 1 kHz bands from 1 kHz to the file's
+own cutoff minus 500 Hz, as the median over loud frames of side-to-mid energy; the
+statistic is the largest drop between the three bands below a split and the three
+above. No cutoff gate (Rule 15 has one at 17 kHz, which kept it from seeing a 16.75 kHz
+Vorbis `-q1` file), mono gated out. It witnesses at 7.5 dB, the genuine p95 (as
+Rule 15's bar is): about one genuine file in twenty offers it, with nothing to
+corroborate unless another family has already carried the file past 55 points.
+`analysis/new_scoring/joint_stereo.py`.
 
 ### Rule 16: the MP3 granule grid (v1.19.0)
 
@@ -958,8 +1025,8 @@ re-derive a verdict from a private cutoff.
 
 > **On "confidence".** Verdicts are *evidence levels*, not probabilities. A `FAKE_CERTAIN`
 > means several independent indicators agree — in practice very reliable — but `AUTHENTIC`
-> means *"no evidence of transcoding found"*, **not** a guarantee: high-bitrate AAC/Opus
-> transcodes and genuinely band-limited masters can score low (measured specificity is
+> means *"no evidence of transcoding found"*, **not** a guarantee: Apple AAC, high-bitrate
+> MP3 and low-bitrate HE-AAC v1 transcodes and genuinely band-limited masters can score low (measured specificity is
 > ~80–87 %, see [`ml/README.md`](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)). For critical decisions, confirm with a
 > visual tool such as Spek.
 >
@@ -967,10 +1034,11 @@ re-derive a verdict from a private cutoff.
 > heuristics left silent is acquitted only if Rule 13 reads no MDCT
 > grid; if it reads one, the witnesses (Rules 14, 15, 12, 16) run and the verdict is
 > computed from all of them (`ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md`). That
-> reaches ffmpeg-family AAC and Vorbis; it does not reach Apple AAC, MP3 or Opus.
+> reaches ffmpeg-family AAC and Vorbis, and since v2.1.0 Opus and HE-AAC v2 (Rules 13
+> and 17); it does not reach Apple AAC or high-bitrate MP3.
 >
 > **`--deep` narrows this further.** A default scan skips the CNN (Rule 12) on files the fast
-> heuristics and Rule 13 clear — which is where a high-bitrate MP3, Apple AAC or Opus
+> heuristics and Rule 13 clear — which is where a high-bitrate MP3 or Apple AAC
 > transcode hides (it leaves no heuristic trace). `--deep` runs the CNN on *every* file and,
 > when it is highly confident (p ≥ 0.90) on a full-range file the heuristics left silent,
 > lifts the verdict to **WARNING**. On a 240-file calibration that surfaces ~72 % of AAC-256
@@ -1112,8 +1180,9 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 
 ✅ Detect MP3-to-lossless transcodes (CBR and VBR)
 ✅ Detect high-bitrate **AAC (ffmpeg-family) and Vorbis** transcodes on full-range audio in
-   a default scan (Rule 13, since v1.20.0); **Apple AAC, high-bitrate MP3 and Opus** with
-   `--deep` (the CNN, surfaced as WARNING; see "On confidence" above)
+   a default scan (Rule 13, since v1.20.0), and **Opus, Vorbis at any quality and HE-AAC
+   v2** since v2.1.0 (Rules 13 and 17); **Apple AAC and high-bitrate MP3** with `--deep`
+   (the CNN, surfaced as WARNING; see "On confidence" above)
 ✅ Analyze FLAC, WAV (v0.15), ALAC and APE (v0.16, via ffmpeg) sources
 ✅ Identify fake high-resolution files
 ✅ Protect vinyl and cassette sources
@@ -1124,6 +1193,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
 
 ❌ **Detect lossy transcodes of band-limited material** (baroque, 1920s, solo acoustic) —
    a fundamental signal limit, not fixed by `--deep`; and **WMA → FLAC** is unsupported
+❌ **Read HE-AAC v1 at low bitrates** (64 kbps: 8 of 40 caught on the 2.1.0 held-out
+   set) — empty top subbands dilute Rule 17's reading there
 ❌ **Guarantee 100% accuracy** (see [Accuracy](#accuracy))
 ❌ **Real-time processing** (designed for batch analysis)
 ❌ **Analyze lossless formats beyond FLAC/WAV/ALAC/APE** (e.g. WavPack, TAK — not yet decoded)

@@ -6,7 +6,7 @@
 
 > **A lossy file renamed to .flac looks lossless, weighs lossless, and fools every player you own. It can't fool the arithmetic the encoder left behind — and this reads it for you.**
 >
-> MP3, AAC, Vorbis and — partially — Opus, through three independent kinds of evidence. A conviction needs two of them to agree.
+> MP3, AAC (HE-AAC v2 included), Vorbis and Opus, through independent kinds of evidence. A conviction needs two of them to agree.
 
 [![PyPI version](https://img.shields.io/pypi/v/flac-detective)](https://pypi.org/project/flac-detective/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/flac-detective)](https://pypi.org/project/flac-detective/)

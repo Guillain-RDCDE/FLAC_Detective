@@ -112,17 +112,19 @@ flac-detective /music --deep
 > 32 of 33 AAC 256 (ffmpeg) and 33 of 33 Vorbis q6 transcodes, for about 4 s more per
 > file. Since v1.20.1 it also asks on files with a low cutoff, which is where a
 > low-bitrate Vorbis encode lands (`-q1`: 31 of 33 caught without the ML extra, 33 with
-> it). It does **not** read Apple's AAC encoder (the iTunes and Apple Music format) well,
-> nor MP3 320 / VBR or Opus: those still need `--deep`.
+> it). Since v2.1.0 it also reads **Opus**, **Vorbis at every quality** (`-q10`
+> included) and **HE-AAC v2** in a normal scan (issue #12). It does **not** read Apple's
+> AAC encoder (the iTunes and Apple Music format) well, nor MP3 320 / VBR: those still
+> need `--deep`. HE-AAC v1 at low bitrates (64 kbps) is mostly out of reach.
 >
 > **When to use `--deep`.** A normal scan keeps things fast by skipping the ML rule (Rule
 > 12, the CNN) on files the quick heuristic rules and Rule 13 clear. That's the right default
-> for the common case — but it's also where a **high-bitrate MP3, Apple AAC or Opus**
+> for the common case — but it's also where a **high-bitrate MP3 or Apple AAC**
 > transcode hides: those leave no heuristic trace, so they sail through as AUTHENTIC. `--deep` runs the CNN on **every** file;
 > when it is highly confident a full-range file is a transcode, the verdict is lifted to
 > **WARNING** ("worth checking", never an outright "fake"). The price is speed — every file is
 > decoded and run through the CNN, so a large library takes noticeably longer. Reach for it
-> when you specifically suspect high-bitrate MP3, Apple AAC or Opus sources, or for a thorough second pass on a
+> when you specifically suspect high-bitrate MP3 or Apple AAC sources, or for a thorough second pass on a
 > collection a fast scan called clean. It does **not** help with band-limited recordings
 > (early-music, 1920s, solo acoustic) — that's a genuine signal limit no tool can cross.
 
