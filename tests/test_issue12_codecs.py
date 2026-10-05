@@ -285,3 +285,49 @@ class TestTheCalculator:
         score, reasons = calculator._silent_heuristics_path(ctx, deep=False)
         assert score == 0
         assert any("Fast analysis: AUTHENTIC" in r for r in reasons)
+
+
+def _tone(kind: str, seconds: float = 10.0) -> np.ndarray:
+    """Synthetic stationary signals that fooled the first 2.1 readings (the amendment)."""
+    t = np.arange(int(SR * seconds)) / SR
+    if kind == "harmonics":
+        x = sum(np.sin(2 * np.pi * f * t) for f in range(100, 20001, 100))
+    elif kind == "chord":
+        x = sum(np.sin(2 * np.pi * f * t) for f in (220.0, 277.18, 329.63, 440.0))
+    else:
+        x = np.sin(2 * np.pi * 1000.0 * t)
+    x = np.round(np.asarray(x) / np.abs(x).max() * 0.5 * 32767) / 32767
+    return np.stack([x, x], axis=1).astype(np.float32)
+
+
+class TestTonesAreNotCodecs:
+    """A test tone, a fixed waveform or a few pure sines must not read as a codec.
+
+    Found by ``test_alac_support`` after the passes: its clean 200-harmonic signal
+    read FAKE_CERTAIN 116 (CELT 76, replication 0.87). See the amendment of the
+    issue #12 registration.
+    """
+
+    def test_music_moves_tones_do_not(self):
+        from flac_detective.analysis.new_scoring.stationarity import (
+            STATIONARY_BELOW_DB,
+            spectral_motion_db,
+        )
+
+        assert spectral_motion_db(_music_like().mean(axis=1), SR) > STATIONARY_BELOW_DB
+        for kind in ("harmonics", "sine"):
+            assert spectral_motion_db(_tone(kind).mean(axis=1), SR) < STATIONARY_BELOW_DB, kind
+
+    @pytest.mark.parametrize("kind", ["harmonics", "chord", "sine"])
+    def test_rules_13_and_17_score_nothing_on_a_tone(self, kind):
+        from flac_detective.analysis.new_scoring.rules.mdct_alignment import (
+            apply_rule_13_mdct_alignment,
+        )
+
+        audio = _tone(kind)
+        assert apply_rule_13_mdct_alignment("x", 20000.0, audio, SR)[0] == 0
+        assert apply_rule_17_sbr_replication("x", 20000.0, audio, SR)[0] == 0
+
+    def test_leakage_alone_is_not_replicated(self):
+        coherence, _ = replication_coherence(_tone("chord").mean(axis=1), SR)
+        assert math.isnan(coherence)

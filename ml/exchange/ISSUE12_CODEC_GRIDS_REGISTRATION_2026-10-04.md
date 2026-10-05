@@ -410,3 +410,19 @@ tier.
 
 If C1 holds, no verdict of the four passes can change (R1 abstained on no real file,
 R4 on no scoring file), and the passes stand for the shipped code.
+
+### Amendment 3, checked
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| C1 | files scoring on Rule 17 today that abstain under R4 (78: development and held-out HE-AAC, the issue's, the library's) | 0 | **0** (and none stationary) | held |
+| C2 | the four-sine chord and the 1 kHz sine | abstain | **both abstain** | held |
+| C3 | the test suite | passes | **918 passed, 0 failed**; Sphinx `-W` builds | held |
+
+**What ships.** `8ee6197` plus R1 (stationarity guard on the three 2.1 readings) and
+R4 (Rule 17 abstains on a high band with no content). R1 abstains on none of the
+5,281 real files read and R4 on none of the 78 that score on Rule 17, so every
+verdict of the four passes stands for the shipped code: the results above are the
+shipped engine's. R2 and R3 were refused by their own criteria and are not in it.
+The repository's own clean test signal reads AUTHENTIC 0 again; the chord and the
+sine read nothing.

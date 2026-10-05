@@ -23,6 +23,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 
 from ..sbr import replication_coherence
+from ..stationarity import is_stationary
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,9 @@ def apply_rule_17_sbr_replication(
         return 0, [], details
     try:
         mono = audio_data if audio_data.ndim == 1 else np.mean(audio_data, axis=1)
+        if is_stationary(mono, int(sample_rate)):
+            logger.info("RULE 17: the spectrum does not move (a tone, not music): abstaining")
+            return 0, [], details
         coherence, shift = replication_coherence(mono, int(sample_rate))
     except Exception as exc:
         logger.warning("RULE 17: replication reading failed: %s", exc)

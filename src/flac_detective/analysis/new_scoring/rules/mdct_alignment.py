@@ -40,6 +40,7 @@ import numpy as np
 
 from ..codec_grids import celt_ratio, vorbis_switch_ratio
 from ..mdct import best_alignment_stat
+from ..stationarity import is_stationary
 
 logger = logging.getLogger(__name__)
 
@@ -176,9 +177,14 @@ def apply_rule_13_mdct_alignment(
         )
 
     points, reason = _original_tier(ratio, offset, hypothesis)
-    # The 2.1.0 readings, only while they can still raise the tier.
+    # The 2.1.0 readings, only while they can still raise the tier, and never on a
+    # spectrum that does not move: a stationary tone fakes an alignment preference
+    # (..stationarity; the amendment of the issue #12 registration).
+    stationary = points < SCORE_HARD and is_stationary(mono, int(sample_rate))
+    if stationary:
+        logger.info("RULE 13: the spectrum does not move: the 2.1.0 readings abstain")
     for name, read in (("vorbis-switch", _vorbis_switch_reading), ("celt", _celt_reading)):
-        if points >= SCORE_HARD:
+        if points >= SCORE_HARD or stationary:
             break
         more, more_reason = read(audio_data, mono, int(sample_rate), details)
         if more > points:

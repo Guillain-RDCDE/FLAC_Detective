@@ -220,6 +220,19 @@ def test_no_genuine_file_is_convicted():
 # produced the only false conviction in Provir's blind return.
 MAX_INDEPENDENCE_LIFT = 2.0
 
+# ...and a lift is computed only where enough files carry the pair to estimate one.
+#
+# Added in 2.1.0, when the audit was regenerated for the first time since the
+# pointless witnesses (Rules 14-16, v1.11-1.19) were added: the August baseline
+# carried `spectral` only, so this guard had never seen a witness family. Seen at
+# last, on 80 genuine files, `spectral` fires on 2 and both also carry `stereo`
+# (Rule 15, identical under the 2.0.0 engine): a lift of 11.4 out of two files.
+# Any pair firing on the same two files of 80 reads ~40x; that is the arithmetic
+# of small numbers, not an alias, and it says nothing either way. A real alias —
+# the cnn+spectral case above — fires on many files. Below this count the pair is
+# reported and skipped, never silently passed as independent.
+MIN_COFIRING_FILES = 5
+
 # ========== LIFT IS A SIGNAL TO INVESTIGATE, NOT A VERDICT ==========
 #
 # Jamie Dodd ran this guard on Provir's bench and it rediscovered three of their
@@ -279,6 +292,11 @@ def test_evidence_families_are_independent_on_genuine_material():
             pb = sum(1 for s in sets if b in s) / n
             pab = sum(1 for s in sets if a in s and b in s) / n
             if pa * pb == 0 or pab == 0:
+                continue
+            if round(pab * n) < MIN_COFIRING_FILES:
+                print(
+                    f"{a}+{b}: co-fire on {round(pab * n)} genuine file(s), too few to read a lift"
+                )
                 continue
             lift = pab / (pa * pb)
             if lift > MAX_INDEPENDENCE_LIFT:

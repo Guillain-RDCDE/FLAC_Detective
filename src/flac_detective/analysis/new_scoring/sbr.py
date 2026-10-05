@@ -23,8 +23,19 @@ subbands are noise, not a copy.
     ratio  = max over p of coh(p)
 
 High subbands are those from 5.5 kHz to 20 kHz (or 1 kHz under Nyquist); ``p``
-runs from 6 to 40 subbands. The reading is taken on the mono mix, where parametric
-stereo, which rebuilds left and right from that mix, does not hide it.
+runs from 6 to 40 subbands.
+
+The reading is taken on the mono mix, where parametric stereo, which rebuilds left
+and right from that mix, does not hide it.
+
+It abstains when the high band holds no content at all: when not one of its
+(segment, subband) cells is within 50 dB of its segment's strongest subband, the
+band is the leakage of lower tones, phase-locked across subbands, and a four-sine
+chord read 0.713 there. Two broader repairs were measured and refused by their own
+registered criteria (issue #12 registration, amendments 1-3): a floor that dropped
+quiet cells from the median lifted a labelled genuine recording to 0.470, and a
+"half the band populated" gate silenced 11 of 40 HE-AAC v2 files, whose rebuilt
+band stops well under 20 kHz.
 """
 
 from __future__ import annotations
@@ -41,6 +52,7 @@ N_SEGMENTS = 32
 SHIFT_RANGE = (6, 41)
 HIGH_BAND_HZ = (5500.0, 20000.0)
 MIN_ENERGY = 1e-6
+LIVE_FLOOR_DB = -50.0
 
 
 def replication_coherence(mono: np.ndarray, sample_rate: int) -> Tuple[float, int]:
@@ -59,10 +71,16 @@ def replication_coherence(mono: np.ndarray, sample_rate: int) -> Tuple[float, in
     spec = spec.reshape(len(starts), SEGMENT_FRAMES, QMF_BANDS)
     alternate = np.where(np.arange(SEGMENT_FRAMES) % 2 == 0, 1.0, -1.0).astype(np.float32)
     alternate = alternate[None, :, None]
+    energy = np.sum(np.abs(spec) ** 2, axis=1)
+    strongest = np.max(energy, axis=1, keepdims=True)
 
     width = sample_rate / STFT_SIZE
     k_lo = int(HIGH_BAND_HZ[0] / width)
     k_hi = int(min(HIGH_BAND_HZ[1], sample_rate / 2 - 1000) / width)
+    if k_hi <= k_lo:
+        return float("nan"), -1
+    if not np.any(energy[:, k_lo:k_hi] > strongest * 10 ** (LIVE_FLOOR_DB / 10)):
+        return float("nan"), -1
     best = (float("nan"), -1)
     for shift in range(*SHIFT_RANGE):
         ks = np.arange(max(k_lo, shift + 2), k_hi)
