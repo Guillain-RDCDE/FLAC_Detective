@@ -341,3 +341,38 @@ Rule 17 tier changes and on the issue's five files.
 | **A4** | files whose Rule 17 tier changes, re-run: labelled genuine verdict moves / detections lost | 0 / 0 | any |
 | **A5** | held-out HE-AAC v1 and MediaFoundation HE-AAC caught, torch absent | ≥ 30 of 40 each | reported |
 | **A6** | the issue's five files | as in L3-L7 | any differs |
+
+---
+
+## AMENDMENT 2 — 2026-10-05, registered before the re-measurement it describes
+
+**R2 is refused by its own criterion.** Partway through Amendment 1's
+re-measurement (1,704 of 5,282 files read), one labelled genuine file reaches the
+replication review bar with the floor: Doris Monteiro com A. C. Jobim, *Se é por
+causa de adeus*, **0.470**. A1 said "any: R2 is refused, not re-barred". It is
+refused: the floor is not shipped, and the HE-AAC v1 gain it showed (0 → 55 on
+most of the held-out v1 arm) goes with it. The reading is in the files; the cause
+is the one the floor was meant to remove — on a recording whose high band is
+nearly empty, the few cells that pass a relative floor are leakage-dominated.
+
+R1 (stationarity) stands so far: 0 of the 1,704 real files read under 2.0 dB.
+
+**R3, replacing R2: abstain on an empty high band, change nothing else.** The
+replication statistic stays exactly as registered (every cell read, as calibrated).
+It abstains when fewer than **half** of its (segment, high subband) cells are within
+50 dB of their segment's strongest subband — the high band is then leakage, not
+content, and there is nothing a copy could be read on. An abstention can only take
+Rule 17 points away, never add them, so the calibration and the four passes stand
+for every file that does not abstain.
+
+The half was chosen before reading the share on any file: an SBR decoder fills the
+band it rebuilds, so a replicated band is populated across its width.
+
+| id | criterion | predicted | refuse if |
+|---|---|---|---|
+| **B1** | HE-AAC v2 files (development 34, held-out 40, issue 1) that abstain | 0 | more than 2 |
+| **B2** | the synthetic tones (harmonics, chord, sine) | none reaches WARNING | any does |
+| **B3** | labelled genuine: verdict moves after re-running every file whose Rule 17 tier changes | 0 | any |
+| **B4** | detections lost on any arm, same re-run | 0 | any |
+| **B5** | held-out HE-AAC v1 and MediaFoundation, torch absent | unchanged from the passes (6 and 6 of 40) | reported |
+| **B6** | R1: real files under 2.0 dB, all 5,282 | 0 | any labelled genuine or arm file |
