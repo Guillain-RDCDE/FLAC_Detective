@@ -376,3 +376,37 @@ band it rebuilds, so a replicated band is populated across its width.
 | **B4** | detections lost on any arm, same re-run | 0 | any |
 | **B5** | held-out HE-AAC v1 and MediaFoundation, torch absent | unchanged from the passes (6 and 6 of 40) | reported |
 | **B6** | R1: real files under 2.0 dB, all 5,282 | 0 | any labelled genuine or arm file |
+
+---
+
+## AMENDMENT 3 — 2026-10-05, registered before the check it describes
+
+**R3 is refused by its own criterion.** Amendment 2's re-measurement read all 5,282
+files (one library file unreadable, as before). B1 fails: **11 of the 40 held-out
+HE-AAC v2 files abstain** (predicted 0, refuse over 2), and so does Doctor Flake
+*Pastels*. Their populated share of the high band is 0.136 to 0.485 (Doctor Flake
+0.067): an SBR decoder rebuilds the band up to its own stop frequency, often well
+under 20 kHz, so "half the band" was the wrong reading of "populated". The rest of
+Amendment 2 held: **B6, 0 of 5,281 real files under 2.0 dB** (R1 stands); no labelled
+genuine file reaches a replication bar (max 0.363, the calibrated statistic).
+
+What the tones that fooled Rule 17 have in common is not a thin high band but an
+**empty** one: the four-sine chord and the 1 kHz sine read a populated share of
+exactly **0.0** — no cell of the high band within 50 dB of its segment's strongest
+subband, nothing but leakage.
+
+**R4, replacing R3: abstain only when no cell of the high band is populated.** The
+replication statistic stays exactly as calibrated; it abstains when its high band
+holds no content at all. An abstention only removes points, so only files that
+score on Rule 17 today can move, and they are all known: the development and
+held-out HE-AAC arms, the issue's HE-AAC file and the library files with a Rule 17
+tier.
+
+| id | criterion | predicted | refuse if |
+|---|---|---|---|
+| **C1** | files scoring on Rule 17 today that abstain under R4 | 0 | any |
+| **C2** | the four-sine chord and the 1 kHz sine | abstain | either reads |
+| **C3** | the repository's test suite, the ALAC test included | passes | any failure |
+
+If C1 holds, no verdict of the four passes can change (R1 abstained on no real file,
+R4 on no scoring file), and the passes stand for the shipped code.
