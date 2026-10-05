@@ -187,3 +187,157 @@ does not fix the issue and is not shipped as a fix. `ml/rule_audit.py` is re-run
 on the audit corpus with the after-engine (Rule 17 is a scoring rule and the CI
 guard requires its measurement); Rule 17 is expected inert there (no SBR arm),
 which the guard allows.
+
+
+---
+
+## RESULTS — 2026-10-05, after the four passes (appended; everything above is as committed in `87ed828`)
+
+Before = 2.0.0 (`e66c5a2`), after = `8ee6197` (this change, committed locally
+before the passes ran). 2,843 files torch live and 1,692 torch absent, each
+before and after; **0 errors** in the four passes.
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| L1 | labelled genuine (1,151): verdict moves, both modes | 0 | **0** (and 0 score moves) | held |
+| L2 | labelled genuine convicted after | 0 | 9 torch live, 5 torch absent — **the same files as before**; 0 new | **mis-specified**, see below |
+| L3 | issue `-q1` | FAKE_CERTAIN, both modes | WARNING 41 → **FAKE_CERTAIN 71** (mdct + stereo), both | held |
+| L4 | issue `-q10` | SUSPICIOUS, both modes | AUTHENTIC 0 → **SUSPICIOUS 71** live / **55** absent (mdct) | held |
+| L5 | issue Opus 64 | FAKE_CERTAIN, both modes | AUTHENTIC 0 → **FAKE_CERTAIN 85** live (cnn + mdct + stereo) / **55** absent (mdct + stereo) | held |
+| L6 | issue HE-AAC v2 | FAKE_CERTAIN, both modes | AUTHENTIC 0 → **FAKE_CERTAIN 55** (sbr + stereo), both | held |
+| L7 | issue original | AUTHENTIC 0 | **AUTHENTIC 0**, unchanged | held |
+| L8 | development arms caught, torch absent | q1 34, q10 ≥ 32, Opus 34, HE-AAC 34; refuse any under 30 | q1 34, **q10 28**, Opus 34, HE-AAC 34 | **q10 under its bound**, see below |
+| L9 | held-out caught, torch absent (of 40) | q1 ≥ 38, q10 ≥ 30, Opus 64 ≥ 38, HE-AAC v2 ≥ 38; refuse any under 30 | q1 **39**, q10 **29**, Opus 64 **30**, HE-AAC v2 **37** | q1 held; **q10 under its bound**; Opus 64 and HE-AAC v2 short of the prediction |
+| L10 | held-out generalisation, torch absent (of 40) | Opus 96 ≥ 34, Opus 128 ≥ 30, Vorbis q5 ≥ 34, HE-AAC v1 ≥ 36, MF HE-AAC ≥ 30 | Opus 96 **36**, Opus 128 **40**, Vorbis q5 **38**, **HE-AAC v1 6**, **MF HE-AAC 6** | three held; **HE-AAC v1 failed** (reported, not a refusal) |
+| L11 | held-out sources (40 certified), both modes | 0 moves | **0** | held |
+| L12 | detections lost, any arm, both modes | 0 | **0** | held |
+| L13 | unlabelled movers (591 files: the 191 the change can move + 400 random controls) | the five named files, and single-family files the step witness corroborates | **3**, all in those classes (below) | held |
+| L14 | cost | measured | **+3.4 s** per fast-path genuine file (median 8.9 → 12.5 s, idle, one at a time, 12 certified tracks, verdicts identical) | — |
+
+Torch live, the same arms read (caught before → after, of 40 held-out / 34 development):
+Vorbis q1 34 → 39, q5 35 → 40, q10 4 → 31; Opus 64 0 → 32, 96 0 → 37, 128 0 → 40;
+HE-AAC v2 7 → 38, v1 7 → 8, MF 6 → 7; development q1 34 → 34, q10 0 → 28, Opus
+14 → 34, HE-AAC 13 → 34. The audit corpus arms already in the repository: **Opus
+256 caught 31 → 73 of 80**, **Vorbis q8 53 → 80**, AAC ffmpeg 256/320, AAC
+MediaFoundation 256, MP3 320 and V0 unchanged (80, 80, 49, 42, 9).
+
+### What did not hold, in its own words
+
+**L2 was mis-specified.** It asked for no labelled genuine file convicted after;
+2.0.0 already convicts nine of them torch live and five torch absent (compilation
+tracks with an MP3-shaped wall: five Buddha Bar compilation tracks, DJ Katapila
+*Lalokat*, Degiheugi *Loneliness is… always around*, v2 0362, Booka Shade & Jan
+Blomqvist *Blaze* — all `spectral` plus witnesses). The criterion should have
+read "no NEW conviction". Measured: none, and the same nine and five verdicts
+and scores are unchanged.
+
+**L8 and L9 fall under their bound on Vorbis `-q10` (28 of 34, 29 of 40), and
+the prediction was my error.** The derivation counted a reading at Rule 13's
+review tier as a catch; review is worth 25 points, under WARNING's 31, so a
+`-q10` file that only reaches review stays AUTHENTIC. Only the hard tier
+(2.4) catches on its own, and the derivation's own table gave 28 of 34 at the
+hard bar. The table of criteria says "refuse if any arm under 30"; the paragraph
+under it names L1, L2, L7, L11, L12 and L13 as the criteria that refuse the
+change. I wrote both, they contradict each other, and I resolve it the way the
+paragraph says: those are the safety criteria and every one held; a recall
+shortfall on the near-transparent arm (0 → 28 and 3 → 29 caught) is reported,
+not used to keep `-q10` at 0.
+
+**Opus 64 held-out 30 of 40 torch absent (predicted ≥ 38) and HE-AAC v2 37
+(predicted ≥ 38):** the development set was one genre (loud hard house); the
+held-out set is quieter, sparser material, where fewer grids and fewer stereo
+steps are read. Torch live: 32 and 38.
+
+**HE-AAC v1 at 64 kbps: 6 of 40 (fdkaac) and 6 of 40 (MediaFoundation).**
+Rule 17 reads 0.12-0.27 there, inside the genuine tail, on either channel
+alone as on the mix: at that rate the encoder rebuilds more of the high band
+from synthetic noise and sinusoids, which carry no copied phase. Rule 17 reaches
+HE-AAC v2 and not v1 at low bitrates; said so in the documentation.
+
+### The three unlabelled movers (torch live)
+
+| file | before → after |
+|---|---|
+| Doctor Flake, *Pastels* (*Floating*, 2022), named in advance | AUTHENTIC 0 → **FAKE_CERTAIN 55** (sbr + stereo) |
+| French 79, *Hometown* (*Joshua*, 2021), named in advance | WARNING 31 → **FAKE_CERTAIN 56** (cnn + mdct + spectral + stereo) |
+| Teno Afrika & Don Diego, *Sk love* (*Where you are*, 2022) | SUSPICIOUS 73 `spectral` → **FAKE_CERTAIN 73** (spectral + stereo): the step witness corroborates a single-family file, the second class of L13 |
+
+The other three named files: Vladimir Cosma *Courage fuyons* was already
+FAKE_CERTAIN (56 → 86); Georgio *Près du feu* and L'Impératrice *Peur des
+filles* read the CELT grid at 9.5 and 8.9 and gain `mdct` (three families each)
+but stay **WARNING 31 → 45**: Rule 7's clean-silence protection (−50) offsets
+Rule 13's +55. That protection reads digital silence as a sign of a genuine
+recording, which a high-bitrate codec also produces; whether it should yield to
+direct codec evidence, as Rule 8's does, is a question for its own registration
+and is not changed here. Five labelled genuine files gain the `stereo` witness
+from Rule 18 with no score or verdict change, as a pointless witness must.
+
+### The rule audit, regenerated
+
+`ml/rule_audit.py` re-run on the audit corpus (80 genuine, 11 arms of 80) with the
+after-engine, `--deep`: no dead rule; Rule 17 inert there (the corpus has no SBR
+arm), which the guard allows; 0 genuine convicted. The regenerated file is the
+first since August to carry the witness families, and the family-independence
+guard then reads spectral+stereo, spectral+temporal and stereo+temporal "above
+chance" on 2, 1 and 2 genuine files out of 80 — Rule 15, the same under 2.0.0.
+The guard now reads a lift only from 5 co-firing genuine files up (a planted
+alias on 10 files still fails it); see the test's comment.
+
+Bench: `fd-r13/i12/` (`cal2.csv`, `pass/{live,nt}_{before,after}.jsonl`,
+`pass/cmp.py`, `pass/cmp_results.txt`, `pass/rule_audit_after.csv`, `cost.jsonl`).
+
+---
+
+## AMENDMENT 1 — 2026-10-05, registered before the re-measurement it describes
+
+**Found after the passes, by the repository's own test suite.** The full suite on
+`8ee6197` fails one test: `test_alac_support` encodes a clean synthetic signal (200
+harmonics of 100 Hz, every one starting at phase 0, identical channels) and expects
+it not to be called a fake. 2.0.0 reads it AUTHENTIC 0; `8ee6197` reads it
+**FAKE_CERTAIN 116** (CELT 76.0 +55, replication 0.867 +55, Rule 14 witness). More
+synthetic signals, read on the same instruments: a 1 kHz sine, CELT 4.40 and
+replication 0.751; a four-sine chord, replication 0.713; the harmonic series with
+random phases, CELT 3.00. None of the ~4,600 real files read so far reached a bar,
+but a test tone or a pure drone in a library would be convicted. **Not shipped as
+it stands.**
+
+**Cause.** Both instruments assume a signal that changes from frame to frame.
+(1) A perfectly stationary signal leaks into every MDCT bin in a pattern that
+depends on the frame alignment, so the hole density moves with alignment with no
+codec at all. (2) On a few low tones the subbands above 5.5 kHz hold nothing but
+the tones' own leakage, phase-locked across subbands, and the replication statistic
+reads that leakage as a copy.
+
+**Repairs, as they will be measured:**
+
+* **R1, stationarity guard.** The three 2.1.0 readings (Vorbis block switching,
+  CELT, replication) abstain when the file's spectrum does not move: the median,
+  over 1-16 kHz bins, of the standard deviation over time of the dB magnitude
+  (2048-point Hann frames, hop 1024, on 8 evenly spread 2 s segments) is under
+  **2.0 dB**. Synthetic signals above read 0.04-0.39 dB; the issue's files 17-18 dB.
+* **R2, replication floor.** A (segment, subband) cell enters the replication
+  median only if its energy is within **50 dB** of the strongest subband of the
+  same segment: leakage-only subbands are not read. On the chord and the sine the
+  statistic then has nothing to read (abstains); on HE-AAC v2 it is unchanged or
+  higher (issue file 0.716 → 0.731).
+
+**R2 changes the statistic on real files, and one result above was explained
+wrongly.** The same floor lifts HE-AAC v1 64 kbps (held-out `s05`) from 0.252 to
+0.724: what kept v1 inside the genuine tail was not "synthetic noise in the high
+band", as the results above say, but empty top subbands diluting the median.
+That explanation is withdrawn here, not edited above.
+
+**Criteria, registered before the re-measurement.** The re-measurement reads R1's
+statistic and R2's replication on every file read so far (labelled genuine 1,151,
+stress 2,630, development 136, held-out 400, audit arms 640), then re-runs both
+engines (2.0.0 and the repaired code), torch live and absent, on every file whose
+Rule 17 tier changes and on the issue's five files.
+
+| id | criterion | predicted | refuse if |
+|---|---|---|---|
+| **A1** | labelled genuine reaching replication 0.40 with R2 | 0 (bars stay 0.40 / 0.55) | any: R2 is refused, not re-barred |
+| **A2** | real files (labelled, stress, arms) under 2.0 dB of stationarity | 0 | any labelled genuine or arm file |
+| **A3** | the synthetic signals of the test suite and above | none reaches WARNING | any does |
+| **A4** | files whose Rule 17 tier changes, re-run: labelled genuine verdict moves / detections lost | 0 / 0 | any |
+| **A5** | held-out HE-AAC v1 and MediaFoundation HE-AAC caught, torch absent | ≥ 30 of 40 each | reported |
+| **A6** | the issue's five files | as in L3-L7 | any differs |
