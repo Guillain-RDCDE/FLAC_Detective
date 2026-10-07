@@ -355,6 +355,22 @@ def test_wait_for_exit_on_a_real_short_process():
     assert up.wait_for_exit([0, -1], timeout=1) is True  # nothing to wait for
 
 
+def test_wait_for_exit_sees_through_a_zombie_child():
+    """An exited child nobody waited for must count as exited (CI on Linux/macOS, 2026-10-07).
+
+    ``os.kill(pid, 0)`` succeeds on a zombie; the POSIX probe reaps a child
+    with ``waitpid`` first. On Windows the handle wait already does the right
+    thing, so this is the same assertion on every platform.
+    """
+    import subprocess
+    import time
+
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    time.sleep(1.0)  # the child has exited; it is not reaped (no proc.wait())
+    assert up.wait_for_exit([proc.pid], timeout=10) is True
+    proc.wait()
+
+
 def test_wait_for_exit_times_out_on_a_long_process():
     import subprocess
 

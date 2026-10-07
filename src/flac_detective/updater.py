@@ -257,13 +257,38 @@ def wait_for_exit(pids: List[int], timeout: float = 600.0) -> bool:
                 kernel32.CloseHandle(handle)
         else:
             while time.monotonic() < deadline:
-                try:
-                    os.kill(pid, 0)
-                except OSError:
+                if not _posix_alive(pid):
                     break
                 time.sleep(0.25)
             else:
                 return False
+    return True
+
+
+def _posix_alive(pid: int) -> bool:
+    """True while ``pid`` runs. A child of ours that has exited is reaped here.
+
+    ``os.kill(pid, 0)`` keeps succeeding on a zombie — an exited child nobody
+    has waited for — so a child is checked with ``waitpid`` first (which also
+    reaps it); any other process falls back to the signal probe.
+    """
+    try:
+        # getattr: the name does not exist on Windows, where this never runs.
+        done_pid, _status = os.waitpid(pid, getattr(os, "WNOHANG", 1))
+        if done_pid == pid:
+            return False
+    except ChildProcessError:
+        pass  # not our child: the probe below decides
+    except OSError:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # exists, owned by someone else
+    except OSError:
+        return False
     return True
 
 

@@ -192,7 +192,7 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
-        return answer == QMessageBox.StandardButton.Yes
+        return bool(answer == QMessageBox.StandardButton.Yes)
 
     def _start_install(self) -> None:
         if self._install_worker is not None and self._install_worker.isRunning():
