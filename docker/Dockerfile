@@ -58,6 +58,8 @@ WORKDIR /data
 # No update check inside the image: "pip install -U" is the wrong advice here,
 # the image is upgraded by pulling a newer tag.
 ENV FLAC_DETECTIVE_NO_UPDATE_CHECK=1
+# And `--update` answers "docker pull" instead of running pip in the image.
+ENV FLAC_DETECTIVE_IN_DOCKER=1
 
 # Default entrypoint
 ENTRYPOINT ["flac-detective"]

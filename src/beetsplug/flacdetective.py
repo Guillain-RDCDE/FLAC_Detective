@@ -118,11 +118,22 @@ class FlacDetectivePlugin(BeetsPlugin):
             default=False,
             help="show verdicts but change nothing (implies --no-write)",
         )
+        cmd.parser.add_option(
+            "--update",
+            action="store_true",
+            dest="update",
+            default=False,
+            help="install the latest flac-detective into beets' Python and stop (no analysis)",
+        )
         cmd.func = self._run
         return [cmd]
 
     def _run(self, lib: Any, opts: Any, args: List[str]) -> None:
         """Analyse every matching lossless item and report verdicts."""
+        if getattr(opts, "update", False):
+            self._update()
+            return
+        self._print_update_notice()
         write = self.config["write"].get(bool)
         if opts.write is not None:
             write = opts.write
@@ -173,6 +184,37 @@ class FlacDetectivePlugin(BeetsPlugin):
                     result["verdict"],
                     result["score"],
                 )
+
+    # ------------------------------------------------------------------ updates
+    def _print_update_notice(self) -> None:
+        """One line when a newer flac-detective exists (daily check, cached; silent on failure)."""
+        try:
+            from flac_detective.update_check import latest_version, update_notice
+
+            text = update_notice(latest_version())
+        except Exception:  # noqa: BLE001 - never let the check touch the analysis
+            text = None
+        if text:
+            ui.print_(ui.colorize(cast(Any, "text_warning"), text))
+            ui.print_("Run `beet flacdetective --update` to install it into beets' Python.")
+
+    def _update(self) -> None:
+        """``beet flacdetective --update``: install the latest release into beets' interpreter."""
+        from flac_detective.update_check import current_version, fetch_latest_version, is_newer
+        from flac_detective.updater import upgrade
+
+        current = current_version()
+        ui.print_(f"flac-detective {current} — checking PyPI…")
+        latest = fetch_latest_version()
+        if latest is None:
+            ui.print_("PyPI could not be reached. Nothing was changed.")
+            return
+        if not is_newer(latest, current):
+            ui.print_(f"You have the latest release ({current}).")
+            return
+        ui.print_(f"{latest} is available. Installing…")
+        result = upgrade(on_line=lambda line: ui.print_(f"    {line}"))
+        ui.print_(result.message)
 
     # ----------------------------------------------------------------- helpers
     def _make_analyzer(self, opts: Any) -> Any:

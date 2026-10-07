@@ -42,6 +42,23 @@ FETCH_TIMEOUT_SECONDS = 2.0
 _CACHE_FILE_NAME = "update-check.json"
 
 
+def current_version() -> str:
+    """The version of the INSTALLED distribution, which is what pip upgrades.
+
+    In an ordinary install it equals ``__version__``. They differ only when the
+    code running is not the code installed (a checkout on ``PYTHONPATH`` over an
+    installed package): the installer must then decide and verify against the
+    distribution, or it would say "up to date" about a package it never looked
+    at — which is exactly what the first end-to-end test of 2.4.0 did.
+    """
+    try:
+        from importlib.metadata import version
+
+        return version("flac-detective")
+    except Exception:  # noqa: BLE001 - not installed as a distribution (a bare checkout)
+        return __version__
+
+
 def parse_version(text: str) -> Optional[Tuple[int, ...]]:
     """``"2.2.0"`` → ``(2, 2, 0)``; anything that is not plain digits and dots → None."""
     parts = text.strip().split(".")
@@ -138,8 +155,9 @@ def latest_version(
         return None
 
 
-def update_notice(latest: Optional[str], current: str = __version__) -> Optional[str]:
+def update_notice(latest: Optional[str], current: Optional[str] = None) -> Optional[str]:
     """The one-line notice to print, or None when there is nothing newer."""
+    current = current_version() if current is None else current
     if latest is None or not is_newer(latest, current):
         return None
     return (
@@ -157,9 +175,9 @@ class UpdateCheck:
     next run).
     """
 
-    def __init__(self, enabled: bool = True, current: str = __version__) -> None:
+    def __init__(self, enabled: bool = True, current: Optional[str] = None) -> None:
         self._enabled = enabled
-        self._current = current
+        self._current = current_version() if current is None else current
         self._latest: Optional[str] = None
         self._thread: Optional[threading.Thread] = None
 

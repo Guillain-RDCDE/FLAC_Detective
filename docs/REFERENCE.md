@@ -114,10 +114,12 @@ pip install "flac-detective[gui]"          # + desktop GUI (flac-detective-gui)
 docker pull ghcr.io/guillain-rdcde/flac_detective:latest   # or Docker (amd64 + arm64)
 ```
 
-`pip install` does **not** upgrade an existing install — use `-U` to get the latest release:
+`pip install` does **not** upgrade an existing install. Since v2.4.0 the tool does it for
+you when asked (it checks PyPI once a day and tells you when a newer release exists):
 
 ```bash
-pip install -U flac-detective
+flac-detective --update        # or answer "y" when a run ends with the notice; GUI: the Install button
+pip install -U flac-detective  # the same thing by hand
 flac-detective --version
 ```
 

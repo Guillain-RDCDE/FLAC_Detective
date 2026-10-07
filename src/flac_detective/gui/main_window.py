@@ -52,11 +52,12 @@ from ..cli.discovery import create_non_flac_result
 from ..presentation import plain_explanation, verdict_plain
 from ..reporting.evidence import deciding_evidence
 from ..update_check import OPT_OUT_ENV
+from ..updater import consume_install_report
 from . import style
 
 if TYPE_CHECKING:  # imported lazily at runtime (heavy scipy / matplotlib imports)
     from .spectrum_view import SpectrumView
-    from .worker import AnalysisWorker, UpdateCheckWorker
+    from .worker import AnalysisWorker, UpdateCheckWorker, UpdateInstallWorker
 
 # NOTE: the heavy modules — the analysis stack (scipy, ~4.5s) via .worker, the
 # plotting (matplotlib, ~1.5s) via .spectrum_view, and the reporters — are
@@ -130,6 +131,12 @@ class MainWindow(QMainWindow):
         # Not even started when the user opted out (FLAC_DETECTIVE_NO_UPDATE_CHECK),
         # which is also how the test suite keeps a thread out of its windows.
         self._update_worker: Optional[UpdateCheckWorker] = None
+        self._install_worker: Optional[UpdateInstallWorker] = None
+        self._latest_version = ""
+        # A deferred (Windows) install from last time left its result: show it once.
+        report = consume_install_report()
+        if report:
+            self._summary_label.setText(str(report.get("message", "")))
         if not os.environ.get(OPT_OUT_ENV, "").strip():
             from .worker import UpdateCheckWorker as _Worker
 
@@ -138,20 +145,98 @@ class MainWindow(QMainWindow):
             self._update_worker.start()
 
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt's name
-        """Let the update check finish before Qt tears its thread down with the window."""
+        """Let the update threads finish before Qt tears them down with the window."""
         worker = self._update_worker
         if worker is not None and worker.isRunning():
             worker.wait(3000)
+        installer = self._install_worker
+        if installer is not None and installer.isRunning():
+            # pip is mid-flight: give it the time it needs rather than kill it.
+            installer.wait(15 * 60 * 1000)
         super().closeEvent(event)
 
     def _on_update_notice(self, text: str) -> None:
         latest = text.split("available: ", 1)[-1].split(" ", 1)[0]
+        self._latest_version = latest
         self._update_label.setText(
             f'<a href="https://pypi.org/project/flac-detective/" '
             f'style="color:{style.ACCENT}">Update available: v{latest}</a>'
         )
         self._update_label.setToolTip(text)
         self._update_label.show()
+        self._update_button.setText(f"Install v{latest}")
+        self._update_button.show()
+
+    # ------------------------------------------------------------ update install
+    def _confirm_install(self) -> bool:
+        """Ask before touching the install; a test overrides this."""
+        from ..updater import install_method, manual_hint, upgrade_command
+
+        method = install_method()
+        command = upgrade_command(method)
+        if command is None:
+            QMessageBox.information(
+                self,
+                "Update",
+                "This copy is not updated from inside the app.\n\nTo update: "
+                + manual_hint(method),
+            )
+            return False
+        answer = QMessageBox.question(
+            self,
+            "Install the update?",
+            f"Install FLAC Detective v{self._latest_version} now?\n\n"
+            f"This runs:  {' '.join(command)}\n\n"
+            "The app keeps working during the install; restart it afterwards to use "
+            "the new version.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return answer == QMessageBox.StandardButton.Yes
+
+    def _start_install(self) -> None:
+        if self._install_worker is not None and self._install_worker.isRunning():
+            return
+        if not self._confirm_install():
+            return
+        from .worker import UpdateInstallWorker
+
+        self._update_button.setEnabled(False)
+        self._update_button.setText("Installing…")
+        self._summary_label.setText("Installing the update…")
+        self._install_worker = UpdateInstallWorker(self)
+        self._install_worker.line.connect(self._on_install_line)
+        self._install_worker.done.connect(self._on_install_done)
+        self._install_worker.start()
+
+    def _on_install_line(self, line: str) -> None:
+        if line.strip():
+            self._summary_label.setText(f"Installing the update… {line.strip()[:120]}")
+
+    def _on_install_done(self, ok: bool, deferred: bool, message: str) -> None:
+        self._summary_label.setText(message)
+        if deferred:
+            # Windows: pip runs once the app has exited. Offer to exit now.
+            self._update_button.setText("Installs when the app closes")
+            self._update_button.setEnabled(False)
+            answer = QMessageBox.question(
+                self,
+                "Close to install",
+                message + "\n\nClose FLAC Detective now so the update can install?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes,
+            )
+            if answer == QMessageBox.StandardButton.Yes:
+                self.close()
+            return
+        if ok:
+            self._update_button.setText("Installed — restart the app")
+            self._update_button.setEnabled(False)
+            QMessageBox.information(self, "Update installed", message)
+        else:
+            self._update_button.setText(f"Install v{self._latest_version}")
+            self._update_button.setEnabled(True)
+            QMessageBox.warning(self, "Update not installed", message)
 
     # ---------------------------------------------------------------- UI build
     def _build_ui(self) -> None:
@@ -203,6 +288,13 @@ class MainWindow(QMainWindow):
         self._update_label.setOpenExternalLinks(True)
         self._update_label.hide()
         header.addWidget(self._update_label)
+        # Installs the update from inside the app (pip or pipx, see updater.py);
+        # hidden with the label, confirmed by a dialog before anything runs.
+        self._update_button = QPushButton("Install update")
+        self._update_button.setObjectName("secondary")
+        self._update_button.clicked.connect(self._start_install)
+        self._update_button.hide()
+        header.addWidget(self._update_button)
         header.addStretch(1)
         return header
 

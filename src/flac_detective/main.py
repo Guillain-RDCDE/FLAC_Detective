@@ -29,10 +29,12 @@ from .cli.discovery import REJECTABLE_SUFFIXES, scan_files
 from .cli.logsetup import ResilientFileHandler, setup_logging
 from .cli.output import REAL_STDOUT, generate_final_report
 from .cli.pool import run_analysis_loop
+from .cli.update_flow import offer_update, print_install_report, run_update_command
 from .cli.workdir import resolve_work_dir
 from .colors import Colors, colorize
 from .config import analysis_config
 from .update_check import UpdateCheck
+from .updater import consume_install_report
 from .utils import LOGO
 
 logger = logging.getLogger(__name__)
@@ -96,6 +98,13 @@ def _run() -> None:
     reset_tracker()
 
     args = parse_arguments()
+
+    # A deferred (Windows) install from last time left its result: say it once.
+    print_install_report(consume_install_report())
+
+    # `flac-detective --update`: check PyPI now, install if newer, and stop.
+    if args.update:
+        sys.exit(run_update_command())
 
     # A machine-readable format with no --output means stdout carries DATA, so
     # every decorative print in the CLI has to go somewhere else. Reported by
@@ -170,13 +179,15 @@ def _run() -> None:
         advanced=args.advanced,
     )
 
-    # After the summary, where a reader's eye ends. print(), not the logger: the
-    # console handlers are WARNING-level and this is not a warning. In machine
-    # mode sys.stdout is stderr by now, so the report on the real stdout stays
-    # clean.
+    # After the summary, where a reader's eye ends: the notice and, on a
+    # terminal, the offer to install. In machine mode sys.stdout is stderr by
+    # now, so the report on the real stdout stays clean, and nothing is asked:
+    # a pipe, a cron job or an application driving this process must never
+    # block on a question (see cli/update_flow.py).
     notice = update_check.notice(wait=1.0)
     if notice:
-        print(f"\n  {colorize(notice, Colors.YELLOW)}\n")
+        unattended = machine_stdout or args.progress_events is not None
+        offer_update(notice, interactive=False if unattended else None)
 
 
 def main():

@@ -229,6 +229,16 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--update",
+        action="store_true",
+        help=(
+            "Ask PyPI for the latest release right now and install it if it is newer, "
+            "with the same interpreter this copy runs in (pip), or with pipx when this "
+            "copy was installed by pipx. Nothing is scanned. A source checkout and the "
+            "Docker image are told how to update instead of being touched."
+        ),
+    )
+    parser.add_argument(
         "--no-update-check",
         action="store_true",
         help=(
@@ -277,6 +287,10 @@ def parse_arguments() -> argparse.Namespace:
         if args.workers < 1:
             parser.error(f"--workers must be 1 or more (got {args.workers})")
         analysis_config.MAX_WORKERS = args.workers
+
+    # --update scans nothing: no path is needed and none is asked for.
+    if args.update:
+        return args
 
     if not args.paths:
         args.paths = get_user_input_path()

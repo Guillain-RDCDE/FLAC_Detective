@@ -164,6 +164,89 @@ def test_update_notice_reaches_the_header(app, monkeypatch):
     win.close()
 
 
+def test_install_button_appears_and_runs_the_installer(app, monkeypatch):
+    """The header button installs through updater.upgrade, off the UI thread.
+
+    The confirmation dialog and the real installer are replaced: the dialog by
+    a method that says yes, the installer by a stub that reports success.
+    """
+    from flac_detective import update_check as uc
+    from flac_detective import updater as up
+    from flac_detective.gui import main_window as mw
+
+    monkeypatch.delenv("FLAC_DETECTIVE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(uc, "latest_version", lambda: "9.9.9")
+    monkeypatch.setattr(
+        up,
+        "upgrade",
+        lambda on_line=None, **kw: (
+            on_line and on_line("Successfully installed flac-detective-9.9.9"),
+            up.UpgradeResult(
+                ok=True,
+                method="pip",
+                command=["x"],
+                installed_version="9.9.9",
+                message="Installed 9.9.9. Restart.",
+            ),
+        )[1],
+    )
+    monkeypatch.setattr(mw.QMessageBox, "information", lambda *a, **k: None)
+    win = MainWindow()
+    assert win._update_worker.wait(5000)
+    for _ in range(20):
+        app.processEvents()
+    assert not win._update_button.isHidden()
+    assert win._update_button.text() == "Install v9.9.9"
+
+    monkeypatch.setattr(win, "_confirm_install", lambda: True)
+    win._start_install()
+    assert win._install_worker is not None
+    assert win._install_worker.wait(10000)
+    for _ in range(20):
+        app.processEvents()
+    assert "Restart" in win._summary_label.text()
+    assert not win._update_button.isEnabled()
+    win.close()
+
+
+def test_a_deferred_install_offers_to_close_the_app(app, monkeypatch):
+    """Windows path: the result says 'after exit'; the app asks to close and does."""
+    from flac_detective import update_check as uc
+    from flac_detective import updater as up
+    from flac_detective.gui import main_window as mw
+
+    monkeypatch.delenv("FLAC_DETECTIVE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(uc, "latest_version", lambda: "9.9.9")
+    monkeypatch.setattr(
+        up,
+        "upgrade",
+        lambda on_line=None, **kw: up.UpgradeResult(
+            ok=False, method="pip", command=["x"], deferred=True, message="will install on exit"
+        ),
+    )
+    asked = []
+
+    def question(*a, **k):
+        asked.append(a[1])
+        return mw.QMessageBox.StandardButton.Yes
+
+    monkeypatch.setattr(mw.QMessageBox, "question", question)
+    win = MainWindow()
+    assert win._update_worker.wait(5000)
+    for _ in range(20):
+        app.processEvents()
+    monkeypatch.setattr(win, "_confirm_install", lambda: True)
+    closed = []
+    monkeypatch.setattr(win, "close", lambda: closed.append(True) or True)
+    win._start_install()
+    assert win._install_worker.wait(10000)
+    for _ in range(20):
+        app.processEvents()
+    assert asked == ["Close to install"]
+    assert closed == [True]
+    assert "will install on exit" in win._summary_label.text()
+
+
 def test_no_update_check_thread_when_opted_out(app, monkeypatch):
     monkeypatch.setenv("FLAC_DETECTIVE_NO_UPDATE_CHECK", "1")
     win = MainWindow()

@@ -153,11 +153,37 @@ flac-detective /music --deep
 > [Technical Details → Repair](technical-details.md#repair-lossless-reconstruction-only-when-needed)
 > for the full procedure.
 
-### The update check
+### The update check, and installing the update
 
 Since v2.3.0 the tool asks PyPI once a day whether a newer release exists and, if
 so, prints one line at the end of the run (the GUI shows an "Update available" link
-in its header). What leaves your machine is one small GET on
+in its header). Since v2.4.0 it also **installs it when you say so**:
+
+```bash
+flac-detective --update            # check PyPI now and install the newer release, nothing scanned
+beet flacdetective --update        # the same, into beets' Python
+```
+
+On a terminal, a run that ends with the notice asks `Install it now? [y/N]` — No is
+the default, and nothing is asked when the output is piped, in `--format json` without
+`--output`, or with `--progress-events`. The GUI shows an **Install vX** button next to
+the link, confirms with a dialog that names the exact command, and tells you to restart
+when done. The install runs **the same interpreter this copy runs in**
+(`python -m pip install --upgrade flac-detective`), or `pipx upgrade flac-detective`
+when this copy was installed by pipx, and it believes a fresh interpreter's version,
+not the installer's exit code. A source checkout (`git pull`) and the Docker image
+(`docker pull`) are told what to do instead of being touched. Nothing is ever installed
+without that explicit yes.
+
+**On Windows the install happens right after you exit.** Windows will not let pip
+replace `flac-detective.exe` while it is running (and a failed attempt used to leave no
+package at all), so the tool hands the install to a small detached process that waits
+for FLAC Detective to exit, then runs pip and checks the version. The CLI tells you so
+and returns at once; the GUI offers to close. The next time you start FLAC Detective it
+prints what happened (`Update installed: FLAC Detective 2.4.0 (was 2.3.0).`); the
+installer's full output is in `update-install.log` beside the update-check cache.
+
+What leaves your machine is one small GET on
 `https://pypi.org/pypi/flac-detective/json` — the same page `pip` reads — with a
 `User-Agent` naming this tool and its version; nothing about your files, your paths or
 your verdicts. The answer is cached for 24 hours (`%LOCALAPPDATA%\flac-detective\` on

@@ -30,6 +30,37 @@ def test_command_registers_with_alias():
     assert "flacdet" in cmd.aliases
 
 
+def test_command_has_the_update_option():
+    plugin = flacdetective.FlacDetectivePlugin()
+    cmd = plugin.commands()[0]
+    opts, _ = cmd.parser.parse_args(["--update"])
+    assert opts.update is True
+
+
+def test_update_option_installs_through_the_shared_updater(monkeypatch, capsys):
+    from flac_detective import update_check as uc
+    from flac_detective import updater as up
+
+    monkeypatch.setattr(uc, "fetch_latest_version", lambda: "9.9.9")
+    monkeypatch.setattr(
+        up,
+        "upgrade",
+        lambda on_line=None, **kw: up.UpgradeResult(
+            ok=True,
+            method="pip",
+            command=["x"],
+            installed_version="9.9.9",
+            message="Installed 9.9.9.",
+        ),
+    )
+    plugin = flacdetective.FlacDetectivePlugin()
+    cmd = plugin.commands()[0]
+    opts, args = cmd.parser.parse_args(["--update"])
+    plugin._run(lib=None, opts=opts, args=args)
+    out = capsys.readouterr().out
+    assert "9.9.9 is available" in out and "Installed 9.9.9." in out
+
+
 def test_flexible_attribute_types_declared():
     # Lets users run numeric queries like `beet ls flacdetective_score:55..`.
     item_types = flacdetective.FlacDetectivePlugin.item_types

@@ -44,6 +44,25 @@ class UpdateCheckWorker(QThread):
             self.notice.emit(text)
 
 
+class UpdateInstallWorker(QThread):
+    """Install the newer release off the UI thread (``updater.upgrade``).
+
+    Signals:
+        line(str): one line of the installer's output.
+        done(bool, bool, str): finished; ``ok``, ``deferred`` (Windows: the
+            install runs once the app exits) and the message to show.
+    """
+
+    line = Signal(str)
+    done = Signal(bool, bool, str)
+
+    def run(self) -> None:  # noqa: D102 - QThread entry point
+        from ..updater import upgrade
+
+        result = upgrade(on_line=self.line.emit)
+        self.done.emit(result.ok, result.deferred, result.message)
+
+
 class AnalysisWorker(QThread):
     """Analyse a list of files off the UI thread, emitting results as they land.
 

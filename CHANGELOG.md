@@ -1,3 +1,47 @@
+## v2.4.0 (2026-10-07) — and installs the update when you say so
+
+2.3.0 told you a newer release existed. 2.4.0 installs it, from inside the tool,
+in every one of its faces: the CLI, the GUI and the beets plugin. Never without
+an explicit yes.
+
+### Added
+
+* `flac-detective --update`: asks PyPI now (no cache), installs the newer
+  release with **the same interpreter this copy runs in**
+  (`python -m pip install --upgrade flac-detective`) or with `pipx upgrade`
+  when this copy was installed by pipx, streams the installer's output, and
+  then **reads the version back from a fresh interpreter** — an exit code is
+  not believed. A source checkout is told `git pull`, the Docker image
+  `docker pull`; neither is touched.
+* On a terminal, a run that ends with the update notice asks
+  `Install it now? [y/N]`. No is the default. Nothing is asked when stdout is a
+  pipe, in `--format json` without `--output`, or with `--progress-events`:
+  a cron job or an application driving the CLI never blocks on a question.
+* GUI: an **Install vX** button beside the "Update available" link. A dialog
+  names the exact command before anything runs; the install runs off the UI
+  thread with its output in the status line; the app asks to be restarted
+  when done. Closing the window during an install waits for pip to finish
+  rather than killing it.
+* `beet flacdetective --update` installs into beets' Python, and the
+  `flacdetective` command prints the daily notice when there is one.
+* **Windows: the install runs after exit.** The first end-to-end test of this
+  release found that pip cannot replace `flac-detective.exe` while it runs
+  (`WinError 32`), and that the failed attempt had already uninstalled the old
+  version and left none. So on Windows the install is handed to a detached
+  interpreter that waits for the program and its launcher to exit, runs pip,
+  verifies the version, and writes a report the next start prints once
+  (`Update installed: FLAC Detective 2.3.0 (was 2.2.0).`), with the full
+  output in `update-install.log` beside the update-check cache. Measured on
+  Windows 11: 22 seconds from `--update` to the new version. Linux and macOS
+  install inline.
+* Versions are compared and verified on the **installed distribution**
+  (`importlib.metadata`), which is what pip manages, not on the imported
+  module; the two differ only when a checkout shadows an installed package,
+  and that case had made the first test say "up to date" about a package it
+  had not looked at.
+
+Nothing in the analysis changed; no verdict can move.
+
 ## v2.3.0 (2026-10-07) — the tool now knows when it is out of date
 
 Eight releases were once shipped to PyPI while a user, reasonably, believed he was
