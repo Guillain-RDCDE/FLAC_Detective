@@ -1,3 +1,19 @@
+## v2.4.1 (2026-10-07) — pip is asked for the exact release
+
+The first post-publication test of 2.4.0 had a 2.3.0 install defer its update
+correctly, then pip answered "requirement already satisfied": PyPI's simple
+index, which pip reads, lags the JSON API the check reads by a few minutes
+after a release. The installer reported it honestly ("the version reads
+2.3.0"), and nothing was changed, but the user would have had to guess why.
+
+### Changed
+
+* The installer pins the release the check found (`flac-detective==X.Y.Z`,
+  with `--no-cache-dir`): pip either installs that release or says it is not
+  served yet, and the tool then says so in one sentence ("PyPI's package index
+  does not serve that release yet; try again shortly"). The CLI, the GUI and
+  the beets plugin all pass the version they announced.
+
 ## v2.4.0 (2026-10-07) — and installs the update when you say so
 
 2.3.0 told you a newer release existed. 2.4.0 installs it, from inside the tool,

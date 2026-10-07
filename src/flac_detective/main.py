@@ -187,7 +187,7 @@ def _run() -> None:
     notice = update_check.notice(wait=1.0)
     if notice:
         unattended = machine_stdout or args.progress_events is not None
-        offer_update(notice, interactive=False if unattended else None)
+        offer_update(notice, interactive=False if unattended else None, latest=update_check.latest)
 
 
 def main():

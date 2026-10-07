@@ -213,7 +213,7 @@ class FlacDetectivePlugin(BeetsPlugin):
             ui.print_(f"You have the latest release ({current}).")
             return
         ui.print_(f"{latest} is available. Installing…")
-        result = upgrade(on_line=lambda line: ui.print_(f"    {line}"))
+        result = upgrade(on_line=lambda line: ui.print_(f"    {line}"), target=latest)
         ui.print_(result.message)
 
     # ----------------------------------------------------------------- helpers

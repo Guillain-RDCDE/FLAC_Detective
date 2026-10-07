@@ -193,6 +193,13 @@ class UpdateCheck:
     def _run(self) -> None:
         self._latest = latest_version()
 
+    @property
+    def latest(self) -> Optional[str]:
+        """The release the check found, once the thread has finished (else None)."""
+        if self._thread is None or self._thread.is_alive():
+            return None
+        return self._latest
+
     def notice(self, wait: float = 1.0) -> Optional[str]:
         """The notice, if the check finished within ``wait`` seconds and found a newer release."""
         if self._thread is None:

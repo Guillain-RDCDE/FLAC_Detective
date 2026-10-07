@@ -173,7 +173,7 @@ class MainWindow(QMainWindow):
         from ..updater import install_method, manual_hint, upgrade_command
 
         method = install_method()
-        command = upgrade_command(method)
+        command = upgrade_command(method, target=self._latest_version or None)
         if command is None:
             QMessageBox.information(
                 self,
@@ -204,7 +204,7 @@ class MainWindow(QMainWindow):
         self._update_button.setEnabled(False)
         self._update_button.setText("Installing…")
         self._summary_label.setText("Installing the update…")
-        self._install_worker = UpdateInstallWorker(self)
+        self._install_worker = UpdateInstallWorker(self, target=self._latest_version)
         self._install_worker.line.connect(self._on_install_line)
         self._install_worker.done.connect(self._on_install_done)
         self._install_worker.start()

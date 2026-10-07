@@ -56,10 +56,14 @@ class UpdateInstallWorker(QThread):
     line = Signal(str)
     done = Signal(bool, bool, str)
 
+    def __init__(self, parent=None, target: str = "") -> None:
+        super().__init__(parent)
+        self._target = target or None
+
     def run(self) -> None:  # noqa: D102 - QThread entry point
         from ..updater import upgrade
 
-        result = upgrade(on_line=self.line.emit)
+        result = upgrade(on_line=self.line.emit, target=self._target)
         self.done.emit(result.ok, result.deferred, result.message)
 
 

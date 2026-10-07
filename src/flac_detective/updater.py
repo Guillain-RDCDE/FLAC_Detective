@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, List, Optional
 
-from .update_check import OPT_OUT_ENV, current_version, is_newer
+from .update_check import OPT_OUT_ENV, current_version, is_newer, parse_version
 
 PACKAGE = "flac-detective"
 
@@ -89,11 +89,21 @@ def install_method(
     return METHOD_PIP
 
 
-def upgrade_command(method: str, executable: Optional[str] = None) -> Optional[List[str]]:
-    """The command that upgrades this install, or None when this tool must not run one."""
+def upgrade_command(
+    method: str, executable: Optional[str] = None, target: Optional[str] = None
+) -> Optional[List[str]]:
+    """The command that upgrades this install, or None when this tool must not run one.
+
+    With ``target`` (the version the check found on PyPI) pip is asked for that
+    exact release. Without the pin, pip reads PyPI's simple index, which lags
+    the JSON API by minutes after a release, and answers "requirement already
+    satisfied": the first post-publication test of 2.4.0 did exactly that.
+    Pinned, pip either installs it or says it is not available yet.
+    """
     exe = executable or sys.executable
     if method == METHOD_PIP:
-        return [exe, "-m", "pip", "install", "--upgrade", "--no-input", PACKAGE]
+        spec = f"{PACKAGE}=={target}" if target and parse_version(target) else PACKAGE
+        return [exe, "-m", "pip", "install", "--upgrade", "--no-input", "--no-cache-dir", spec]
     if method == METHOD_PIPX:
         return ["pipx", "upgrade", PACKAGE]
     return None
@@ -131,6 +141,16 @@ def installed_version(executable: Optional[str] = None, timeout: float = 60.0) -
         return text[-1].strip() if out.returncode == 0 and text else None
     except Exception:  # noqa: BLE001 - a failed verification is a None, never a crash
         return None
+
+
+def _failure_message(code: int, output: str, command: List[str]) -> str:
+    """One line for a failed installer, naming the usual cause when it shows."""
+    if "No matching distribution" in output or "Could not find a version" in output:
+        return (
+            "PyPI's package index does not serve that release yet (it lags the announcement "
+            "by a few minutes). Nothing was changed; try again shortly."
+        )
+    return f"The installer exited with code {code}. To update by hand: {' '.join(command)}"
 
 
 def run_command(
@@ -385,10 +405,7 @@ def deferred_main(
     if ok:
         message = f"Update installed: FLAC Detective {now} (was {current})."
     elif code != 0:
-        message = (
-            f"The update did not install (installer exit code {code}). "
-            f"To update by hand: {' '.join(command)}"
-        )
+        message = "The update did not install. " + _failure_message(code, output, command)
     else:
         message = (
             f"The installer finished but the version reads {now!r} (was {current}); "
@@ -441,6 +458,7 @@ def upgrade(
     current: Optional[str] = None,
     deferred: Optional[bool] = None,
     starter: Callable[..., Path] = start_deferred_install,
+    target: Optional[str] = None,
 ) -> UpgradeResult:
     """Upgrade this install and verify it. Never raises.
 
@@ -452,7 +470,7 @@ def upgrade(
     """
     current = current_version() if current is None else current
     method = method or install_method(executable=executable)
-    command = upgrade_command(method, executable=executable)
+    command = upgrade_command(method, executable=executable, target=target)
     if command is None:
         return UpgradeResult(
             ok=False,
@@ -492,9 +510,7 @@ def upgrade(
             method=method,
             command=command,
             output=output,
-            message=(
-                f"The installer exited with code {code}. " f"To update by hand: {' '.join(command)}"
-            ),
+            message=_failure_message(code, output, command),
         )
     now = verify(executable)
     if now is None:

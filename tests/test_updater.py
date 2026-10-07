@@ -77,6 +77,33 @@ def test_commands_and_hints_per_method():
     assert "pip install -U flac-detective" in up.manual_hint(up.METHOD_PIP)
 
 
+def test_pip_command_pins_the_release_the_check_found():
+    """Pinned, pip installs that release or says it is not served yet.
+
+    Unpinned, pip reads a simple index that lags PyPI's JSON by minutes and
+    answers "already satisfied" (first post-publication test of 2.4.0).
+    """
+    cmd = up.upgrade_command(up.METHOD_PIP, executable="/py", target="9.9.9")
+    assert cmd[-1] == "flac-detective==9.9.9"
+    assert "--no-cache-dir" in cmd
+    # a target that is not a plain version is not trusted into the command line
+    bad = up.upgrade_command(up.METHOD_PIP, executable="/py", target="9.9.9; rm -rf /")
+    assert bad[-1] == "flac-detective"
+    assert up.upgrade_command(up.METHOD_PIPX, target="9.9.9") == [
+        "pipx",
+        "upgrade",
+        "flac-detective",
+    ]
+
+
+def test_an_index_that_lags_is_named_not_blamed_on_the_user():
+    msg = up._failure_message(
+        1, "ERROR: No matching distribution found for flac-detective==9.9.9", ["x"]
+    )
+    assert "does not serve that release yet" in msg and "Nothing was changed" in msg
+    assert "code 7" in up._failure_message(7, "something else", ["x", "y"])
+
+
 # ------------------------------------------------------------------ the runner
 
 
@@ -405,8 +432,8 @@ def test_cli_prints_the_last_install_report_once(capsys):
 def _upgrader(ok=True):
     calls = []
 
-    def go(on_line=None):
-        calls.append(1)
+    def go(on_line=None, target=None):
+        calls.append(target or 1)
         if on_line:
             on_line("Successfully installed flac-detective-9.9.9")
         return up.UpgradeResult(
@@ -420,10 +447,10 @@ def _upgrader(ok=True):
     return go, calls
 
 
-def test_update_command_installs_when_newer(capsys):
+def test_update_command_installs_when_newer_and_pins_it(capsys):
     go, calls = _upgrader()
     code = update_flow.run_update_command(fetch=lambda: "9.9.9", upgrader=go, current="2.3.0")
-    assert code == 0 and calls == [1]
+    assert code == 0 and calls == ["9.9.9"]
     assert "9.9.9 is available" in capsys.readouterr().out
 
 
@@ -474,10 +501,12 @@ def test_offer_update_no_is_the_default(capsys):
     assert "Not now" in capsys.readouterr().out
 
 
-def test_offer_update_yes_installs(capsys):
+def test_offer_update_yes_installs_the_release_found(capsys):
     go, calls = _upgrader()
-    out = update_flow.offer_update("notice", interactive=True, ask=lambda p: "Y", upgrader=go)
-    assert out is not None and out.ok and calls == [1]
+    out = update_flow.offer_update(
+        "notice", interactive=True, ask=lambda p: "Y", upgrader=go, latest="9.9.9"
+    )
+    assert out is not None and out.ok and calls == ["9.9.9"]
     assert "Successfully installed" in capsys.readouterr().out
 
 

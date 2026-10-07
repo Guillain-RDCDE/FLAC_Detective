@@ -39,7 +39,7 @@ def run_update_command(
         _say(f"  You have the latest release ({current}).", Colors.GREEN)
         return 0
     _say(f"  {latest} is available. Installing…", Colors.YELLOW)
-    result = upgrader(on_line=lambda line: print(f"    {line}"))
+    result = upgrader(on_line=lambda line: print(f"    {line}"), target=latest)
     return _report(result)
 
 
@@ -66,6 +66,7 @@ def offer_update(
     interactive: Optional[bool] = None,
     ask: Ask = input,
     upgrader: Upgrader = upgrade,
+    latest: Optional[str] = None,
 ) -> Optional[UpgradeResult]:
     """After the summary: print the notice and, on a terminal, offer to install.
 
@@ -95,7 +96,7 @@ def offer_update(
         _say("  Not now. Run `flac-detective --update` whenever you like.")
         print()
         return None
-    result = upgrader(on_line=lambda line: print(f"    {line}"))
+    result = upgrader(on_line=lambda line: print(f"    {line}"), target=latest)
     _report(result)
     print()
     return result
