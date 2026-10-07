@@ -1,3 +1,25 @@
+## v2.3.0 (2026-10-07) — the tool now knows when it is out of date
+
+Eight releases were once shipped to PyPI while a user, reasonably, believed he was
+up to date; the tool had no way to tell him. It has one now.
+
+### Added
+
+* **An update check**, in the CLI and the GUI. Once a day the tool asks PyPI for
+  the latest release (one GET on `pypi.org/pypi/flac-detective/json`, the page
+  `pip` reads, two-second timeout, on its own thread while the scan runs) and,
+  if there is something newer, prints one line after the summary — or, in the
+  GUI, shows an "Update available" link in the header. The answer is cached for
+  24 hours in the user's cache directory. Nothing about your files leaves the
+  machine; the request carries a `User-Agent` naming the tool and its version
+  and nothing else. Every failure is silent: no network means no notice and no
+  delay. Only final releases (`X.Y.Z`) are compared.
+* `--no-update-check`, and `FLAC_DETECTIVE_NO_UPDATE_CHECK=1` for every run.
+  The Docker image sets the variable: `pip install -U` is the wrong advice
+  inside a container.
+
+Nothing in the analysis changed; no verdict can move.
+
 ## v2.2.0 (2026-10-07) — the hi-res axis, measured
 
 After #12 was closed, its reporter asked whether the tool reads upsampling and

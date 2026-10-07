@@ -27,6 +27,23 @@ from ..config import analysis_config
 logger = logging.getLogger(__name__)
 
 
+class UpdateCheckWorker(QThread):
+    """Ask PyPI for a newer release off the UI thread (``update_check.py``).
+
+    Emits ``notice(str)`` only when there is something newer; stays silent on
+    every failure, like the CLI. Honours ``FLAC_DETECTIVE_NO_UPDATE_CHECK``.
+    """
+
+    notice = Signal(str)
+
+    def run(self) -> None:  # noqa: D102 - QThread entry point
+        from ..update_check import latest_version, update_notice
+
+        text = update_notice(latest_version())
+        if text:
+            self.notice.emit(text)
+
+
 class AnalysisWorker(QThread):
     """Analyse a list of files off the UI thread, emitting results as they land.
 

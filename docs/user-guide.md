@@ -153,6 +153,23 @@ flac-detective /music --deep
 > [Technical Details → Repair](technical-details.md#repair-lossless-reconstruction-only-when-needed)
 > for the full procedure.
 
+### The update check
+
+Since v2.3.0 the tool asks PyPI once a day whether a newer release exists and, if
+so, prints one line at the end of the run (the GUI shows an "Update available" link
+in its header). What leaves your machine is one small GET on
+`https://pypi.org/pypi/flac-detective/json` — the same page `pip` reads — with a
+`User-Agent` naming this tool and its version; nothing about your files, your paths or
+your verdicts. The answer is cached for 24 hours (`%LOCALAPPDATA%\flac-detective\` on
+Windows, `~/.cache/flac-detective/` elsewhere), the request times out after two seconds
+and runs on its own thread while the scan does, and any failure is silent: no network,
+no notice, no delay. To switch it off:
+
+```bash
+flac-detective /music --no-update-check          # this run
+export FLAC_DETECTIVE_NO_UPDATE_CHECK=1          # every run (the Docker image sets it)
+```
+
 ### Combining Options
 
 ```bash

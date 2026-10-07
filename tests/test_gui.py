@@ -12,6 +12,8 @@ import os
 import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+# No update-check thread inside test windows (and no request to PyPI from a test).
+os.environ.setdefault("FLAC_DETECTIVE_NO_UPDATE_CHECK", "1")
 
 pytest.importorskip("PySide6")
 pytest.importorskip("matplotlib")
@@ -137,6 +139,36 @@ def test_advanced_detail_says_which_rule_decided(app):
     assert "1 evidence family: spectral" in text
     # The line precedes the per-rule bullets.
     assert text.index("evidence family") < text.index("R2:")
+
+
+def test_update_notice_reaches_the_header(app, monkeypatch):
+    """A newer release on PyPI (simulated) ends as a link in the header.
+
+    The check runs on a QThread; the test lets it finish, pumps the event loop
+    so the queued signal lands, and closes the window the way a user would, so
+    the close-time wait is exercised too. Without a newer release the label
+    stays hidden (the other tests, with the check switched off, never see it).
+    """
+    from flac_detective import update_check as uc
+
+    monkeypatch.delenv("FLAC_DETECTIVE_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.setattr(uc, "latest_version", lambda: "9.9.9")
+    win = MainWindow()
+    assert win._update_worker is not None
+    assert win._update_worker.wait(5000)
+    for _ in range(20):
+        app.processEvents()
+    assert not win._update_label.isHidden()
+    assert "9.9.9" in win._update_label.text()
+    assert "pypi.org/project/flac-detective" in win._update_label.text()
+    win.close()
+
+
+def test_no_update_check_thread_when_opted_out(app, monkeypatch):
+    monkeypatch.setenv("FLAC_DETECTIVE_NO_UPDATE_CHECK", "1")
+    win = MainWindow()
+    assert win._update_worker is None
+    assert win._update_label.isHidden()
 
 
 def test_collect_files_dedup(app, tmp_path):

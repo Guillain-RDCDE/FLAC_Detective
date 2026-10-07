@@ -55,6 +55,10 @@ USER flacuser
 # Set working directory to data volume
 WORKDIR /data
 
+# No update check inside the image: "pip install -U" is the wrong advice here,
+# the image is upgraded by pulling a newer tag.
+ENV FLAC_DETECTIVE_NO_UPDATE_CHECK=1
+
 # Default entrypoint
 ENTRYPOINT ["flac-detective"]
 

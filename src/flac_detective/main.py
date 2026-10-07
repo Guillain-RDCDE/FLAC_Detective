@@ -32,6 +32,7 @@ from .cli.pool import run_analysis_loop
 from .cli.workdir import resolve_work_dir
 from .colors import Colors, colorize
 from .config import analysis_config
+from .update_check import UpdateCheck
 from .utils import LOGO
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,11 @@ def _run() -> None:
     if machine_stdout:
         sys.stdout = sys.stderr
 
+    # Started here, on its own thread, so the network round trip overlaps the
+    # scan; read at the very end. Off with --no-update-check or the environment
+    # variable. See update_check.py for what is (not) sent.
+    update_check = UpdateCheck(enabled=not args.no_update_check).start()
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logger.debug("Verbose mode enabled (log level: DEBUG).")
@@ -163,6 +169,14 @@ def _run() -> None:
         report_format=args.format,
         advanced=args.advanced,
     )
+
+    # After the summary, where a reader's eye ends. print(), not the logger: the
+    # console handlers are WARNING-level and this is not a warning. In machine
+    # mode sys.stdout is stderr by now, so the report on the real stdout stays
+    # clean.
+    notice = update_check.notice(wait=1.0)
+    if notice:
+        print(f"\n  {colorize(notice, Colors.YELLOW)}\n")
 
 
 def main():

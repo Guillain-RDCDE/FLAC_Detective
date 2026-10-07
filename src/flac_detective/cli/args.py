@@ -229,6 +229,17 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--no-update-check",
+        action="store_true",
+        help=(
+            "Do not ask PyPI whether a newer FLAC Detective exists. By default the "
+            "tool asks once a day (one small request to pypi.org, two-second timeout, "
+            "answer cached for 24 hours, nothing about your files is sent) and prints "
+            "a one-line notice at the end of the run if there is one. The environment "
+            "variable FLAC_DETECTIVE_NO_UPDATE_CHECK=1 does the same for every run."
+        ),
+    )
+    parser.add_argument(
         "--format",
         choices=["text", "json", "csv", "html"],
         default="text",

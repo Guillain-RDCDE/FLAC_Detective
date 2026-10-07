@@ -9,6 +9,7 @@ The look is driven by :mod:`flac_detective.gui.style` — light, calm, spacious.
 
 from __future__ import annotations
 
+import os
 from html import escape
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -50,11 +51,12 @@ from ..analysis.audio_formats import (
 from ..cli.discovery import create_non_flac_result
 from ..presentation import plain_explanation, verdict_plain
 from ..reporting.evidence import deciding_evidence
+from ..update_check import OPT_OUT_ENV
 from . import style
 
 if TYPE_CHECKING:  # imported lazily at runtime (heavy scipy / matplotlib imports)
     from .spectrum_view import SpectrumView
-    from .worker import AnalysisWorker
+    from .worker import AnalysisWorker, UpdateCheckWorker
 
 # NOTE: the heavy modules — the analysis stack (scipy, ~4.5s) via .worker, the
 # plotting (matplotlib, ~1.5s) via .spectrum_view, and the reporters — are
@@ -123,6 +125,34 @@ class MainWindow(QMainWindow):
         self._show_empty_detail()
         self._apply_mode()
 
+        # One small request to PyPI, once a day, off the UI thread; the header
+        # gets a link if there is a newer release and nothing happens otherwise.
+        # Not even started when the user opted out (FLAC_DETECTIVE_NO_UPDATE_CHECK),
+        # which is also how the test suite keeps a thread out of its windows.
+        self._update_worker: Optional[UpdateCheckWorker] = None
+        if not os.environ.get(OPT_OUT_ENV, "").strip():
+            from .worker import UpdateCheckWorker as _Worker
+
+            self._update_worker = _Worker(self)
+            self._update_worker.notice.connect(self._on_update_notice)
+            self._update_worker.start()
+
+    def closeEvent(self, event) -> None:  # noqa: N802 - Qt's name
+        """Let the update check finish before Qt tears its thread down with the window."""
+        worker = self._update_worker
+        if worker is not None and worker.isRunning():
+            worker.wait(3000)
+        super().closeEvent(event)
+
+    def _on_update_notice(self, text: str) -> None:
+        latest = text.split("available: ", 1)[-1].split(" ", 1)[0]
+        self._update_label.setText(
+            f'<a href="https://pypi.org/project/flac-detective/" '
+            f'style="color:{style.ACCENT}">Update available: v{latest}</a>'
+        )
+        self._update_label.setToolTip(text)
+        self._update_label.show()
+
     # ---------------------------------------------------------------- UI build
     def _build_ui(self) -> None:
         central = QWidget()
@@ -166,6 +196,13 @@ class MainWindow(QMainWindow):
         version.setObjectName("secondary")
         header.addWidget(title)
         header.addWidget(version)
+        # Hidden until the update check (see __init__) finds a newer release.
+        self._update_label = QLabel("")
+        self._update_label.setObjectName("secondary")
+        self._update_label.setTextFormat(Qt.TextFormat.RichText)
+        self._update_label.setOpenExternalLinks(True)
+        self._update_label.hide()
+        header.addWidget(self._update_label)
         header.addStretch(1)
         return header
 
