@@ -83,11 +83,20 @@ flac-detective /music --format html --output report.html
 |---|---|---|
 | `text` (default) | reading | human-friendly report + console summary |
 | `json` | automation | full result objects, parse with `jq` etc. |
-| `csv` | **triaging a whole library** | one row per file, **sorted by score (most suspicious first)**; open in any spreadsheet to sort/filter. Columns: `rank, score, verdict, filename, cutoff_freq_hz, sample_rate, bit_depth, reason, filepath` |
+| `csv` | **triaging a whole library** | one row per file, **sorted by score (most suspicious first)**; open in any spreadsheet to sort/filter. Columns: `rank, score, verdict, hires_verdict, filename, cutoff_freq_hz, sample_rate, bit_depth, reason, filepath` |
 | `html` | **seeing the evidence** | a single self-contained `.html` (no external assets) with a sortable/filterable triage table **and an inline spectrum plot for every flagged file** — the MP3 "cliff" is visible to the eye, with the detected cutoff marked. Plots are drawn for flagged files only; a file that isn't natively readable simply shows no plot |
 
 When a scan finds suspicious files, the console summary also prints the **top suspects
 ranked by score**, so you immediately see what to check first.
+
+**Fake hi-res is a second verdict, on its own line.** A file can be genuine lossless
+and still not be what its label says: CD audio upsampled to 96 or 192 kHz, or 16-bit
+audio padded into a 24-bit (or 32-bit) container. Since v2.2.0 the text report lists
+those too — in the default report as `🎚️ FAKE HI-RES` under "FILES TO LOOK AT", in
+`--advanced` as a "FAKE HI-RES FILES" table with the verdict (`UPSAMPLED`,
+`PADDED_DEPTH`, `UPSAMPLED_AND_PADDED`) and the reading behind it. The CSV carries it
+as `hires_verdict`, the GUI as its "Hi-res" column. It never changes the transcode
+verdict. 32-bit integer FLAC (FLAC 1.4+) is analysed too.
 
 ### Analysis Options
 

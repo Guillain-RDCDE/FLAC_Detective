@@ -1204,7 +1204,9 @@ with ProcessPoolExecutor(max_workers=4) as executor:
    v2** since v2.1.0 (Rules 13 and 17); **Apple AAC and high-bitrate MP3** with `--deep`
    (the CNN, surfaced as WARNING; see "On confidence" above)
 ✅ Analyze FLAC, WAV (v0.15), ALAC and APE (v0.16, via ffmpeg) sources
-✅ Identify fake high-resolution files
+✅ Identify fake high-resolution files: CD audio upsampled to 96 or 192 kHz
+   (27 of 28 by either resampler, v2.2.0) and 16-bit audio padded into a 24-bit
+   or 32-bit container (56 of 56), with the true depth read over the whole file
 ✅ Protect vinyl and cassette sources
 ✅ Detect compression artifacts
 ✅ Handle corrupted files (with repair)
@@ -1215,6 +1217,12 @@ with ProcessPoolExecutor(max_workers=4) as executor:
    a fundamental signal limit, not fixed by `--deep`; and **WMA → FLAC** is unsupported
 ❌ **Read HE-AAC v1 at low bitrates** (64 kbps: 8 of 40 caught on the 2.1.0 held-out
    set) — empty top subbands dilute Rule 17's reading there
+❌ **Read every upsample.** One finished with 16-bit noise-shaped dither is read
+   about half the time (14 of 28 in v2.2.0: the shaped noise fills the band above
+   22 kHz); one whose source was itself band-limited under ~20.7 kHz is not read at
+   all; and a true 32-bit source reads as 24-bit data (the decode keeps 24 bits).
+   The hi-res axis has been measured against 28 attested CDs and unlabelled library
+   files only — no certified hi-res corpus yet
 ❌ **Guarantee 100% accuracy** (see [Accuracy](#accuracy))
 ❌ **Real-time processing** (designed for batch analysis)
 ❌ **Analyze lossless formats beyond FLAC/WAV/ALAC/APE** (e.g. WavPack, TAK — not yet decoded)

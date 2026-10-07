@@ -295,9 +295,11 @@ elif result['verdict'] in ['SUSPICIOUS', 'FAKE_CERTAIN']:
 if result['score'] >= 86:
     print("High confidence fake")
 
-# Check specific indicators
+# The hi-res axis, separate from the transcode verdict
+if result['hires_verdict'] in ('UPSAMPLED', 'PADDED_DEPTH', 'UPSAMPLED_AND_PADDED'):
+    print(f"Fake hi-res: {result['hires_reason']}")
 if result['is_upsampled']:
-    print(f"Upsampled from {result['estimated_mp3_bitrate']} kbps")
+    print(f"Upsampled from about {result['suspected_original_rate']} Hz")
 
 # Access metadata
 print(f"Sample rate: {result['sample_rate']} Hz")
