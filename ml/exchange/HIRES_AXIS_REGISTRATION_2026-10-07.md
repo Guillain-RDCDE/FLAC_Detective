@@ -135,3 +135,62 @@ H1, H3, H5, H6, H7 (after), H9 (after > before), H10, H11, H13 or H15 failing
 refuses the change. H4 and H8 are readings of the before-engine and are
 reported as found. The results are appended below after the passes, everything
 above left as committed.
+
+---
+
+## Amendment 1 — registered 2026-10-07 after the before-pass on the fake arms, before any after-pass
+
+The before-pass on the fake arms (engine `d29699d`) read **0 of 28** of
+`up192_soxr` as upsampled, against the prediction of ≥ 26. A probe of the
+instrument's two numbers on every hi-res file (`D:/fd-hires/upsample_probe.py`,
+no verdict computed) found the cause by reading, not by trial: the in-band
+reference is the median over **5-45 % of the file's own Nyquist**, which at
+192 kHz is 4.8-43 kHz — mostly the empty band of the upsample itself. The
+median sinks into the void, and the content edge ("within 40 dB of the
+reference") is found at Nyquist: the file reads genuine. At 96 kHz the band is
+2.4-21.6 kHz and the test works (27 of 28 snap to 44.1 kHz).
+
+Two more things the probe showed, written down before anything is changed:
+
+* **The `up96_shaped` arm as first built was no evasion arm.** ffmpeg applies
+  `dither_method` only when it reduces the sample format; with a 32-bit output
+  it applied none, and the arm's floors are identical to `up96_soxr` (both
+  −71 to −132 dB). Its before-pass rows are a duplicate of `up96_soxr` and are
+  not counted. **Rebuilt as `up96_shaped16`**: soxr to 96 kHz, shibata dither at
+  a 16-bit output, stored in a 24-bit container (`build_shaped16.py`). On the
+  probe its floors above the cliff run **−53 to −80 dB** (two files read no
+  edge at all: the shaped noise is within 40 dB of the reference), so under
+  the −70 dB bar about half of it will be read. That is the evasion.
+* **Candidate source rates.** For a 96 kHz file the instrument also tries
+  88.2 kHz, whose Nyquist (44.1 kHz) is inside the file's own rolloff; six
+  library files snap to it with no readable band above. Not a source.
+
+### The change (amendment)
+
+1. The reference band becomes **1 kHz to 0.9 × 22.05 kHz**: content every
+   candidate source carries, at every file rate.
+2. A candidate source rate must be **≤ the file rate / 1.5** (96 kHz: 44.1 and
+   48; 192 kHz: 44.1, 48, 88.2, 96).
+3. **The −70 dB silent-floor bar does not move.** The unlabelled 96 kHz library
+   files that snap to a candidate rate under the new reference read floors of
+   −42 to −68 dB except the two already flagged (−81, −89); the bar stays above
+   every one of them by 2 dB or more, and moving it would be a calibration on
+   unlabelled files.
+
+Nothing else in `detect_upsampling` changes; the transcode rules do not read
+it.
+
+### Criteria added
+
+| id | criterion | predicted | refuse if |
+|---|---|---|---|
+| **H7a** | `up192_soxr` read upsampled, after | **27/28** (the 28th: no edge within ±6 % of 22.05 kHz, named) | < 26 |
+| **H7b** | `up96_soxr`, `up96_swr` read upsampled, after | **27/28** each, none lost | < 26, or any lost |
+| **H6a** | `up96_pad24` read upsampled (and padded), after | **≥ 18/28** (probe: 20 floors under −70; the 16-bit quantisation floor is the miss) | < 18 |
+| **H8a** | `up96_shaped16` read upsampled, before and after | **about half** (probe: 15 floors under −70); reported, not a refusal | — |
+| **H12a** | library files read `UPSAMPLED` after | **exactly the two read before** (Thylacine *Fauré*, Portishead *Machine gun* copy 02); every other file that snaps to a candidate rate stays `GENUINE_HIRES` | any other file flagged |
+| **H12b** | library files that snapped to 88.2 kHz before (6) | `GENUINE_HIRES` after, as before | any flagged |
+
+H7a, H7b, H6a, H12a or H12b failing refuses the amendment, not the registration.
+The after-passes run once, on the engine with the registration's change and
+this amendment together.
