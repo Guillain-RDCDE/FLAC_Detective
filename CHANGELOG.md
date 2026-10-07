@@ -1,3 +1,57 @@
+## v2.2.0 (2026-10-07) — the hi-res axis, measured
+
+After #12 was closed, its reporter asked whether the tool reads upsampling and
+whether anything had been measured above 44.1 kHz / 16 bits. The honest answer
+was that the hi-res axis (`hires_verdict`) had only ever been checked on
+synthetic signals. This release is its first registration
+(`ml/exchange/HIRES_AXIS_REGISTRATION_2026-10-07.md`): 168 fakes built from 28
+attested CD rips (upsampled to 96 and 192 kHz by two resamplers, padded to 24
+bits, both; plus a 28-file evasion arm with 16-bit noise-shaped dither), three
+32-bit files, 172 unlabelled hi-res library files, every one read before and
+after, with the true bit depth of every file read by an independent instrument.
+
+### Fixed
+
+* **The bit-depth detector read 0.1 s of the left channel.** The first 10,000
+  frames, which on a track that opens with silence or a fade-in read
+  "16-bit exact". 7 genuine 24-bit library files out of 11 flagged were false
+  positives, and 13 of 28 true-24-bit fakes in each upsampled arm. It now reads
+  eight windows spread over the file, skips silence, counts the trailing zero
+  bits of every sample and estimates 16, 24 or 32. After: the 7 cleared, the 4
+  real 16-in-24 files kept, 0 of 112 true-24-bit fakes flagged, 56 of 56 padded
+  fakes read. Cost: 0.03-0.05 s per file.
+* **Upsampling to 192 kHz was never read** (0 of 28). The in-band reference
+  was taken over 5-45 % of the file's own Nyquist, which at 192 kHz is mostly
+  the upsample's empty band; the reference sank into the void and the content
+  edge was found at Nyquist. It is now read from 1 kHz to 19.8 kHz, where every
+  candidate source carries content: 27 of 28 at 192 kHz, 27 of 28 at 96 kHz by
+  either resampler, none lost, and the two library files flagged before are the
+  same two flagged after. 88.2 kHz is no longer tried as a source for 96 kHz.
+* **32-bit integer FLAC** (FLAC 1.4+) ended in ERROR: libsndfile reads 8, 16
+  and 24 bits only. It is now decoded through the ffmpeg façade (24-bit PCM)
+  and analysed, the header's 32 bits judged by the hi-res axis: a CD padded
+  into 32 bits reads `PADDED_DEPTH`, estimated 16. A float WAV is read scaled
+  (libsndfile does not scale floats read as integers; found by the
+  registration's own criterion H11 on the first after-pass, repaired, re-run).
+* **The text report prints the hi-res verdict.** It reached the CSV, the JSON
+  and the GUI only. Easy mode lists fake hi-res files under "FILES TO LOOK AT"
+  (🎚️ FAKE HI-RES); advanced mode has a "FAKE HI-RES FILES" table with the
+  verdict, the format and the reason, in place of the old "UPSAMPLED FILES"
+  table that never listed a padded depth.
+
+### Measured, and what stays open
+
+* Transcode axis: **0 verdicts and 0 scores moved** on the 28 attested, the
+  172 library and the 196 fake files. An upsampled lossless CD is not a
+  transcode and none was convicted, before or after.
+* An upsample finished with **16-bit noise-shaped dither is read about half the
+  time** (14 of 28): the shaped noise above 22 kHz straddles the −70 dB bar.
+  The bar is not moved; that would be a calibration on unlabelled files.
+* A source that was itself band-limited under 20.7 kHz is not read as an
+  upsample (the 28th file of every arm). A true 32-bit source reads as 24-bit
+  data after the decode. There is still no certified external hi-res corpus:
+  the 2L test bench is offline.
+
 ## v2.1.0 (2026-10-05) — Opus, Vorbis at every quality and HE-AAC v2 in a normal scan
 
 Issue #12, second round. The reporter's four recipes from one Bandcamp FLAC, read

@@ -567,6 +567,82 @@ class SilenceDetector(QualityDetector):
             }
 
 
+# The depth detector reads this many windows of this many frames, spread evenly
+# over the file. Until 2.2.0 it read the first 10,000 frames of the left channel
+# only — 0.1 s at 96 kHz — and a genuine 24-bit track that opens with digital
+# silence or a fade-in read "16-bit exact" on that chunk and was labelled
+# PADDED_DEPTH (hi-res axis registration, 2026-10-07).
+_DEPTH_WINDOWS = 8
+_DEPTH_WINDOW_FRAMES = 10_000
+
+
+def _trailing_zero_bits(values: np.ndarray) -> int:
+    """The smallest number of trailing zero bits over an array of non-zero int32."""
+    v = values.astype(np.int64) & 0xFFFFFFFF
+    tz = np.zeros(v.shape, dtype=np.int64)
+    for b in (16, 8, 4, 2, 1):
+        mask = (v & ((1 << b) - 1)) == 0
+        tz[mask] += b
+        v[mask] >>= b
+    return int(tz.min())
+
+
+def estimate_true_depth(filepath: Path) -> Dict[str, Any]:
+    """Read the bits a file actually uses, in windows spread over its length.
+
+    libsndfile left-justifies every integer format into int32, so a sample that
+    only ever used 16 bits has at least 16 trailing zero bits, one that used 24
+    has at least 8, and one that uses all 32 may have none. Float samples are
+    converted the same way (a 16-bit value stored as float comes back with its
+    16 trailing zeros intact). Silent samples say nothing and are skipped; a
+    file with no non-zero sample in any window is reported undecidable.
+
+    Returns ``{estimated_depth, nonzero_samples, windows_read}`` with
+    ``estimated_depth`` in (16, 24, 32) or 0 when undecidable.
+    """
+    min_tz = 32
+    nonzero = 0
+    windows = 0
+    with sf.SoundFile(str(filepath)) as handle:
+        frames = handle.frames
+        if frames <= 0:
+            return {"estimated_depth": 0, "nonzero_samples": 0, "windows_read": 0}
+        if frames <= _DEPTH_WINDOW_FRAMES * _DEPTH_WINDOWS:
+            starts = list(range(0, frames, _DEPTH_WINDOW_FRAMES))
+        else:
+            span = frames - _DEPTH_WINDOW_FRAMES
+            starts = [span * i // (_DEPTH_WINDOWS - 1) for i in range(_DEPTH_WINDOWS)]
+        # libsndfile does NOT scale float samples when they are read as integers
+        # (a value of 0.5 reads as 0, and only the sign survives): a float file
+        # is read as float64 and scaled by 2^31 here. A 16-bit value stored as
+        # float is k / 32768 exactly, so k * 65536 comes back exact.
+        is_float = handle.subtype in ("FLOAT", "DOUBLE")
+        for start in starts:
+            handle.seek(start)
+            if is_float:
+                raw = handle.read(_DEPTH_WINDOW_FRAMES, dtype="float64", always_2d=True)
+                block = np.rint(np.clip(raw, -1.0, 1.0) * 2147483648.0).astype(np.int64)
+                block = np.clip(block, -2147483648, 2147483647).astype(np.int32)
+            else:
+                block = handle.read(_DEPTH_WINDOW_FRAMES, dtype="int32", always_2d=True)
+            windows += 1
+            flat = block.reshape(-1)
+            flat = flat[flat != 0]
+            if flat.size == 0:
+                continue
+            nonzero += int(flat.size)
+            min_tz = min(min_tz, _trailing_zero_bits(flat))
+    if nonzero == 0:
+        return {"estimated_depth": 0, "nonzero_samples": 0, "windows_read": windows}
+    if min_tz >= 16:
+        depth = 16
+    elif min_tz >= 8:
+        depth = 24
+    else:
+        depth = 32
+    return {"estimated_depth": depth, "nonzero_samples": nonzero, "windows_read": windows}
+
+
 class BitDepthDetector(QualityDetector):
     """Checks true bit depth (detects fake high-res)."""
 
@@ -574,11 +650,13 @@ class BitDepthDetector(QualityDetector):
         """Detect true bit depth.
 
         Args:
-            data: Audio data (float32).
+            filepath: Audio file (any format libsndfile opens).
             reported_depth: Bit depth reported by metadata.
 
         Returns:
-            Dictionary with detection results.
+            Dictionary with detection results: ``is_fake_high_res`` when the
+            samples use fewer bits than the container declares, and the
+            ``estimated_depth`` (16, 24 or 32) they do use.
         """
         filepath: Path = kwargs["filepath"]
         reported_depth: int = kwargs["reported_depth"]
@@ -586,26 +664,7 @@ class BitDepthDetector(QualityDetector):
             return {"is_fake_high_res": False, "estimated_depth": reported_depth}
 
         try:
-            # Read only the first chunk for analysis
-            first_chunk = next(sf_blocks(str(filepath), dtype="float32", blocksize=10000), None)
-
-            if first_chunk is None:
-                # Handle empty or unreadable file
-                return {"is_fake_high_res": False, "estimated_depth": reported_depth}
-
-            # For a 24-bit file, check if values correspond to 16-bit
-            sample = first_chunk if first_chunk.ndim == 1 else first_chunk[:, 0]
-
-            scaled = sample * 32768.0
-            residuals = np.abs(scaled - np.round(scaled))
-
-            is_16bit = bool(np.all(residuals < 1e-4))
-
-            return {
-                "is_fake_high_res": is_16bit,
-                "estimated_depth": 16 if is_16bit else 24,
-                "details": "24-bit file contains only 16-bit data" if is_16bit else "True 24-bit",
-            }
+            reading = estimate_true_depth(filepath)
         except Exception as e:
             logger.warning(f"Bit depth detection failed for {filepath.name}: {e}")
             return {
@@ -613,6 +672,25 @@ class BitDepthDetector(QualityDetector):
                 "estimated_depth": reported_depth,
                 "details": "Analysis failed",
             }
+
+        estimated = reading["estimated_depth"]
+        if estimated == 0:
+            # Nothing but digital silence in every window: no bits to read.
+            return {
+                "is_fake_high_res": False,
+                "estimated_depth": reported_depth,
+                "details": "No non-silent audio in the windows read; depth not assessed",
+            }
+        is_padded = estimated < reported_depth
+        return {
+            "is_fake_high_res": is_padded,
+            "estimated_depth": estimated,
+            "details": (
+                f"{reported_depth}-bit file contains only {estimated}-bit data"
+                if is_padded
+                else f"True {reported_depth}-bit"
+            ),
+        }
 
 
 class UpsamplingDetector(QualityDetector):

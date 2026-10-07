@@ -194,3 +194,68 @@ it.
 H7a, H7b, H6a, H12a or H12b failing refuses the amendment, not the registration.
 The after-passes run once, on the engine with the registration's change and
 this amendment together.
+
+---
+
+## RESULTS — 2026-10-07, after the passes (appended; everything above is as committed in `93d5cdd` and `b96e7f0`)
+
+Before = `d29699d`; after = the working tree released as 2.2.0 (the
+registration's change, amendment 1, and one repair found by H11, below).
+Passes: 203 real files (172 library, 28 attested, 3 of 32 bits) and 196 fakes
+(6 arms of 28 plus the rebuilt evasion arm), before and after, torch live,
+**0 errors, 0 files missing** in any pass. Truth for every fake and every
+library file from `truedepth.py` (whole file, no engine code).
+
+| id | criterion | predicted | measured | |
+|---|---|---|---|---|
+| H1 | attested 28, transcode moves | 0 | **0** (0 score moves) | held |
+| H2 | attested 28, hi-res verdict | NOT_HIRES 28/28 | **28/28**, both | held |
+| H3 | library 172, transcode moves | 0 | **0** (0 score moves) | held |
+| H4 | library `PADDED_DEPTH` before | > 0, false positives | **11**: 7 false (true depth 24: Chilly Gonzales, Fabrizio, Georgio, Kognitif, Massive Attack *Five man army*, Renaud, Yusef Lateef) and 4 true (16-bit content in a 24-bit container: Duke Ellington *Cotton tail*, Gabor Szabo *Killing me softly*, Mondkopf *Weird horizons*, Psykick Lyrikah *Nous ne sommes pas perdus*). On the fake arms the same detector read 13 of 28 true-24-bit files of `up192_soxr`, `up96_soxr` and `up96_swr` as padded. | the defect, read |
+| H5 | library `PADDED_DEPTH` after | exactly the 16-in-24 files | **4**, exactly the four the instrument names; the 7 false positives cleared; 0 missed | held |
+| H6 | `pad24`, `up96_pad24` padded | 28/28 each | **28/28** each, before and after; 0 of 112 true-24-bit fakes read padded after | held |
+| H7 | `up96_soxr`, `up96_swr`, `up192_soxr` upsampled | ≥ 26/28 each | before **27 / 27 / 0**; after **27 / 27 / 27**, 0 lost | 192 kHz failed before (amendment 1), held after |
+| H7a | `up192_soxr` after | 27/28 | **27/28** | held |
+| H7b | `up96_soxr`, `up96_swr` after | 27/28, none lost | **27/28** each, 0 lost | held |
+| H6a | `up96_pad24` upsampled after | ≥ 18/28 | **20/28** (18 before) | held |
+| H8 | `up96_shaped` (as first built) | ≤ 14/28 | **26 → 27/28**: the arm carried no dither (ffmpeg applies none at a 32-bit output), it is `up96_soxr` again; not counted | prediction wrong about the arm, not the engine |
+| H8a | `up96_shaped16` (16-bit shibata dither, 24-bit container) | about half | **12 → 14/28** upsampled (all 28 padded, correctly) | as predicted: the evasion is half read |
+| H9 | fake arms, transcode axis | 0 convicted | **0** before, **0** after (0 verdict moves, 0 score moves on 196 files) | held |
+| H10 | 32-bit FLAC | ERROR → analysed, AUTHENTIC, PADDED_DEPTH (16 in 32) | **ERROR → AUTHENTIC 0, PADDED_DEPTH, estimated 16** | held |
+| H11 | 32-bit WAV, float WAV | analysed, PADDED_DEPTH (16 in 32) | integer: **held**. Float: **failed on the first after-pass** (read GENUINE_HIRES, estimated 32), repaired, **held** on the re-run (PADDED_DEPTH, 16) — below | held after one repair |
+| H12 | library `UPSAMPLED` after | each named and inspected | **2**, the same two as before: Thylacine *Fauré* (96 kHz, cliff at 21.2 kHz, floor −81 dB) and Portishead *Machine gun* (96 kHz, cliff at 22.9 kHz, floor −89 dB; a second copy of the same track reads −62 dB and stays GENUINE_HIRES). Both are consistent with an upsample and stay unlabelled. | held |
+| H12a | library `UPSAMPLED` after = the two read before | yes | **yes**; 0 other file flagged | held |
+| H12b | the 6 library files that snapped to 88.2 kHz | GENUINE_HIRES | **GENUINE_HIRES**, all 6 | held |
+| H13 | text report shows the hi-res line | unit test | `tests/test_report_shows_fake_hires.py`, both modes | held |
+| H14 | cost of the depth windows | reported | **0.03-0.05 s** per file warm, 0.3 s cold (8 reads of 10,000 frames, 96 and 192 kHz) | — |
+| H15 | suite, gates, Sphinx | green | 936 passed / 83 skipped before the float repair; re-run after it in the release commit; black, isort, flake8, mypy, bandit, Sphinx `-W` green | held |
+
+**The 28th file.** In every upsampled arm the one file not read is the same
+source track, Johan Gielen, *Svenson & Gielen – We Know What You Did (Johan
+Gielen Remix)*: its content edge is at 20.2 kHz, outside ±6 % of 22.05 kHz,
+and the test declines to snap it. A source that is itself band-limited is not
+read as an upsample; the test errs toward the file.
+
+**The float repair (H11).** libsndfile does not scale float samples when they
+are read as integers: 0.5 reads as 0, and only the sign survives. The first
+windowed detector read a float WAV holding CD audio as 210 non-zero samples of
+±1 and estimated 32 bits. The unit test had not caught it because `sf.write`
+of integers into a FLOAT subtype stores the raw integers, which no real file
+does. Repaired: a float file is read as float64 and scaled by 2^31 (a 16-bit
+value stored as float is k / 32768 exactly, so k × 65536 comes back exact);
+the test now writes scaled floats as an encoder would. Re-run on the one float
+file with the repaired engine: PADDED_DEPTH, estimated 16.
+
+**What stays open, stated.** (1) An upsample finished with 16-bit noise-shaped
+dither is read about half the time: the shaped noise above 22 kHz sits at −53
+to −80 dB under the reference, across the −70 dB bar; moving the bar would be
+a calibration on unlabelled files and is not done here. (2) An upsample whose
+source was itself band-limited under 20.7 kHz is not read. (3) A true 32-bit
+source reads as 24-bit data after the façade's decode. (4) There is still no
+certified external hi-res corpus; the genuine side of this measurement is 28
+attested CDs (never hi-res) and 172 unlabelled library files.
+
+Pre-existing and unchanged, for the record: two library files are convicted
+on the transcode axis before and after (Alain Bashung *Premiers symptômes*
+FAKE_CERTAIN 83, Léonie Pernet *Enquête* FAKE_CERTAIN 60), both GENUINE_HIRES
+on this axis.

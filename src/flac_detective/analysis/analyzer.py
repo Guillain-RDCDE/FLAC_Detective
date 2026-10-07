@@ -89,6 +89,27 @@ def _sampled_rms(cache: AudioCache) -> Optional[float]:
         return None
 
 
+def _flac_wider_than_libsndfile_reads(filepath: Path) -> bool:
+    """True for a FLAC whose samples are wider than 24 bits.
+
+    FLAC 1.4 (2022) encodes up to 32-bit integer samples; libsndfile, which
+    reads every other FLAC for this engine, implements 8, 16 and 24 only and
+    refuses the file ("data in an unimplemented format"). Such a file used to
+    end in ERROR. It is decoded through the ffmpeg façade instead, which already
+    writes anything wider than 16 bits as 24-bit PCM: the low 8 bits of a true
+    32-bit source are dropped before analysis, and the depth detector reads what
+    is left. Decided on the header (mutagen), not on a failed open.
+    """
+    if filepath.suffix.lower() != ".flac":
+        return False
+    try:
+        from mutagen.flac import FLAC
+
+        return int(FLAC(filepath).info.bits_per_sample) > 24
+    except Exception:
+        return False
+
+
 def _stage_local_copy(filepath: Path) -> Tuple[Path, bool]:
     """Copy or decode the source to a local temp file; return it and whether it was decoded.
 
@@ -101,7 +122,7 @@ def _stage_local_copy(filepath: Path) -> Tuple[Path, bool]:
     Raises:
         RuntimeError: when a non-native container could not be decoded.
     """
-    if needs_ffmpeg_decode(filepath):
+    if needs_ffmpeg_decode(filepath) or _flac_wider_than_libsndfile_reads(filepath):
         logger.debug(f"Decoding {filepath.name} ({filepath.suffix}) to temp WAV via ffmpeg")
         decoded = decode_to_wav(filepath)
         if decoded is None:
@@ -132,6 +153,11 @@ def _read_source_metadata(filepath: Path, temp_path: Path, decoded_from_source: 
     ffmpeg preserves them — and the real source codec is probed and labelled.
     """
     if not decoded_from_source:
+        return read_metadata(filepath)
+    if filepath.suffix.lower() == ".flac":
+        # A FLAC decoded only because it is wider than libsndfile reads: the
+        # header is readable (mutagen), and it is the declared 32 bits the
+        # hi-res axis must judge, not the 24-bit WAV the decode produced.
         return read_metadata(filepath)
     metadata = read_metadata(temp_path)
     codec = probe_codec(filepath)

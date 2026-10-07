@@ -19,6 +19,19 @@ logger = logging.getLogger(__name__)
 # instance, also plots WARNING files).
 FLAGGED_VERDICTS = ("SUSPICIOUS", "FAKE_CERTAIN", "NON_FLAC")
 
+# The hi-res verdicts that mean the label on the file is wrong. A separate axis
+# from the transcode verdict: a file can be genuine lossless AND fake hi-res.
+# Until 2.2.0 the text report — the one most people read — never printed them;
+# they reached the CSV, the JSON and the GUI only (hi-res axis registration,
+# 2026-10-07).
+FAKE_HIRES_VERDICTS = ("UPSAMPLED", "PADDED_DEPTH", "UPSAMPLED_AND_PADDED")
+
+
+def is_fake_hires(result: dict[str, Any]) -> bool:
+    """True when the result's hi-res verdict says the file is not what it claims."""
+    return result.get("hires_verdict", "") in FAKE_HIRES_VERDICTS
+
+
 # (statistic key, label in the run-level tally), in the order they are printed.
 _ISSUE_TALLY = (
     ("duration_issues", "Duration"),
@@ -56,15 +69,21 @@ class TextReporter:
         from ..presentation import plain_explanation, verdict_plain
 
         flagged = rank_by_score(r for r in results if verdict_of(r) in FLAGGED_VERDICTS)
+        # Fake hi-res files the transcode axis did not already flag: genuine
+        # lossless audio sold at a resolution it does not have.
+        fake_hires = [
+            r for r in results if is_fake_hires(r) and verdict_of(r) not in FLAGGED_VERDICTS
+        ]
 
+        attention = len(flagged) + len(fake_hires)
         lines = [
             "=" * self.width,
             f" FLAC DETECTIVE — {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             "=" * self.width,
-            f" {len(results)} file(s) checked · {len(flagged)} need attention.",
+            f" {len(results)} file(s) checked · {attention} need attention.",
             "",
         ]
-        if flagged:
+        if flagged or fake_hires:
             lines.append(" FILES TO LOOK AT")
             lines.append("")
             for r in flagged:
@@ -74,6 +93,16 @@ class TextReporter:
                 if explanation:
                     lines.append(f"      {explanation}")
                 lines.append(f"      → {action}")
+                lines.append("")
+            for r in fake_hires:
+                lines.append(f" 🎚️  FAKE HI-RES — {self._get_display_path(r, scan_paths)}")
+                explanation = plain_explanation(r)
+                if explanation:
+                    lines.append(f"      {explanation}")
+                lines.append(
+                    "      → The audio may well be genuine lossless, but not at the "
+                    "resolution on the label."
+                )
                 lines.append("")
         else:
             lines.append(" All clear — no transcodes or fakes found. Everything looks genuine.")
@@ -299,28 +328,32 @@ class TextReporter:
         lines.append("-" * self.width)
         return lines
 
-    def _upsampled_lines(
-        self, upsampled: list[dict[str, Any]], scan_paths: list[Path] | None
+    def _fake_hires_lines(
+        self, fake_hires: list[dict[str, Any]], scan_paths: list[Path] | None
     ) -> list[str]:
-        if not upsampled:
-            return [" No upsampled files found.", "-" * self.width]
+        """The fake hi-res table: the hi-res verdict, the format claimed, the file.
+
+        Replaces the "UPSAMPLED FILES" table of 1.x, which listed upsampling
+        only and never a padded bit depth, and which printed the suspected
+        original rate without the verdict that carried it. The ``why:`` line
+        is the hi-res reason the analyzer wrote (cliff and floor, or the bits
+        actually used).
+        """
+        if not fake_hires:
+            return [" No fake hi-res files found.", "-" * self.width]
         lines = [
-            f" UPSAMPLED FILES ({len(upsampled)})",
-            f" {'Icon':<4} | {'Original Rate':<15} | {'File'}",
+            f" FAKE HI-RES FILES ({len(fake_hires)})",
+            f" {'Icon':<4} | {'Hi-res verdict':<20} | {'Format':<9} | {'File'}",
             " " + "-" * (self.width - 2),
         ]
-        for result in upsampled:
+        for result in fake_hires:
             display_name = self._get_display_path(result, scan_paths)
-            # Check both old format (nested) and new format (flat)
-            original_rate = result.get("suspected_original_rate") or result.get(
-                "upsampling", {}
-            ).get("suspected_original_rate", "Unknown")
-            if original_rate == 0:
-                original_rate = "Unknown"
-            original_rate_str = (
-                f"{original_rate} Hz" if isinstance(original_rate, int) else str(original_rate)
-            )
-            lines.append(f" [?]  | {original_rate_str:<15} | {display_name}")
+            hires_verdict = result.get("hires_verdict", "")
+            fmt_str = self._format_label(result)
+            lines.append(f" [?]  | {hires_verdict:<20} | {fmt_str:<9} | {display_name}")
+            why = result.get("hires_reason") or ""
+            if why:
+                lines.append(f"      why: {why}")
         lines.append("-" * self.width)
         return lines
 
@@ -356,13 +389,13 @@ class TextReporter:
         stats = calculate_statistics(results)
         suspicious = [r for r in results if verdict_of(r) in FLAGGED_VERDICTS]
         corrupted = [r for r in results if r.get("is_corrupted", False)]
-        upsampled = [r for r in results if r.get("is_upsampled", False)]
+        fake_hires = [r for r in results if is_fake_hires(r)]
 
         report_lines = (
             self._header_lines(stats)
             + self._suspicious_lines(suspicious, scan_paths)
             + self._corrupted_lines(corrupted, scan_paths)
-            + self._upsampled_lines(upsampled, scan_paths)
+            + self._fake_hires_lines(fake_hires, scan_paths)
             + [self._recommendation_line(stats)]
         )
 

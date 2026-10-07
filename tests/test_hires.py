@@ -84,6 +84,31 @@ def test_upsampled_from_44k_detected():
     assert out["floor_above_db"] < hires._SILENT_FLOOR_DB
 
 
+def test_upsampled_to_192k_from_44k_detected():
+    """192 kHz holding only <22.05 kHz content: upsampled from 44.1k.
+
+    Read 0 of 28 until 2.2.0: the in-band reference was taken over 5-45 % of the
+    file's own Nyquist (4.8-43 kHz here), which is mostly the empty band of the
+    upsample itself, so the reference sank and the content edge was found at
+    Nyquist (hi-res axis registration, amendment 1).
+    """
+    sig = _bandlimited_noise(192000, 6, 22050, seed=4)
+    out = hires.detect_upsampling(sig, 192000)
+    assert out["is_upsampled"] is True
+    assert out["suspected_original_rate"] == 44100
+
+
+def test_a_96k_file_is_never_read_as_upsampled_from_88k():
+    """88.2 kHz is not a source for 96 kHz.
+
+    The cliff would sit inside the file's own rolloff and the band above it is
+    too narrow to read a floor in.
+    """
+    sig = _bandlimited_noise(96000, 6, 44100, seed=5)
+    out = hires.detect_upsampling(sig, 96000)
+    assert out["is_upsampled"] is False
+
+
 def test_genuine_hires_not_flagged():
     """Broadband 96 kHz noise (content up to ~Nyquist) is NOT flagged as upsampled."""
     sig = _bandlimited_noise(96000, 6, 46000, seed=2)  # content nearly to 48 kHz

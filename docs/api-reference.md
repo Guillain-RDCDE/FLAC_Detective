@@ -252,9 +252,16 @@ Each `analyze_file()` call returns a dictionary:
     'corruption_error': str,      # Error message if corrupted
 
     # Transcode detection
-    'is_fake_high_res': bool,     # Fake high-resolution file
-    'is_upsampled': bool,         # Upsampled from lower quality
     'estimated_mp3_bitrate': int, # Estimated source bitrate (0 if unknown)
+
+    # Fake hi-res axis (separate from the transcode verdict)
+    'hires_verdict': str,         # GENUINE_HIRES | UPSAMPLED | PADDED_DEPTH |
+                                  # UPSAMPLED_AND_PADDED | NOT_HIRES | UNKNOWN
+    'hires_reason': str,          # The reading behind it, "" when none
+    'is_fake_high_res': bool,     # Container declares more bits than the samples use
+    'estimated_bit_depth': int,   # Bits the samples actually use (16, 24 or 32)
+    'is_upsampled': bool,         # Spectral cliff at a lower rate's Nyquist, silence above
+    'suspected_original_rate': int,
 
     # Rule details (verbose mode)
     'rule_scores': dict,          # Individual rule contributions

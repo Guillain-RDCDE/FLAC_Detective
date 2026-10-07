@@ -40,6 +40,21 @@ logger = logging.getLogger(__name__)
 # A cliff at one of these rates' Nyquist (rate/2) is the upsampling fingerprint.
 _STANDARD_SOURCE_RATES = (44100, 48000, 88200, 96000)
 
+# A candidate source rate has to sit well under the file's own: 88.2 kHz is not
+# a source for a 96 kHz file (its Nyquist, 44.1 kHz, is inside the file's own
+# rolloff), and the band left above such a cliff is too narrow to read a floor
+# in. Amendment 1 of the hi-res axis registration (2026-10-07).
+_MAX_SOURCE_RATE_RATIO = 1 / 1.5
+
+# The in-band reference is read where EVERY candidate source carries content:
+# from 1 kHz up to 90 % of the lowest candidate Nyquist (22.05 kHz). Until
+# 2.2.0 it was read over 5-45 % of the file's own Nyquist, which at 192 kHz is
+# 4.8-43 kHz: an upsample's empty band was inside the reference, the median
+# sank into the void, and the "40 dB under the reference" content edge was
+# found at Nyquist. 0 of 28 upsamples to 192 kHz were read; 27 with this band.
+_REFERENCE_LOW_HZ = 1000.0
+_REFERENCE_HIGH_HZ = 0.9 * min(_STANDARD_SOURCE_RATES) / 2.0
+
 # A detected content edge counts as "at" a candidate Nyquist if within this
 # fraction of it (resamplers don't land exactly on rate/2 — there's transition band).
 _NYQUIST_TOLERANCE = 0.06  # ±6%
@@ -95,7 +110,7 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
         return result
 
     nyq = samplerate / 2.0
-    in_band = (freq >= 0.05 * nyq) & (freq <= 0.45 * nyq)
+    in_band = (freq >= _REFERENCE_LOW_HZ) & (freq <= _REFERENCE_HIGH_HZ)
     if not np.any(in_band):
         return result
     ref = float(np.median(mag_db[in_band]))
@@ -129,7 +144,7 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
     # land near a known rate, this isn't a recognised upsample — stay conservative.
     best_rate = None
     for r0 in _STANDARD_SOURCE_RATES:
-        if r0 >= samplerate:
+        if r0 > samplerate * _MAX_SOURCE_RATE_RATIO:
             continue
         n0 = r0 / 2.0
         if abs(content_edge - n0) <= _NYQUIST_TOLERANCE * n0:

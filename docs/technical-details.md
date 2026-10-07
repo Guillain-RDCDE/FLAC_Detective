@@ -912,12 +912,32 @@ A **separate axis** from the transcode verdict, reported as `hires_verdict`
   that simply rolls off early keeps an analog/dither floor and reads
   `GENUINE_HIRES`, **not** a false alarm. The naive "cutoff < 24 kHz" heuristic it
   replaces would have flagged real hi-res.
-- **Padded bit depth** — 16-bit audio written into a 24-bit container, the low
-  8 bits all zero (`BitDepthDetector`).
+- **Padded bit depth** — 16-bit audio written into a 24-bit (or 32-bit)
+  container, the low bits all zero (`BitDepthDetector`). Since 2.2.0 the
+  detector reads **eight windows spread over the file**, counts the trailing
+  zero bits of every non-silent sample, and estimates 16, 24 or 32 from the
+  smallest count; one window that carries full-depth audio clears the file.
+  Until then it read the first 10,000 frames of the left channel only, and a
+  genuine 24-bit track that opened with digital silence or a fade-in was
+  labelled `PADDED_DEPTH` on that chunk
+  (`ml/exchange/HIRES_AXIS_REGISTRATION_2026-10-07.md`).
+- **32-bit integer FLAC** (FLAC 1.4+) is wider than libsndfile reads. It is
+  decoded through the ffmpeg façade, which writes 24-bit PCM, and analysed
+  from that copy; the header's 32 bits are what the hi-res axis judges. A true
+  32-bit source therefore reads as 24-bit data: the low 8 bits are dropped by
+  the decode, a stated limit. Before 2.2.0 such a file ended in ERROR.
 
 The hi-res axis is informational about *provenance*; it does not feed the
-transcode score. It is surfaced in the CSV report, the desktop GUI and the Python
-API result dict.
+transcode score. It is surfaced in the text report (both modes, since 2.2.0),
+the CSV report, the desktop GUI and the Python API result dict.
+
+What it has been measured on (2.2.0): 168 fakes built from 28 attested CD rips
+(upsampled to 96 and 192 kHz with two resamplers, with and without noise-shaped
+dither, padded to 24 bits, both) and 172 unlabelled hi-res library files; the
+registration above carries the figures. There is no certified external hi-res
+corpus in that measurement, and the upsampling test is known to miss an
+upsample finished with noise-shaped dither when the shaped noise fills the band
+above the original Nyquist.
 
 ## Scoring System
 

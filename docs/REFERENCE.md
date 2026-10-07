@@ -98,11 +98,11 @@ the detected cutoff marked and the reasons for its verdict. Export to HTML/CSV/J
 
 Beyond lossy-as-lossless, FLAC Detective flags files *sold* as high-resolution that
 aren't: 44.1/48 kHz **upsampled** to 96/192 kHz (a hard spectral cliff with digital
-silence above it), and 16-bit audio **padded** into a 24-bit container. This is a
-separate axis from the transcode verdict — reported as `hires_verdict`
-(`GENUINE_HIRES` / `UPSAMPLED` / `PADDED_DEPTH` / …) in the CSV report, the GUI and the
-Python API. A genuine 96 kHz recording that simply rolls off early reads `GENUINE_HIRES`,
-not a false alarm.
+silence above it), and 16-bit audio **padded** into a 24-bit or 32-bit container. This
+is a separate axis from the transcode verdict — reported as `hires_verdict`
+(`GENUINE_HIRES` / `UPSAMPLED` / `PADDED_DEPTH` / …) in the text report, the CSV report,
+the GUI and the Python API. A genuine 96 kHz recording that simply rolls off early reads
+`GENUINE_HIRES`, not a false alarm. 32-bit integer FLAC (FLAC 1.4+) is analysed too.
 
 <details>
 <summary><b>Install options &amp; upgrading</b></summary>
