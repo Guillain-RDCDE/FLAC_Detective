@@ -159,3 +159,9 @@ docs/reply-to-provir-2026-08.txt
 
 # Stray Sphinx/tooling output
 Temp/
+
+# Shared tool settings are versioned; per-machine ones (settings.local.json) are not
+!.claude/
+.claude/*
+!.claude/settings.json
+!.claude/CLAUDE.md
