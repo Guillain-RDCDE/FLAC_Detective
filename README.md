@@ -4,6 +4,14 @@
 
 # 🎵 FLAC Detective
 
+<!-- opening -->
+> Music sold as lossless is sometimes a compressed file in disguise. This tells you which, and says so only when the proof is overwhelming.
+>
+> Independent kinds of evidence, spectral analysis, encoder arithmetic and a trained model; a verdict needs agreement between them; installs with pip and scans whole libraries.
+>
+> Calibrated detection, where a false accusation costs more than a miss. Part of the work of [Guillain d’Erceville](https://github.com/Guillain-RDCDE), forward deployed engineer.
+<!-- opening -->
+
 > **A lossy file renamed to .flac looks lossless, weighs lossless, and fools every player you own. It can't fool the arithmetic the encoder left behind — and this reads it for you.**
 >
 > MP3, AAC (HE-AAC v2 included), Vorbis and Opus, through independent kinds of evidence. A conviction needs two of them to agree.
