@@ -20,6 +20,10 @@ The documentation is organised into focused files:
 7. **[../ml/README.md](https://github.com/Guillain-RDCDE/FLAC_Detective/blob/main/ml/README.md)** - The ML case study: how Rule 12's CNN was built, the false-positive audit, the dead-ends, and the mono→stereo breakthrough (a learning resource in its own right)
 8. **[roadmap-formats.md](roadmap-formats.md)** - Design note on multi-format support (WAV/ALAC/APE) — the codec-agnostic insight and the bitrate-from-original gotcha
 
+**Records**
+
+9. **[history/](history/README.md)** - Dated correspondence and issue-reply drafts, kept as written and not published on the documentation site
+
 ## Quick Links
 
 **For Users**:

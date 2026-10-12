@@ -37,23 +37,18 @@ extensions = [
 
 templates_path = ["_templates"]
 # README.md is the docs-folder meta-index (mirrors index.md); don't build it as a page.
-# Correspondence and measurement records live in docs/ so they sit next to what
-# they describe and render on GitHub, but they are not user documentation and
-# have no place in the site navigation. Sphinx runs with -W, so anything not in
-# a toctree fails the build unless excluded here.
 exclude_patterns = [
     "_build",
     "Thumbs.db",
     ".DS_Store",
     "README.md",
-    # Correspondence and issue drafts live here because that is where the rest of
-    # the project's writing lives, but they are working artefacts, not pages of
-    # the manual. Sphinx treats "not in any toctree" as an error, so anything
-    # that is not documentation has to be excluded or it turns the Docs job red —
-    # which is exactly what happened twice on 1 and 2 September, unnoticed for a
-    # day each time.
-    "reply-to-provir-*.md",
-    "issue-reply-*.md",
+    # Dated correspondence and issue-reply drafts live in docs/history/: they
+    # render on GitHub next to the rest of the project's writing, but they are
+    # working records, not pages of the manual, and the published site must not
+    # carry them. Excluding the whole folder also keeps the -W build green:
+    # Sphinx treats a page in no toctree as an error, which turned the Docs job
+    # red twice on 1 and 2 September, unnoticed for a day each time.
+    "history/**",
 ]
 
 # -- Options for HTML output -------------------------------------------------
