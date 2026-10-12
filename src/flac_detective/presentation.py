@@ -15,11 +15,11 @@ here so "easy mode" says the same thing everywhere. Pure stdlib; no heavy import
 
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple
+from typing import Any
 
 # verdict -> (icon, human label, recommended action). The traffic light from the
 # README, in one place. Icons are plain unicode so they render in a terminal too.
-_VERDICT_PLAIN: Dict[str, Tuple[str, str, str]] = {
+_VERDICT_PLAIN: dict[str, tuple[str, str, str]] = {
     "AUTHENTIC": ("✅", "Authentic", "Keep it."),
     "WARNING": ("❓", "Worth a check", "Probably fine — give it a listen."),
     "SUSPICIOUS": ("⚠️", "Likely fake", "Likely a transcode — give it a listen."),
@@ -32,12 +32,12 @@ _VERDICT_PLAIN: Dict[str, Tuple[str, str, str]] = {
 }
 
 
-def verdict_plain(verdict: str) -> Tuple[str, str, str]:
+def verdict_plain(verdict: str) -> tuple[str, str, str]:
     """Return ``(icon, human_label, action)`` for a verdict, with a safe default."""
     return _VERDICT_PLAIN.get(verdict, ("•", verdict or "Unknown", ""))
 
 
-def _hires_note(result: Dict[str, Any]) -> str:
+def _hires_note(result: dict[str, Any]) -> str:
     """A plain sentence for the fake-hi-res axis, or '' if it doesn't apply."""
     hv = result.get("hires_verdict", "")
     rate = result.get("suspected_original_rate") or 0
@@ -58,7 +58,7 @@ def _hires_note(result: Dict[str, Any]) -> str:
     return ""
 
 
-def plain_explanation(result: Dict[str, Any]) -> str:
+def plain_explanation(result: dict[str, Any]) -> str:
     """A friendly, jargon-free one-to-two sentence explanation of the verdict.
 
     Uses the verdict plus the most telling signals (the spectral cliff, the implied

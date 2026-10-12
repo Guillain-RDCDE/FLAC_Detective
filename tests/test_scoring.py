@@ -21,7 +21,7 @@ class TestScoringV2(unittest.TestCase):
         # Note: 20.5 kHz is very close to the 21 kHz protection threshold,
         # so the new system may not flag this as suspicious
         cutoff = 20500
-        score, verdict, confidence, reason = new_calculate_score(
+        score, _verdict, _confidence, _reason = new_calculate_score(
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.001
         )
         # The new system protects files near 21 kHz threshold
@@ -30,7 +30,7 @@ class TestScoringV2(unittest.TestCase):
     def test_mp3_320_high_cutoff(self):
         # Case 2: High cutoff MP3 320k (User Example 1: 21166 Hz)
         cutoff = 21166
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, _reason = new_calculate_score(
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.001
         )
         # High cutoff above 21kHz should be protected by safety checks
@@ -41,7 +41,7 @@ class TestScoringV2(unittest.TestCase):
         # Case 3: MP3 256k (User Example 2: 19075 Hz)
         # Note: 19075 Hz is at the boundary between 256 and 320 kbps ranges
         cutoff = 19075
-        score, verdict, confidence, reason = new_calculate_score(
+        score, _verdict, _confidence, _reason = new_calculate_score(
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.001
         )
         # Without a real file, the container bitrate will be 0, so Rule 1 won't trigger
@@ -51,7 +51,7 @@ class TestScoringV2(unittest.TestCase):
     def test_authentic_flac(self):
         # Case 4: Authentic FLAC (Full Spectrum)
         cutoff = 22000
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, _reason = new_calculate_score(
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.01
         )
         self.assertLess(score, 30, "Score should be low for authentic FLAC")
@@ -61,7 +61,7 @@ class TestScoringV2(unittest.TestCase):
         # Case 5: MP3 160k (16 kHz)
         # Note: 16000 Hz falls in the 160 kbps range (15500-16500), not 128 kbps
         cutoff = 16000
-        score, verdict, confidence, reason = new_calculate_score(
+        score, _verdict, _confidence, _reason = new_calculate_score(
             cutoff, self.metadata, self.duration_check, self.filepath, cutoff_std=0.0001
         )
         # Without a real file, only Rule 2 (cutoff penalty) applies

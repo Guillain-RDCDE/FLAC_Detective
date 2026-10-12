@@ -18,7 +18,6 @@ ml/exchange/ISSUE12_CODEC_GRIDS_REGISTRATION_2026-10-04.md.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -39,9 +38,9 @@ SCORE_REVIEW = 25
 def apply_rule_17_sbr_replication(
     file_path: str,
     cutoff_freq: float,
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 17. Returns ``(score_delta, reasons, details)``; 0 when it cannot read."""
     details: dict = {"sbr_coherence": float("nan"), "sbr_shift": -1}
     if audio_data is None or sample_rate is None:

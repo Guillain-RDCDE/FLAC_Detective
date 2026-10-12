@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .common import rank_by_score
 
@@ -34,9 +34,9 @@ class CSVReporter:
 
     def generate_report(
         self,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         output_file: Path,
-        scan_paths: Optional[List[Path]] = None,
+        scan_paths: list[Path] | None = None,
     ) -> None:
         """Write ``results`` to ``output_file`` as CSV, most-suspicious first.
 

@@ -1,12 +1,14 @@
 """Audio loading utilities with retry mechanism for handling temporary FLAC decoder errors."""
 
+import contextlib
 import logging
 import os
 import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from collections.abc import Generator
+from typing import Any
 
 import numpy as np
 import soundfile as sf
@@ -54,10 +56,10 @@ def load_audio_with_retry(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
-    original_filepath: Optional[str] = None,
+    original_filepath: str | None = None,
     repair_in_place: bool = False,
     **kwargs: Any,
-) -> Tuple[Optional[np.ndarray], Optional[int]]:
+) -> tuple[np.ndarray | None, int | None]:
     """Load audio file with retry mechanism for temporary decoder errors.
 
     This function attempts to load a FLAC file using soundfile.read() with
@@ -161,7 +163,7 @@ def load_audio_with_retry(
             get_tracker().record_issue(
                 filepath=tracking_path,
                 issue_type=IssueType.REPAIR_FAILED,
-                message=f"Repair failed: {str(e)}",
+                message=f"Repair failed: {e!s}",
             )
             os.remove(repaired_path)
     else:
@@ -181,7 +183,7 @@ def load_audio_segment(
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
-) -> Tuple[Optional[NDArray[np.float64]], Optional[int]]:
+) -> tuple[NDArray[np.float64] | None, int | None]:
     """Load a specific segment of an audio file with retry logic."""
     delay: float = initial_delay
     for attempt in range(1, max_attempts + 1):
@@ -234,7 +236,7 @@ def load_audio_segment(
     return None, None
 
 
-def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
+def _extract_metadata(flac_path: str) -> dict[str, Any] | None:
     """Extract all metadata from a FLAC file including tags and embedded pictures.
 
     This function uses the Mutagen library to read all Vorbis comment tags and
@@ -282,7 +284,7 @@ def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
         audio: FLAC = FLAC(flac_path)
 
         # Extract all tags
-        tags: Dict[str, List[str]] = {}
+        tags: dict[str, list[str]] = {}
         if audio.tags:
             for key, value in audio.tags:  # type: ignore[union-attr]
                 if key not in tags:
@@ -290,7 +292,7 @@ def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
                 tags[key].extend(value if isinstance(value, list) else [value])
 
         # Extract all pictures (album art)
-        pictures: List[Picture] = list(audio.pictures) if audio.pictures else []
+        pictures: list[Picture] = list(audio.pictures) if audio.pictures else []
 
         logger.debug(f"  Extracted {len(tags)} tag types and {len(pictures)} picture(s)")
 
@@ -301,7 +303,7 @@ def _extract_metadata(flac_path: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> bool:
+def _restore_metadata(flac_path: str, metadata: dict[str, Any] | None) -> bool:
     """Restore metadata to a FLAC file from a previously extracted metadata dictionary.
 
     This function writes Vorbis comment tags and embedded pictures back to a FLAC
@@ -372,12 +374,12 @@ def _restore_metadata(flac_path: str, metadata: Optional[Dict[str, Any]]) -> boo
 
         # Restore tags
         audio.clear()
-        tags: Dict[str, List[str]] = metadata.get("tags", {})
+        tags: dict[str, list[str]] = metadata.get("tags", {})
         for key, values in tags.items():
             audio[key] = values
 
         # Restore pictures
-        pictures: List[Picture] = metadata.get("pictures", [])
+        pictures: list[Picture] = metadata.get("pictures", [])
         for picture in pictures:
             audio.add_picture(picture)
 
@@ -398,9 +400,9 @@ def _unique_temp_path(prefix: str, suffix: str) -> str:
     return path
 
 
-def repair_flac_file(  # noqa: C901
-    corrupted_path: str, source_path: Optional[str] = None, replace_source: bool = False
-) -> Optional[str]:
+def repair_flac_file(
+    corrupted_path: str, source_path: str | None = None, replace_source: bool = False
+) -> str | None:
     """Repair a corrupted FLAC file using decode-through-errors + re-encode.
 
     This function repairs FLAC files with decoder errors by:
@@ -419,9 +421,9 @@ def repair_flac_file(  # noqa: C901
     Returns:
         Path to the repaired temporary file, or None on failure.
     """
-    wav_path: Optional[str] = None
-    repaired_path: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    wav_path: str | None = None
+    repaired_path: str | None = None
+    metadata: dict[str, Any] | None = None
 
     try:
         # Unique names: two workers repairing two files of the same name (one
@@ -551,10 +553,9 @@ def repair_flac_file(  # noqa: C901
     finally:
         # Cleanup intermediate WAV file
         if wav_path and os.path.exists(wav_path):
-            try:
+            # Best effort cleanup
+            with contextlib.suppress(Exception):
                 os.remove(wav_path)
-            except Exception:
-                pass  # Best effort cleanup
 
 
 def sf_blocks(
@@ -635,15 +636,15 @@ def sf_blocks(
             break
 
 
-def sf_blocks_partial(  # noqa: C901
+def sf_blocks_partial(
     file_path: str,
     blocksize: int = 16384,
     dtype: str = "float32",
     max_attempts: int = 5,
     initial_delay: float = 0.2,
     backoff_multiplier: float = 2.0,
-    original_filepath: Optional[str] = None,
-) -> Tuple[Optional[NDArray[np.float32]], Optional[int], bool]:
+    original_filepath: str | None = None,
+) -> tuple[NDArray[np.float32] | None, int | None, bool]:
     """Read audio in chunks, returning partial data if full read fails.
 
     This function attempts to read an entire audio file in blocks. If reading
@@ -668,8 +669,8 @@ def sf_blocks_partial(  # noqa: C901
     # Use original filepath for diagnostic tracking, or file_path if not provided
     tracking_path: str = original_filepath or file_path
 
-    chunks: List[NDArray[np.float32]] = []
-    sample_rate: Optional[int] = None
+    chunks: list[NDArray[np.float32]] = []
+    sample_rate: int | None = None
     current_frame: int = 0
 
     try:

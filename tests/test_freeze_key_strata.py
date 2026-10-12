@@ -17,7 +17,7 @@ import hashlib
 import json
 
 import pytest
-from freeze_exchange_set import KeyRefused, build_key, write_key  # noqa: E402
+from freeze_exchange_set import KeyRefused, build_key, write_key
 
 SEED = 20260831
 

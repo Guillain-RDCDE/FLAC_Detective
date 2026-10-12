@@ -19,7 +19,7 @@ torch = pytest.importorskip("torch")
 class _FakeModel:
     """Stand-in TorchScript model: always returns 'transcoded' with high logit."""
 
-    def __call__(self, x):  # noqa: D401
+    def __call__(self, x):
         return torch.tensor([[0.0, 5.0]])
 
 

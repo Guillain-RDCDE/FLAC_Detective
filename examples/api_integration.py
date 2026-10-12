@@ -7,8 +7,8 @@ including custom configuration, error handling, and integration patterns.
 """
 
 from pathlib import Path
+
 from flac_detective import FLACAnalyzer
-from flac_detective.config import Config
 
 
 def example_custom_configuration():

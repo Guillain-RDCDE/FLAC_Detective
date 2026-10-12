@@ -4,7 +4,6 @@
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 class FlacDiagnostic:
@@ -21,7 +20,7 @@ class FlacDiagnostic:
         self.healthy_files = []
         self.results = {}
 
-    def test_file(self, flac_file: Path) -> Tuple[bool, str, List[str]]:
+    def test_file(self, flac_file: Path) -> tuple[bool, str, list[str]]:
         """Test a single FLAC file for integrity.
 
         Args:
@@ -72,7 +71,7 @@ class FlacDiagnostic:
         except Exception as e:
             return False, "ERROR", [str(e)]
 
-    def scan_directory(self) -> Dict:
+    def scan_directory(self) -> dict:
         """Scan directory for FLAC files and test each one.
 
         Returns:
@@ -103,7 +102,7 @@ class FlacDiagnostic:
 
         return self.generate_report()
 
-    def generate_report(self) -> Dict:
+    def generate_report(self) -> dict:
         """Generate diagnostic report.
 
         Returns:
@@ -131,7 +130,7 @@ class FlacDiagnostic:
 
         return report
 
-    def print_report(self, report: Dict):
+    def print_report(self, report: dict):
         """Print diagnostic report to console.
 
         Args:
@@ -164,7 +163,7 @@ class FlacDiagnostic:
 
         print("\n" + "=" * 80)
 
-    def save_report(self, output_file: Path, report: Dict):
+    def save_report(self, output_file: Path, report: dict):
         """Save report to file.
 
         Args:

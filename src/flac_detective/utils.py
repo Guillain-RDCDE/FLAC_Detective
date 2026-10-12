@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import List
 
 from .__version__ import __release_date__, __version__
 from .colors import Colors
@@ -61,7 +60,7 @@ LOGO = f"""
 """
 
 
-def find_flac_files(root_dir: Path) -> List[Path]:
+def find_flac_files(root_dir: Path) -> list[Path]:
     """Recursively finds all .flac files.
 
     Args:
@@ -76,7 +75,7 @@ def find_flac_files(root_dir: Path) -> List[Path]:
     return flac_files
 
 
-def find_non_flac_audio_files(root_dir: Path) -> List[Path]:
+def find_non_flac_audio_files(root_dir: Path) -> list[Path]:
     """Recursively finds all non-FLAC audio files (MP3, M4A, AAC, OGG, WMA, etc.).
 
     Args:

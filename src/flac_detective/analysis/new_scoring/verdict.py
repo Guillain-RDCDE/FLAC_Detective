@@ -1,6 +1,5 @@
 """Verdict determination — score for the tier, corroboration for the conviction."""
 
-from typing import Optional, Set, Tuple
 
 from .constants import (
     CONVICTION_MIN_FAMILIES,
@@ -11,7 +10,7 @@ from .constants import (
 )
 
 
-def determine_verdict(score: int, families: Optional[Set[str]] = None) -> Tuple[str, str]:
+def determine_verdict(score: int, families: set[str] | None = None) -> tuple[str, str]:
     """Determine verdict and confidence.
 
     The three lower tiers are read off the score, unchanged. **FAKE_CERTAIN is
@@ -91,7 +90,7 @@ def determine_verdict(score: int, families: Optional[Set[str]] = None) -> Tuple[
     return "AUTHENTIC", "✅ Authentic file"
 
 
-def uncorroborated_conviction_blocked(score: int, families: Optional[Set[str]]) -> bool:
+def uncorroborated_conviction_blocked(score: int, families: set[str] | None) -> bool:
     """True if points alone would have convicted but corroboration was missing.
 
     Surfaced as a reason string so a capped verdict explains itself rather than

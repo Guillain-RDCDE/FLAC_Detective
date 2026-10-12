@@ -81,7 +81,7 @@ def _auc(pos, neg):
         for k in range(i, j + 1):
             ranks[k] = avg
         i = j + 1
-    rank_sum = sum(r for r, (_, lab) in zip(ranks, ordered) if lab == 1)
+    rank_sum = sum(r for r, (_, lab) in zip(ranks, ordered, strict=True) if lab == 1)
     return (rank_sum - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg))
 
 

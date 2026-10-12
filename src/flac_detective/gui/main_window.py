@@ -12,7 +12,7 @@ from __future__ import annotations
 import os
 from html import escape
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -115,11 +115,11 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(900, 560)
         self.setAcceptDrops(True)
 
-        self._targets: List[Path] = []
-        self._results: List[Dict[str, Any]] = []
-        self._worker: Optional[AnalysisWorker] = None
+        self._targets: list[Path] = []
+        self._results: list[dict[str, Any]] = []
+        self._worker: AnalysisWorker | None = None
         self._advanced = False  # easy mode by default — hide the plumbing
-        self._selected: Optional[Dict[str, Any]] = None
+        self._selected: dict[str, Any] | None = None
 
         self._build_ui()
         self._set_running(False)
@@ -130,8 +130,8 @@ class MainWindow(QMainWindow):
         # gets a link if there is a newer release and nothing happens otherwise.
         # Not even started when the user opted out (FLAC_DETECTIVE_NO_UPDATE_CHECK),
         # which is also how the test suite keeps a thread out of its windows.
-        self._update_worker: Optional[UpdateCheckWorker] = None
-        self._install_worker: Optional[UpdateInstallWorker] = None
+        self._update_worker: UpdateCheckWorker | None = None
+        self._install_worker: UpdateInstallWorker | None = None
         self._latest_version = ""
         # A deferred (Windows) install from last time left its result: show it once.
         report = consume_install_report()
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
             self._update_worker.notice.connect(self._on_update_notice)
             self._update_worker.start()
 
-    def closeEvent(self, event) -> None:  # noqa: N802 - Qt's name
+    def closeEvent(self, event) -> None:
         """Let the update threads finish before Qt tears them down with the window."""
         worker = self._update_worker
         if worker is not None and worker.isRunning():
@@ -452,7 +452,7 @@ class MainWindow(QMainWindow):
         d.addWidget(spectrum_lbl)
         # The matplotlib-backed SpectrumView is created lazily on first file
         # selection (see _populate_detail) so launch never pays the import.
-        self._spectrum: Optional["SpectrumView"] = None
+        self._spectrum: SpectrumView | None = None
         self._spectrum_holder = QVBoxLayout()
         self._spectrum_holder.setContentsMargins(0, 0, 0, 0)
         d.addLayout(self._spectrum_holder)
@@ -474,12 +474,12 @@ class MainWindow(QMainWindow):
         self._detail_stack.setCurrentIndex(0)
 
     # ------------------------------------------------------------ drag & drop
-    def dragEnterEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+    def dragEnterEvent(self, event) -> None:
         """Accept drags that carry file/folder URLs."""
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
 
-    def dropEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+    def dropEvent(self, event) -> None:
         """Set dropped folders/files as the scan targets."""
         paths = [Path(url.toLocalFile()) for url in event.mimeData().urls()]
         paths = [p for p in paths if p.exists()]
@@ -500,16 +500,16 @@ class MainWindow(QMainWindow):
         if files:
             self._set_targets([Path(f) for f in files])
 
-    def _set_targets(self, paths: List[Path]) -> None:
+    def _set_targets(self, paths: list[Path]) -> None:
         self._targets = paths
         if len(paths) == 1 and paths[0].is_dir():
             self._target_label.setText(f"Target:  {paths[0]}")
         else:
             self._target_label.setText(f"Target:  {len(paths)} item(s) selected")
 
-    def _collect_files(self) -> List[Path]:
+    def _collect_files(self) -> list[Path]:
         """Expand the chosen targets into a flat list of analysable audio files."""
-        files: List[Path] = []
+        files: list[Path] = []
         for target in self._targets:
             if target.is_file():
                 if target.suffix.lower() in _AUDIO_GLOB_EXTS:
@@ -577,7 +577,7 @@ class MainWindow(QMainWindow):
         self._progress.setValue(done)
         self._target_label.setText(f"Analysing…  {done} / {total} files")
 
-    def _on_result(self, result: Dict[str, Any]) -> None:
+    def _on_result(self, result: dict[str, Any]) -> None:
         self._results.append(result)
         self._append_row(result)
 
@@ -616,7 +616,7 @@ class MainWindow(QMainWindow):
             self._populate_detail(self._selected)
 
     # ------------------------------------------------------------ table & view
-    def _append_row(self, r: Dict[str, Any]) -> None:
+    def _append_row(self, r: dict[str, Any]) -> None:
         verdict = r.get("verdict", "ERROR")
         text_colour, pill_bg, label = style.verdict_theme(verdict)
         was_sorting = self._table.isSortingEnabled()
@@ -663,7 +663,7 @@ class MainWindow(QMainWindow):
         self._populate_detail(result)
 
     # --------------------------------------------------------------- detail
-    def _populate_detail(self, r: Dict[str, Any]) -> None:
+    def _populate_detail(self, r: dict[str, Any]) -> None:
         self._selected = r
         verdict = r.get("verdict", "")
         text_colour, pill_bg, label = style.verdict_theme(verdict)
@@ -696,7 +696,7 @@ class MainWindow(QMainWindow):
         self._reasons.setHtml(self._reasons_html(r))
         self._detail_stack.setCurrentIndex(1)
 
-    def _fill_meta(self, r: Dict[str, Any]) -> None:
+    def _fill_meta(self, r: dict[str, Any]) -> None:
         while self._meta_grid.count():
             item = self._meta_grid.takeAt(0)
             w = item.widget() if item is not None else None
@@ -734,7 +734,7 @@ class MainWindow(QMainWindow):
             wrapper.setLayout(cell)
             self._meta_grid.addWidget(wrapper, row, col)
 
-    def _reasons_html(self, r: Dict[str, Any]) -> str:
+    def _reasons_html(self, r: dict[str, Any]) -> str:
         # Easy mode: one plain-language paragraph + the recommended action — no
         # rule codes, points or per-rule bullets.
         if not self._advanced:

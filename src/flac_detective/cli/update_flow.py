@@ -8,7 +8,7 @@ runs through an injectable ``upgrader``.
 from __future__ import annotations
 
 import sys
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from ..colors import Colors, colorize
 from ..update_check import current_version, fetch_latest_version, is_newer
@@ -18,14 +18,14 @@ Ask = Callable[[str], str]
 Upgrader = Callable[..., UpgradeResult]
 
 
-def _say(text: str, color: Optional[str] = None) -> None:
+def _say(text: str, color: str | None = None) -> None:
     print(colorize(text, color) if color else text)
 
 
 def run_update_command(
-    fetch: Callable[[], Optional[str]] = fetch_latest_version,
+    fetch: Callable[[], str | None] = fetch_latest_version,
     upgrader: Upgrader = upgrade,
-    current: Optional[str] = None,
+    current: str | None = None,
 ) -> int:
     """``flac-detective --update``: ask PyPI now (no cache), install if newer. Exit code."""
     current = current_version() if current is None else current
@@ -52,7 +52,7 @@ def _report(result: UpgradeResult) -> int:
     return 0 if result.ok else 1
 
 
-def print_install_report(report: Optional[dict]) -> None:
+def print_install_report(report: dict | None) -> None:
     """What the deferred installer did last time, printed once at start."""
     if not report:
         return
@@ -62,12 +62,12 @@ def print_install_report(report: Optional[dict]) -> None:
 
 
 def offer_update(
-    notice: Optional[str],
-    interactive: Optional[bool] = None,
+    notice: str | None,
+    interactive: bool | None = None,
     ask: Ask = input,
     upgrader: Upgrader = upgrade,
-    latest: Optional[str] = None,
-) -> Optional[UpgradeResult]:
+    latest: str | None = None,
+) -> UpgradeResult | None:
     """After the summary: print the notice and, on a terminal, offer to install.
 
     ``interactive`` defaults to "stdin and stdout are both terminals". When it

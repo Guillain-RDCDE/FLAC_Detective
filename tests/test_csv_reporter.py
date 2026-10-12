@@ -64,7 +64,7 @@ def test_csv_cutoff_rounded_and_reason_single_line(tmp_path):
     CSVReporter().generate_report(results, out)
     row = _rows(out)[0]
     assert row["cutoff_freq_hz"] == "16385"  # rounded
-    assert "\n" not in row["reason"] and "R2: cutoff low R9: artefacts" == row["reason"]
+    assert "\n" not in row["reason"] and row["reason"] == "R2: cutoff low R9: artefacts"
 
 
 def test_csv_handles_empty_results(tmp_path):

@@ -45,7 +45,6 @@ evidence we do not have.
 
 import logging
 import math
-from typing import List, Optional, Tuple
 
 from ...spectrum import is_low_wall_reading
 from ..bitrate import estimate_mp3_bitrate, get_cutoff_threshold
@@ -170,7 +169,7 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     residual_floor_db: float = float("nan"),
     edge_step_db: float = float("nan"),
     floor_above_db: float = float("nan"),
-) -> Tuple[Tuple[int, List[str]], Optional[int]]:
+) -> tuple[tuple[int, list[str]], int | None]:
     """Apply Rule 1: Constant MP3 Bitrate Detection (Spectral Estimation).
 
     Detects if the file's spectral cutoff matches a standard MP3 bitrate signature.
@@ -203,7 +202,7 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
         Tuple of ((score_delta, list_of_reasons), estimated_bitrate)
     """
     score = 0
-    reasons: List[str] = []
+    reasons: list[str] = []
 
     # Safety check 0: a low wall is not an MP3 signature (v1.17.0).
     # spectrum.low_wall_hz reports walls under 14 kHz, where detect_cutoff never
@@ -513,7 +512,7 @@ def apply_rule_1_mp3_bitrate(  # noqa: C901
     return (score, reasons), None
 
 
-def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List[str]]:
+def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> tuple[int, list[str]]:
     """Apply Rule 2: Cutoff Frequency vs Sample Rate.
 
     Detects if the frequency cutoff is suspiciously low compared to what the sample
@@ -574,9 +573,9 @@ def apply_rule_2_cutoff(cutoff_freq: float, sample_rate: int) -> Tuple[int, List
 def apply_rule_8_nyquist_exception(
     cutoff_freq: float,
     sample_rate: int,
-    mp3_bitrate_detected: Optional[int],
-    silence_ratio: Optional[float] = None,
-) -> Tuple[int, List[str]]:
+    mp3_bitrate_detected: int | None,
+    silence_ratio: float | None = None,
+) -> tuple[int, list[str]]:
     """Apply Rule 8: Nyquist Exception (ALWAYS APPLIED with Safeguards).
 
     Protects files with cutoff frequency near the theoretical Nyquist limit

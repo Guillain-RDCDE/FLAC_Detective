@@ -11,7 +11,7 @@ one fact missing.
 A verdict without the reading it was made from is an opinion.
 """
 
-from flac_detective.reporting.text_reporter import TextReporter  # noqa: E402
+from flac_detective.reporting.text_reporter import TextReporter
 
 
 def _result(**overrides):

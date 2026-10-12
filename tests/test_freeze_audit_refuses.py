@@ -14,7 +14,7 @@ the set. These tests exist so that cannot happen silently again.
 
 import logging
 
-from freeze_exchange_set import audit_own_output  # noqa: E402
+from freeze_exchange_set import audit_own_output
 
 LOG = logging.getLogger("freeze-audit-test")
 

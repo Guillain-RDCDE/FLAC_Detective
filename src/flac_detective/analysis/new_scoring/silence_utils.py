@@ -5,7 +5,7 @@ analysis module to detect vinyl noise, clicks, and other audio artifacts.
 """
 
 import logging
-from typing import Optional, Tuple, cast
+from typing import cast
 
 import numpy as np
 from scipy import signal
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def filter_band(
     audio_mono: np.ndarray, sample_rate: int, cutoff_freq: float
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Apply bandpass filter above cutoff frequency.
 
     Args:
@@ -116,7 +116,7 @@ def calculate_temporal_variance(audio_data: np.ndarray, sample_rate: int) -> flo
     return float(np.std(segment_energies))
 
 
-def detect_transients(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, float]:
+def detect_transients(audio_data: np.ndarray, sample_rate: int) -> tuple[int, float]:
     """Detect clicks and pops typical of vinyl records.
 
     Vinyl records have brief transients (clicks/pops) from dust and scratches.
@@ -130,10 +130,7 @@ def detect_transients(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, fl
         Tuple of (num_clicks, clicks_per_minute)
     """
     # Convert to mono if stereo
-    if audio_data.ndim > 1:
-        audio_mono = np.mean(audio_data, axis=1)
-    else:
-        audio_mono = audio_data
+    audio_mono = np.mean(audio_data, axis=1) if audio_data.ndim > 1 else audio_data
 
     # Calculate duration
     duration_sec = len(audio_mono) / sample_rate
@@ -161,10 +158,7 @@ def detect_transients(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, fl
     window_size = int(0.0005 * sample_rate)  # 0.5ms
     if window_size % 2 == 0:
         window_size += 1
-    if window_size >= 3:
-        envelope_smooth = signal.medfilt(envelope, window_size)
-    else:
-        envelope_smooth = envelope
+    envelope_smooth = signal.medfilt(envelope, window_size) if window_size >= 3 else envelope
 
     # Find peaks (clicks)
     # Threshold: 3x median envelope

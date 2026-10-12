@@ -28,8 +28,8 @@ import sys
 import threading
 import time
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional, Tuple
 
 from .__version__ import __version__
 
@@ -59,7 +59,7 @@ def current_version() -> str:
         return __version__
 
 
-def parse_version(text: str) -> Optional[Tuple[int, ...]]:
+def parse_version(text: str) -> tuple[int, ...] | None:
     """``"2.2.0"`` → ``(2, 2, 0)``; anything that is not plain digits and dots → None."""
     parts = text.strip().split(".")
     if not parts or not all(p.isdigit() for p in parts):
@@ -84,15 +84,15 @@ def cache_path() -> Path:
     return base / "flac-detective" / _CACHE_FILE_NAME
 
 
-def fetch_latest_version(timeout: float = FETCH_TIMEOUT_SECONDS) -> Optional[str]:
+def fetch_latest_version(timeout: float = FETCH_TIMEOUT_SECONDS) -> str | None:
     """Ask PyPI for the latest release; None on any failure."""
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - PYPI_URL is a fixed https constant
         PYPI_URL,
         headers={"User-Agent": f"flac-detective/{__version__}", "Accept": "application/json"},
     )
     try:
-        # nosec B310: the URL is the https constant above, never user input.
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310
+        # S310: the URL is the https constant above, never user input.
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
             payload = json.loads(response.read().decode("utf-8"))
         version = payload["info"]["version"]
         return str(version) if isinstance(version, str) else None
@@ -101,7 +101,7 @@ def fetch_latest_version(timeout: float = FETCH_TIMEOUT_SECONDS) -> Optional[str
         return None
 
 
-def _read_cache(path: Path) -> Optional[dict]:
+def _read_cache(path: Path) -> dict | None:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         return data if isinstance(data, dict) else None
@@ -119,11 +119,11 @@ def _write_cache(path: Path, latest: str, now: float) -> None:
 
 def latest_version(
     *,
-    now: Optional[float] = None,
-    fetch: Callable[[], Optional[str]] = fetch_latest_version,
-    cache_file: Optional[Path] = None,
-    environ: Optional[dict] = None,
-) -> Optional[str]:
+    now: float | None = None,
+    fetch: Callable[[], str | None] = fetch_latest_version,
+    cache_file: Path | None = None,
+    environ: dict | None = None,
+) -> str | None:
     """The latest release on PyPI, from the day's cache or a fresh request.
 
     None when the check is switched off, when PyPI could not be reached and no
@@ -155,7 +155,7 @@ def latest_version(
         return None
 
 
-def update_notice(latest: Optional[str], current: Optional[str] = None) -> Optional[str]:
+def update_notice(latest: str | None, current: str | None = None) -> str | None:
     """The one-line notice to print, or None when there is nothing newer."""
     current = current_version() if current is None else current
     if latest is None or not is_newer(latest, current):
@@ -175,13 +175,13 @@ class UpdateCheck:
     next run).
     """
 
-    def __init__(self, enabled: bool = True, current: Optional[str] = None) -> None:
+    def __init__(self, enabled: bool = True, current: str | None = None) -> None:
         self._enabled = enabled
         self._current = current_version() if current is None else current
-        self._latest: Optional[str] = None
-        self._thread: Optional[threading.Thread] = None
+        self._latest: str | None = None
+        self._thread: threading.Thread | None = None
 
-    def start(self) -> "UpdateCheck":
+    def start(self) -> UpdateCheck:
         """Launch the check in the background (a no-op when disabled)."""
         if not self._enabled or self._thread is not None:
             return self
@@ -194,13 +194,13 @@ class UpdateCheck:
         self._latest = latest_version()
 
     @property
-    def latest(self) -> Optional[str]:
+    def latest(self) -> str | None:
         """The release the check found, once the thread has finished (else None)."""
         if self._thread is None or self._thread.is_alive():
             return None
         return self._latest
 
-    def notice(self, wait: float = 1.0) -> Optional[str]:
+    def notice(self, wait: float = 1.0) -> str | None:
         """The notice, if the check finished within ``wait`` seconds and found a newer release."""
         if self._thread is None:
             return None

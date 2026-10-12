@@ -3,7 +3,6 @@
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 from ..colors import Colors, colorize
 
@@ -28,7 +27,7 @@ def is_writable_dir(path: Path) -> bool:
         return False
 
 
-def resolve_work_dir(paths: list[Path], work_dir: Optional[Path] = None) -> tuple[Path, list[str]]:
+def resolve_work_dir(paths: list[Path], work_dir: Path | None = None) -> tuple[Path, list[str]]:
     """Decide where ``progress.json``, the report and the console log go.
 
     * ``--work-dir`` given → that directory (created if needed). It must be

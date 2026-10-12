@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -49,9 +48,9 @@ GRID_BAR = 1.6
 
 
 def apply_rule_16_mp3_grid(
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 16. Returns ``(0, reasons, details)`` — always zero points."""
     details: dict = {"mp3_grid_ratio": float("nan"), "mp3_grid_offset": -1, "mp3_witness": False}
     if audio_data is None or sample_rate is None:

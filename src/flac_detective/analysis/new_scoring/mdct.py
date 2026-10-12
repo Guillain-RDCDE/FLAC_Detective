@@ -49,7 +49,7 @@ Scope, stated plainly, and measured rather than assumed:
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 from scipy.ndimage import median_filter
@@ -62,7 +62,7 @@ HOP = WINDOW_LEN // 2
 
 # Analysis band. Below ~2 kHz the encoder quantises far more finely (few zeros),
 # above ~16 kHz band-limited material is empty and would read as all-holes.
-BAND_HZ: Tuple[float, float] = (2000.0, 16000.0)
+BAND_HZ: tuple[float, float] = (2000.0, 16000.0)
 
 # A bin counts as a hole at this depth below its local neighbourhood median.
 HOLE_DEPTH_DB = 40.0
@@ -79,7 +79,7 @@ REF_SIZE = 33
 # rather than guessing — the same choice Rule 12 makes below a 7 kHz rolloff.
 MIN_BASELINE_HOLE_FRACTION = 0.001
 
-_BASIS_CACHE: Dict[Tuple[int, Tuple[float, float]], np.ndarray] = {}
+_BASIS_CACHE: dict[tuple[int, tuple[float, float]], np.ndarray] = {}
 
 
 def kbd_window(length: int = WINDOW_LEN, alpha: float = 4.0) -> np.ndarray:
@@ -116,7 +116,7 @@ def vorbis_window(length: int = WINDOW_LEN) -> np.ndarray:
     return window
 
 
-def mdct_basis(sample_rate: int, band_hz: Tuple[float, float] = BAND_HZ) -> np.ndarray:
+def mdct_basis(sample_rate: int, band_hz: tuple[float, float] = BAND_HZ) -> np.ndarray:
     """MDCT basis restricted to the analysis band, cached per (rate, band).
 
     Restricting the columns before the matmul — rather than slicing the result —
@@ -142,7 +142,7 @@ def alignment_curve(
     sample_rate: int,
     window: np.ndarray,
     n_frames: int = 24,
-    offsets: Optional[Sequence[int]] = None,
+    offsets: Sequence[int] | None = None,
     ref_size: int = REF_SIZE,
     depth_db: float = HOLE_DEPTH_DB,
 ) -> np.ndarray:
@@ -290,7 +290,7 @@ def alignment_stat(
     fine_frames: int = 24,
     n_candidates: int = 24,
     n_baseline: int = 64,
-) -> Tuple[float, int]:
+) -> tuple[float, int]:
     """Return ``(peak_ratio, best_offset)`` for one mono excerpt.
 
     ``peak_ratio`` is the test statistic: hole fraction at the best alignment,
@@ -353,7 +353,7 @@ def best_alignment_stat(
     x: np.ndarray,
     sample_rate: int,
     stop_at: float = 3.0,
-) -> Tuple[float, int, str]:
+) -> tuple[float, int, str]:
     """Try each transform hypothesis and return the strongest reading.
 
     Returns ``(peak_ratio, best_offset, hypothesis_name)``.

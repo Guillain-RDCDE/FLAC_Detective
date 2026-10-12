@@ -30,9 +30,9 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from flac_detective import main as fd_main  # noqa: E402
-from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
-from flac_detective.analysis.progress import (  # noqa: E402
+from flac_detective import main as fd_main
+from flac_detective.analysis.analyzer import FLACAnalyzer
+from flac_detective.analysis.progress import (
     SCAN_REPORTS_PER_FILE,
     STAGES,
     SUBSTAGES,
@@ -343,9 +343,11 @@ def test_events_come_back_from_the_pool(tmp_path):
 
 def test_an_unwritable_destination_stops_before_the_scan(tmp_path):
     """Say the command is wrong now, not after an hour of analysis."""
-    with pytest.raises(SystemExit):
-        with fd_main._progress_event_writer(str(tmp_path / "no-such-dir" / "events.ndjson")):
-            pass  # pragma: no cover - the context manager raises on entry
+    with (
+        pytest.raises(SystemExit),
+        fd_main._progress_event_writer(str(tmp_path / "no-such-dir" / "events.ndjson")),
+    ):
+        pass  # pragma: no cover - the context manager raises on entry
 
 
 def test_off_by_default_creates_nothing():

@@ -7,7 +7,7 @@ so the MP3 "cliff" is visible to the eye, exactly as in the static report.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -64,7 +64,7 @@ class SpectrumView(FigureCanvasQTAgg):
             )
         self.draw_idle()
 
-    def show_file(self, result: Dict[str, Any]) -> None:
+    def show_file(self, result: dict[str, Any]) -> None:
         """Plot the spectrum for ``result``'s file, marking its detected cutoff."""
         curve = compute_spectrum_curve(result.get("filepath", ""))
         if curve is None:

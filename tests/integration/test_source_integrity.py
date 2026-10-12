@@ -50,7 +50,7 @@ def check_flac_file(filepath):
     except subprocess.TimeoutExpired:
         return False, "Timeout (>60s)", None
     except Exception as e:
-        return False, f"Exception: {str(e)}", None
+        return False, f"Exception: {e!s}", None
 
 
 def scan_directory(directory, verbose=False):

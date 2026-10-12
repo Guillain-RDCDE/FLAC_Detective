@@ -12,6 +12,7 @@ its first run — a control that printed its reassuring conclusion while its
 denominator was zero.
 """
 
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -316,7 +317,7 @@ def test_evidence_families_are_carried_through():
 def test_fine_grid_walks_exactly_one_mp3_frame():
     assert probe.FINE_OFFSETS_SAMPLES[0] == 0
     assert probe.FINE_OFFSETS_SAMPLES[-1] == probe.MP3_FRAME_SAMPLES == 1152
-    steps = {b - a for a, b in zip(probe.FINE_OFFSETS_SAMPLES, probe.FINE_OFFSETS_SAMPLES[1:])}
+    steps = {b - a for a, b in pairwise(probe.FINE_OFFSETS_SAMPLES)}
     assert steps == {probe.MP3_FRAME_SAMPLES // 8}
 
 

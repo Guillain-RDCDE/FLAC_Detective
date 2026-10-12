@@ -40,8 +40,6 @@ band stops well under 20 kHz.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 QMF_BANDS = 64
@@ -55,7 +53,7 @@ MIN_ENERGY = 1e-6
 LIVE_FLOOR_DB = -50.0
 
 
-def replication_coherence(mono: np.ndarray, sample_rate: int) -> Tuple[float, int]:
+def replication_coherence(mono: np.ndarray, sample_rate: int) -> tuple[float, int]:
     """Return ``(coherence, shift_in_subbands)``; ``(nan, -1)`` when it cannot be read."""
     x = np.asarray(mono, dtype=np.float32)
     window = np.hanning(STFT_SIZE).astype(np.float32)

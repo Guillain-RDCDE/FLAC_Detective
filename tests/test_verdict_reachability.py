@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
-from typing import List, Tuple
 
 SCORING = Path(__file__).resolve().parent.parent / "src" / "flac_detective" / "analysis"
 
@@ -44,7 +43,7 @@ GATE_MODULE = "verdict.py"
 GATE_MUST_REFERENCE = ("families", "CONVICTION_MIN_FAMILIES")
 
 
-def _producers() -> List[Tuple[Path, int, str]]:
+def _producers() -> list[tuple[Path, int, str]]:
     """Every place the conviction string is produced, with its enclosing function.
 
     "Produced" means the literal appears in a ``return`` or an assignment — not in
@@ -52,7 +51,7 @@ def _producers() -> List[Tuple[Path, int, str]]:
     else decided. That distinction is the whole point: the danger is a second
     ORIGIN, not a second reader.
     """
-    found: List[Tuple[Path, int, str]] = []
+    found: list[tuple[Path, int, str]] = []
     for path in sorted(SCORING.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
@@ -62,9 +61,7 @@ def _producers() -> List[Tuple[Path, int, str]]:
                 continue
             for inner in ast.walk(node):
                 produced = False
-                if isinstance(inner, ast.Return) and inner.value is not None:
-                    produced = _mentions(inner.value)
-                elif isinstance(inner, ast.Assign):
+                if (isinstance(inner, ast.Return) and inner.value is not None) or isinstance(inner, ast.Assign):
                     produced = _mentions(inner.value)
                 if produced:
                     found.append((path, inner.lineno, node.name))
@@ -231,12 +228,12 @@ def _rules_by_function(tree: ast.AST) -> dict:
     return {name: rules for name, rules in inside.items() if rules}
 
 
-def _terminal(body: List[ast.stmt]) -> bool:
+def _terminal(body: list[ast.stmt]) -> bool:
     """Does this block end by leaving the function?"""
     return bool(body) and isinstance(body[-1], (ast.Return, ast.Raise))
 
 
-def _collect(node: ast.AST, inside: dict, entry: str, out: List[Tuple[int, str]]) -> None:
+def _collect(node: ast.AST, inside: dict, entry: str, out: list[tuple[int, str]]) -> None:
     """Record rule positions in one statement, without descending into branches."""
     for child in ast.walk(node):
         if not isinstance(child, ast.Call) or not isinstance(child.func, ast.Name):
@@ -250,7 +247,7 @@ def _collect(node: ast.AST, inside: dict, entry: str, out: List[Tuple[int, str]]
 
 
 def _walk_reachable(
-    body: List[ast.stmt], inside: dict, entry: str, out: List[Tuple[int, str]]
+    body: list[ast.stmt], inside: dict, entry: str, out: list[tuple[int, str]]
 ) -> None:
     """Collect rule positions along paths that can still reach later statements.
 
@@ -291,7 +288,7 @@ def _walk_reachable(
             _collect(stmt, inside, entry, out)
 
 
-def _rule_positions(tree: ast.AST, entry: str) -> List[Tuple[int, str]]:
+def _rule_positions(tree: ast.AST, entry: str) -> list[tuple[int, str]]:
     """(execution position, rule class) for every rule that can reach later code.
 
     Position is the line at which the rule can first have run, which is NOT the
@@ -304,7 +301,7 @@ def _rule_positions(tree: ast.AST, entry: str) -> List[Tuple[int, str]]:
         None,
     )
     assert scorer is not None, f"{entry} not found"
-    out: List[Tuple[int, str]] = []
+    out: list[tuple[int, str]] = []
     _walk_reachable(scorer.body, inside, entry, out)
     return sorted(set(out))
 
@@ -340,7 +337,7 @@ def test_families_reachable_at_each_gate_are_declared() -> None:
         "assuming it matches another."
     )
 
-    for gate, expected in zip(gates, EXPECTED_REACHABLE):
+    for gate, expected in zip(gates, EXPECTED_REACHABLE, strict=True):
         reachable = {RULE_FAMILY[name] for line, name in rules if line < gate}
         assert reachable == expected, (
             f"at line {gate} the reachable families are {sorted(reachable)}, "

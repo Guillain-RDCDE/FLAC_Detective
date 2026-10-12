@@ -126,7 +126,8 @@ def test_a_short_key_is_refused(tmp_path):
 def test_an_unbalanced_key_is_refused(tmp_path):
     """280 rows but not 8 x 35 — the shape he declared has to hold, not just the total."""
     csv_path = _key_csv(tmp_path / "key.csv")
-    rows = list(csv.DictReader(open(csv_path, newline="", encoding="utf-8")))
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
     rows[0]["class"] = "genuine"  # 36 genuine, 34 of another
     for row in rows:
         if row["class"] == "mp3_320_lame":
@@ -143,7 +144,8 @@ def test_an_unbalanced_key_is_refused(tmp_path):
 def test_one_source_in_two_buckets_is_refused(tmp_path):
     """A stem that is vinyl on one row and not on another cannot be stratified."""
     csv_path = _key_csv(tmp_path / "key.csv")
-    rows = list(csv.DictReader(open(csv_path, newline="", encoding="utf-8")))
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
     rows[0]["source_bucket"] = "OWNER_CD_RIP"  # S01 is VINYL on its other seven rows
     with open(csv_path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=list(rows[0]))

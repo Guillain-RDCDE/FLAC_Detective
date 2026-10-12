@@ -3,7 +3,6 @@
 import logging
 from pathlib import Path
 from threading import Lock
-from typing import Dict, Optional, Tuple
 
 import numpy as np
 
@@ -22,7 +21,7 @@ class AudioCache:
     def __init__(
         self,
         filepath: Path,
-        original_filepath: Optional[Path] = None,
+        original_filepath: Path | None = None,
         repair_in_place: bool = False,
     ):
         """Initialize cache for a specific file.
@@ -36,12 +35,12 @@ class AudioCache:
         self.filepath = filepath
         self.original_filepath = original_filepath or filepath
         self.repair_in_place = repair_in_place
-        self._full_audio: Optional[Tuple[np.ndarray, int]] = None
-        self._segments: Dict[Tuple[int, int], Tuple[np.ndarray, int]] = {}
+        self._full_audio: tuple[np.ndarray, int] | None = None
+        self._segments: dict[tuple[int, int], tuple[np.ndarray, int]] = {}
         self._lock = Lock()
         self._is_partial = False  # Track if audio data is partial
 
-    def get_full_audio(self) -> Tuple[np.ndarray, int]:
+    def get_full_audio(self) -> tuple[np.ndarray, int]:
         """Get full audio data (cached).
 
         Returns:
@@ -89,7 +88,7 @@ class AudioCache:
         else:
             logger.debug(f"CACHE: Using cached full audio for {self.filepath.name}")
 
-        assert self._full_audio is not None
+        assert self._full_audio is not None  # noqa: S101 - narrows the type for mypy
         return self._full_audio
 
     def is_partial(self) -> bool:
@@ -100,7 +99,7 @@ class AudioCache:
         """
         return self._is_partial
 
-    def get_segment(self, start_frame: int, frames: int) -> Tuple[np.ndarray, int]:
+    def get_segment(self, start_frame: int, frames: int) -> tuple[np.ndarray, int]:
         """Get audio segment (cached).
 
         Args:

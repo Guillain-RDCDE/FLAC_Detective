@@ -152,11 +152,9 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = {executor.submit(copy_and_verify, task[0], task[1]): task for task in tasks}
 
-        completed = 0
-        for future in concurrent.futures.as_completed(futures):
+        for completed, future in enumerate(concurrent.futures.as_completed(futures), start=1):
             result = future.result()
             results.append(result)
-            completed += 1
 
             if result["success"]:
                 safe_print(

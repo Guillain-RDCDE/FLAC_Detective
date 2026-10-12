@@ -5,6 +5,7 @@ from the machine specifications.
 """
 
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -123,7 +124,7 @@ class TestMandatoryTestCase1:
         cutoff_freq = 20500  # Below 21kHz threshold, in 320 kbps range (19.5-21.5 kHz)
 
         # Calculate score
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, reason = new_calculate_score(
             cutoff_freq, metadata, duration_check, mock_path
         )
 
@@ -183,7 +184,7 @@ class TestMandatoryTestCase2:
         cutoff_freq = 19143  # In 256 kbps range
 
         # Calculate score
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, reason = new_calculate_score(
             cutoff_freq, metadata, duration_check, mock_path
         )
 
@@ -248,7 +249,7 @@ class TestMandatoryTestCase3:
         cutoff_freq = 18000  # Low cutoff (poor quality recording)
 
         # Calculate score
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, _reason = new_calculate_score(
             cutoff_freq, metadata, duration_check, mock_path
         )
 
@@ -304,7 +305,7 @@ class TestMandatoryTestCase4:
         cutoff_freq = 21878  # High cutoff (excellent quality)
 
         # Calculate score
-        score, verdict, confidence, reason = new_calculate_score(
+        score, verdict, _confidence, _reason = new_calculate_score(
             cutoff_freq, metadata, duration_check, mock_path
         )
 
@@ -393,8 +394,8 @@ class TestRule13BeforeTheAcquittal:
     (ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md).
     """
 
-    METADATA = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
-    DURATION = {"mismatch": None, "diff_ms": 0}
+    METADATA: ClassVar[dict] = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
+    DURATION: ClassVar[dict] = {"mismatch": None, "diff_ms": 0}
     AUDIO = (np.zeros((44100 * 3, 2)), 44100)
 
     def _score(self, r13_points, mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12):
@@ -417,8 +418,8 @@ class TestRule13BeforeTheAcquittal:
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
     def test_rule13_reads_nothing_and_the_fast_path_acquits(self, *mocks):
         """Rule 13 is asked; reading no grid, the file leaves AUTHENTIC as before, saying so."""
-        mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12 = mocks
-        score, verdict, _confidence, reason = self._score(0, *mocks)
+        _mock_rule7, _mock_real_bitrate, _mock_load, mock_r13, mock_r12 = mocks
+        _score, verdict, _confidence, reason = self._score(0, *mocks)
         assert mock_r13.call_count == 1, "the fast path must ask Rule 13 first"
         assert mock_r12.call_count == 0, "nothing read: the CNN stays off the fast path"
         assert verdict == "AUTHENTIC"
@@ -431,7 +432,7 @@ class TestRule13BeforeTheAcquittal:
     @patch("flac_detective.analysis.new_scoring.strategies.apply_rule_7_silence_analysis")
     def test_rule13_reads_a_grid_and_the_witnesses_run(self, *mocks):
         """A grid on a silent file is not acquitted: the deep-mode witnesses run, no fast exit."""
-        mock_rule7, mock_real_bitrate, mock_load, mock_r13, mock_r12 = mocks
+        _mock_rule7, _mock_real_bitrate, _mock_load, mock_r13, mock_r12 = mocks
         score, verdict, _confidence, reason = self._score(55, *mocks)
         assert mock_r13.call_count == 1
         assert mock_r12.call_count == 1, "the CNN must get its say once Rule 13 has read a grid"
@@ -482,7 +483,7 @@ class TestMP3BitrateConstants:
     def test_mp3_standard_bitrates(self):
         """Verify MP3 standard bitrates list."""
         expected = [96, 128, 160, 192, 224, 256, 320]
-        assert MP3_STANDARD_BITRATES == expected
+        assert expected == MP3_STANDARD_BITRATES
 
 
 class TestRule7SilenceAnalysis:

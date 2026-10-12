@@ -20,7 +20,6 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ def ffmpeg_available() -> bool:
     return shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
 
-def probe_codec(path: Path) -> Optional[str]:
+def probe_codec(path: Path) -> str | None:
     """Return the first audio stream's codec_name via ffprobe, or None on failure."""
     try:
         result = subprocess.run(
@@ -107,7 +106,7 @@ def probe_codec(path: Path) -> Optional[str]:
         return None
 
 
-def probe_stream(path: Path) -> Optional[Dict[str, str]]:
+def probe_stream(path: Path) -> dict[str, str] | None:
     """Return the first audio stream's codec_name, profile, sample_fmt and bit depth.
 
     A dict of the ffprobe fields (``codec_name``, ``profile``, ``sample_fmt``,
@@ -134,7 +133,7 @@ def probe_stream(path: Path) -> Optional[Dict[str, str]]:
             text=True,
             timeout=30,
         )
-        fields: Dict[str, str] = {}
+        fields: dict[str, str] = {}
         for line in result.stdout.splitlines():
             key, sep, value = line.partition("=")
             if sep:
@@ -167,7 +166,7 @@ def is_analysable_lossless(path: Path) -> bool:
     return False
 
 
-def discover_audio_files(root_dir: Path) -> Tuple[List[Path], List[Path]]:
+def discover_audio_files(root_dir: Path) -> tuple[list[Path], list[Path]]:
     """Every audio file under ``root_dir``, sorted into (analysable, rejects).
 
     Analysable: the native formats by extension, and every probe-able container
@@ -178,8 +177,8 @@ def discover_audio_files(root_dir: Path) -> Tuple[List[Path], List[Path]]:
     only, so an ``.aiff`` in a folder was never analysed while the same file
     passed on the command line was (found 2026-09-15 on a Beatport A/B).
     """
-    analysable: List[Path] = []
-    rejects: List[Path] = []
+    analysable: list[Path] = []
+    rejects: list[Path] = []
     for candidate in sorted(root_dir.rglob("*")):
         if not candidate.is_file():
             continue
@@ -210,7 +209,7 @@ _FLAC_16_BIT = {"PCM_S8", "PCM_U8", "PCM_16"}
 _ENCODE_BLOCK = 1 << 20
 
 
-def flac_equivalent_size(path: Path) -> Optional[int]:
+def flac_equivalent_size(path: Path) -> int | None:
     """Size in bytes of ``path``'s audio re-encoded as FLAC, or None on failure.
 
     Rule 1 reads a compression ratio as evidence: audio that squeezes down to
@@ -240,7 +239,7 @@ def flac_equivalent_size(path: Path) -> Optional[int]:
     except ImportError:  # pragma: no cover - soundfile is a hard dependency
         return None
 
-    tmp: Optional[Path] = None
+    tmp: Path | None = None
     try:
         with sf.SoundFile(str(path)) as src:
             sixteen = src.subtype in _FLAC_16_BIT
@@ -277,7 +276,7 @@ def flac_equivalent_size(path: Path) -> Optional[int]:
             tmp.unlink(missing_ok=True)
 
 
-def flac_segment_bitrates(path: Path, n_segments: int = 10) -> Optional[list]:
+def flac_segment_bitrates(path: Path, n_segments: int = 10) -> list | None:
     """Bitrate in kbps of each of ``n_segments`` slices, each compressed on its own.
 
     The statistic Rules 5 and 6 were written to read: a lossless encoder spends
@@ -324,7 +323,7 @@ def flac_segment_bitrates(path: Path, n_segments: int = 10) -> Optional[list]:
         return None
 
 
-def _pcm_codec_for(info: Optional[Dict[str, str]]) -> str:
+def _pcm_codec_for(info: dict[str, str] | None) -> str:
     """The WAV sample format that keeps every bit of the probed stream.
 
     ffmpeg's WAV muxer defaults to 16-bit; a 24-bit ALAC or TrueHD stream
@@ -345,7 +344,7 @@ def _pcm_codec_for(info: Optional[Dict[str, str]]) -> str:
     return "pcm_s16le"
 
 
-def decode_to_wav(path: Path) -> Optional[Path]:
+def decode_to_wav(path: Path) -> Path | None:
     """Decode a non-native lossless source to a temp WAV (PCM) via ffmpeg.
 
     Returns the temp WAV path (caller deletes it), or None if ffmpeg is missing or

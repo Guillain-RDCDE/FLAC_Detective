@@ -36,7 +36,7 @@ def benchmark_audio_file():
     audio = audio / np.max(np.abs(audio)) * 0.8
 
     # Create temporary FLAC file
-    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)  # noqa: SIM115 - closed on the next line
     temp_file.close()  # Windows will not unlink a file the process still holds open
     temp_path = Path(temp_file.name)
 
@@ -58,7 +58,7 @@ def benchmark_small_audio():
     np.random.seed(123)
     audio = np.random.randn(samples, 2) * 0.3
 
-    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+    temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)  # noqa: SIM115 - closed on the next line
     temp_file.close()  # Windows will not unlink a file the process still holds open
     temp_path = Path(temp_file.name)
 

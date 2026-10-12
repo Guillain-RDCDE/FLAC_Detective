@@ -119,7 +119,7 @@ def test_a_clock_set_back_does_not_trust_the_cache(tmp_path):
 def test_a_corrupt_cache_is_ignored_not_fatal(tmp_path):
     cache = tmp_path / "c.json"
     cache.write_text("{not json", encoding="utf-8")
-    fetch, calls = _calls("2.9.0")
+    fetch, _calls_made = _calls("2.9.0")
     assert uc.latest_version(fetch=fetch, cache_file=cache, environ={}) == "2.9.0"
 
 

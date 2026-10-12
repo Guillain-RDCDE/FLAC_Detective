@@ -26,7 +26,7 @@ import html
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..__version__ import __version__
 from .common import display_path, rank_by_score, verdict_of
@@ -39,7 +39,7 @@ _FLAGGED_VERDICTS = ("FAKE_CERTAIN", "SUSPICIOUS", "WARNING")
 
 # Verdict → (label, CSS class). The CSS class drives the badge colour and the
 # table-row filter. AUTHENTIC/NON_FLAC/ERROR are handled by the .get() fallback.
-_VERDICT_META: Dict[str, Tuple[str, str]] = {
+_VERDICT_META: dict[str, tuple[str, str]] = {
     "FAKE_CERTAIN": ("Fake (certain)", "v-fake"),
     "SUSPICIOUS": ("Suspicious", "v-suspicious"),
     "WARNING": ("Warning", "v-warning"),
@@ -64,9 +64,9 @@ class HTMLReporter:
 
     def generate_report(
         self,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         output_file: Path,
-        scan_paths: Optional[List[Path]] = None,
+        scan_paths: list[Path] | None = None,
     ) -> None:
         """Write ``results`` to ``output_file`` as a self-contained HTML report.
 
@@ -80,7 +80,7 @@ class HTMLReporter:
         ranked = rank_by_score(results)
         flagged = [r for r in ranked if verdict_of(r) in _FLAGGED_VERDICTS]
 
-        parts: List[str] = [
+        parts: list[str] = [
             self._document_head(),
             self._summary(ranked),
             self._triage_table(ranked, scan_paths),
@@ -93,12 +93,12 @@ class HTMLReporter:
     # ----------------------------------------------------------------- helpers
 
     @staticmethod
-    def _verdict_of(result: Dict[str, Any]) -> str:
+    def _verdict_of(result: dict[str, Any]) -> str:
         """The authoritative verdict for a result (see ``reporting.common``)."""
         return verdict_of(result)
 
     @staticmethod
-    def _display_path(result: Dict[str, Any], scan_paths: Optional[List[Path]]) -> str:
+    def _display_path(result: dict[str, Any], scan_paths: list[Path] | None) -> str:
         """Path shown to the user — relative to a scan root when possible."""
         return display_path(result, scan_paths)
 
@@ -113,9 +113,9 @@ class HTMLReporter:
     def _document_foot(self) -> str:
         return _HTML_FOOT
 
-    def _summary(self, results: List[Dict[str, Any]]) -> str:
+    def _summary(self, results: list[dict[str, Any]]) -> str:
         total = len(results)
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         for r in results:
             counts[self._verdict_of(r)] = counts.get(self._verdict_of(r), 0) + 1
 
@@ -143,7 +143,7 @@ class HTMLReporter:
             )
         return '<section class="summary">' + "".join(cards) + "</section>"
 
-    def _triage_table(self, results: List[Dict[str, Any]], scan_paths: Optional[List[Path]]) -> str:
+    def _triage_table(self, results: list[dict[str, Any]], scan_paths: list[Path] | None) -> str:
         if not results:
             return '<section><p class="empty">No files analyzed.</p></section>'
 
@@ -203,7 +203,7 @@ class HTMLReporter:
             "</tr></thead><tbody>" + "".join(rows) + "</tbody></table></section>"
         )
 
-    def _detail_cards(self, flagged: List[Dict[str, Any]], scan_paths: Optional[List[Path]]) -> str:
+    def _detail_cards(self, flagged: list[dict[str, Any]], scan_paths: list[Path] | None) -> str:
         if not flagged:
             return '<section><h2>Flagged files</h2><p class="empty">None — nothing to inspect.</p></section>'
 
@@ -254,7 +254,7 @@ class HTMLReporter:
 
     # ------------------------------------------------------------- spectrum SVG
 
-    def _spectrum_svg(self, result: Dict[str, Any]) -> str:
+    def _spectrum_svg(self, result: dict[str, Any]) -> str:
         """Render an inline-SVG magnitude spectrum for one file, or a placeholder.
 
         The curve is the real FFT magnitude (dB, peak-normalised) of a 10 s middle
@@ -278,7 +278,7 @@ class HTMLReporter:
             # value in 0..1 (1 = peak) → top of plot area
             return pad_t + (1.0 - value) * plot_h
 
-        points = " ".join(f"{x_of(f):.1f},{y_of(v):.1f}" for f, v in zip(freqs, norm))
+        points = " ".join(f"{x_of(f):.1f},{y_of(v):.1f}" for f, v in zip(freqs, norm, strict=False))
 
         # Frequency grid every 5 kHz.
         grid = []
@@ -316,7 +316,7 @@ class HTMLReporter:
 
 def _compute_spectrum_curve(
     filepath: str,
-) -> Optional[Tuple[List[float], List[float], float]]:
+) -> tuple[list[float], list[float], float] | None:
     """The shared display curve; see ``reporting.spectrum_curve``."""
     return compute_spectrum_curve(filepath)
 

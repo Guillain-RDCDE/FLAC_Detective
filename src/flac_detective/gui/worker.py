@@ -15,7 +15,6 @@ from __future__ import annotations
 import logging
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
-from typing import List
 
 from PySide6.QtCore import QThread, Signal
 
@@ -36,7 +35,7 @@ class UpdateCheckWorker(QThread):
 
     notice = Signal(str)
 
-    def run(self) -> None:  # noqa: D102 - QThread entry point
+    def run(self) -> None:
         from ..update_check import latest_version, update_notice
 
         text = update_notice(latest_version())
@@ -60,7 +59,7 @@ class UpdateInstallWorker(QThread):
         super().__init__(parent)
         self._target = target or None
 
-    def run(self) -> None:  # noqa: D102 - QThread entry point
+    def run(self) -> None:
         from ..updater import upgrade
 
         result = upgrade(on_line=self.line.emit, target=self._target)
@@ -82,7 +81,7 @@ class AnalysisWorker(QThread):
     failed = Signal(str)
     finished_ok = Signal(bool)
 
-    def __init__(self, files: List[Path], sample_duration: float, deep: bool) -> None:
+    def __init__(self, files: list[Path], sample_duration: float, deep: bool) -> None:
         super().__init__()
         self._files = list(files)
         self._sample_duration = sample_duration
@@ -93,7 +92,7 @@ class AnalysisWorker(QThread):
         """Request cancellation; the run stops after in-flight files complete."""
         self._cancel = True
 
-    def run(self) -> None:  # noqa: D102 - QThread entry point
+    def run(self) -> None:
         total = len(self._files)
         if total == 0:
             self.finished_ok.emit(False)
@@ -102,7 +101,7 @@ class AnalysisWorker(QThread):
         analyzer = FLACAnalyzer(sample_duration=self._sample_duration, deep=self._deep)
         done: set[Path] = set()
 
-        def consume(files: List[Path], workers: int) -> None:
+        def consume(files: list[Path], workers: int) -> None:
             for path, res in analyze_batch(
                 files, analyzer, workers, should_stop=lambda: self._cancel
             ):

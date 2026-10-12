@@ -111,7 +111,7 @@ class TestTheStatistic:
 class TestTheRuleNeverScores:
     @pytest.mark.parametrize("band", [(12000.0, 18000.0), (14000.0, 20000.0)])
     def test_zero_points_whatever_it_reads(self, band) -> None:
-        score, _reasons, details = apply_rule_15_stereo_seam(
+        score, _reasons, _details = apply_rule_15_stereo_seam(
             "x.flac", 20000.0, audio_data=_coupled_above(*band), sample_rate=RATE
         )
         assert score == 0, (

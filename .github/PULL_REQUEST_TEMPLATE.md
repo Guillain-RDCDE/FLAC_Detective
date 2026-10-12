@@ -26,7 +26,7 @@
 
 ### Code Quality
 
-- [ ] My code follows the project's style guidelines (black, isort, flake8)
+- [ ] My code follows the project's style guidelines (`ruff check`, `ruff format`)
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] My changes generate no new warnings
@@ -35,7 +35,7 @@
 ### Testing
 
 - [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes (`pytest tests/unit/`)
+- [ ] New and existing tests pass locally with my changes (`pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks`)
 - [ ] New and existing integration tests pass locally (`pytest tests/integration/`)
 - [ ] I have verified the test coverage is maintained or improved
 

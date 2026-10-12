@@ -1,14 +1,13 @@
 """Metadata parsing functions for FLAC analysis."""
 
 import logging
-from typing import Dict
 
 from .models import AudioMetadata
 
 logger = logging.getLogger(__name__)
 
 
-def parse_metadata(metadata: Dict) -> AudioMetadata:
+def parse_metadata(metadata: dict) -> AudioMetadata:
     """Parse and validate metadata dictionary.
 
     Args:

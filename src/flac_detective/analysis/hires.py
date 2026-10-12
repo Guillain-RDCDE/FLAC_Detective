@@ -30,7 +30,6 @@ The verdict labels (analogous to the transcode traffic light):
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -129,7 +128,7 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
     if len(freq) < 2:
         return result
     bin_hz = freq[1] - freq[0]
-    smooth_bins = max(3, int(round(500.0 / max(bin_hz, 1e-6))))
+    smooth_bins = max(3, int(round(500.0 / max(bin_hz, 1e-6))))  # noqa: RUF046 - numpy scalars may not round to a Python int
     mag_smooth = uniform_filter1d(mag_db, size=smooth_bins)
     above_thresh = np.where(mag_smooth >= ref - 40.0)[0]
     if above_thresh.size == 0:
@@ -147,9 +146,8 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
         if r0 > samplerate * _MAX_SOURCE_RATE_RATIO:
             continue
         n0 = r0 / 2.0
-        if abs(content_edge - n0) <= _NYQUIST_TOLERANCE * n0:
-            if best_rate is None or n0 > best_rate / 2.0:
-                best_rate = r0
+        if (abs(content_edge - n0) <= _NYQUIST_TOLERANCE * n0) and (best_rate is None or n0 > best_rate / 2.0):
+            best_rate = r0
     if best_rate is None:
         return result
 
@@ -174,14 +172,14 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
 
 
 def classify_hires(
-    sample_rate: Optional[int],
-    bit_depth: Optional[int],
+    sample_rate: int | None,
+    bit_depth: int | None,
     is_upsampled: bool,
     suspected_original_rate: int,
     is_fake_high_res: bool,
     estimated_depth: int,
     floor_above_db: float = float("nan"),
-) -> Tuple[str, List[str]]:
+) -> tuple[str, list[str]]:
     """Combine upsampling + bit-depth signals into a single hi-res verdict.
 
     Args:
@@ -215,7 +213,7 @@ def classify_hires(
     if not is_high_rate and not is_high_depth:
         return NOT_HIRES, []
 
-    reasons: List[str] = []
+    reasons: list[str] = []
     upsampled = bool(is_upsampled and is_high_rate)
     padded = bool(is_fake_high_res and is_high_depth)
 

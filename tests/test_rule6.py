@@ -70,7 +70,7 @@ class TestRule6HighQualityProtection:
     def test_edge_case_exact_thresholds(self):
         """Test edge cases at exact threshold values."""
         # Bitrate exactly at 700 - should NOT trigger
-        score, reasons = apply_rule_6_variable_bitrate_protection(
+        score, _reasons = apply_rule_6_variable_bitrate_protection(
             mp3_bitrate_detected=None,
             bitrate_conteneur=700,
             cutoff_freq=20000,
@@ -79,7 +79,7 @@ class TestRule6HighQualityProtection:
         assert score == 0
 
         # Cutoff exactly at 19000 - SHOULD trigger
-        score, reasons = apply_rule_6_variable_bitrate_protection(
+        score, _reasons = apply_rule_6_variable_bitrate_protection(
             mp3_bitrate_detected=None,
             bitrate_conteneur=701,
             cutoff_freq=19000,
@@ -88,13 +88,13 @@ class TestRule6HighQualityProtection:
         assert score == -30
 
         # Variance exactly at 50 - should NOT trigger
-        score, reasons = apply_rule_6_variable_bitrate_protection(
+        score, _reasons = apply_rule_6_variable_bitrate_protection(
             mp3_bitrate_detected=None, bitrate_conteneur=800, cutoff_freq=20000, bitrate_variance=50
         )
         assert score == 0
 
         # Variance at 51 - SHOULD trigger
-        score, reasons = apply_rule_6_variable_bitrate_protection(
+        score, _reasons = apply_rule_6_variable_bitrate_protection(
             mp3_bitrate_detected=None, bitrate_conteneur=701, cutoff_freq=19000, bitrate_variance=51
         )
         assert score == -30

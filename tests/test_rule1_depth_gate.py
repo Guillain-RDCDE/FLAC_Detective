@@ -353,7 +353,7 @@ class TestAnalyzeSpectrumCarriesTheFloor:
             tmp_path / "beatport.flac",
             lambda f: 0.0 if f < 13500 else max(-(f - 13500) / 1000.0 * 12.0, -90.0),
         )
-        cutoff, energy, std, resid, step, floor = analyze_spectrum(path, 30.0)
+        cutoff, _energy, _std, _resid, step, floor = analyze_spectrum(path, 30.0)
         assert 15500.0 <= cutoff <= 17000.0  # 30 dB down is reached at 16 kHz
         assert step < WALL_MIN_STEP_DB  # gate D alone would clear it
         assert not math.isnan(floor)
@@ -364,6 +364,6 @@ class TestAnalyzeSpectrumCarriesTheFloor:
             tmp_path / "rolloff.flac",
             lambda f: 0.0 if f < 12000 else max(-(f - 12000) / 1000.0 * 6.0, -44.0),
         )
-        cutoff, energy, std, resid, step, floor = analyze_spectrum(path, 30.0)
+        cutoff, _energy, _std, _resid, _step, floor = analyze_spectrum(path, 30.0)
         assert 16000.0 <= cutoff <= 18000.0
         assert floor > DEEP_FLOOR_DB

@@ -284,7 +284,7 @@ def test_cassette_protection_is_credited_to_rule_11(monkeypatch):
     monkeypatch.setattr(calculator, "_ensure_audio", lambda context: None)
 
     breakdown: dict = {}
-    score, _verdict, _conf, reason = new_calculate_score(
+    _score, _verdict, _conf, reason = new_calculate_score(
         17250.0,
         {"sample_rate": SR, "bit_depth": 16, "channels": 2, "duration": 180.0},
         {"mismatch": None, "diff_ms": 0},

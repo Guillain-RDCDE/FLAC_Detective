@@ -18,10 +18,10 @@ os.environ.setdefault("FLAC_DETECTIVE_NO_UPDATE_CHECK", "1")
 pytest.importorskip("PySide6")
 pytest.importorskip("matplotlib")
 
-from PySide6.QtCore import Qt  # noqa: E402
-from PySide6.QtWidgets import QApplication  # noqa: E402
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
 
-from flac_detective.gui.main_window import MainWindow, _num_item  # noqa: E402
+from flac_detective.gui.main_window import MainWindow, _num_item
 
 
 @pytest.fixture(scope="module")

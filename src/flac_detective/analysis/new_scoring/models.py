@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Dict, List, NamedTuple, Optional, Set
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 if TYPE_CHECKING:
     import numpy as np
@@ -18,7 +18,7 @@ class BitrateMetrics(NamedTuple):
     # None means "not measured": the segment-variance instrument is switched off
     # until it is validated (see calculator.py), and Rules 5 and 6 already read
     # None as "skip" rather than as a zero variance.
-    variance: Optional[float]
+    variance: float | None
     # True when ``real_bitrate`` came from re-encoding the audio, and is therefore a
     # property of the SAMPLES. False when it is the size of the file on disk, which
     # is a property of the CONTAINER — the same audio then reads ~850 kbps as a FLAC
@@ -61,8 +61,8 @@ class ScoringContext:
     floor_above_db: float = float("nan")
 
     # State updated during scoring
-    mp3_bitrate_detected: Optional[int] = None
-    silence_ratio: Optional[float] = None
+    mp3_bitrate_detected: int | None = None
+    silence_ratio: float | None = None
     # Rule 11's cassette evidence (0-70). NOT part of the transcode score — the
     # calculator reads it to decide whether to protect the file. See Rule 11.
     cassette_score: int = 0
@@ -81,9 +81,9 @@ class ScoringContext:
     celt_ratio: float = float("nan")
     sbr_coherence: float = float("nan")
     side_step_db: float = float("nan")
-    witness_families: Set[str] = field(default_factory=set)
+    witness_families: set[str] = field(default_factory=set)
     current_score: int = 0
-    reasons: List[str] = field(default_factory=list)
+    reasons: list[str] = field(default_factory=list)
 
     # Per-rule score attribution (v1.8). Every add_score is credited to whichever
     # rule is executing, so a rule's own contribution can be read back per file —
@@ -91,18 +91,18 @@ class ScoringContext:
     # Without it, a dead rule (see Rule 9, AUC 0.51) is invisible inside the total.
     # The recorded delta is the RAW requested one, before ``max(0, …)`` clamping:
     # the clamp is a property of the running total, not of the rule's signal.
-    rule_scores: Dict[str, int] = field(default_factory=dict)
+    rule_scores: dict[str, int] = field(default_factory=dict)
     # Score changes made by the calculator itself rather than by a rule object
     # (e.g. the cassette −40 bonus, the Rule 8 refinement rollback).
     UNCREDITED: "ClassVar[str]" = "_calculator"
-    active_rule: Optional[str] = None
+    active_rule: str | None = None
 
     # Cache for heavy rules (Rules 11/13) - avoids reloading the file
-    audio_data: "Optional[np.ndarray]" = None  # numpy only imported under TYPE_CHECKING
-    loaded_sample_rate: Optional[int] = None
-    cache: "Optional[AudioCache]" = None  # AudioCache instance
+    audio_data: "np.ndarray | None" = None  # numpy only imported under TYPE_CHECKING
+    loaded_sample_rate: int | None = None
+    cache: "AudioCache | None" = None  # AudioCache instance
 
-    def add_score(self, score: int, new_reasons: List[str]):
+    def add_score(self, score: int, new_reasons: list[str]):
         """Update score and reasons, crediting the delta to the running rule.
 
         The running total is deliberately allowed to go negative. Clamping at

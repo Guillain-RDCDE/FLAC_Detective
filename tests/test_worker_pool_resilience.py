@@ -16,13 +16,13 @@ Three defects, one report: no cap on the worker count, no way for the user to
 lower it, and no recovery when the pool dies. These tests cover all three.
 """
 
-from concurrent.futures.process import BrokenProcessPool  # noqa: E402
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from flac_detective.cli import console as fd_console  # noqa: E402
-from flac_detective.cli import pool as fd_main  # noqa: E402
-from flac_detective.config import AnalysisConfig  # noqa: E402
+from flac_detective.cli import console as fd_console
+from flac_detective.cli import pool as fd_main
+from flac_detective.config import AnalysisConfig
 
 
 def _result(path: Path) -> dict:

@@ -1,6 +1,5 @@
 """Check metadata preservation after repair."""
 
-import os
 import sys
 
 # Force UTF-8 output

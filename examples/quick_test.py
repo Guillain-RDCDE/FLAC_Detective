@@ -6,10 +6,10 @@ This script demonstrates FLAC Detective using synthetic test data.
 No FLAC files needed - perfect for a quick demo!
 """
 
-import tempfile
-import wave
 import struct
 import subprocess
+import tempfile
+import wave
 from pathlib import Path
 
 try:

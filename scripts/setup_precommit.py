@@ -118,8 +118,8 @@ def run_initial_check() -> bool:
         print("   This is normal for the first run.")
         print("   Review the output above and fix any issues.")
         print("\n   Common fixes:")
-        print("   - Black/isort: Automatically fixed, just commit the changes")
-        print("   - flake8: Fix code style issues manually")
+        print("   - ruff: formatting and safe fixes are applied, just commit the changes")
+        print("   - ruff: fix the remaining findings by hand")
         print("   - mypy: Add type hints where needed")
         return False
 

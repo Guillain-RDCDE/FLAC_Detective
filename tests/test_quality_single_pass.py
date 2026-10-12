@@ -25,7 +25,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from flac_detective.analysis.quality import (  # noqa: E402
+from flac_detective.analysis.quality import (
     ClippingDetector,
     DCOffsetDetector,
     SilenceDetector,

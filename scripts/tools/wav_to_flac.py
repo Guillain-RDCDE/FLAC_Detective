@@ -7,7 +7,6 @@ Simple, efficient, and safe batch converter.
 import argparse
 import logging
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -39,7 +38,7 @@ def check_flac_installed():
     """Check if flac is available in PATH."""
     try:
         subprocess.run(
-            ["flac", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+            ["flac", "--version"], capture_output=True, check=True
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -63,7 +62,7 @@ def convert_file(args):
 
     try:
         start_time = time.time()
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(cmd, capture_output=True)
         duration = time.time() - start_time
 
         if result.returncode == 0:
@@ -106,7 +105,7 @@ def print_banner():
     )
 
 
-def main():
+def main():  # noqa: C901
     # Allow drag and drop (sys.argv[1] is the folder path)
     if len(sys.argv) == 2 and not sys.argv[1].startswith("-"):
         target_dir = sys.argv[1]
@@ -154,10 +153,7 @@ def main():
     # Find WAV files
     print(f"\nScanning: {root_dir}")
     pattern = "*.wav"
-    if args.recursive:
-        wav_files = list(root_dir.rglob(pattern))
-    else:
-        wav_files = list(root_dir.glob(pattern))
+    wav_files = list(root_dir.rglob(pattern)) if args.recursive else list(root_dir.glob(pattern))
 
     if not wav_files:
         print(f"{Colors.YELLOW}No WAV files found.{Colors.RESET}")

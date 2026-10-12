@@ -73,9 +73,9 @@ class TestRule8NyquistException:
         from flac_detective.analysis.new_scoring.rules import apply_rule_8_nyquist_exception
 
         # 48 kHz: Nyquist = 24000 Hz, 98% = 23520 Hz
-        score, reasons = apply_rule_8_nyquist_exception(23600, 48000, None, None)
+        score, _reasons = apply_rule_8_nyquist_exception(23600, 48000, None, None)
         assert score == -50
 
         # 96 kHz: Nyquist = 48000 Hz, 95% = 45600 Hz
-        score, reasons = apply_rule_8_nyquist_exception(46000, 96000, None, None)
+        score, _reasons = apply_rule_8_nyquist_exception(46000, 96000, None, None)
         assert score == -30

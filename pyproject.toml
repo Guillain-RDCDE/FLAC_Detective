@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Multimedia :: Sound/Audio :: Analysis",
     "Topic :: Utilities",
 ]
@@ -63,18 +64,11 @@ dev = [
     # because isort could not read the files at all under the Windows console
     # encoding (run the gates with PYTHONUTF8=1). Raising a pin is a deliberate
     # change, with its cleanup in the same commit.
-    "black==26.5.1",
-    "isort==9.0.2",
-    "flake8==7.4.1",
-    "flake8-docstrings==1.7.0",
-    "flake8-bugbear==26.9.30",
-    "flake8-comprehensions==3.17.0",
-    # "flake8-simplify>=0.21.0",  # Temporarily disabled - incompatible with Python 3.14 (astor dependency issue)
+    # ruff and mypy carry the same versions in .pre-commit-config.yaml: they
+    # move together, in the same commit.
+    "ruff==0.15.14",
     "mypy==2.4.0",
-    "pylint>=2.17.0",
     "pre-commit>=3.5.0",
-    "bandit>=1.7.0",
-    "interrogate>=1.5.0",
     "commitizen>=3.0.0",
 ]
 docs = [
@@ -106,35 +100,61 @@ version = {attr = "flac_detective.__version__.__version__"}
 [tool.setuptools.package-data]
 "flac_detective.gui" = ["resources/*.png", "resources/*.ico"]
 
-[tool.black]
+[tool.ruff]
+# ruff is the only linter and formatter: it replaces black, isort, flake8 (and
+# its docstring, bugbear and comprehensions plugins), pylint and bandit. The
+# target version is read from `requires-python`.
 line-length = 100
-target-version = ['py310', 'py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+# ml/ is the research corpus and the blind-exchange evidence: hashed as bytes,
+# never reformatted, never linted.
+extend-exclude = ["ml", "tests/test_data"]
+# Also when pre-commit passes those files by name.
+force-exclude = true
 
-[tool.isort]
-profile = "black"
-line_length = 100
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-skip_gitignore = true
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # import sorting (was isort)
+    "UP",   # modern syntax for the target version
+    "B",    # bugbear
+    "SIM",  # simplifications
+    "RUF",  # ruff's own rules
+    "S",    # security (was bandit)
+    "C90",  # cyclomatic complexity (was flake8's mccabe)
+]
+ignore = [
+    # Line length is the formatter's job; flake8 had E501 off for the same
+    # reason. What the formatter cannot wrap is long strings and comments.
+    "E501",
+    # Running flac, ffmpeg and our own interpreter is what this tool does: the
+    # executables are looked up on PATH and the arguments are built here, never
+    # taken from a shell. bandit's gate (-ll) left these low-severity findings
+    # out for the same reason.
+    "S603",
+    "S607",
+]
+# Typography in docstrings and comments, on purpose: en dash for ranges, the
+# multiplication and minus signs in measurements, the information sign in output.
+allowed-confusables = ["–", "×", "−", "ℹ"]
+# Codes of rules this configuration does not select, kept in `# noqa` comments
+# because the comment documents a deliberate choice (BLE001: a blind except that
+# must never let a side check break an analysis).
+external = ["BLE001"]
+
+[tool.ruff.lint.mccabe]
+# Same bound as flake8 had. The functions above it carry a targeted
+# `# noqa: C901`, so only new violations fail.
+max-complexity = 12
+
+[tool.ruff.lint.per-file-ignores]
+# assert is pytest's tool.
+"tests/**" = ["S101"]
 
 [tool.mypy]
+# Scope and options live here only: CI and the pre-commit hook run bare `mypy`.
+files = ["src"]
 # Match the project's actual minimum (3.10+). On "3.9" mypy parsed torch's
 # match statements with a 3.9 target and crashed before ever reaching src/,
 # so it silently checked nothing. src/ is now type-clean and mypy is a hard
@@ -169,7 +189,6 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
-    "--showlocals",
     # Coverage is NOT switched on here: the CI's coverage step passes the
     # `--cov*` flags itself, and a plain local `pytest` run used to write
     # htmlcov/ and coverage.xml into the (synchronised) working tree on every
@@ -221,13 +240,6 @@ exclude_lines = [
     "@abstractmethod",
 ]
 
-[tool.pylint.messages_control]
-max-line-length = 100
-disable = [
-    "C0111",  # missing-docstring
-    "R0903",  # too-few-public-methods
-]
-
 [tool.commitizen]
 name = "cz_conventional_commits"
 # Commitizen's own record of the current version (its default provider). A bump
@@ -241,5 +253,3 @@ version_files = [
 ]
 bump_message = "bump: version $current_version → $new_version"
 major_version_zero = false
-
-# flake8 does not read pyproject.toml: its configuration lives in `.flake8`.

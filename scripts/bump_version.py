@@ -35,7 +35,6 @@ Examples:
 import argparse
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_command(cmd, check=True, capture_output=True):
@@ -67,7 +66,7 @@ def run_tests():
     """Run the test suite."""
     print("\n🧪 Running tests...")
     try:
-        result = run_command(["python", "-m", "pytest", "tests/", "-v"], check=True)
+        run_command(["python", "-m", "pytest", "tests/", "-v"], check=True)
         print("✅ All tests passed")
         return True
     except subprocess.CalledProcessError:
@@ -79,7 +78,7 @@ def preview_changelog():
     """Preview what will be in the changelog."""
     print("\n📝 Preview of changelog changes:")
     print("=" * 60)
-    result = run_command(["cz", "changelog", "--dry-run"], check=True)
+    run_command(["cz", "changelog", "--dry-run"], check=True)
     print("=" * 60)
     return True
 
@@ -97,7 +96,7 @@ def bump_version(increment=None, dry_run=False):
         cmd.append("--dry-run")
 
     try:
-        result = run_command(cmd, check=True)
+        run_command(cmd, check=True)
 
         if dry_run:
             print("✅ Dry run completed successfully")
@@ -173,11 +172,10 @@ def main():
         sys.exit(1)
 
     # Run tests (unless skipped or dry-run)
-    if not args.skip_tests and not args.dry_run:
-        if not run_tests():
-            response = input("\n⚠️  Tests failed. Continue anyway? (y/N): ")
-            if response.lower() != "y":
-                sys.exit(1)
+    if (not args.skip_tests and not args.dry_run) and (not run_tests()):
+        response = input("\n⚠️  Tests failed. Continue anyway? (y/N): ")
+        if response.lower() != "y":
+            sys.exit(1)
 
     # Preview changelog
     preview_changelog()
@@ -211,7 +209,7 @@ def main():
             sys.exit(1)
 
         print(f"\n✅ Release {new_version} is complete!")
-        print(f"GitHub Actions will now build and publish to PyPI.")
+        print("GitHub Actions will now build and publish to PyPI.")
     else:
         print("\n✅ Version bump complete!")
         print("\nNext steps:")

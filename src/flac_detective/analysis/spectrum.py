@@ -2,8 +2,9 @@
 
 import logging
 import math
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NamedTuple, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 import soundfile as sf
@@ -26,7 +27,7 @@ FLOOR_TOP_FRACTION = 0.993
 _NO_EDGE_FRACTION = 0.999
 
 
-def _reference_band(samplerate: int) -> Tuple[int, int, int]:
+def _reference_band(samplerate: int) -> tuple[int, int, int]:
     """(reference low, reference high, scan start) in Hz for this sample rate.
 
     Standard resolution (44.1/48 kHz) uses the fixed values optimised for MP3
@@ -58,7 +59,7 @@ def _no_edge(cutoff_hz: float, frequencies: np.ndarray, samplerate: int) -> bool
 
 def _magnitude_spectrum(
     data: np.ndarray, samplerate: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Mono-mix, Hann-window and FFT one block of ``(frames, channels)`` audio.
 
     Returns ``(frequencies, magnitude, magnitude_db)``. The FFT runs on one
@@ -66,10 +67,7 @@ def _magnitude_spectrum(
     The expressions are the engine's own, in their original order; nothing here
     may be reassociated, as every cutoff reading rests on them.
     """
-    if data.shape[1] > 1:
-        mono = np.mean(data, axis=1)
-    else:
-        mono = data[:, 0]
+    mono = np.mean(data, axis=1) if data.shape[1] > 1 else data[:, 0]
     windowed = mono * get_hann_window(len(mono))
     with set_workers(1):
         fft_vals = rfft(windowed)
@@ -81,7 +79,7 @@ def _magnitude_spectrum(
 
 def _welch_magnitude_db(
     data_mono: np.ndarray, samplerate: int, nfft: int = 16384
-) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+) -> tuple[np.ndarray | None, np.ndarray | None]:
     """Welch-averaged magnitude spectrum (Hann, 50% overlap) in dB.
 
     A stable spectrum estimate for the residual-floor metric. Returns (None, None)
@@ -91,7 +89,7 @@ def _welch_magnitude_db(
         return None, None
     win = get_hann_window(nfft)
     step = nfft // 2
-    acc: Optional[np.ndarray] = None
+    acc: np.ndarray | None = None
     count = 0
     with set_workers(1):
         for start in range(0, len(data_mono) - nfft, step):
@@ -168,7 +166,7 @@ EDGE_STEP_CELLS = 2
 
 def cell_profile_db(
     frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100
-) -> Tuple[float, List[float]]:
+) -> tuple[float, list[float]]:
     """Median level of each 250 Hz cell from the scan start up to Nyquist.
 
     Levels are relative to the median of the 10-14 kHz reference band, on the
@@ -182,7 +180,7 @@ def cell_profile_db(
         return float(first), []
     reference = float(np.median(magnitude_db[ref_mask]))
     cell = spectral_config.TRANCHE_SIZE
-    cells: List[float] = []
+    cells: list[float] = []
     k = first
     while k + cell <= samplerate / 2.0 + 1:
         sel = (frequencies >= k) & (frequencies < k + cell)
@@ -264,7 +262,7 @@ def floor_above_edge_db(
     if not cells:
         return float("nan")
     cell = spectral_config.TRANCHE_SIZE
-    lo = int(math.ceil((cutoff_hz + FLOOR_GAP_HZ - first) / cell))
+    lo = int(math.ceil((cutoff_hz + FLOOR_GAP_HZ - first) / cell))  # noqa: RUF046 - numpy scalars may not round to a Python int
     # The last cell whose whole span sits under the top fraction.
     hi = int((FLOOR_TOP_FRACTION * nyquist - first) // cell) - 1
     lo = max(lo, 0)
@@ -325,7 +323,7 @@ def low_wall_hz(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: i
     lo_idx = np.searchsorted(frequencies, edges)
     hi_idx = np.searchsorted(frequencies, edges + LOW_WALL_CELL_HZ)
     cells = np.array(
-        [float(np.median(magnitude_db[a:b])) if b > a else np.nan for a, b in zip(lo_idx, hi_idx)]
+        [float(np.median(magnitude_db[a:b])) if b > a else np.nan for a, b in zip(lo_idx, hi_idx, strict=False)]
     )
 
     def clears(f: float) -> float:
@@ -378,7 +376,7 @@ def is_low_wall_reading(cutoff_hz: float) -> bool:
 
 def _window_bounds(
     i: int, num_samples: int, total_duration: float, sample_duration: float, samplerate: int
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """(start frame, frames to read) of window ``i`` of ``num_samples``.
 
     Windows are centred at ``(i + 1) / (num_samples + 1)`` of the duration and
@@ -392,11 +390,11 @@ def _window_bounds(
 def _analyze_window(
     full_audio: np.ndarray,
     samplerate: int,
-    bounds: Tuple[int, int],
+    bounds: tuple[int, int],
     actual_frames: int,
     i: int,
     num_samples: int,
-) -> Tuple[float, float, float, float]:
+) -> tuple[float, float, float, float]:
     """Cutoff, HF energy ratio, edge step and floor above the edge of one window.
 
     Returns ``(0.0, 0.0, nan, nan)`` for a window that lies entirely beyond the
@@ -438,8 +436,8 @@ def _analyze_window(
 
 
 def analyze_spectrum(
-    filepath: Path, sample_duration: float = 30.0, cache: "Optional[AudioCache]" = None
-) -> Tuple[float, float, float, float, float, float]:
+    filepath: Path, sample_duration: float = 30.0, cache: "AudioCache | None" = None
+) -> tuple[float, float, float, float, float, float]:
     """Analyzes the frequency spectrum of the audio file.
 
     Takes multiple samples at different times for robustness.
@@ -573,7 +571,7 @@ def analyze_spectrum(
         return 0, 0, 0, float("nan"), float("nan"), float("nan")
 
 
-def detect_cutoff(  # noqa: C901
+def detect_cutoff(
     frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int = 44100
 ) -> float:
     """Detects cutoff frequency with a robust method adapted to sample rate.
@@ -674,7 +672,7 @@ def detect_cutoff(  # noqa: C901
 
 def _energy_fallback_cutoff(
     frequencies: np.ndarray, magnitude_db: np.ndarray, nyquist_freq: float, freq_max: float
-) -> Optional[float]:
+) -> float | None:
     """Where 90 % of the cumulative energy is reached, when that reads as a cutoff.
 
     Returns the energy cutoff when it sits in the realistic MP3 range (15 kHz to
@@ -912,9 +910,9 @@ def _segment_cutoff(
         return 0.0
 
 
-def analyze_segment_consistency(  # noqa: C901
-    filepath: Path, progressive: bool = True, cache: "Optional[AudioCache]" = None
-) -> Tuple[List[float], float]:
+def analyze_segment_consistency(
+    filepath: Path, progressive: bool = True, cache: "AudioCache | None" = None
+) -> tuple[list[float], float]:
     """Analyzes segments of the file to detect cutoff consistency (OPTIMIZED - Progressive).
 
     Phase 2 Optimization: Progressive analysis
@@ -1003,10 +1001,7 @@ def analyze_segment_consistency(  # noqa: C901
         # Recalculate variance with all 5 segments
         valid_cutoffs = [c for c in cutoffs if c > 0]
 
-        if len(valid_cutoffs) > 1:
-            variance = float(np.std(valid_cutoffs))
-        else:
-            variance = 0.0
+        variance = float(np.std(valid_cutoffs)) if len(valid_cutoffs) > 1 else 0.0
 
         logger.debug(
             f"OPTIMIZATION R10: Phase 3 - All 5 segments analyzed, final variance={variance:.1f} Hz"

@@ -6,11 +6,11 @@ from flac_detective import presentation as pz
 
 
 def test_verdict_plain_known_and_default():
-    icon, label, action = pz.verdict_plain("FAKE_CERTAIN")
+    _icon, label, action = pz.verdict_plain("FAKE_CERTAIN")
     assert label == "Fake"
     assert action  # non-empty recommended action
     # Unknown verdict degrades gracefully.
-    icon2, label2, action2 = pz.verdict_plain("WHATEVER")
+    _icon2, label2, _action2 = pz.verdict_plain("WHATEVER")
     assert label2 == "WHATEVER"
 
 

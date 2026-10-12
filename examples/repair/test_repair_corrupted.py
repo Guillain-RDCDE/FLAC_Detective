@@ -1,7 +1,7 @@
 """Test the improved repair function on actual corrupted files."""
 
-import sys
 import os
+import sys
 
 # Force UTF-8 output on Windows
 if sys.platform == "win32":
@@ -13,8 +13,9 @@ if sys.platform == "win32":
 # Add src to path
 sys.path.insert(0, "src")
 
-from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 import logging
+
+from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 
 # Setup logging to see repair progress
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s - %(message)s")
@@ -34,15 +35,15 @@ def test_repair(file_path, replace_source=False):
     )
 
     if repaired:
-        print(f"\n✅ Repair successful!")
+        print("\n✅ Repair successful!")
         print(f"   Repaired file: {repaired}")
         if replace_source:
-            print(f"   Original file has been replaced")
+            print("   Original file has been replaced")
             backup = file_path + ".corrupted.bak"
             if os.path.exists(backup):
                 print(f"   Backup created: {backup}")
     else:
-        print(f"\n❌ Repair failed")
+        print("\n❌ Repair failed")
 
     print(f"\n{'='*80}\n")
     return repaired

@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from ...spectrum import analyze_segment_consistency
 
@@ -18,8 +18,8 @@ def apply_rule_10_multi_segment_consistency(
     current_score: int,
     sample_rate: int,
     container_bitrate: float,
-    cache: "Optional[AudioCache]" = None,
-) -> Tuple[int, List[str]]:
+    cache: "AudioCache | None" = None,
+) -> tuple[int, list[str]]:
     """Apply Rule 10: Multi-Segment Consistency (NEW - PRIORITY 3).
 
     Validates that anomalies are consistent throughout the file.

@@ -23,12 +23,12 @@ import soundfile as sf
 if shutil.which("flac") is None or shutil.which("ffmpeg") is None:
     pytest.skip("the `flac` and `ffmpeg` CLIs are needed", allow_module_level=True)
 
-from flac_detective.analysis.analyzer import (  # noqa: E402
+from flac_detective.analysis.analyzer import (
     _flac_wider_than_libsndfile_reads,
     _read_source_metadata,
     _stage_local_copy,
 )
-from flac_detective.analysis.quality import BitDepthDetector  # noqa: E402
+from flac_detective.analysis.quality import BitDepthDetector
 
 
 def _make_32bit_flac(tmp_path, bits: int):
@@ -89,7 +89,7 @@ def test_true_24_bit_content_in_a_32_bit_flac_reads_24(tmp_path):
     the decode. That is the stated limit, not a defect the test hides.
     """
     flac = _make_32bit_flac(tmp_path, 24)
-    staged, decoded = _stage_local_copy(flac)
+    staged, _decoded = _stage_local_copy(flac)
     try:
         out = BitDepthDetector().detect(filepath=staged, reported_depth=32)
         assert out["estimated_depth"] == 24

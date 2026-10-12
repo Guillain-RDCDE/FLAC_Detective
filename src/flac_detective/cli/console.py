@@ -1,9 +1,9 @@
 """Console rendering for the CLI: Rich when installed, the banner, the per-file line."""
 
+import contextlib
 import logging
 import os
 import sys
-from typing import Optional
 
 from ..utils import LOGO
 
@@ -27,7 +27,7 @@ try:
         }
     )
 
-    console: Optional[Console] = Console(theme=custom_theme)
+    console: Console | None = Console(theme=custom_theme)
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
@@ -51,7 +51,7 @@ VERDICT_DISPLAY = {
 def enable_utf8_console() -> None:
     """Switch a Windows console to the UTF-8 code page (the standard approach)."""
     if sys.platform == "win32":
-        os.system("chcp 65001 > nul 2>&1")
+        os.system("chcp 65001 > nul 2>&1")  # noqa: S605 - a fixed command, no input in it
 
 
 def make_streams_utf8_safe() -> None:
@@ -75,10 +75,9 @@ def make_streams_utf8_safe() -> None:
     either.
     """
     for stream in (sys.stdout, sys.stderr):
-        try:
+        # A console that cannot be reconfigured depends on the host: leave it as it is.
+        with contextlib.suppress(Exception):
             stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
-        except Exception:  # pragma: no cover - depends on the host console
-            pass
 
 
 def print_banner(machine_readable: bool = False) -> None:

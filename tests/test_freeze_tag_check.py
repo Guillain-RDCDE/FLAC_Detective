@@ -18,7 +18,7 @@ all 280 files and therefore harmless only by luck.
 
 import subprocess
 
-import freeze_exchange_set as fez  # noqa: E402
+import freeze_exchange_set as fez
 
 
 class _Completed:

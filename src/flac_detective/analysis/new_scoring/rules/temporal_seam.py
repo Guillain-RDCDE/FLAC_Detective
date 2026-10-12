@@ -44,7 +44,6 @@ same way there.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -77,9 +76,9 @@ MIN_CUTOFF_HZ = 15000.0
 def apply_rule_14_temporal_seam(
     file_path: str,
     cutoff_freq: float,
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 14. Returns ``(0, reasons, details)`` — always zero points.
 
     ``details['temporal_witness']`` is the output that matters: True when the

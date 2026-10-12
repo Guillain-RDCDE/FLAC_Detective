@@ -30,7 +30,6 @@ stays one; an abstention here would be claiming to know something.
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 from .new_scoring.stereo_image import FFT_SIZE as _SI_FFT_SIZE
 from .new_scoring.stereo_image import HOP as _SI_HOP
@@ -64,11 +63,11 @@ MIN_ASSESSABLE_SAMPLES = _SI_FFT_SIZE + _SI_HOP * (_SI_MIN_FRAMES - 1)
 
 
 def unassessable_reason(
-    sample_rate: Optional[int],
-    duration_s: Optional[float],
-    cutoff_freq: Optional[float],
-    rms: Optional[float],
-) -> Optional[str]:
+    sample_rate: int | None,
+    duration_s: float | None,
+    cutoff_freq: float | None,
+    rms: float | None,
+) -> str | None:
     """Why this file could not be assessed, or ``None`` if it could.
 
     Every argument is optional because every one of them can be genuinely

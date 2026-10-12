@@ -7,8 +7,9 @@ a comprehensive report with statistics.
 """
 
 import json
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
+
 from flac_detective import FLACAnalyzer
 
 

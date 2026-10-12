@@ -23,7 +23,6 @@ ml/exchange/ISSUE12_CODEC_GRIDS_REGISTRATION_2026-10-04.md.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -40,9 +39,9 @@ STEP_BAR_DB = 7.5
 def apply_rule_18_side_step(
     file_path: str,
     cutoff_freq: float,
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 18. Returns ``(0, reasons, details)`` — always zero points."""
     details: dict = {
         "side_step_db": float("nan"),

@@ -2,7 +2,7 @@
 
 import logging
 import math
-from typing import List, Optional, Tuple, cast
+from typing import cast
 
 import numpy as np
 import soundfile as sf
@@ -27,9 +27,9 @@ def apply_rule_11_cassette_detection(  # noqa: C901
     cutoff_freq: float,
     cutoff_std: float,
     sample_rate: int,
-    audio_data: Optional[object] = None,
+    audio_data: object | None = None,
     floor_above_db: float = float("nan"),
-) -> Tuple[int, List[str]]:
+) -> tuple[int, list[str]]:
     """Apply Rule 11: Cassette Audio Source Detection.
 
     Detects if the file originates from a cassette tape by analyzing a
@@ -76,7 +76,7 @@ def apply_rule_11_cassette_detection(  # noqa: C901
         start_sec = max(0, (duration - segment_duration) / 2)
         actual_duration = min(segment_duration, duration)
 
-        audio, sr_loaded = load_audio_segment(
+        audio, _sr_loaded = load_audio_segment(
             file_path, start_sec=start_sec, duration_sec=actual_duration
         )
 
@@ -118,30 +118,29 @@ def apply_rule_11_cassette_detection(  # noqa: C901
             noise_signal = bandpass_filter(audio, noise_band_freq[0], noise_band_freq[1], sr)
             noise_energy_db = 20 * np.log10(np.std(noise_signal) + 1e-10)
 
-            if noise_energy_db > -55:  # Noise present
-                # Check random texture (no MP3 pattern)
-                # Ensure we have enough data for correlation
-                if len(noise_signal) > 200:
-                    try:
-                        # Check variation to avoid Div/0
-                        std_check = np.std(noise_signal)
-                        if std_check < 1e-6:
-                            autocorr = 0.0
-                        else:
-                            autocorr = np.corrcoef(noise_signal[:-100], noise_signal[100:])[0, 1]
-                            if np.isnan(autocorr):
-                                autocorr = 0.0
-                    except Exception:
+            # Noise present, and enough data for correlation: check its texture
+            # is random (no MP3 pattern).
+            if noise_energy_db > -55 and len(noise_signal) > 200:
+                try:
+                    # Check variation to avoid Div/0
+                    std_check = np.std(noise_signal)
+                    if std_check < 1e-6:
                         autocorr = 0.0
+                    else:
+                        autocorr = np.corrcoef(noise_signal[:-100], noise_signal[100:])[0, 1]
+                        if np.isnan(autocorr):
+                            autocorr = 0.0
+                except Exception:
+                    autocorr = 0.0
 
-                    if abs(autocorr) < 0.2:  # White/Pink noise (Random)
-                        cassette_score += 30
-                        reasons.append(
-                            f"R11A: Tape hiss detected ({noise_energy_db:.1f} dB, random) (likely cassette)"
-                        )
-                        logger.info(
-                            f"RULE 11A: Tape hiss detected ({noise_energy_db:.1f} dB, random)"
-                        )
+                if abs(autocorr) < 0.2:  # White/Pink noise (Random)
+                    cassette_score += 30
+                    reasons.append(
+                        f"R11A: Tape hiss detected ({noise_energy_db:.1f} dB, random) (likely cassette)"
+                    )
+                    logger.info(
+                        f"RULE 11A: Tape hiss detected ({noise_energy_db:.1f} dB, random)"
+                    )
 
         # TEST 11B: Progressive Roll-off
         # ================================

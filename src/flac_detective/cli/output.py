@@ -5,7 +5,6 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from ..__version__ import __version__
 from ..analysis.diagnostic_tracker import get_tracker
@@ -88,7 +87,7 @@ def write_report(
         )
 
 
-def _report_path(output_dir: Path, output_path: Optional[Path], report_format: str) -> Path:
+def _report_path(output_dir: Path, output_path: Path | None, report_format: str) -> Path:
     """The explicit ``--output`` path (parents created), or an auto-named file."""
     if output_path is not None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -110,7 +109,7 @@ def _echo_to_real_stdout(output_file: Path) -> None:
         logger.warning("could not echo the report to stdout: %s", exc)
 
 
-def _write_diagnostic_report(output_dir: Path, stats: dict) -> Optional[Path]:
+def _write_diagnostic_report(output_dir: Path, stats: dict) -> Path | None:
     """Write the reading-issues report when any file had one; return its path."""
     if stats["files_with_issues"] <= 0:
         return None
@@ -147,9 +146,9 @@ def generate_final_report(
     output_dir: Path,
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
-    log_file: Optional[Path],
+    log_file: Path | None,
     input_paths: list[Path],
-    output_path: Optional[Path] = None,
+    output_path: Path | None = None,
     report_format: str = "text",
     advanced: bool = False,
 ):

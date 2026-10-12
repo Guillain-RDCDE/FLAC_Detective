@@ -7,8 +7,9 @@ and parse them for custom reporting or integration with other tools.
 """
 
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 from flac_detective import FLACAnalyzer
 
 
@@ -51,7 +52,7 @@ def analyze_and_export(directory, output_file):
 
 def parse_json_results(json_file):
     """Parse JSON results and generate custom report."""
-    with open(json_file, 'r', encoding='utf-8') as f:
+    with open(json_file, encoding='utf-8') as f:
         data = json.load(f)
 
     print("\n" + "=" * 70)

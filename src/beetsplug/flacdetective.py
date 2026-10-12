@@ -25,7 +25,7 @@ Optional config (all shown with their defaults)::
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, ClassVar, cast
 
 from beets import ui
 from beets.dbcore import types
@@ -53,7 +53,7 @@ _VERDICT_STYLE = {
 _SUMMARY_ORDER = ("FAKE_CERTAIN", "SUSPICIOUS", "WARNING", "AUTHENTIC", "ERROR")
 
 
-def is_analysable(fmt: Optional[str]) -> bool:
+def is_analysable(fmt: str | None) -> bool:
     """Return True if a beets ``format`` is a lossless container we can analyse."""
     return fmt is not None and fmt.upper() in ANALYSABLE_FORMATS
 
@@ -61,7 +61,7 @@ def is_analysable(fmt: Optional[str]) -> bool:
 class FlacDetectivePlugin(BeetsPlugin):
     """Detect MP3-to-FLAC transcodes inside a beets library."""
 
-    item_types = {
+    item_types: ClassVar[dict] = {
         "flacdetective_verdict": types.STRING,
         "flacdetective_score": types.INTEGER,
     }
@@ -81,7 +81,7 @@ class FlacDetectivePlugin(BeetsPlugin):
             self.import_stages = [self._import_stage]
 
     # ------------------------------------------------------------------ command
-    def commands(self) -> List[Subcommand]:
+    def commands(self) -> list[Subcommand]:
         """Return the ``flacdetective`` subcommand."""
         cmd = Subcommand(
             "flacdetective",
@@ -128,7 +128,7 @@ class FlacDetectivePlugin(BeetsPlugin):
         cmd.func = self._run
         return [cmd]
 
-    def _run(self, lib: Any, opts: Any, args: List[str]) -> None:
+    def _run(self, lib: Any, opts: Any, args: list[str]) -> None:
         """Analyse every matching lossless item and report verdicts."""
         if getattr(opts, "update", False):
             self._update()
@@ -141,7 +141,7 @@ class FlacDetectivePlugin(BeetsPlugin):
             write = False
 
         analyzer = self._make_analyzer(opts)
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         analysed = 0
 
         # No ``ui.decargs``: on Python 3 beets hands the query as str already,
@@ -230,14 +230,14 @@ class FlacDetectivePlugin(BeetsPlugin):
                 deep = True
         return FLACAnalyzer(sample_duration=sample, deep=deep)
 
-    def _analyse_item(self, analyzer: Any, item: Any) -> Optional[Dict[str, Any]]:
+    def _analyse_item(self, analyzer: Any, item: Any) -> dict[str, Any] | None:
         """Run analysis for one item, returning its result dict or None on failure."""
         path = self._item_path(item)
         if not os.path.exists(path):
             self._log.warning("missing file: {0}", path)
             return None
         try:
-            result: Dict[str, Any] = analyzer.analyze_file(path)
+            result: dict[str, Any] = analyzer.analyze_file(path)
             return result
         except Exception as exc:  # stay resilient across a whole library
             self._log.warning("analysis failed for {0}: {1}", path, exc)
@@ -251,7 +251,7 @@ class FlacDetectivePlugin(BeetsPlugin):
             return raw.decode("utf-8", "surrogateescape")
         return str(raw)
 
-    def _print_item(self, item: Any, result: Dict[str, Any]) -> None:
+    def _print_item(self, item: Any, result: dict[str, Any]) -> None:
         """Print a single colourised verdict line."""
         verdict = result["verdict"]
         color, _gloss = _VERDICT_STYLE.get(verdict, ("text_highlight_minor", ""))
@@ -262,7 +262,7 @@ class FlacDetectivePlugin(BeetsPlugin):
             line += f"  (~{bitrate} kbps source)"
         ui.print_(line)
 
-    def _print_summary(self, analysed: int, counts: Dict[str, int]) -> None:
+    def _print_summary(self, analysed: int, counts: dict[str, int]) -> None:
         """Print the run summary line."""
         if not analysed:
             ui.print_("FLAC Detective: no analysable lossless files matched the query.")

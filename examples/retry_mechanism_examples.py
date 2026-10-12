@@ -6,8 +6,8 @@ pour analyser des fichiers FLAC qui peuvent générer des erreurs temporaires.
 """
 
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Ajouter le répertoire src au path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -39,18 +39,18 @@ def example_1_basic_analysis():
     result = analyzer.analyze_file(file_path)
 
     # Afficher les résultats
-    print(f"\n📊 Résultats :")
+    print("\n📊 Résultats :")
     print(f"   Verdict : {result['verdict']}")
     print(f"   Score : {result['score']}/100")
     print(f"   Corrompu : {result['is_corrupted']}")
     print(f"   Analyse partielle : {result.get('partial_analysis', False)}")
 
     if result.get("partial_analysis", False):
-        print(f"\n⚠️  Attention : Analyse partielle effectuée")
+        print("\n⚠️  Attention : Analyse partielle effectuée")
         print(f"   Raison : {result.get('corruption_error', 'N/A')}")
-        print(f"   Les règles R9 et R11 ont échoué, mais le fichier n'est pas corrompu")
+        print("   Les règles R9 et R11 ont échoué, mais le fichier n'est pas corrompu")
     else:
-        print(f"\n✅ Analyse complète effectuée avec succès")
+        print("\n✅ Analyse complète effectuée avec succès")
 
 
 def example_2_with_debug_logs():
@@ -93,13 +93,13 @@ def example_3_direct_audio_loading():
     audio_data, sample_rate = load_audio_with_retry(file_path)
 
     if audio_data is not None:
-        print(f"\n✅ Audio chargé avec succès !")
+        print("\n✅ Audio chargé avec succès !")
         print(f"   Shape : {audio_data.shape}")
         print(f"   Sample rate : {sample_rate} Hz")
         print(f"   Durée : {len(audio_data) / sample_rate:.2f} secondes")
     else:
-        print(f"\n❌ Échec du chargement après 3 tentatives")
-        print(f"   Le fichier peut avoir une erreur temporaire persistante")
+        print("\n❌ Échec du chargement après 3 tentatives")
+        print("   Le fichier peut avoir une erreur temporaire persistante")
 
 
 def example_4_custom_retry_parameters():
@@ -114,7 +114,7 @@ def example_4_custom_retry_parameters():
     print("   Paramètres : 5 tentatives, délai initial 0.5s, backoff ×2.0")
 
     # Retry avec paramètres personnalisés
-    audio_data, sample_rate = load_audio_with_retry(
+    audio_data, _sample_rate = load_audio_with_retry(
         file_path,
         max_attempts=5,  # 5 tentatives au lieu de 3
         initial_delay=0.5,  # Délai initial de 0.5s
@@ -122,9 +122,9 @@ def example_4_custom_retry_parameters():
     )
 
     if audio_data is not None:
-        print(f"\n✅ Audio chargé avec succès !")
+        print("\n✅ Audio chargé avec succès !")
     else:
-        print(f"\n❌ Échec après 5 tentatives")
+        print("\n❌ Échec après 5 tentatives")
 
 
 def example_5_batch_analysis():
@@ -184,7 +184,7 @@ def example_5_batch_analysis():
     print(f"❌ Erreurs : {len(results['error'])}")
 
     if results["partial"]:
-        print(f"\n⚠️  Fichiers avec analyse partielle (R9/R11 ont échoué) :")
+        print("\n⚠️  Fichiers avec analyse partielle (R9/R11 ont échoué) :")
         for filename in results["partial"]:
             print(f"   - {filename}")
 

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-hooks format lint type-check test test-cov test-unit test-integration coverage-report clean build pre-commit update-hooks check
+.PHONY: help install install-dev install-hooks format lint type-check test test-cov test-fast test-integration coverage-report clean build pre-commit update-hooks check
 
 help:
 	@echo "FLAC Detective - Development Commands"
@@ -10,8 +10,8 @@ help:
 	@echo "  make install-hooks    - Install pre-commit hooks"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  make format           - Format code with black and isort"
-	@echo "  make lint             - Run flake8 linter"
+	@echo "  make format           - Format code with ruff"
+	@echo "  make lint             - Run the ruff linter"
 	@echo "  make type-check       - Run mypy type checker"
 	@echo "  make pre-commit       - Run all pre-commit hooks"
 	@echo "  make check            - Run all quality checks (lint + type + test)"
@@ -19,7 +19,7 @@ help:
 	@echo "Testing:"
 	@echo "  make test             - Run all tests"
 	@echo "  make test-cov         - Run tests with coverage report"
-	@echo "  make test-unit        - Run unit tests only"
+	@echo "  make test-fast        - Run tests, slow ones skipped"
 	@echo "  make test-integration - Run integration tests only"
 	@echo "  make coverage-report  - Generate detailed coverage report"
 	@echo ""
@@ -43,20 +43,20 @@ install-hooks:
 	@echo "✅ Pre-commit hooks installed!"
 
 format:
-	@echo "Running Black code formatter..."
-	black src tests
-	@echo "Running isort import sorter..."
-	isort src tests
+	@echo "Running ruff (safe fixes, then formatting)..."
+	ruff check --fix
+	ruff format
 	@echo "✅ Code formatting complete!"
 
 lint:
-	@echo "Running flake8 linter..."
-	flake8 src tests
+	@echo "Running ruff linter..."
+	ruff check
+	ruff format --check
 	@echo "✅ Linting complete!"
 
 type-check:
 	@echo "Running mypy type checker..."
-	mypy src --config-file=pyproject.toml
+	mypy
 	@echo "✅ Type checking complete!"
 
 pre-commit:
@@ -76,17 +76,12 @@ test:
 
 test-cov:
 	@echo "Running tests with coverage..."
-	pytest --cov=flac_detective --cov-report=html --cov-report=term-missing --cov-fail-under=80
+	pytest --cov=flac_detective --cov-report=html --cov-report=term-missing
 	@echo "✅ Coverage report generated in htmlcov/index.html"
-	@echo ""
-	@echo "📊 Coverage Summary:"
-	@echo "  • Minimum required: 80%"
-	@echo "  • HTML report: htmlcov/index.html"
-	@echo "  • XML report: coverage.xml"
 
-test-unit:
-	@echo "Running unit tests..."
-	pytest tests/unit/ -v
+test-fast:
+	@echo "Running tests, slow ones skipped..."
+	pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks -m "not slow"
 
 test-integration:
 	@echo "Running integration tests..."

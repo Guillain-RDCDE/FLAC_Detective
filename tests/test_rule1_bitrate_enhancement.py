@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Test script for Rule 1 enhancement - Bitrate detection."""
 
-from flac_detective.analysis.new_scoring.constants import (  # noqa: E402
+from flac_detective.analysis.new_scoring.constants import (
     BITRATE_CRITICAL_THRESHOLD,
     BITRATE_RED_FLAG_THRESHOLD,
 )
-from flac_detective.analysis.new_scoring.rules.spectral import (  # noqa: E402
+from flac_detective.analysis.new_scoring.rules.spectral import (
     apply_rule_1_mp3_bitrate,
 )
 

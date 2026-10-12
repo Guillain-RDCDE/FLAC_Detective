@@ -35,7 +35,6 @@ import json
 import logging
 import math
 from pathlib import Path
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ logger = logging.getLogger(__name__)
 _CALIB_PATH = Path(__file__).resolve().parents[3] / "models" / "cnn_v4_stereo.calibration.json"
 
 # Process-level cache: load (and parse) the calibration file at most once.
-_CALIBRATOR: "Optional[_Calibrator]" = None
+_CALIBRATOR: _Calibrator | None = None
 _LOAD_ATTEMPTED = False
 
 # Clamp p away from {0, 1} before taking a logit, so logit() stays finite.
@@ -81,8 +80,8 @@ class _Calibrator:
                 raise ValueError("isotonic calibration needs >=2 paired (x, y) points")
             # Sort by x so bisect works and interpolation is well-defined.
             order = sorted(range(len(xs)), key=lambda i: xs[i])
-            self._xs: List[float] = [xs[i] for i in order]
-            self._ys: List[float] = [ys[i] for i in order]
+            self._xs: list[float] = [xs[i] for i in order]
+            self._ys: list[float] = [ys[i] for i in order]
         else:
             raise ValueError(f"unknown calibration method: {method!r}")
 
@@ -109,13 +108,13 @@ class _Calibrator:
         return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
 
 
-def _from_dict(data: dict) -> "_Calibrator":
+def _from_dict(data: dict) -> _Calibrator:
     """Build a calibrator from a parsed calibration-file dict (raises on bad data)."""
     method = str(data.get("method", "")).lower()
     return _Calibrator(method, data)
 
 
-def _load_calibrator() -> "Optional[_Calibrator]":
+def _load_calibrator() -> _Calibrator | None:
     """Load the bundled calibrator once; return None if absent/unreadable/invalid."""
     global _CALIBRATOR, _LOAD_ATTEMPTED
     if _LOAD_ATTEMPTED:
@@ -126,7 +125,7 @@ def _load_calibrator() -> "Optional[_Calibrator]":
         logger.debug("Rule 12 calibration: no file at %s; using identity", _CALIB_PATH)
         return None
     try:
-        with open(_CALIB_PATH, "r", encoding="utf-8") as fh:
+        with open(_CALIB_PATH, encoding="utf-8") as fh:
             data = json.load(fh)
         _CALIBRATOR = _from_dict(data)
         logger.info(

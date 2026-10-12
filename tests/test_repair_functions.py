@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
+from flac_detective.analysis.new_scoring.audio_loader import (
     _extract_metadata,
     _restore_metadata,
     repair_flac_file,

@@ -32,7 +32,7 @@ from .metadata import parse_metadata
 from .models import AudioMetadata, BitrateMetrics
 from .verdict import determine_verdict
 
-__all__ = [
+__all__ = [  # noqa: RUF022 - grouped by kind, as the comments say
     # Models
     "AudioMetadata",
     "BitrateMetrics",

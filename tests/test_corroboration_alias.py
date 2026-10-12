@@ -117,7 +117,7 @@ def test_when_the_floor_fires_it_lands_exactly_on_warning_and_no_higher() -> Non
         def __init__(self, p: float) -> None:
             self._logit = math.log(p / (1 - p))
 
-        def __call__(self, x):  # noqa: D401
+        def __call__(self, x):
             return torch.tensor([[0.0, self._logit]])
 
     fired_at = []

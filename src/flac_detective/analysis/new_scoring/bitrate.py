@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import soundfile as sf
@@ -97,7 +96,7 @@ def calculate_apparent_bitrate(sample_rate: int, bit_depth: int, channels: int =
 
 def calculate_bitrate_variance(
     filepath: Path, sample_rate: int, num_segments: int = DEFAULT_VARIANCE_SEGMENTS
-) -> Optional[float]:
+) -> float | None:
     """Standard deviation of the bitrate across ``num_segments`` slices, in kbps.
 
     A lossless encoder spends more bits on dense passages than on sparse ones, so

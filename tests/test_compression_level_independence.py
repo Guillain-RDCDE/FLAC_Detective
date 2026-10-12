@@ -23,11 +23,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import soundfile as sf
-from test_container_independence import SAMPLE_RATE, _reported_signal  # noqa: E402
+from test_container_independence import SAMPLE_RATE, _reported_signal
 
-import flac_detective.analysis.analyzer as analyzer_module  # noqa: E402
-from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
-from flac_detective.analysis.audio_formats import flac_equivalent_size  # noqa: E402
+import flac_detective.analysis.analyzer as analyzer_module
+from flac_detective.analysis.analyzer import FLACAnalyzer
+from flac_detective.analysis.audio_formats import flac_equivalent_size
 
 # Decodes and encodes real audio in every container or level: minutes, not
 # milliseconds. CI runs it once, on the Linux coverage leg (-m slow is not skipped there).

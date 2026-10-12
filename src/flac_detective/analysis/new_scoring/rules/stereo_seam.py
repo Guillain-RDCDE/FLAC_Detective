@@ -45,7 +45,6 @@ behaviour being silence, not a low score, because a low score is still an opinio
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -106,9 +105,9 @@ MIN_CUTOFF_HZ = 17000.0
 def apply_rule_15_stereo_seam(
     file_path: str,
     cutoff_freq: float,
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 15. Returns ``(0, reasons, details)`` — always zero points."""
     details: dict = {
         "stereo_dead_run": float("nan"),

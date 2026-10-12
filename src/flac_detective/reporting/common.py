@@ -1,12 +1,12 @@
 """Helpers shared by every report surface (text, CSV, HTML, console, GUI)."""
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
 
 from ..analysis.new_scoring import determine_verdict
 
 
-def verdict_of(result: Dict) -> str:
+def verdict_of(result: dict) -> str:
     """The authoritative verdict of a result row.
 
     ``verdict`` as written by the analyzer when present; otherwise derived from
@@ -16,7 +16,7 @@ def verdict_of(result: Dict) -> str:
     return result.get("verdict") or determine_verdict(result.get("score", 0))[0]
 
 
-def rank_by_score(results: Iterable[Dict]) -> List[Dict]:
+def rank_by_score(results: Iterable[dict]) -> list[dict]:
     """Most suspicious first: sorted by score, descending, a missing score as 0.
 
     ``sorted`` is stable, so rows with equal scores keep their input order.
@@ -24,7 +24,7 @@ def rank_by_score(results: Iterable[Dict]) -> List[Dict]:
     return sorted(results, key=lambda r: r.get("score", 0) or 0, reverse=True)
 
 
-def display_path(result: Dict, scan_paths: Optional[List[Path]], prefix: str = "") -> str:
+def display_path(result: dict, scan_paths: list[Path] | None, prefix: str = "") -> str:
     """The path shown to the reader: relative to the first scan root that contains it.
 
     Falls back to the bare filename when no root matches or anything goes wrong.
@@ -42,6 +42,6 @@ def display_path(result: Dict, scan_paths: Optional[List[Path]], prefix: str = "
                     return f"{prefix}{p.relative_to(root)}"
                 except ValueError:
                     continue
-        except Exception:
-            pass  # Keep the filename if anything about the paths is unusable
+        except Exception:  # noqa: S110 - keep the filename if anything about the paths is unusable
+            pass
     return str(name)

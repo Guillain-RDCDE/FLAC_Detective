@@ -24,12 +24,13 @@ What it does, and what it refuses to guess:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, List, Optional
 
 from .update_check import OPT_OUT_ENV, current_version, is_newer, parse_version
 
@@ -49,11 +50,11 @@ class UpgradeResult:
 
     ok: bool
     method: str
-    command: List[str]
+    command: list[str]
     output: str = ""
-    installed_version: Optional[str] = None
+    installed_version: str | None = None
     message: str = ""
-    lines: List[str] = field(default_factory=list)
+    lines: list[str] = field(default_factory=list)
     # Windows: the install was handed to a detached process that runs once
     # this program has exited (see start_deferred_install); nothing is
     # installed yet and ``ok`` is False.
@@ -61,9 +62,9 @@ class UpgradeResult:
 
 
 def install_method(
-    executable: Optional[str] = None,
-    package_file: Optional[str] = None,
-    environ: Optional[dict] = None,
+    executable: str | None = None,
+    package_file: str | None = None,
+    environ: dict | None = None,
 ) -> str:
     """How this copy of FLAC Detective was installed.
 
@@ -84,14 +85,14 @@ def install_method(
     if pkg_dir.parent.name == "src" and (pkg_dir.parent.parent / "pyproject.toml").exists():
         return METHOD_SOURCE
     parts = [p.lower() for p in exe.parts]
-    if "pipx" in parts or env.get("PIPX_HOME") and str(exe).startswith(env["PIPX_HOME"]):
+    if "pipx" in parts or (env.get("PIPX_HOME") and str(exe).startswith(env["PIPX_HOME"])):
         return METHOD_PIPX
     return METHOD_PIP
 
 
 def upgrade_command(
-    method: str, executable: Optional[str] = None, target: Optional[str] = None
-) -> Optional[List[str]]:
+    method: str, executable: str | None = None, target: str | None = None
+) -> list[str] | None:
     """The command that upgrades this install, or None when this tool must not run one.
 
     With ``target`` (the version the check found on PyPI) pip is asked for that
@@ -123,7 +124,7 @@ def manual_hint(method: str) -> str:
 _READ_INSTALLED = "from importlib.metadata import version; print(version('flac-detective'))"
 
 
-def installed_version(executable: Optional[str] = None, timeout: float = 60.0) -> Optional[str]:
+def installed_version(executable: str | None = None, timeout: float = 60.0) -> str | None:
     """The distribution version a FRESH interpreter reports, or None if it cannot say.
 
     The distribution's metadata, not an import of the package: an import would
@@ -143,7 +144,7 @@ def installed_version(executable: Optional[str] = None, timeout: float = 60.0) -
         return None
 
 
-def _failure_message(code: int, output: str, command: List[str]) -> str:
+def _failure_message(code: int, output: str, command: list[str]) -> str:
     """One line for a failed installer, naming the usual cause when it shows."""
     if "No matching distribution" in output or "Could not find a version" in output:
         return (
@@ -154,12 +155,12 @@ def _failure_message(code: int, output: str, command: List[str]) -> str:
 
 
 def run_command(
-    command: List[str],
-    on_line: Optional[Callable[[str], None]] = None,
+    command: list[str],
+    on_line: Callable[[str], None] | None = None,
     timeout: float = UPGRADE_TIMEOUT_SECONDS,
 ) -> tuple:
     """Run ``command``, streaming each output line to ``on_line``; (returncode, output)."""
-    lines: List[str] = []
+    lines: list[str] = []
     try:
         proc = subprocess.Popen(  # nosec B603 - the command is built here, not from input
             command,
@@ -173,15 +174,14 @@ def run_command(
     except Exception as exc:  # noqa: BLE001 - e.g. pipx not on PATH
         return -1, f"could not start {command[0]}: {exc}"
     try:
-        assert proc.stdout is not None
+        assert proc.stdout is not None  # noqa: S101 - Popen(stdout=PIPE); narrows the type
         for raw in proc.stdout:
             line = raw.rstrip("\r\n")
             lines.append(line)
             if on_line is not None:
-                try:
+                # A listener must not stop the install.
+                with contextlib.suppress(Exception):
                     on_line(line)
-                except Exception:  # noqa: BLE001 - a listener must not stop the install
-                    pass
         code = proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         proc.kill()
@@ -215,7 +215,7 @@ def install_report_path() -> Path:
     return cache_path().parent / "update-install.json"
 
 
-def _parent_launcher_pid() -> Optional[int]:
+def _parent_launcher_pid() -> int | None:
     """The pid of the console-script launcher that started this process, if that is what did.
 
     Windows only. The launcher is an .exe in the interpreter's own Scripts
@@ -253,7 +253,7 @@ def _parent_launcher_pid() -> Optional[int]:
     return None
 
 
-def wait_for_exit(pids: List[int], timeout: float = 600.0) -> bool:
+def wait_for_exit(pids: list[int], timeout: float = 600.0) -> bool:
     """Block until every pid has exited (or ``timeout`` passes); True if they all did."""
     import time
 
@@ -313,7 +313,7 @@ def _posix_alive(pid: int) -> bool:
 
 
 def start_deferred_install(
-    command: List[str], executable: Optional[str] = None, current: Optional[str] = None
+    command: list[str], executable: str | None = None, current: str | None = None
 ) -> Path:
     """Spawn the detached installer; return the report path it will write.
 
@@ -365,19 +365,19 @@ def start_deferred_install(
 
 
 def deferred_main(
-    argv: List[str],
+    argv: list[str],
     waiter: Callable[..., bool] = wait_for_exit,
     runner: Callable[..., tuple] = run_command,
-    verify: Callable[..., Optional[str]] = installed_version,
+    verify: Callable[..., str | None] = installed_version,
 ) -> int:
     """Entry point of the detached installer (``python -m flac_detective.updater``)."""
     import json
     import time
 
-    pids: List[int] = []
+    pids: list[int] = []
     report = install_report_path()
     current = current_version()
-    command: List[str] = []
+    command: list[str] = []
     i = 0
     while i < len(argv):
         if argv[i] == "--deferred":
@@ -430,7 +430,7 @@ def deferred_main(
     return 0 if ok else 1
 
 
-def consume_install_report() -> Optional[dict]:
+def consume_install_report() -> dict | None:
     """The deferred installer's report, read once and removed; None when there is none."""
     import json
 
@@ -442,23 +442,21 @@ def consume_install_report() -> Optional[dict]:
         path.unlink(missing_ok=True)
         return data if isinstance(data, dict) and "message" in data else None
     except Exception:  # noqa: BLE001 - a bad report is dropped, never shown as a crash
-        try:
+        with contextlib.suppress(Exception):
             path.unlink(missing_ok=True)
-        except Exception:  # noqa: BLE001
-            pass
         return None
 
 
 def upgrade(
-    on_line: Optional[Callable[[str], None]] = None,
-    executable: Optional[str] = None,
-    method: Optional[str] = None,
+    on_line: Callable[[str], None] | None = None,
+    executable: str | None = None,
+    method: str | None = None,
     runner: Callable[..., tuple] = run_command,
-    verify: Callable[..., Optional[str]] = installed_version,
-    current: Optional[str] = None,
-    deferred: Optional[bool] = None,
+    verify: Callable[..., str | None] = installed_version,
+    current: str | None = None,
+    deferred: bool | None = None,
     starter: Callable[..., Path] = start_deferred_install,
-    target: Optional[str] = None,
+    target: str | None = None,
 ) -> UpgradeResult:
     """Upgrade this install and verify it. Never raises.
 
@@ -538,7 +536,7 @@ def upgrade(
     )
 
 
-def opt_out(environ: Optional[dict] = None) -> bool:
+def opt_out(environ: dict | None = None) -> bool:
     """True when the user switched the update machinery off."""
     env = os.environ if environ is None else environ
     return env.get(OPT_OUT_ENV, "").strip() not in ("", "0", "false", "no")

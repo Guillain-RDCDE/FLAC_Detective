@@ -1,6 +1,5 @@
 """Statistical calculations for reports."""
 
-from typing import Dict, List
 
 from .common import verdict_of
 
@@ -33,7 +32,7 @@ _COUNTER_ORDER = (
 )
 
 
-def _empty_statistics() -> Dict:
+def _empty_statistics() -> dict:
     return {
         "total": 0,
         "authentic": 0,
@@ -48,7 +47,7 @@ def _empty_statistics() -> Dict:
     }
 
 
-def _verdict_counts(results: List[Dict]) -> Dict[str, int]:
+def _verdict_counts(results: list[dict]) -> dict[str, int]:
     """Count files by their authoritative verdict.
 
     ``determine_verdict`` (new_scoring/constants.py) is the single source of
@@ -64,7 +63,7 @@ def _verdict_counts(results: List[Dict]) -> Dict[str, int]:
     }
 
 
-def _is_non_flac(r: Dict) -> bool:
+def _is_non_flac(r: dict) -> bool:
     """A non-FLAC row: by verdict, or by the legacy score-100 + reason marker."""
     return r.get("verdict") == "NON_FLAC" or (
         r.get("score", 0) == 100 and "NON-FLAC FILE" in r.get("reason", "")
@@ -75,7 +74,7 @@ def _pct(count: int, total: int) -> str:
     return f"{count/total*100:.1f}%"
 
 
-def calculate_statistics(results: List[Dict]) -> Dict:
+def calculate_statistics(results: list[dict]) -> dict:
     """Calculates global statistics from results.
 
     Args:
@@ -89,7 +88,7 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     if total == 0:
         return _empty_statistics()
 
-    counts: Dict[str, int] = dict(_verdict_counts(results))
+    counts: dict[str, int] = dict(_verdict_counts(results))
     for name, key in _FLAG_COUNTS:
         counts[name] = sum(1 for r in results if r.get(key, False))
     counts["duration_issues_critical"] = sum(
@@ -97,7 +96,7 @@ def calculate_statistics(results: List[Dict]) -> Dict:
     )
     counts["non_flac_files"] = sum(1 for r in results if _is_non_flac(r))
 
-    stats: Dict = {"total": total}
+    stats: dict = {"total": total}
     for name in _COUNTER_ORDER:
         stats[name] = counts[name]
         stats[f"{name}_pct"] = _pct(counts[name], total)

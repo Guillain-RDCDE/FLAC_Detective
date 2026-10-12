@@ -2,7 +2,7 @@
 
 import logging
 
-from flac_detective.analysis.new_scoring.audio_loader import (  # noqa: E402
+from flac_detective.analysis.new_scoring.audio_loader import (
     is_temporary_decoder_error,
     load_audio_with_retry,
 )

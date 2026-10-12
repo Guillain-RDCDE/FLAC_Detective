@@ -72,11 +72,11 @@ flac_detective.reporting.text_reporter : Report generation
 from .__version__ import __version__
 
 __all__ = [
+    "LOGO",
     "FLACAnalyzer",
     "ProgressTracker",
-    "find_flac_files",
-    "LOGO",
     "__version__",
+    "find_flac_files",
 ]
 
 

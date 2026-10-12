@@ -9,7 +9,6 @@ pipeline depends on it.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ DB_FLOOR = -100.0  # clamp the normalised magnitude floor (peak = 0 dB)
 
 def compute_spectrum_curve(
     filepath: str,
-) -> Optional[Tuple[List[float], List[float], float]]:
+) -> tuple[list[float], list[float], float] | None:
     """Compute a downsampled, peak-normalised magnitude spectrum for a file.
 
     Reads a middle segment, mono-mixes, applies a Hann window, takes the rfft,

@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from free_format import DecoderRefused, decode_free_format, verify_decoder  # noqa: E402
+from free_format import DecoderRefused, decode_free_format, verify_decoder
 
 
 class _Completed:

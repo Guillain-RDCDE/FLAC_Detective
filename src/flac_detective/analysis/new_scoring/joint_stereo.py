@@ -25,7 +25,7 @@ bands lie under the cutoff.
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from itertools import pairwise
 
 import numpy as np
 
@@ -42,8 +42,8 @@ MONO_GATE_DB = -40.0
 
 
 def side_step(
-    audio: np.ndarray, sample_rate: int, cutoff_hz: Optional[float] = None
-) -> Tuple[float, float, float]:
+    audio: np.ndarray, sample_rate: int, cutoff_hz: float | None = None
+) -> tuple[float, float, float]:
     """Return ``(step_db, split_hz, side_to_mid_db)``; NaN where not measurable."""
     nan = float("nan")
     if audio.ndim != 2 or audio.shape[1] < 2:
@@ -71,7 +71,7 @@ def side_step(
         top = min(top, cutoff_hz - CUTOFF_MARGIN_HZ)
     edges = np.arange(LOW_HZ, top + 1, BAND_HZ)
     ratios = []
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in pairwise(edges):
         band = (freqs >= lo) & (freqs < hi)
         em, es = e_mid[:, band].sum(axis=1), e_side[:, band].sum(axis=1)
         loud = em > np.percentile(em, LOUD_PERCENTILE)

@@ -1,11 +1,11 @@
 """The console-log file and the logging handlers of a CLI run."""
 
+import contextlib
 import logging
 import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from . import console as _console
 
@@ -41,13 +41,11 @@ class ResilientFileHandler(logging.FileHandler):
         """Disable the handler on the first failure instead of printing a traceback."""
         if not self._disabled:
             self._disabled = True
-            try:
+            with contextlib.suppress(Exception):
                 self.close()
-            except Exception:
-                pass
 
 
-def writable_log_file(preferred: Path) -> Optional[Path]:
+def writable_log_file(preferred: Path) -> Path | None:
     """Pick a writable console-log path: prefer the scan dir, fall back to temp.
 
     A music archive often lives on a read-only or external drive, so writing the
@@ -76,7 +74,7 @@ def writable_log_file(preferred: Path) -> Optional[Path]:
     return None
 
 
-def setup_logging(output_dir: Path) -> Optional[Path]:
+def setup_logging(output_dir: Path) -> Path | None:
     """Setup logging: Rich for console (if avail), File for persistence.
 
     The console-log file is placed in ``output_dir`` when writable, otherwise in
@@ -146,13 +144,13 @@ def setup_logging(output_dir: Path) -> Optional[Path]:
     elif not _console.HAS_RICH:
         logger.info(f"Console log will be saved to: {log_file}")
     else:
-        assert _console.console is not None
+        assert _console.console is not None  # noqa: S101 - narrows the type for mypy
         _console.console.print(f"[dim]Log file: {log_file}[/dim]")
 
     return log_file
 
 
-def cleanup_console_log_if_empty(log_file: Optional[Path]) -> bool:
+def cleanup_console_log_if_empty(log_file: Path | None) -> bool:
     """Delete console log file if it's empty or contains no errors/warnings.
 
     Args:
@@ -178,7 +176,7 @@ def cleanup_console_log_if_empty(log_file: Optional[Path]) -> bool:
             return False
 
         # Check if file is empty or contains only INFO messages
-        with open(log_file, "r", encoding="utf-8") as f:
+        with open(log_file, encoding="utf-8") as f:
             content = f.read().strip()
 
         # If empty, delete

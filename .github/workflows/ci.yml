@@ -6,15 +6,35 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        # Every supported version on Linux; the oldest and newest on Windows, the
+        # newest on macOS. The suite has no per-version branches, so the full
+        # OS x version product only repeated the same run nine times.
+        # Linux 3.12 is the reference leg: it runs everything, slow tests
+        # included, once, under coverage. Every other leg skips the slow set.
+        include:
+          - { os: ubuntu-latest, python-version: "3.10" }
+          - { os: ubuntu-latest, python-version: "3.11" }
+          - { os: ubuntu-latest, python-version: "3.12", coverage: true }
+          - { os: ubuntu-latest, python-version: "3.13" }
+          - { os: ubuntu-latest, python-version: "3.14" }
+          - { os: windows-latest, python-version: "3.10" }
+          - { os: windows-latest, python-version: "3.14" }
+          - { os: macos-latest, python-version: "3.14" }
 
     steps:
     - uses: actions/checkout@v7
@@ -23,6 +43,8 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: Install system dependencies (Ubuntu)
       if: runner.os == 'Linux'
@@ -48,47 +70,38 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
 
-    - name: Test with pytest
-      # Skip:
-      #   - tests/integration/  — manual scripts that hash & copy real FLAC
-      #     files from external drives. No CI fixtures, not meant to run
-      #     unattended.
-      #   - tests/benchmarks/  — performance benchmarks (pytest-benchmark).
-      #     Some currently target an outdated AudioCache API; running them
-      #     in CI would gate every push on perf measurements, which is not
-      #     the intent. Run them locally with `pytest tests/benchmarks/`.
+    # Skipped everywhere:
+    #   - tests/integration/  — manual scripts that hash & copy real FLAC
+    #     files from external drives. No CI fixtures, not meant to run
+    #     unattended.
+    #   - tests/benchmarks/  — performance benchmarks (pytest-benchmark), run
+    #     locally with `pytest tests/benchmarks/`; gating every push on perf
+    #     measurements is not the intent.
+    - name: Test with pytest (slow tests skipped)
+      if: ${{ !matrix.coverage }}
       run: |
-        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks -v --tb=short
+        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks -m "not slow" --tb=short
 
-    - name: Test with coverage (Ubuntu only)
-      if: runner.os == 'Linux' && matrix.python-version == '3.11'
+    - name: Test with pytest, slow tests included, under coverage
+      if: ${{ matrix.coverage }}
       run: |
-        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks --cov=flac_detective --cov-report=xml --cov-report=term-missing --cov-report=html
+        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks --tb=short --cov=flac_detective --cov-report=xml --cov-report=term-missing --cov-report=html
 
     - name: Upload coverage to Codecov
-      if: runner.os == 'Linux' && matrix.python-version == '3.11'
+      if: ${{ matrix.coverage }}
       continue-on-error: true
       uses: codecov/codecov-action@v7
       with:
         files: ./coverage.xml
         flags: unittests
-        name: codecov-ubuntu-py311
+        name: codecov-ubuntu-py312
         fail_ci_if_error: false
         verbose: true
         # Note: For public repos, you may need to set up Codecov GitHub App
         # or add CODECOV_TOKEN secret. See: https://docs.codecov.com/docs/quick-start
 
-    - name: Generate coverage badge
-      if: runner.os == 'Linux' && matrix.python-version == '3.11'
-      continue-on-error: true
-      uses: py-cov-action/python-coverage-comment-action@v3
-      with:
-        GITHUB_TOKEN: ${{ github.token }}
-        MINIMUM_GREEN: 85
-        MINIMUM_ORANGE: 70
-
     - name: Archive coverage HTML report
-      if: runner.os == 'Linux' && matrix.python-version == '3.11'
+      if: ${{ matrix.coverage }}
       uses: actions/upload-artifact@v7
       with:
         name: coverage-report-html
@@ -98,6 +111,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - uses: actions/checkout@v7
@@ -106,6 +120,8 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: "3.11"
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: Install system dependencies
       run: |
@@ -117,34 +133,27 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
 
-    - name: Check code formatting with black
+    # This job ("Code Quality Checks") is a required status check on main.
+    # ruff is the only linter and formatter, pinned in the `dev` extra and in
+    # .pre-commit-config.yaml; every tool reads its scope and rules from
+    # pyproject.toml, so the same bare commands run locally check the same thing.
+    - name: Lint with ruff
       run: |
-        black --check src tests
+        ruff check --output-format=github
 
-    - name: Check import sorting with isort
+    - name: Check formatting with ruff
       run: |
-        isort --check-only src tests
-
-    # flake8 is a hard gate — this job ("Code Quality Checks") is a required
-    # status check on main. The tree is kept clean; existing high-complexity
-    # functions carry targeted `# noqa: C901`, so only new violations fail.
-    - name: Lint with flake8
-      run: |
-        flake8 src tests --count --statistics --show-source
+        ruff format --check
 
     # mypy is a hard gate too — src/ is type-clean (checked against py3.10).
     - name: Type check with mypy
       run: |
-        mypy src --config-file=pyproject.toml
-
-    - name: Security check with bandit
-      run: |
-        bandit -r src -ll
-      continue-on-error: true
+        mypy
 
   wheel-smoke-test:
     name: Wheel install smoke test
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -157,6 +166,8 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: "3.11"
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: Install system dependencies (Ubuntu)
       if: runner.os == 'Linux'

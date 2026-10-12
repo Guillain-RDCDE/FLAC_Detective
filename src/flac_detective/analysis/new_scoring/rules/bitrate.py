@@ -1,7 +1,6 @@
 """Bitrate analysis rules (Rule 3, Rule 4, Rule 5, Rule 6)."""
 
 import logging
-from typing import List, Optional, Tuple
 
 from ..constants import (
     HIGH_BITRATE_THRESHOLD,
@@ -33,10 +32,10 @@ logger = logging.getLogger(__name__)
 
 def apply_rule_4_24bit_suspect(
     bit_depth: int,
-    mp3_bitrate_detected: Optional[int],
+    mp3_bitrate_detected: int | None,
     cutoff_freq: float = 0.0,
-    silence_ratio: Optional[float] = None,
-) -> Tuple[int, List[str]]:
+    silence_ratio: float | None = None,
+) -> tuple[int, list[str]]:
     """Apply Rule 4: 24-bit Suspicious Files (MODIFIED WITH SAFEGUARDS).
 
     Detects 24-bit files with suspiciously low MP3 source bitrate.
@@ -121,8 +120,8 @@ def apply_rule_4_24bit_suspect(
 
 
 def apply_rule_5_high_variance(
-    real_bitrate: float, bitrate_variance: Optional[float]
-) -> Tuple[int, List[str]]:
+    real_bitrate: float, bitrate_variance: float | None
+) -> tuple[int, list[str]]:
     """Apply Rule 5: Avoid False Positives - High Variable Bitrate.
 
     Reduces score for files with high bitrate and high variance, which are
@@ -184,11 +183,11 @@ RULE6_MIN_VARIANCE = 50  # Minimum variance for natural VBR
 
 
 def apply_rule_6_variable_bitrate_protection(
-    mp3_bitrate_detected: Optional[int],
+    mp3_bitrate_detected: int | None,
     bitrate_conteneur: float,
     cutoff_freq: float,
-    bitrate_variance: Optional[float],
-) -> Tuple[int, List[str]]:
+    bitrate_variance: float | None,
+) -> tuple[int, list[str]]:
     """Apply Rule 6: Avoid False Positives - High Quality Protection (REINFORCED).
 
     Protects authentic high-quality FLAC files with multiple quality indicators.

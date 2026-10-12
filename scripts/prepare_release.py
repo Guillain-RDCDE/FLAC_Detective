@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Prepare a new release by updating version numbers and validating configuration.
 
 This script helps automate the release preparation process:
@@ -144,7 +143,7 @@ def main():
         sys.exit(1)
 
     current_version = get_current_version()
-    print(f"\n📦 Preparing release")
+    print("\n📦 Preparing release")
     print(f"   Current version: {current_version}")
     print(f"   New version:     {args.version}")
 
@@ -175,13 +174,13 @@ def main():
     print("   git diff")
 
     print("\n3. Commit the version bump:")
-    print(f"   git add -A")
+    print("   git add -A")
     print(f'   git commit -m "chore: Bump version to {args.version}"')
 
     if not args.no_tag:
         print("\n4. Create and push git tag:")
         print(f"   git tag -a v{args.version} -m 'Release v{args.version}'")
-        print(f"   git push origin main")
+        print("   git push origin main")
         print(f"   git push origin v{args.version}")
 
         print("\n5. Monitor GitHub Actions:")

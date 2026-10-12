@@ -5,11 +5,12 @@ import logging
 import multiprocessing
 import sys
 import threading
+from collections.abc import Callable, Iterator
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
-from typing import Any, Callable, Iterator, Optional, Tuple
+from typing import Any
 
 from ..analysis import FLACAnalyzer
 from ..analysis.diagnostic_tracker import get_tracker
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def progress_event_writer(dest: Optional[str]) -> Iterator[Optional[ProgressCallback]]:
+def progress_event_writer(dest: str | None) -> Iterator[ProgressCallback | None]:
     """Yield a callable writing one JSON object per line to ``dest``, or ``None``.
 
     ``dest`` is ``None`` (the feature is off and nothing is created), ``-`` for
@@ -49,11 +50,12 @@ def progress_event_writer(dest: Optional[str]) -> Iterator[Optional[ProgressCall
         try:
             # Line-buffered and UTF-8: the bytes are ASCII either way, and a
             # reader tailing the file sees each event as it happens.
-            stream, close = open(dest, "w", encoding="utf-8", buffering=1), True
+            # Closed by this context manager after the last event.
+            stream, close = open(dest, "w", encoding="utf-8", buffering=1), True  # noqa: SIM115
         except OSError as exc:
             # A destination that cannot be written is a mistake in the command,
             # not a reason to analyse a library and then fail: say so and stop.
-            raise SystemExit(f"--progress-events: cannot write to {dest}: {exc}")
+            raise SystemExit(f"--progress-events: cannot write to {dest}: {exc}") from None
 
     def write(event: ProgressEvent) -> None:
         stream.write(json.dumps(event.as_dict()) + "\n")
@@ -68,8 +70,8 @@ def progress_event_writer(dest: Optional[str]) -> Iterator[Optional[ProgressCall
 
 @contextmanager
 def worker_event_channel(
-    on_event: Optional[ProgressCallback],
-) -> Iterator[Tuple[Optional[Callable[..., None]], tuple]]:
+    on_event: ProgressCallback | None,
+) -> Iterator[tuple[Callable[..., None] | None, tuple]]:
     """Carry progress events from pool workers back into this process.
 
     Yields the ``(initializer, initargs)`` pair for ``ProcessPoolExecutor``.
@@ -122,8 +124,8 @@ def analyze_batch(
     files: list[Path],
     analyzer: Any,
     workers: int,
-    on_event: Optional[ProgressCallback] = None,
-    should_stop: Optional[Callable[[], bool]] = None,
+    on_event: ProgressCallback | None = None,
+    should_stop: Callable[[], bool] | None = None,
 ) -> Iterator[tuple[Path, dict]]:
     """Yield ``(path, result)`` for each file, in a pool or in this process.
 
@@ -156,16 +158,15 @@ def analyze_batch(
             else:
                 yield path, analyzer.analyze_file(path, on_progress=on_event)
         return
-    with worker_event_channel(on_event) as (initializer, initargs):
-        with ProcessPoolExecutor(
-            max_workers=workers, initializer=initializer, initargs=initargs
-        ) as executor:
-            futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
-            for future in as_completed(futures):
-                if should_stop is not None and should_stop():
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    return
-                yield futures[future], future.result()
+    with worker_event_channel(on_event) as (initializer, initargs), ProcessPoolExecutor(
+        max_workers=workers, initializer=initializer, initargs=initargs
+    ) as executor:
+        futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
+        for future in as_completed(futures):
+            if should_stop is not None and should_stop():
+                executor.shutdown(wait=False, cancel_futures=True)
+                return
+            yield futures[future], future.result()
 
 
 def process_flac_files(
@@ -173,7 +174,7 @@ def process_flac_files(
     tracker: ProgressTracker,
     analyzer: FLACAnalyzer,
     advanced: bool = False,
-    on_event: Optional[ProgressCallback] = None,
+    on_event: ProgressCallback | None = None,
 ):
     """Process FLAC files with multi-processing and rich progress.
 
@@ -271,10 +272,10 @@ def run_analysis_loop(
     all_flac_files: list[Path],
     all_non_flac_files: list[Path],
     output_dir: Path,
-    sample_duration: Optional[float] = None,
+    sample_duration: float | None = None,
     deep: bool = False,
     advanced: bool = False,
-    on_event: Optional[ProgressCallback] = None,
+    on_event: ProgressCallback | None = None,
     repair_in_place: bool = False,
 ) -> list[dict]:
     """Run the main analysis loop on the provided files.

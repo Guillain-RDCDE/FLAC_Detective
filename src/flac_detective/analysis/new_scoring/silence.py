@@ -9,7 +9,6 @@ PHASE 1 OPTIMIZATION: Uses AudioCache to avoid multiple file reads.
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import soundfile as sf
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def detect_silences(
     audio_data: np.ndarray, sample_rate: int, threshold_db: float = -40.0, min_duration: float = 0.5
-) -> List[Tuple[int, int]]:
+) -> list[tuple[int, int]]:
     """Detect silent segments in audio data.
 
     Args:
@@ -42,10 +41,7 @@ def detect_silences(
         List of (start_index, end_index) tuples for silent segments
     """
     # Convert to mono if stereo
-    if len(audio_data.shape) > 1:
-        audio_mono = np.mean(audio_data, axis=1)
-    else:
-        audio_mono = audio_data
+    audio_mono = np.mean(audio_data, axis=1) if len(audio_data.shape) > 1 else audio_data
 
     # Calculate amplitude (absolute value)
     amplitude = np.abs(audio_mono)
@@ -68,7 +64,7 @@ def detect_silences(
     silence_segments = []
     min_samples = int(min_duration * sample_rate)
 
-    for start, end in zip(starts, ends):
+    for start, end in zip(starts, ends, strict=False):
         if (end - start) >= min_samples:
             silence_segments.append((start, end))
 
@@ -76,7 +72,7 @@ def detect_silences(
 
 
 def calculate_spectral_energy(
-    audio_segment: np.ndarray, sample_rate: int, freq_range: Tuple[int, int] = (16000, 22000)
+    audio_segment: np.ndarray, sample_rate: int, freq_range: tuple[int, int] = (16000, 22000)
 ) -> float:
     """Calculate normalized spectral energy in a specific frequency band.
 
@@ -118,9 +114,9 @@ def calculate_spectral_energy(
     return float(normalized_energy)
 
 
-def analyze_silence_ratio(  # noqa: C901
-    file_path: Union[str, Path], cache=None
-) -> Tuple[Optional[float], str, float, float]:
+def analyze_silence_ratio(
+    file_path: str | Path, cache=None
+) -> tuple[float | None, str, float, float]:
     """Analyze the ratio of HF energy between silence and music.
 
     PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.
@@ -219,7 +215,7 @@ def analyze_silence_ratio(  # noqa: C901
 
 def detect_vinyl_noise(
     audio_data: np.ndarray, sample_rate: int, cutoff_freq: float
-) -> Tuple[bool, dict]:
+) -> tuple[bool, dict]:
     """Detect vinyl surface noise above the musical cutoff (Phase 2).
 
     Vinyl records have characteristic noise above the musical content:
@@ -238,10 +234,7 @@ def detect_vinyl_noise(
     details = {"energy_db": -100.0, "autocorr": 0.0, "temporal_variance": 0.0, "is_vinyl": False}
 
     # Convert to mono if stereo
-    if audio_data.ndim > 1:
-        audio_mono = np.mean(audio_data, axis=1)
-    else:
-        audio_mono = audio_data
+    audio_mono = np.mean(audio_data, axis=1) if audio_data.ndim > 1 else audio_data
 
     # Filter band above cutoff
     noise_band = filter_band(audio_mono, sample_rate, cutoff_freq)
@@ -292,7 +285,7 @@ def detect_vinyl_noise(
     return is_vinyl, details
 
 
-def detect_clicks_and_pops(audio_data: np.ndarray, sample_rate: int) -> Tuple[int, float]:
+def detect_clicks_and_pops(audio_data: np.ndarray, sample_rate: int) -> tuple[int, float]:
     """Detect clicks and pops typical of vinyl records (Phase 3).
 
     Vinyl records have brief transients (clicks/pops) from dust and scratches.

@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Dict
 
 import soundfile as sf
 from mutagen.flac import FLAC
@@ -22,7 +21,7 @@ _SUBTYPE_BITS = {
 }
 
 
-def read_metadata(filepath: Path) -> Dict:
+def read_metadata(filepath: Path) -> dict:
     """Read lossless-audio metadata (FLAC via mutagen, WAV/PCM via soundfile).
 
     Args:
@@ -58,7 +57,7 @@ def read_metadata(filepath: Path) -> Dict:
         return {}
 
 
-def check_duration_consistency(filepath: Path, metadata: Dict) -> Dict:
+def check_duration_consistency(filepath: Path, metadata: dict) -> dict:
     """Checks consistency between declared duration and real duration.
 
     Industry standard criterion: durations must match.

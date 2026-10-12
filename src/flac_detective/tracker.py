@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -48,9 +48,9 @@ class ProgressTracker:
         if progress_file is None:
             progress_file = Path("progress.json")
         self.progress_file = progress_file
-        self.data: Dict = self._load()
+        self.data: dict = self._load()
 
-    def _load(self) -> Dict:
+    def _load(self) -> dict:
         """Loads progress state.
 
         Returns:
@@ -58,7 +58,7 @@ class ProgressTracker:
         """
         if self.progress_file.exists():
             try:
-                with open(self.progress_file, "r", encoding="utf-8") as f:
+                with open(self.progress_file, encoding="utf-8") as f:
                     return dict(json.load(f))
             except Exception as e:
                 logger.warning(f"Unable to load progress.json: {e}")
@@ -94,7 +94,7 @@ class ProgressTracker:
         """
         return filepath in self.data["processed_files"]
 
-    def add_result(self, result: Dict):
+    def add_result(self, result: dict):
         """Adds an analysis result.
 
         Args:
@@ -104,7 +104,7 @@ class ProgressTracker:
         self.data["processed_files"].append(result["filepath"])
         self.data["current_index"] += 1
 
-    def get_results(self) -> List[Dict]:
+    def get_results(self) -> list[dict]:
         """Returns all results.
 
         Returns:
@@ -120,7 +120,7 @@ class ProgressTracker:
         """
         self.data["total_files"] = total
 
-    def get_progress(self) -> Tuple[int, int]:
+    def get_progress(self) -> tuple[int, int]:
         """Returns current progress.
 
         Returns:

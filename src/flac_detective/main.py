@@ -12,7 +12,6 @@ them from here).
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from .__version__ import __version__
 from .analysis.diagnostic_tracker import reset_tracker
@@ -63,26 +62,26 @@ _write_report = _output.write_report
 _REAL_STDOUT = REAL_STDOUT
 
 __all__ = [
+    "HAS_RICH",
+    "LOGO",
+    "Colors",
     "__version__",
+    "analysis_config",
+    "colorize",
+    "console",
+    "generate_final_report",
+    "get_user_input_path",
     "main",
     "parse_arguments",
-    "get_user_input_path",
-    "scan_files",
     "resolve_work_dir",
-    "setup_logging",
     "run_analysis_loop",
-    "generate_final_report",
-    "HAS_RICH",
-    "console",
-    "analysis_config",
-    "Colors",
-    "colorize",
-    "LOGO",
+    "scan_files",
+    "setup_logging",
 ]
 
 # Work directory chosen by main() — read by the KeyboardInterrupt handler so the
 # "progress saved in …" message names the real location (see resolve_work_dir).
-_WORK_DIR: Optional[Path] = None
+_WORK_DIR: Path | None = None
 
 
 def _run() -> None:

@@ -153,7 +153,7 @@ class TextReporter:
             widths = [20, 10, 10, 15, 45]
 
         formatted_cols = []
-        for col, width in zip(columns, widths):
+        for col, width in zip(columns, widths, strict=False):
             col_str = str(col)
             if len(col_str) > width:
                 col_str = col_str[: width - 3] + "..."

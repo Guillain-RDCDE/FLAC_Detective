@@ -10,7 +10,6 @@ import shutil
 import tempfile
 from functools import partial
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 
@@ -35,10 +34,10 @@ logger = logging.getLogger(__name__)
 
 # Frames of the segment whose RMS decides "there is signal here" for the
 # assessability check — 30 s at CD rate, whatever the file's own rate.
-_RMS_PROBE_FRAMES = int(30 * 44100)
+_RMS_PROBE_FRAMES = 30 * 44100
 
 
-def _optional_int(value: object) -> Optional[int]:
+def _optional_int(value: object) -> int | None:
     """An int, or None when the value is absent or unreadable — never 0.
 
     0 is a reading ("this file claims 0 Hz"), and no file does. See the shape D
@@ -57,7 +56,7 @@ def _optional_int(value: object) -> Optional[int]:
     return None
 
 
-def _optional_float(value: object) -> Optional[float]:
+def _optional_float(value: object) -> float | None:
     """A float, or None when the value is absent or unreadable — never 0.0."""
     if isinstance(value, bool):
         return None
@@ -71,7 +70,7 @@ def _optional_float(value: object) -> Optional[float]:
     return None
 
 
-def _sampled_rms(cache: AudioCache) -> Optional[float]:
+def _sampled_rms(cache: AudioCache) -> float | None:
     """RMS of a short segment, or None if it could not be measured.
 
     A segment rather than the whole file: this only has to separate "there is
@@ -110,7 +109,7 @@ def _flac_wider_than_libsndfile_reads(filepath: Path) -> bool:
         return False
 
 
-def _stage_local_copy(filepath: Path) -> Tuple[Path, bool]:
+def _stage_local_copy(filepath: Path) -> tuple[Path, bool]:
     """Copy or decode the source to a local temp file; return it and whether it was decoded.
 
     I/O STABILITY STRATEGY: "Copy-to-Temp". Every later read hits a local file
@@ -145,7 +144,7 @@ def _stage_local_copy(filepath: Path) -> Tuple[Path, bool]:
     return temp_path, False
 
 
-def _read_source_metadata(filepath: Path, temp_path: Path, decoded_from_source: bool) -> Dict:
+def _read_source_metadata(filepath: Path, temp_path: Path, decoded_from_source: bool) -> dict:
     """Read the tags and stream properties of the file under analysis.
 
     For a decoded source the original is not soundfile-readable, so the audio
@@ -170,11 +169,11 @@ def _apply_assessability(
     verdict: str,
     confidence: str,
     reason: str,
-    metadata: Dict,
+    metadata: dict,
     cutoff_freq: float,
     cache: AudioCache,
     filepath: Path,
-) -> Tuple[str, str, str]:
+) -> tuple[str, str, str]:
     """Downgrade an AUTHENTIC the engine had no standing to issue to NOT_ASSESSED.
 
     Only AUTHENTIC is ever downgraded: a conviction, or anything signalled, is
@@ -199,7 +198,7 @@ def _apply_assessability(
     )
 
 
-def _hires_axis(metadata: Dict, quality_analysis: Dict) -> Tuple[str, List[str]]:
+def _hires_axis(metadata: dict, quality_analysis: dict) -> tuple[str, list[str]]:
     """The fake hi-res verdict (#1): a SEPARATE axis from the transcode verdict.
 
     Combines the upsampling (spectral cliff + silent floor) and bit-depth (padded
@@ -227,7 +226,7 @@ def _hires_axis(metadata: Dict, quality_analysis: Dict) -> Tuple[str, List[str]]
     )
 
 
-def _error_result(filepath: Path, error: Exception) -> Dict:
+def _error_result(filepath: Path, error: Exception) -> dict:
     """The result row for a file whose analysis raised."""
     return {
         "filepath": str(filepath),
@@ -235,7 +234,7 @@ def _error_result(filepath: Path, error: Exception) -> Dict:
         "score": 0,
         "verdict": "ERROR",
         "confidence": "N/A",
-        "reason": f"Error: {str(error)}",
+        "reason": f"Error: {error!s}",
         "cutoff_freq": 0,
         "sample_rate": "N/A",
         "bit_depth": "N/A",
@@ -264,7 +263,7 @@ def _error_result(filepath: Path, error: Exception) -> Dict:
     }
 
 
-def _cleanup(cache: Optional[AudioCache], temp_path: Optional[Path], filepath: Path) -> None:
+def _cleanup(cache: AudioCache | None, temp_path: Path | None, filepath: Path) -> None:
     """Release the decoded audio and delete the temp copy."""
     if cache is not None:
         cache.clear()
@@ -301,9 +300,9 @@ class FLACAnalyzer:
 
     def analyze_file(
         self,
-        filepath: Union[str, Path],
-        on_progress: Optional[ProgressCallback] = None,
-    ) -> Dict:
+        filepath: str | Path,
+        on_progress: ProgressCallback | None = None,
+    ) -> dict:
         """Analyzes a lossless audio file and determines if it is authentic.
 
         Stages, each announced to ``on_progress``: prepare (local copy), metadata,
@@ -330,8 +329,8 @@ class FLACAnalyzer:
         # slow stage, and a caller that hears nothing until it ends learns the
         # least exactly when it needs to know the most.
         emit("prepare", filepath, on_progress)
-        temp_path: Optional[Path] = None
-        cache: Optional[AudioCache] = None
+        temp_path: Path | None = None
+        cache: AudioCache | None = None
 
         try:
             temp_path, decoded_from_source = _stage_local_copy(filepath)
@@ -380,10 +379,10 @@ class FLACAnalyzer:
             emit("scoring", filepath, on_progress)
             logger.debug(f"Analyzing file: {filepath.name} | Cutoff: {cutoff_freq:.0f} Hz")
 
-            score_breakdown: Dict[str, int] = {}
+            score_breakdown: dict[str, int] = {}
             # Families that testify without scoring cannot appear in a points
             # breakdown, so they travel on their own channel.
-            witness_families: Set[str] = set()
+            witness_families: set[str] = set()
             # source_path=filepath (the ORIGINAL): the real bitrate is sized from
             # the on-disk file. measure_compressed_size: ONE RULER FOR EVERY
             # CONTAINER, FLAC included — the compression ratio Rule 1 reads is

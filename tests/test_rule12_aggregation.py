@@ -25,7 +25,7 @@ class _SeqModel:
         self._logits = [math.log(p / (1 - p)) for p in probs]
         self._i = 0
 
-    def __call__(self, x):  # noqa: D401
+    def __call__(self, x):
         logit = self._logits[self._i % len(self._logits)]
         self._i += 1
         return torch.tensor([[0.0, logit]])

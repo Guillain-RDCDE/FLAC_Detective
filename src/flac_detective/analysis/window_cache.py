@@ -11,7 +11,6 @@ before/after pass on labelled files is part of the change.
 """
 
 import logging
-from typing import Dict
 
 import numpy as np
 from scipy import signal
@@ -19,7 +18,7 @@ from scipy import signal
 logger = logging.getLogger(__name__)
 
 # Global window cache
-_window_cache: Dict[int, np.ndarray] = {}
+_window_cache: dict[int, np.ndarray] = {}
 
 
 def get_hann_window(size: int) -> np.ndarray:

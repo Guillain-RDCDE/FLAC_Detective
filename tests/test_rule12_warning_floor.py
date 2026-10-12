@@ -29,7 +29,7 @@ class _PModel:
     def __init__(self, p: float) -> None:
         self._logit = math.log(p / (1 - p))
 
-    def __call__(self, x):  # noqa: D401
+    def __call__(self, x):
         return torch.tensor([[0.0, self._logit]])
 
 

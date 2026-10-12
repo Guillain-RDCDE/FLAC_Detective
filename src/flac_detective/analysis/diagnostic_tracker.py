@@ -8,7 +8,7 @@ import logging
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -32,19 +32,19 @@ class FileIssue:
     filepath: str
     issue_type: IssueType
     message: str
-    frames_read: Optional[int] = None  # For partial reads
-    total_frames: Optional[int] = None  # For partial reads
+    frames_read: int | None = None  # For partial reads
+    total_frames: int | None = None  # For partial reads
     retry_count: int = 0
     timestamp: str = ""
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """A plain, picklable, JSON-ready form (the enum as its value)."""
         d = asdict(self)
         d["issue_type"] = self.issue_type.value
         return d
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "FileIssue":
+    def from_dict(cls, d: dict[str, Any]) -> "FileIssue":
         """The inverse of :meth:`as_dict`."""
         d = dict(d)
         d["issue_type"] = IssueType(d["issue_type"])
@@ -71,16 +71,16 @@ class DiagnosticTracker:
 
     def __init__(self):
         """Initialize the diagnostic tracker."""
-        self._issues: Dict[str, List[FileIssue]] = {}
-        self._analyzed: Set[str] = set()
+        self._issues: dict[str, list[FileIssue]] = {}
+        self._analyzed: set[str] = set()
 
     def record_issue(
         self,
         filepath: str,
         issue_type: IssueType,
         message: str,
-        frames_read: Optional[int] = None,
-        total_frames: Optional[int] = None,
+        frames_read: int | None = None,
+        total_frames: int | None = None,
         retry_count: int = 0,
     ):
         """Record an issue encountered during file analysis.
@@ -116,11 +116,11 @@ class DiagnosticTracker:
         """Deprecated: kept for callers of the pre-2.0 API; prefer note_analyzed."""
         self._analyzed.add(f"<anonymous {len(self._analyzed)}>")
 
-    def export_issues(self, filepath: str) -> List[Dict[str, Any]]:
+    def export_issues(self, filepath: str) -> list[dict[str, Any]]:
         """This file's issues as plain dicts, to ride in a result across a process."""
         return [issue.as_dict() for issue in self._issues.get(filepath, [])]
 
-    def absorb_result(self, result: Dict[str, Any]) -> None:
+    def absorb_result(self, result: dict[str, Any]) -> None:
         """Take the issues a result carries (from a worker) into this tracker.
 
         Replaces, never appends, so absorbing the same result twice — or a
@@ -134,7 +134,7 @@ class DiagnosticTracker:
         if carried:
             self._issues[filepath] = [FileIssue.from_dict(d) for d in carried]
 
-    def get_files_with_issues(self) -> List[str]:
+    def get_files_with_issues(self) -> list[str]:
         """Get list of all files that had issues.
 
         Returns:
@@ -142,7 +142,7 @@ class DiagnosticTracker:
         """
         return list(self._issues.keys())
 
-    def get_issues_for_file(self, filepath: str) -> List[FileIssue]:
+    def get_issues_for_file(self, filepath: str) -> list[FileIssue]:
         """Get all issues for a specific file.
 
         Args:
@@ -168,7 +168,7 @@ class DiagnosticTracker:
         critical_types = {IssueType.READ_FAILED, IssueType.CORRUPTED}
         return any(issue.issue_type in critical_types for issue in self._issues[filepath])
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> dict:
         """Get diagnostic statistics.
 
         Returns:
@@ -176,7 +176,7 @@ class DiagnosticTracker:
         """
         files_analyzed = len(self._analyzed)
         files_with_issues = len(self._issues)
-        stats: Dict[str, Any] = {
+        stats: dict[str, Any] = {
             "total_files": files_analyzed,
             "files_with_issues": files_with_issues,
             "clean_files": files_analyzed - files_with_issues,
@@ -275,7 +275,7 @@ class DiagnosticTracker:
 
 
 # Global instance for tracking across the application
-_global_tracker: Optional[DiagnosticTracker] = None
+_global_tracker: DiagnosticTracker | None = None
 
 
 def get_tracker() -> DiagnosticTracker:

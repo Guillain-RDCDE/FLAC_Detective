@@ -17,7 +17,7 @@ Both halves are pinned here: what the table must now say, and what the tally mus
 no longer be mistaken for.
 """
 
-from flac_detective.reporting.text_reporter import TextReporter  # noqa: E402
+from flac_detective.reporting.text_reporter import TextReporter
 
 
 def _result(**overrides):

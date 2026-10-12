@@ -139,7 +139,7 @@ class TestRules:
     def test_rule_1_does_not_read_a_low_wall_as_an_mp3_cell(self):
         # The amendment: an 1890s gramophone at 11,750 Hz went SUSPICIOUS 80
         # through the never-calibrated part of the 128 kbps cell under 14 kHz.
-        (score, reasons), bitrate = apply_rule_1_mp3_bitrate(11750.0, 480.0, float("nan"), SR)
+        (score, _reasons), bitrate = apply_rule_1_mp3_bitrate(11750.0, 480.0, float("nan"), SR)
         assert score == 0 and bitrate is None
         assert not rule1_may_consult_container(11750.0, SR)
 

@@ -6,8 +6,9 @@ a strategy pattern for different quality detectors.
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any
 
 import numpy as np
 import soundfile as sf
@@ -28,7 +29,7 @@ def scan_quality_in_one_pass(
     dc_offset: "DCOffsetDetector",
     silence: "SilenceDetector",
     on_scan: Callable[[int, int], None] | None = None,
-) -> Dict[str, Dict[str, Any]] | None:
+) -> dict[str, dict[str, Any]] | None:
     """Clipping, DC offset and silence from ONE traversal of the file.
 
     These three detectors each streamed the whole file on their own. Measured on
@@ -211,7 +212,7 @@ class QualityDetector(ABC):
     """Abstract base class for quality detectors."""
 
     @abstractmethod
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Run the quality detection.
 
         Returns:
@@ -241,7 +242,7 @@ class ClippingDetector(QualityDetector):
         """
         self.threshold = threshold
 
-    def empty_result(self) -> Dict[str, Any]:
+    def empty_result(self) -> dict[str, Any]:
         """The answer for a file with no frames."""
         return {
             "has_clipping": False,
@@ -250,7 +251,7 @@ class ClippingDetector(QualityDetector):
             "severity": "none",
         }
 
-    def result_from_counts(self, clipped_samples: int, total_samples: int) -> Dict[str, Any]:
+    def result_from_counts(self, clipped_samples: int, total_samples: int) -> dict[str, Any]:
         """Turn the streamed totals into the result dict.
 
         The single source of this arithmetic: the one-pass scan
@@ -265,7 +266,7 @@ class ClippingDetector(QualityDetector):
             "severity": _calculate_clipping_severity(clipping_percentage),
         }
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect clipping in audio data.
 
         Args:
@@ -312,7 +313,7 @@ class DCOffsetDetector(QualityDetector):
         """
         self.threshold = threshold
 
-    def empty_result(self) -> Dict[str, Any]:
+    def empty_result(self) -> dict[str, Any]:
         """The answer for a file with no frames."""
         return {
             "has_dc_offset": False,
@@ -320,7 +321,7 @@ class DCOffsetDetector(QualityDetector):
             "severity": "none",
         }
 
-    def result_from_sum(self, sum_of_samples: float, total_samples: int) -> Dict[str, Any]:
+    def result_from_sum(self, sum_of_samples: float, total_samples: int) -> dict[str, Any]:
         """Turn the streamed sum into the result dict.
 
         Shared with :func:`scan_quality_in_one_pass`, which accumulates the very
@@ -336,7 +337,7 @@ class DCOffsetDetector(QualityDetector):
             "severity": _calculate_dc_offset_severity(abs_offset, self.threshold),
         }
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect DC offset in audio data.
 
         Args:
@@ -373,7 +374,7 @@ class DCOffsetDetector(QualityDetector):
 class CorruptionDetector(QualityDetector):
     """Checks if audio file is readable and valid by iterating through it."""
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect whether the file is readable and fully decodable."""
         filepath: Path = kwargs["filepath"]
         frames_read = 0
@@ -454,7 +455,7 @@ class SilenceDetector(QualityDetector):
         self.threshold_db = threshold_db
         self.silence_threshold_sec = silence_threshold_sec
 
-    def empty_result(self) -> Dict[str, Any]:
+    def empty_result(self) -> dict[str, Any]:
         """The answer for a file with no frames."""
         return {
             "has_silence_issue": False,
@@ -477,10 +478,7 @@ class SilenceDetector(QualityDetector):
         block exactly the same way.
         """
         # Convert to mono for silence detection
-        if chunk.ndim > 1:
-            mono_chunk = np.mean(np.abs(chunk), axis=1)
-        else:
-            mono_chunk = np.abs(chunk)
+        mono_chunk = np.mean(np.abs(chunk), axis=1) if chunk.ndim > 1 else np.abs(chunk)
 
         non_silent_indices = np.where(mono_chunk > threshold)[0]
 
@@ -497,7 +495,7 @@ class SilenceDetector(QualityDetector):
         last_non_silent_frame: Any,
         total_frames: int,
         samplerate: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Turn the scanned bounds into the result dict."""
         if first_non_silent_frame is None:  # Entire file is silent
             return {
@@ -523,7 +521,7 @@ class SilenceDetector(QualityDetector):
             ),
         }
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect abnormal silence in audio data.
 
         Args:
@@ -587,7 +585,7 @@ def _trailing_zero_bits(values: np.ndarray) -> int:
     return int(tz.min())
 
 
-def estimate_true_depth(filepath: Path) -> Dict[str, Any]:
+def estimate_true_depth(filepath: Path) -> dict[str, Any]:
     """Read the bits a file actually uses, in windows spread over its length.
 
     libsndfile left-justifies every integer format into int32, so a sample that
@@ -646,7 +644,7 @@ def estimate_true_depth(filepath: Path) -> Dict[str, Any]:
 class BitDepthDetector(QualityDetector):
     """Checks true bit depth (detects fake high-res)."""
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect true bit depth.
 
         Args:
@@ -696,7 +694,7 @@ class BitDepthDetector(QualityDetector):
 class UpsamplingDetector(QualityDetector):
     """Detects sample rate upsampling."""
 
-    def detect(self, **kwargs: Any) -> Dict[str, Any]:
+    def detect(self, **kwargs: Any) -> dict[str, Any]:
         """Detect sample rate upsampling.
 
         Args:
@@ -717,10 +715,7 @@ class UpsamplingDetector(QualityDetector):
         if cutoff_freq < 24000:
             # Typical CD cutoff (22.05k) or DAT (24k)
             is_upsampled = True
-            if cutoff_freq < 22500:
-                suspected_rate = 44100
-            else:
-                suspected_rate = 48000
+            suspected_rate = 44100 if cutoff_freq < 22500 else 48000
 
         return {
             "is_upsampled": is_upsampled,
@@ -749,7 +744,7 @@ class AudioQualityAnalyzer:
         self.dc_offset = DCOffsetDetector()
         self.silence = SilenceDetector()
 
-        self.detectors: Dict[str, QualityDetector] = {
+        self.detectors: dict[str, QualityDetector] = {
             "corruption": CorruptionDetector(),
             "clipping": self.clipping,
             "dc_offset": self.dc_offset,
@@ -761,12 +756,12 @@ class AudioQualityAnalyzer:
     def analyze(
         self,
         filepath: Path,
-        metadata: Dict | None = None,
+        metadata: dict | None = None,
         cutoff_freq: float = 0.0,
         cache=None,
         on_substage: Callable[[str], None] | None = None,
         on_scan: Callable[[int, int], None] | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Complete audio quality analysis of a file.
 
         PHASE 1 OPTIMIZATION: Uses AudioCache to avoid re-reading the file.
@@ -891,7 +886,7 @@ class AudioQualityAnalyzer:
 
     def _detect_upsampling(
         self, filepath: Path, samplerate: int, cutoff_freq: float, cache
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Robust upsampling detection: spectral cliff + silent floor (>48 kHz only).
 
         Uses the decoded audio (shared cache, else a direct read) to run
@@ -922,7 +917,7 @@ class AudioQualityAnalyzer:
                 cutoff_freq=cutoff_freq, samplerate=samplerate
             )
 
-    def _get_reported_depth(self, metadata: Dict | None) -> int:
+    def _get_reported_depth(self, metadata: dict | None) -> int:
         """Extract reported bit depth from metadata.
 
         Args:
@@ -938,7 +933,7 @@ class AudioQualityAnalyzer:
                 pass
         return 16
 
-    def _get_reported_rate(self, metadata: Dict | None, default_rate: int) -> int:
+    def _get_reported_rate(self, metadata: dict | None, default_rate: int) -> int:
         """Extract reported sample rate from metadata.
 
         Args:
@@ -956,8 +951,8 @@ class AudioQualityAnalyzer:
         return default_rate
 
     def _get_empty_results(
-        self, results: Dict, error_mode: bool = False, error_msg: str = ""
-    ) -> Dict:
+        self, results: dict, error_mode: bool = False, error_msg: str = ""
+    ) -> dict:
         """Generate empty or error results.
 
         Args:
@@ -1003,12 +998,12 @@ class AudioQualityAnalyzer:
 
 def analyze_audio_quality(
     filepath: Path,
-    metadata: Dict | None = None,
+    metadata: dict | None = None,
     cutoff_freq: float = 0.0,
     cache=None,
     on_substage: Callable[[str], None] | None = None,
     on_scan: Callable[[int, int], None] | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Complete audio quality analysis (backward compatibility wrapper).
 
     PHASE 1 OPTIMIZATION: Supports AudioCache parameter.

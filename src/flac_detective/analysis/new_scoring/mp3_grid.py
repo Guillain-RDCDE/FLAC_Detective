@@ -42,8 +42,6 @@ See ml/exchange/MP3_GRID_REGISTRATION_2026-09-27.md.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from .mdct import HOLE_DEPTH_DB, REF_SIZE
@@ -400,7 +398,7 @@ def alignment_curve(x: np.ndarray) -> np.ndarray:
     return curve
 
 
-def grid_peak_ratio(audio: np.ndarray, sample_rate: int) -> Tuple[float, int]:
+def grid_peak_ratio(audio: np.ndarray, sample_rate: int) -> tuple[float, int]:
     """(peak ratio, best alignment) on the central excerpt; (nan, -1) when not measurable.
 
     NaN — not 1.0 — when the excerpt is too short or silent: an unknown grid

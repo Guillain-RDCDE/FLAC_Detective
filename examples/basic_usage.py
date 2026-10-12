@@ -7,6 +7,7 @@ to analyze a single FLAC file or directory.
 """
 
 from pathlib import Path
+
 from flac_detective import FLACAnalyzer
 
 

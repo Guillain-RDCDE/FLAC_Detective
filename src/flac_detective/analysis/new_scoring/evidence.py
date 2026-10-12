@@ -51,14 +51,15 @@ Deliberately absent:
 from __future__ import annotations
 
 import math
-from typing import Callable, Dict, FrozenSet, Mapping, NamedTuple, Optional, Set, Tuple
+from collections.abc import Callable, Mapping
+from typing import NamedTuple
 
 from .constants import FAMILY_INDEPENDENCE_MIN_CUTOFF_HZ, MIN_FAMILY_CONTRIBUTION
 
 # Rule class name -> evidence family. A rule absent from this map contributes no
 # family, which is the safe default: a new rule cannot silently earn conviction
 # power just by existing.
-RULE_FAMILY: Dict[str, str] = {
+RULE_FAMILY: dict[str, str] = {
     "Rule1MP3Bitrate": "spectral",
     "Rule2Cutoff": "spectral",
     "Rule424BitSuspect": "spectral",
@@ -87,7 +88,7 @@ RULE_FAMILY: Dict[str, str] = {
 # and measured: three new false convictions on 258 genuine files, because the
 # points pushed mid-scoring real recordings past CONVICTION_MIN_SCORE and then
 # corroborated them. Awarding zero and declaring the witness separately measures 0.
-POINTLESS_WITNESS_RULES: Dict[str, str] = {
+POINTLESS_WITNESS_RULES: dict[str, str] = {
     "Rule14TemporalSeam": "temporal",
     # Rule 15 reads the STEREO IMAGE — joint-stereo coupling kills the side channel
     # above ~10 kHz while the mid stays alive. Independent of spectral geometry, of
@@ -129,12 +130,12 @@ class FamilyDependency(NamedTuple):
     families, **on this file**, ended up reading the same observation.
     """
 
-    pair: FrozenSet[str]
-    condition: Callable[[Optional[float]], bool]
+    pair: frozenset[str]
+    condition: Callable[[float | None], bool]
     why: str
 
 
-def _cutoff_is_low(cutoff_freq: Optional[float]) -> bool:
+def _cutoff_is_low(cutoff_freq: float | None) -> bool:
     """True when the top of the band is gone. An unknown cutoff is not a low one."""
     if cutoff_freq is None or math.isnan(cutoff_freq):
         return False
@@ -144,7 +145,7 @@ def _cutoff_is_low(cutoff_freq: Optional[float]) -> bool:
 # One entry, because one pair has measurement behind it. The defect is general —
 # this table has never been consulted for any other pair either — but a declared
 # dependency with no corpus price is a guess wearing a mechanism's clothes.
-FAMILY_DEPENDENCIES: Tuple[FamilyDependency, ...] = (
+FAMILY_DEPENDENCIES: tuple[FamilyDependency, ...] = (
     FamilyDependency(
         pair=frozenset({"cnn", "spectral"}),
         condition=_cutoff_is_low,
@@ -156,7 +157,7 @@ FAMILY_DEPENDENCIES: Tuple[FamilyDependency, ...] = (
 )
 
 
-def collapse_dependent_families(families: Set[str], cutoff_freq: Optional[float]) -> Set[str]:
+def collapse_dependent_families(families: set[str], cutoff_freq: float | None) -> set[str]:
     """Merge families that this file's condition makes dependent.
 
     Measured price, registered before the sweep in
@@ -185,13 +186,13 @@ def collapse_dependent_families(families: Set[str], cutoff_freq: Optional[float]
     return out
 
 
-def family_totals(rule_scores: Mapping[str, int]) -> Dict[str, int]:
+def family_totals(rule_scores: Mapping[str, int]) -> dict[str, int]:
     """Total positive points each family contributed.
 
     Negative contributions are dropped rather than netted: a protection rule
     arguing for innocence must not reduce an accuser's weight, and vice versa.
     """
-    totals: Dict[str, int] = {}
+    totals: dict[str, int] = {}
     for rule, family in RULE_FAMILY.items():
         points = rule_scores.get(rule, 0)
         if points > 0:
@@ -202,8 +203,8 @@ def family_totals(rule_scores: Mapping[str, int]) -> Dict[str, int]:
 def evidence_families(
     rule_scores: Mapping[str, int],
     min_contribution: int = MIN_FAMILY_CONTRIBUTION,
-    witnesses: Optional[Set[str]] = None,
-) -> Set[str]:
+    witnesses: set[str] | None = None,
+) -> set[str]:
     """Return the independent evidence families that meaningfully accuse this file.
 
     A family counts as a witness only if it contributes at least

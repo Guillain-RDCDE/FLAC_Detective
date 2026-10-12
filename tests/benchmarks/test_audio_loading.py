@@ -87,7 +87,7 @@ class TestCachePerformance:
         def create_and_cache():
             # Create temp file
             audio = np.random.randn(44100, 2) * 0.5
-            temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)
+            temp_file = tempfile.NamedTemporaryFile(suffix=".flac", delete=False)  # noqa: SIM115 - closed on the next line
             temp_file.close()  # Windows will not unlink a file the process still holds open
             temp_path = Path(temp_file.name)
             sf.write(temp_path, audio, 44100)

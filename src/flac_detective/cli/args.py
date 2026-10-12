@@ -39,9 +39,7 @@ def clean_path_string(path_str: str) -> str:
     Returns:
         Cleaned path.
     """
-    if path_str.startswith('"') and path_str.endswith('"'):
-        return path_str[1:-1]
-    elif path_str.startswith("'") and path_str.endswith("'"):
+    if (path_str.startswith('"') and path_str.endswith('"')) or (path_str.startswith("'") and path_str.endswith("'")):
         return path_str[1:-1]
     return path_str
 

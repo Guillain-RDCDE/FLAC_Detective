@@ -22,7 +22,7 @@ Every test fails on the 2.0.0 tree, where none of these modules exist.
 from __future__ import annotations
 
 import math
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -72,7 +72,7 @@ def _shape(n: int, rate: int) -> np.ndarray:
     return 1 / np.sqrt(np.maximum(f, 50) / 50)
 
 
-@lru_cache(maxsize=None)
+@cache
 def _music_like(rate: int = SR, seconds: float = 10.0, seed: int = 3) -> np.ndarray:
     """Pink-ish stereo noise, a slow envelope and decaying hits, so a coder has work to do."""
     rng = np.random.default_rng(seed)
@@ -148,7 +148,7 @@ class TestTheGrids:
         assert math.isnan(celt_ratio(np.zeros(SR * 5, np.float32), 32000)[0])
 
 
-@lru_cache(maxsize=None)
+@cache
 def _replicated(seconds: float = 10.0, shift_bands: int = 22) -> np.ndarray:
     """Low band kept, high band rebuilt as a copy of it shifted up by whole subbands."""
     mono = _music_like(seconds=seconds)[:, 0].astype(np.float64)
@@ -183,7 +183,7 @@ class TestReplication:
         assert apply_rule_17_sbr_replication("x", 20000.0, None, None)[0] == 0
 
 
-@lru_cache(maxsize=None)
+@cache
 def _stepped(seconds: float = 10.0, split_hz: float = 6000.0) -> np.ndarray:
     """Independent channels below ``split_hz``, one common signal above it."""
     rng = np.random.default_rng(7)

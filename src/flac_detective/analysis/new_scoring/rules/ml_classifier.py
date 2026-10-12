@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
 
 from ..constants import SCORE_WARNING
 from .ml_calibration import calibrate_probability, is_calibrated
@@ -134,10 +133,7 @@ def _segment_to_input(y, sr):
     rolloff = 0.0
     chans = []
     for ci, sig in enumerate((mid, side)):
-        if len(sig) < target_len:
-            sig = np.pad(sig, (0, target_len - len(sig)))
-        else:
-            sig = sig[:target_len]
+        sig = np.pad(sig, (0, target_len - len(sig))) if len(sig) < target_len else sig[:target_len]
         sig = np.round(sig * 32768.0) / 32768.0  # 16-bit quant (matches training)
         mag = np.abs(librosa.stft(sig, n_fft=_N_FFT, hop_length=_HOP))
         if ci == 0:
@@ -192,7 +188,7 @@ def _window_offsets(duration: float, n_windows: int):
         off = min(max(0.0, centre - _SEGMENT_SEC / 2), max(0.0, duration - _SEGMENT_SEC))
         offsets.append(off)
     # De-duplicate near-identical offsets (very short files) preserving order.
-    deduped: List[float] = []
+    deduped: list[float] = []
     for off in offsets:
         if not any(abs(off - prev) < 0.5 for prev in deduped):
             deduped.append(off)
@@ -295,7 +291,7 @@ def infer_file_probability(filepath: Path, n_windows: int = _N_WINDOWS):
     }
 
 
-def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> Tuple[int, List[str]]:
+def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> tuple[int, list[str]]:
     """Apply Rule 12: ML-based transcode detection.
 
     Args:
@@ -357,7 +353,7 @@ def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> Tup
         score = 30
         confidence_str = "very high"
     else:
-        score = int(round((p_transcoded - THRESHOLD) / (SATURATION - THRESHOLD) * 30))
+        score = int(round((p_transcoded - THRESHOLD) / (SATURATION - THRESHOLD) * 30))  # noqa: RUF046 - numpy scalars may not round to a Python int
         if p_transcoded >= 0.8:
             confidence_str = "high"
         elif p_transcoded >= 0.65:

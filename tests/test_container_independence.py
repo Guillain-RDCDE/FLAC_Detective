@@ -31,7 +31,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
+from flac_detective.analysis.analyzer import FLACAnalyzer
 
 # Decodes and encodes real audio in every container or level: minutes, not
 # milliseconds. CI runs it once, on the Linux coverage leg (-m slow is not skipped there).

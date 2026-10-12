@@ -34,7 +34,6 @@ The rule still scores once: the strongest tier any reading reaches.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -132,9 +131,9 @@ def _points(ratio: float, review: float, hard: float) -> int:
 def apply_rule_13_mdct_alignment(
     file_path: str,
     cutoff_freq: float,
-    audio_data: Optional[np.ndarray] = None,
-    sample_rate: Optional[int] = None,
-) -> Tuple[int, List[str], dict]:
+    audio_data: np.ndarray | None = None,
+    sample_rate: int | None = None,
+) -> tuple[int, list[str], dict]:
     """Apply Rule 13: MDCT frame-alignment detection.
 
     Args:
@@ -196,7 +195,7 @@ def apply_rule_13_mdct_alignment(
     return points, [reason], details
 
 
-def _original_tier(ratio: float, offset: int, hypothesis: str) -> Tuple[int, str]:
+def _original_tier(ratio: float, offset: int, hypothesis: str) -> tuple[int, str]:
     """Rule 13's own reading (mono, fixed grid, AAC or Vorbis window) against its bars."""
     points = _points(ratio, RATIO_REVIEW, RATIO_HARD)
     if points == SCORE_HARD:
@@ -215,7 +214,7 @@ def _original_tier(ratio: float, offset: int, hypothesis: str) -> Tuple[int, str
 
 def _vorbis_switch_reading(
     audio: np.ndarray, mono: np.ndarray, sample_rate: int, details: dict
-) -> Tuple[int, str]:
+) -> tuple[int, str]:
     """The block-switching Vorbis grid on the left and right channels."""
     try:
         ratio, residue = vorbis_switch_ratio(np.asarray(audio), sample_rate)
@@ -235,7 +234,7 @@ def _vorbis_switch_reading(
 
 def _celt_reading(
     audio: np.ndarray, mono: np.ndarray, sample_rate: int, details: dict
-) -> Tuple[int, str]:
+) -> tuple[int, str]:
     """The CELT grid at 48 kHz with the decoder's de-emphasis undone."""
     try:
         ratio, offset = celt_ratio(mono, sample_rate)

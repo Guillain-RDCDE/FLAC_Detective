@@ -38,7 +38,7 @@ After either of these, the release pipeline runs automatically on tag push:
 ### `setup_precommit.py`
 
 Installs and configures the pre-commit hooks defined in `.pre-commit-config.yaml`
-(black, isort, flake8, mypy, bandit, plus assorted file-hygiene checks).
+(ruff lint and format, mypy, plus assorted file-hygiene checks).
 
 ```bash
 python scripts/setup_precommit.py
@@ -51,8 +51,8 @@ Standard development commands. Run `make help` for the full list. Common ones:
 ```bash
 make install-dev       # editable install with dev extras
 make install-hooks     # install pre-commit hooks
-make format            # run black + isort
-make lint              # run flake8
+make format            # ruff: safe fixes, then formatting
+make lint              # ruff check + ruff format --check
 make test              # run pytest
 make test-cov          # run pytest with coverage report
 make clean             # remove build artifacts and caches

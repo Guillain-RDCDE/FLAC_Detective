@@ -2,8 +2,9 @@
 
 import gc
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING
 
 from .audio_loader import load_audio_with_retry
 from .bitrate import calculate_apparent_bitrate, calculate_real_bitrate
@@ -50,9 +51,9 @@ logger = logging.getLogger(__name__)
 def _calculate_bitrate_metrics(
     filepath: Path,
     audio_meta: AudioMetadata,
-    source_path: Optional[Path] = None,
-    compressed_size_bytes: Optional[int] = None,
-    measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
+    source_path: Path | None = None,
+    compressed_size_bytes: int | None = None,
+    measure_compressed_size: Callable[[], int | None] | None = None,
     cutoff_freq: float = 0.0,
     cutoff_std: float = float("nan"),
     edge_step_db: float = float("nan"),
@@ -174,8 +175,8 @@ def _ensure_audio(context: ScoringContext) -> None:
     """
     if context.audio_data is not None:
         return
-    audio_data: Optional["np.ndarray"]
-    sample_rate: Optional[int]
+    audio_data: np.ndarray | None
+    sample_rate: int | None
     if context.cache is not None:
         logger.debug("OPTIMIZATION: Using shared AudioCache")
         audio_data, sample_rate = context.cache.get_full_audio()
@@ -357,7 +358,7 @@ def _credit_cassette_bonus(context: ScoringContext, rule11: ScoringRule) -> None
         context.active_rule = previous_rule
 
 
-def _fast_rules(context: ScoringContext, is_uncompressed: bool) -> List[ScoringRule]:
+def _fast_rules(context: ScoringContext, is_uncompressed: bool) -> list[ScoringRule]:
     """The cheap rules (<0.01 s together), in the order they are asked.
 
     Rule 1 is left out only for a detected cassette source. On uncompressed input
@@ -368,7 +369,7 @@ def _fast_rules(context: ScoringContext, is_uncompressed: bool) -> List[ScoringR
     bitrate as uninformative rather than as a failure, and the rule's other guards
     (variance, residual floor, Nyquist) are container-agnostic.
     """
-    rules: List[ScoringRule] = []
+    rules: list[ScoringRule] = []
     if context.cassette_score < CASSETTE_THRESHOLD:
         if is_uncompressed:
             logger.info(
@@ -407,7 +408,7 @@ def _run_rules_14_and_15(context: ScoringContext) -> None:
     Rule18SideStep().apply(context)
 
 
-def _silent_heuristics_path(context: ScoringContext, deep: bool) -> Tuple[int, List[str]]:
+def _silent_heuristics_path(context: ScoringContext, deep: bool) -> tuple[int, list[str]]:
     """Finish a file whose cheap rules found nothing (gate E, issue #7).
 
     This branch does not merely skip some rules, it ACQUITS: Rules 7 and 10 and
@@ -468,7 +469,7 @@ def _refine_rule_8(
     context: ScoringContext,
     rule8: ScoringRule,
     initial_score: int,
-    initial_reasons: List[str],
+    initial_reasons: list[str],
 ) -> None:
     """Re-run Rule 8 now that Rule 1's MP3 bitrate is known.
 
@@ -503,7 +504,7 @@ def _release_audio(context: ScoringContext) -> None:
         gc.collect()
 
 
-def _apply_scoring_rules(context: ScoringContext, deep: bool = False) -> Tuple[int, List[str]]:
+def _apply_scoring_rules(context: ScoringContext, deep: bool = False) -> tuple[int, list[str]]:
     """Apply the scoring rules, in the one order the engine was calibrated in.
 
     The order is load-bearing, not incidental: several gates read the CURRENT
@@ -645,22 +646,22 @@ def _apply_scoring_rules(context: ScoringContext, deep: bool = False) -> Tuple[i
 
 def new_calculate_score(
     cutoff_freq: float,
-    metadata: Dict,
-    duration_check: Dict,
+    metadata: dict,
+    duration_check: dict,
     filepath: Path,
     cutoff_std: float = float("nan"),
     energy_ratio: float = 0.0,
     cache=None,
-    source_path: Optional[Path] = None,
-    compressed_size_bytes: Optional[int] = None,
-    measure_compressed_size: Optional[Callable[[], Optional[int]]] = None,
+    source_path: Path | None = None,
+    compressed_size_bytes: int | None = None,
+    measure_compressed_size: Callable[[], int | None] | None = None,
     deep: bool = False,
     residual_floor_db: float = float("nan"),
     edge_step_db: float = float("nan"),
     floor_above_db: float = float("nan"),
-    breakdown_out: Optional[Dict[str, int]] = None,
-    witnesses_out: Optional[Set[str]] = None,
-) -> Tuple[int, str, str, str]:
+    breakdown_out: dict[str, int] | None = None,
+    witnesses_out: set[str] | None = None,
+) -> tuple[int, str, str, str]:
     """Calculate score using the new 8-rule system with file caching.
 
     Args:

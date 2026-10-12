@@ -1,7 +1,6 @@
 """Silence analysis rules (Rule 7)."""
 
 import logging
-from typing import List, Optional, Tuple
 
 import soundfile as sf
 
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def apply_rule_7_silence_analysis(
     file_path: str, cutoff_freq: float, sample_rate: int
-) -> Tuple[int, List[str], Optional[float]]:
+) -> tuple[int, list[str], float | None]:
     """Apply Rule 7: Silence Analysis and Vinyl Noise Detection (IMPROVED - 3 PHASES).
 
     Analyzes audio to distinguish between:
@@ -122,7 +121,7 @@ def apply_rule_7_silence_analysis(
             # ========== PHASE 3: CLICKS & POPS (OPTIONAL) ==========
             # detect_clicks_and_pops is imported at module level
 
-            num_clicks, clicks_per_min = detect_clicks_and_pops(audio_data, sr)
+            _num_clicks, clicks_per_min = detect_clicks_and_pops(audio_data, sr)
 
             if 5 <= clicks_per_min <= 50:
                 # Typical vinyl click rate -> Confirms vinyl

@@ -48,7 +48,6 @@ rate at which a real recording offers a witness that has nothing to corroborate.
 from __future__ import annotations
 
 import logging
-from typing import Tuple
 
 import numpy as np
 
@@ -73,7 +72,7 @@ HALF_WIDTH = 4
 MIN_FRAMES = 32
 
 
-def temporal_seam(x: np.ndarray, sample_rate: int) -> Tuple[float, float]:
+def temporal_seam(x: np.ndarray, sample_rate: int) -> tuple[float, float]:
     """Return ``(seam_score, seam_hz)``; ``(nan, nan)`` when it cannot be measured.
 
     Abstaining rather than guessing is deliberate: a file too short, too quiet or

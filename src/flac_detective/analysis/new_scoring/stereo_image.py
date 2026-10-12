@@ -91,7 +91,6 @@ and carried it into v1.11.0.
 from __future__ import annotations
 
 import logging
-from typing import Tuple
 
 import numpy as np
 
@@ -175,7 +174,7 @@ def _spectra(signal: np.ndarray, rate: int) -> np.ndarray:
     return np.asarray(frames) if frames else np.empty((0, 0))
 
 
-def side_dead_run(data: np.ndarray, sample_rate: int) -> Tuple[float, float]:
+def side_dead_run(data: np.ndarray, sample_rate: int) -> tuple[float, float]:
     """Return ``(longest_interior_run, side_mid_ratio)``.
 
     ``(nan, ratio)`` when the file is mono-gated, too short, or single-channel —

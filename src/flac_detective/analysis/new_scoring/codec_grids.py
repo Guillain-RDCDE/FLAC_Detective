@@ -50,7 +50,8 @@ loudest, which are its short-block frames; it triages on evenly spread positions
 
 from __future__ import annotations
 
-from typing import Callable, List, NamedTuple, Optional, Sequence, Tuple
+from collections.abc import Callable, Sequence
+from typing import NamedTuple
 
 import numpy as np
 from scipy.fft import dct
@@ -58,12 +59,12 @@ from scipy.signal import lfilter, resample_poly
 
 from .mdct import vorbis_window
 
-Reader = Callable[[int, int], Optional[np.ndarray]]
+Reader = Callable[[int, int], np.ndarray | None]
 
 # Hole definition, identical to Rule 13's: a coefficient this far under the median
 # of its neighbourhood.
 HOLE_DEPTH_DB = 40.0
-ANALYSIS_BAND_HZ: Tuple[float, float] = (2000.0, 16000.0)
+ANALYSIS_BAND_HZ: tuple[float, float] = (2000.0, 16000.0)
 
 # Triage / fine stage sizes. The triage ranks every residue on the loudest
 # N_TRIAGE of 3 * N_TRIAGE spread positions; the fine stage re-reads the best
@@ -101,7 +102,7 @@ VORBIS_CANDIDATES = 8
 VORBIS_TRIAGE_LOUDEST = False
 
 
-def mdct_magnitudes(blocks: np.ndarray, sample_rate: int, band: Tuple[float, float]) -> np.ndarray:
+def mdct_magnitudes(blocks: np.ndarray, sample_rate: int, band: tuple[float, float]) -> np.ndarray:
     """|MDCT| of each windowed row, restricted to ``band``.
 
     Same transform as ``mdct.mdct_basis`` (phase n + 1/2 + N/2), computed as the
@@ -137,7 +138,7 @@ def hole_fractions(
     window: np.ndarray,
     sample_rate: int,
     ref_size: int,
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Fraction of holes in the frame starting at each offset of ``segment``."""
     length = len(window)
     blocks = segment[offsets[:, None] + np.arange(length)[None, :]] * window[None, :]
@@ -173,7 +174,7 @@ class _Geometry(NamedTuple):
     def usable(self) -> int:
         return self.n_total - self.length - self.hop
 
-    def positions(self, count: int) -> List[int]:
+    def positions(self, count: int) -> list[int]:
         """``count`` evenly spread read positions, whole hops apart."""
         stride = max(self.hop, (self.usable // count) // self.hop * self.hop)
         return [
@@ -182,7 +183,7 @@ class _Geometry(NamedTuple):
 
     def accumulate(
         self, read: Reader, residues: Sequence[int], bases: Sequence[int], ref_size: int
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray | None:
         """Mean over read positions of each residue's best phase hole fraction."""
         phases = self.hop // self.step
         res = np.asarray(residues)
@@ -200,7 +201,7 @@ class _Geometry(NamedTuple):
             used += 1
         return total / used if used else None
 
-    def triage_bases(self, read: Reader, n_triage: int, loudest: bool) -> List[int]:
+    def triage_bases(self, read: Reader, n_triage: int, loudest: bool) -> list[int]:
         """Where the triage reads: the loudest of a wider spread, or the spread itself."""
         pool = self.positions(n_triage * 3 if loudest else n_triage)
         loudness = []
@@ -212,9 +213,9 @@ class _Geometry(NamedTuple):
         if loudest:
             return [pool[i] for i in sorted(np.argsort(loudness)[::-1][:n_triage])]
         floor = 0.01 * float(np.median([v for v in loudness if v > 0] or [0.0]))
-        return [b for b, v in zip(pool, loudness) if v > floor]
+        return [b for b, v in zip(pool, loudness, strict=False) if v > floor]
 
-    def baseline(self, candidates: Sequence[int]) -> List[int]:
+    def baseline(self, candidates: Sequence[int]) -> list[int]:
         """Unrelated residues, more than GUARD away from every candidate."""
         spread = np.linspace(0, self.step - 1, N_BASELINE * 3).astype(int)
         far = {
@@ -225,7 +226,7 @@ class _Geometry(NamedTuple):
         return sorted(far)[:N_BASELINE]
 
 
-def _fine_ratio(fine: Optional[np.ndarray], candidates: Sequence[int]) -> Tuple[float, int]:
+def _fine_ratio(fine: np.ndarray | None, candidates: Sequence[int]) -> tuple[float, int]:
     """Best candidate over the baseline median, or ``(nan, -1)``."""
     if fine is None:
         return float("nan"), -1
@@ -242,11 +243,11 @@ def grid_ratio(
     window: np.ndarray,
     sample_rate: int,
     step: int,
-    fine_readers: Optional[Sequence[Reader]] = None,
+    fine_readers: Sequence[Reader] | None = None,
     n_triage: int = N_TRIAGE,
     n_candidates: int = N_CANDIDATES,
     loudest: bool = True,
-) -> Tuple[float, int]:
+) -> tuple[float, int]:
     """Peak-to-baseline hole ratio over residues modulo ``step``.
 
     ``step`` equal to the hop is a fixed grid (one phase per residue). A smaller
@@ -279,7 +280,7 @@ def grid_ratio(
     return best
 
 
-def vorbis_switch_ratio(audio: np.ndarray, sample_rate: int) -> Tuple[float, int]:
+def vorbis_switch_ratio(audio: np.ndarray, sample_rate: int) -> tuple[float, int]:
     """Vorbis long-block grid allowed to move by 128, read on the left and right channels.
 
     The triage runs once, on the left channel: the encoder's block grid is shared
@@ -295,7 +296,7 @@ def vorbis_switch_ratio(audio: np.ndarray, sample_rate: int) -> Tuple[float, int
     def read_right(start: int, n: int) -> np.ndarray:
         return np.asarray(right[start : start + n], dtype=np.float32)
 
-    readers: List[Reader] = [read_left, read_right] if data.shape[1] > 1 else [read_left]
+    readers: list[Reader] = [read_left, read_right] if data.shape[1] > 1 else [read_left]
     return grid_ratio(
         read_left,
         len(left),
@@ -325,7 +326,7 @@ def celt_window(frame: int = CELT_FRAME, overlap: int = CELT_OVERLAP) -> np.ndar
 _RESAMPLE_PAD = 64
 
 
-def celt_ratio(mono: np.ndarray, sample_rate: int) -> Tuple[float, int]:
+def celt_ratio(mono: np.ndarray, sample_rate: int) -> tuple[float, int]:
     """CELT 960 grid on the 48 kHz, de-emphasis-undone signal.
 
     44.1 kHz input is resampled segment by segment, each segment starting on a
@@ -338,7 +339,7 @@ def celt_ratio(mono: np.ndarray, sample_rate: int) -> Tuple[float, int]:
     pre_emphasis = [1.0, -CELT_DEEMPHASIS]
     if sample_rate == CELT_RATE:
 
-        def read_native(start: int, n: int) -> Optional[np.ndarray]:
+        def read_native(start: int, n: int) -> np.ndarray | None:
             # One sample of history for the FIR, so the segment is filtered exactly
             # as the whole signal would be.
             lead = 1 if start > 0 else 0
@@ -358,7 +359,7 @@ def celt_ratio(mono: np.ndarray, sample_rate: int) -> Tuple[float, int]:
     if sample_rate != 44100:
         return float("nan"), -1
 
-    def read_resampled(start48: int, n: int) -> Optional[np.ndarray]:
+    def read_resampled(start48: int, n: int) -> np.ndarray | None:
         first = (start48 * 147 // 160) // 147 * 147
         lead = start48 - first * 160 // 147
         begin = max(0, first - _RESAMPLE_PAD * 147)

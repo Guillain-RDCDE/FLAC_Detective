@@ -33,8 +33,9 @@ takes part in it.
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ logger = logging.getLogger(__name__)
 #: consumer can match on them. ``done`` is terminal and is emitted exactly once
 #: per file whatever the outcome — including for a file that fails, where it is
 #: the only way a caller learns the engine has let go of it.
-STAGES: Tuple[str, ...] = (
+STAGES: tuple[str, ...] = (
     "prepare",  # copy to local temp, or decode a non-native container via ffmpeg
     "metadata",  # header read, then the duration consistency check
     "spectrum",  # the cutoff, the edge step and the floor above it
@@ -54,7 +55,7 @@ STAGES: Tuple[str, ...] = (
     "done",  # terminal, once per file, success or failure
 )
 
-_STAGE_INDEX: Dict[str, int] = {name: i + 1 for i, name in enumerate(STAGES)}
+_STAGE_INDEX: dict[str, int] = {name: i + 1 for i, name in enumerate(STAGES)}
 
 #: Named steps WITHIN a stage, for the stages long enough that one event is not
 #: enough. Measured on a 20-minute track before this existed: ``quality`` was
@@ -68,7 +69,7 @@ _STAGE_INDEX: Dict[str, int] = {name: i + 1 for i, name in enumerate(STAGES)}
 #: six events it saw before, in the same order with the same indices; one that
 #: wants finer news reads the substages too. That is what the discriminator in
 #: :meth:`ProgressEvent.as_dict` was put there for.
-SUBSTAGES: Dict[str, Tuple[str, ...]] = {
+SUBSTAGES: dict[str, tuple[str, ...]] = {
     "quality": ("clipping", "dc_offset", "silence", "bit_depth", "upsampling"),
 }
 
@@ -97,11 +98,11 @@ class ProgressEvent:
     stage: str
     index: int
     total: int
-    detail: Optional[str] = None
-    frames: Optional[int] = None
-    frames_total: Optional[int] = None
+    detail: str | None = None
+    frames: int | None = None
+    frames_total: int | None = None
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """The wire form, one JSON object per line on ``--progress-events``.
 
         ``event`` is the discriminator, and each kind adds keys rather than
@@ -117,7 +118,7 @@ class ProgressEvent:
         else:
             kind = "stage"
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "event": kind,
             "file": self.file,
             "stage": self.stage,
@@ -137,16 +138,16 @@ ProgressCallback = Callable[[ProgressEvent], None]
 # Process-wide sink, used when no callback is passed. Set in a pool worker by
 # install_queue_sink(); None everywhere else, which is why an ordinary run
 # neither builds an event nor calls anything.
-_sink: Optional[ProgressCallback] = None
+_sink: ProgressCallback | None = None
 
 
-def set_sink(sink: Optional[ProgressCallback]) -> None:
+def set_sink(sink: ProgressCallback | None) -> None:
     """Route events with no explicit callback to ``sink`` (``None`` disables)."""
     global _sink
     _sink = sink
 
 
-def get_sink() -> Optional[ProgressCallback]:
+def get_sink() -> ProgressCallback | None:
     """The process-wide sink, or ``None``."""
     return _sink
 
@@ -163,8 +164,8 @@ def install_queue_sink(queue: Any) -> None:
 
 def emit(
     stage: str,
-    filepath: Union[str, Any],
-    callback: Optional[ProgressCallback] = None,
+    filepath: str | Any,
+    callback: ProgressCallback | None = None,
 ) -> None:
     """Announce that ``stage`` has started for ``filepath``. Never raises.
 
@@ -192,8 +193,8 @@ def emit(
 def emit_substage(
     stage: str,
     detail: str,
-    filepath: Union[str, Any],
-    callback: Optional[ProgressCallback] = None,
+    filepath: str | Any,
+    callback: ProgressCallback | None = None,
 ) -> None:
     """Announce a step WITHIN ``stage``. Never raises. See :data:`SUBSTAGES`.
 
@@ -227,10 +228,10 @@ SCAN_REPORTS_PER_FILE = 20
 
 def emit_scan(
     stage: str,
-    filepath: Union[str, Any],
+    filepath: str | Any,
     frames: int,
     frames_total: int,
-    callback: Optional[ProgressCallback] = None,
+    callback: ProgressCallback | None = None,
 ) -> None:
     """Announce a POSITION inside ``stage``'s traversal. Never raises.
 
@@ -259,8 +260,8 @@ def emit_scan(
 
 def scan_reporter(
     stage: str,
-    filepath: Union[str, Any],
-    callback: Optional[ProgressCallback] = None,
+    filepath: str | Any,
+    callback: ProgressCallback | None = None,
 ) -> Callable[[int, int], None]:
     """A two-argument reporter for ``stage``, bound to ``filepath``.
 
@@ -276,8 +277,8 @@ def scan_reporter(
 
 def substage_reporter(
     stage: str,
-    filepath: Union[str, Any],
-    callback: Optional[ProgressCallback] = None,
+    filepath: str | Any,
+    callback: ProgressCallback | None = None,
 ) -> Callable[[str], None]:
     """A one-argument reporter for ``stage``, bound to ``filepath``.
 

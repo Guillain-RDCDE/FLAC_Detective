@@ -67,7 +67,7 @@ class TestRule7VinylLogic:
                         # No clicks confirmation
                         mock_clicks.return_value = (0, 0.0)
 
-                        score, reasons, ratio = apply_rule_7_silence_analysis(
+                        score, reasons, _ratio = apply_rule_7_silence_analysis(
                             "dummy.flac", cutoff_freq=20000, sample_rate=44100
                         )
 
@@ -98,7 +98,7 @@ class TestRule7VinylLogic:
                         # Clicks confirm vinyl (20 clicks/min)
                         mock_clicks.return_value = (10, 20.0)
 
-                        score, reasons, ratio = apply_rule_7_silence_analysis(
+                        score, reasons, _ratio = apply_rule_7_silence_analysis(
                             "dummy.flac", cutoff_freq=20000, sample_rate=44100
                         )
 
@@ -124,7 +124,7 @@ class TestRule7VinylLogic:
                         {"energy_db": -80, "autocorr": 0.0, "temporal_variance": 0.0},
                     )
 
-                    score, reasons, ratio = apply_rule_7_silence_analysis(
+                    score, reasons, _ratio = apply_rule_7_silence_analysis(
                         "dummy.flac", cutoff_freq=20000, sample_rate=44100
                     )
 
@@ -150,7 +150,7 @@ class TestRule7VinylLogic:
                         {"energy_db": -60, "autocorr": 0.5, "temporal_variance": 0.0},
                     )
 
-                    score, reasons, ratio = apply_rule_7_silence_analysis(
+                    score, reasons, _ratio = apply_rule_7_silence_analysis(
                         "dummy.flac", cutoff_freq=20000, sample_rate=44100
                     )
 
@@ -159,7 +159,7 @@ class TestRule7VinylLogic:
 
     def test_rule7_skipped_outside_range(self):
         """Rule 7 should be skipped if cutoff is outside 19-21.5 kHz."""
-        score, reasons, ratio = apply_rule_7_silence_analysis(
+        score, reasons, _ratio = apply_rule_7_silence_analysis(
             "dummy.flac", cutoff_freq=18000, sample_rate=44100
         )
         assert score == 0
