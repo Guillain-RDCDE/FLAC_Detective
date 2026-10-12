@@ -57,6 +57,7 @@ class TestTheInstrument:
         assert ratio < GRID_BAR
 
     @pytest.mark.skipif(not _MP3, reason="libsndfile built without MP3 support")
+    @pytest.mark.slow
     def test_an_mp3_round_trip_shows_its_grid(self, tmp_path):
         path = tmp_path / "x.mp3"
         sf.write(str(path), _music_like(), SR, format="MP3")
@@ -72,6 +73,7 @@ class TestTheInstrument:
 
 class TestTheWitness:
     @pytest.mark.skipif(not _MP3, reason="libsndfile built without MP3 support")
+    @pytest.mark.slow
     def test_zero_points_and_a_witness(self, tmp_path):
         path = tmp_path / "x.mp3"
         sf.write(str(path), _music_like(), SR, format="MP3")
@@ -139,5 +141,6 @@ class TestItRunsOnlyWhereItCanDecide:
     def test_skipped_when_already_corroborated(self):
         assert not self._ran(self._ctx(80, {"Rule1MP3Bitrate": 50}, witnesses={"stereo"}))
 
+    @pytest.mark.slow
     def test_runs_on_a_single_family_file_at_the_bar(self):
         assert self._ran(self._ctx(60, {"Rule1MP3Bitrate": 50, "Rule2Cutoff": 10}))

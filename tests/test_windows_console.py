@@ -69,6 +69,7 @@ def test_banner_goes_to_stderr_when_the_output_is_machine_readable(capsys):
     not Path("C:/Users/loutr/audit_corpus/authentic").exists(),
     reason="needs the local audit corpus",
 )
+@pytest.mark.slow
 def test_json_format_puts_parseable_json_on_stdout(tmp_path):
     """End to end, on a cp1252 console: `--format json` must be pipeable.
 

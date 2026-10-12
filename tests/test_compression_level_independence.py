@@ -29,6 +29,10 @@ import flac_detective.analysis.analyzer as analyzer_module  # noqa: E402
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 from flac_detective.analysis.audio_formats import flac_equivalent_size  # noqa: E402
 
+# Decodes and encodes real audio in every container or level: minutes, not
+# milliseconds. CI runs it once, on the Linux coverage leg (-m slow is not skipped there).
+pytestmark = pytest.mark.slow
+
 # libsndfile takes the level as a fraction of the encoder's 0-8 scale.
 LEVELS = (0, 3, 5, 8)
 

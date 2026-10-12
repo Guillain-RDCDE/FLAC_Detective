@@ -1,6 +1,6 @@
 """End-to-end proof that FLAC repair is lossless and safe.
 
-The mock-based tests in tests/unit/test_repair_functions.py cover the repair
+The mock-based tests in tests/test_repair_functions.py cover the repair
 *orchestration*. These tests use the real `flac` CLI to prove the property that
 matters for a hi-fi audience: repairing a FLAC returns the **exact same PCM
 samples** (bit for bit), keeps a backup, and preserves metadata. The whole module

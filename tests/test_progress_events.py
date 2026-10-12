@@ -203,6 +203,7 @@ def test_scan_events_are_added_beside_the_two_published_kinds(tmp_path):
     assert all(set(p) == {"event", "file", "stage", "index", "total", "detail"} for p in substages)
 
 
+@pytest.mark.slow
 def test_a_raising_callback_cannot_break_the_scan_either(tmp_path):
     """The scan reports thousands of blocks' worth of progress; still untrusted."""
     audio = _long_enough_audio(tmp_path)
@@ -243,6 +244,7 @@ def test_done_arrives_even_when_the_file_cannot_be_analysed(tmp_path):
     assert seen[-1].detail is None
 
 
+@pytest.mark.slow
 def test_a_callback_that_raises_changes_nothing(audio):
     """Progress observes the work. A bad callback must not reach the verdict."""
 
@@ -313,6 +315,7 @@ def test_the_default_call_shape_is_unchanged(tmp_path):
     assert [p for p, _ in pairs] == files
 
 
+@pytest.mark.slow
 def test_events_come_back_from_the_pool(tmp_path):
     """The one that matters: a callback does not cross a process, so events must.
 
@@ -354,6 +357,7 @@ def test_off_by_default_creates_nothing():
         assert initargs == ()
 
 
+@pytest.mark.slow
 def test_the_cli_writes_ndjson_and_keeps_stdout_parseable(tmp_path):
     """End to end, the way an application will actually run it.
 

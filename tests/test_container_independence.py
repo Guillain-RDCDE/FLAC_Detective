@@ -33,6 +33,10 @@ import soundfile as sf
 
 from flac_detective.analysis.analyzer import FLACAnalyzer  # noqa: E402
 
+# Decodes and encodes real audio in every container or level: minutes, not
+# milliseconds. CI runs it once, on the Linux coverage leg (-m slow is not skipped there).
+pytestmark = pytest.mark.slow
+
 # Containers libsndfile can write, so the test needs no external tool. ALAC needs
 # ffmpeg and is added when it is there — it belongs in this matrix, because it is
 # the container that showed the reporter the pattern was compression and not
