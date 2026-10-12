@@ -71,7 +71,11 @@ def update_version_file(new_version, release_name):
 
 
 def update_pyproject_toml(new_version):
-    """Update version in pyproject.toml."""
+    """Update [tool.commitizen].version in pyproject.toml.
+
+    [project] reads its version from __version__.py at build time (it is
+    declared dynamic), so the only `version = ` line left is Commitizen's.
+    """
     pyproject_file = Path("pyproject.toml")
     content = pyproject_file.read_text(encoding="utf-8")
 

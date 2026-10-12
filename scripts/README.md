@@ -9,8 +9,8 @@ you the `flac-detective` CLI directly.
 
 ### `prepare_release.py`
 
-Updates the version in `pyproject.toml`, `src/flac_detective/__version__.py`, and
-`docs/conf.py`; validates that `CHANGELOG.md` has an entry for the new version;
+Updates the version in `src/flac_detective/__version__.py` (the single source the
+package, the docs and the build read) and Commitizen's record in `pyproject.toml`; validates that `CHANGELOG.md` has an entry for the new version;
 prints the remaining manual steps (commit, tag, push).
 
 ```bash
