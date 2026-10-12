@@ -61,7 +61,9 @@ def _producers() -> list[tuple[Path, int, str]]:
                 continue
             for inner in ast.walk(node):
                 produced = False
-                if (isinstance(inner, ast.Return) and inner.value is not None) or isinstance(inner, ast.Assign):
+                if (isinstance(inner, ast.Return) and inner.value is not None) or isinstance(
+                    inner, ast.Assign
+                ):
                     produced = _mentions(inner.value)
                 if produced:
                     found.append((path, inner.lineno, node.name))

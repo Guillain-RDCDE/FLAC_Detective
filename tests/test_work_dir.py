@@ -145,7 +145,9 @@ def test_readonly_scan_dir_real_chmod_falls_back_to_cwd(tmp_path, monkeypatch):
 
 
 def test_cli_parses_work_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["flac-detective", str(tmp_path), "--work-dir", "work-dir-elsewhere"])
+    monkeypatch.setattr(
+        sys, "argv", ["flac-detective", str(tmp_path), "--work-dir", "work-dir-elsewhere"]
+    )
     args = m.parse_arguments()
     assert args.work_dir == Path("work-dir-elsewhere")
 

@@ -1,6 +1,5 @@
 """Verdict determination — score for the tier, corroboration for the conviction."""
 
-
 from .constants import (
     CONVICTION_MIN_FAMILIES,
     CONVICTION_MIN_SCORE,

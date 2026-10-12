@@ -158,9 +158,12 @@ def analyze_batch(
             else:
                 yield path, analyzer.analyze_file(path, on_progress=on_event)
         return
-    with worker_event_channel(on_event) as (initializer, initargs), ProcessPoolExecutor(
-        max_workers=workers, initializer=initializer, initargs=initargs
-    ) as executor:
+    with (
+        worker_event_channel(on_event) as (initializer, initargs),
+        ProcessPoolExecutor(
+            max_workers=workers, initializer=initializer, initargs=initargs
+        ) as executor,
+    ):
         futures = {executor.submit(analyzer.analyze_file, f): f for f in files}
         for future in as_completed(futures):
             if should_stop is not None and should_stop():

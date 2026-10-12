@@ -114,9 +114,9 @@ class TestTheStatistic:
         score, hz = temporal_seam(_stationary_above(15000.0), 44100)
         assert np.isfinite(score)
         assert score >= SEAM_BAR, f"imposed stationary band read only {score:.2f}"
-        assert (
-            abs(hz - 15000.0) < 2500.0
-        ), f"seam located at {hz:.0f} Hz for a band made stationary from 15000 Hz"
+        assert abs(hz - 15000.0) < 2500.0, (
+            f"seam located at {hz:.0f} Hz for a band made stationary from 15000 Hz"
+        )
 
     def test_too_short_abstains(self) -> None:
         """A file that cannot carry the statistic gets no opinion, not a guess."""

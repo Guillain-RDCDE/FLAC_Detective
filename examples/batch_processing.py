@@ -36,23 +36,33 @@ def analyze_directory(analyzer, directory):
 def print_statistics(results, directory_name):
     """Print statistics for analyzed files."""
     total = len(results)
-    verdicts = Counter(r['verdict'] for r in results)
+    verdicts = Counter(r["verdict"] for r in results)
 
     print(f"\n{'=' * 70}")
     print(f"Statistics for {directory_name}")
     print(f"{'=' * 70}")
     print(f"Total files analyzed: {total}")
-    print(f"  ✅ Authentic:     {verdicts['AUTHENTIC']:4d} ({verdicts['AUTHENTIC']/total*100:5.1f}%)")
-    print(f"  ⚡ Warning:       {verdicts['WARNING']:4d} ({verdicts['WARNING']/total*100:5.1f}%)")
-    print(f"  ⚠️  Suspicious:   {verdicts['SUSPICIOUS']:4d} ({verdicts['SUSPICIOUS']/total*100:5.1f}%)")
-    print(f"  ❌ Fake Certain:  {verdicts['FAKE_CERTAIN']:4d} ({verdicts['FAKE_CERTAIN']/total*100:5.1f}%)")
+    print(
+        f"  ✅ Authentic:     {verdicts['AUTHENTIC']:4d} ({verdicts['AUTHENTIC'] / total * 100:5.1f}%)"
+    )
+    print(
+        f"  ⚡ Warning:       {verdicts['WARNING']:4d} ({verdicts['WARNING'] / total * 100:5.1f}%)"
+    )
+    print(
+        f"  ⚠️  Suspicious:   {verdicts['SUSPICIOUS']:4d} ({verdicts['SUSPICIOUS'] / total * 100:5.1f}%)"
+    )
+    print(
+        f"  ❌ Fake Certain:  {verdicts['FAKE_CERTAIN']:4d} ({verdicts['FAKE_CERTAIN'] / total * 100:5.1f}%)"
+    )
 
     # Show suspicious and fake files
-    problematic = [r for r in results if r['verdict'] in ['SUSPICIOUS', 'FAKE_CERTAIN']]
+    problematic = [r for r in results if r["verdict"] in ["SUSPICIOUS", "FAKE_CERTAIN"]]
     if problematic:
         print(f"\n⚠️  Problematic files ({len(problematic)}):")
         for result in problematic[:10]:  # Show first 10
-            print(f"  - {Path(result['filepath']).name} [{result['verdict']}] Score: {result['score']}")
+            print(
+                f"  - {Path(result['filepath']).name} [{result['verdict']}] Score: {result['score']}"
+            )
         if len(problematic) > 10:
             print(f"  ... and {len(problematic) - 10} more")
 
@@ -87,7 +97,7 @@ def main():
 
         # Save results to JSON
         output_file = Path("batch_analysis_results.json")
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(all_results, f, indent=2, ensure_ascii=False)
 
         print(f"\n📄 Detailed results saved to: {output_file}")

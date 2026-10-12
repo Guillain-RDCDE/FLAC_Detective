@@ -61,11 +61,11 @@ def scan_directory(directory, verbose=False):
         print(f"❌ Directory not found: {directory}")
         return
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("TESTING SOURCE FILE INTEGRITY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Directory: {directory}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     # Find all FLAC files
     flac_files = sorted(directory.rglob("*.flac"))
@@ -102,26 +102,26 @@ def scan_directory(directory, verbose=False):
                 print()
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Total files:      {len(flac_files)}")
-    print(f"Valid files:      {len(valid_files)} ({len(valid_files)*100//len(flac_files)}%)")
+    print(f"Valid files:      {len(valid_files)} ({len(valid_files) * 100 // len(flac_files)}%)")
     print(
-        f"Corrupted files:  {len(corrupted_files)} ({len(corrupted_files)*100//len(flac_files)}%)"
+        f"Corrupted files:  {len(corrupted_files)} ({len(corrupted_files) * 100 // len(flac_files)}%)"
     )
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     if corrupted_files:
         print("CORRUPTED FILES DETAILS:")
-        print(f"{'-'*80}")
+        print(f"{'-' * 80}")
         for flac_file, error_msg, _ in corrupted_files:
             relative_path = flac_file.relative_to(directory)
             size_mb = flac_file.stat().st_size / (1024 * 1024)
             print(f"\n📁 {relative_path}")
             print(f"   Size: {size_mb:.1f} MB")
             print(f"   Error: {error_msg}")
-        print(f"\n{'-'*80}")
+        print(f"\n{'-' * 80}")
 
         # Check if these match the errors we saw during scan
         print("\n💡 ANALYSIS:")
@@ -135,7 +135,7 @@ def scan_directory(directory, verbose=False):
         print("   - Network/USB read errors")
         print("   - Not actual file corruption")
 
-    print(f"\n{'='*80}\n")
+    print(f"\n{'=' * 80}\n")
 
     return valid_files, corrupted_files
 

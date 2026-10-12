@@ -13,9 +13,7 @@ from scipy import signal
 logger = logging.getLogger(__name__)
 
 
-def filter_band(
-    audio_mono: np.ndarray, sample_rate: int, cutoff_freq: float
-) -> np.ndarray | None:
+def filter_band(audio_mono: np.ndarray, sample_rate: int, cutoff_freq: float) -> np.ndarray | None:
     """Apply bandpass filter above cutoff frequency.
 
     Args:

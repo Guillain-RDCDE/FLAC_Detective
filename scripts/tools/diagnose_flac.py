@@ -141,7 +141,7 @@ class FlacDiagnostic:
         print("=" * 80)
         print(f"Total files:       {report['total_files']}")
         print(
-            f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)"
+            f"Healthy files:     {report['healthy_files']} ({report['healthy_files'] / report['total_files'] * 100:.1f}%)"
         )
         print(f"Corrupted files:   {report['corrupted_files']} ({report['corruption_rate']:.1f}%)")
         print()
@@ -176,7 +176,7 @@ class FlacDiagnostic:
             f.write("=" * 80 + "\n\n")
             f.write(f"Total files:       {report['total_files']}\n")
             f.write(
-                f"Healthy files:     {report['healthy_files']} ({report['healthy_files']/report['total_files']*100:.1f}%)\n"
+                f"Healthy files:     {report['healthy_files']} ({report['healthy_files'] / report['total_files'] * 100:.1f}%)\n"
             )
             f.write(
                 f"Corrupted files:   {report['corrupted_files']} ({report['corruption_rate']:.1f}%)\n\n"

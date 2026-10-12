@@ -69,9 +69,9 @@ def test_a_full_band_signal_reports_no_edge_found():
 def test_a_brickwall_is_found_and_measured_at_its_own_frequency():
     reading = detect_cutoff_detailed(*_spectrum(_brickwall(19000.0)), RATE)
     assert reading.found, f"a hard wall at 19 kHz must be found, got {reading}"
-    assert (
-        abs(reading.cutoff_hz - 19000.0) < 600.0
-    ), f"edge reported at {reading.cutoff_hz:.0f} Hz for a wall at 19,000 Hz"
+    assert abs(reading.cutoff_hz - 19000.0) < 600.0, (
+        f"edge reported at {reading.cutoff_hz:.0f} Hz for a wall at 19,000 Hz"
+    )
     assert np.isfinite(reading.width_hz)
 
 
@@ -128,6 +128,6 @@ def test_the_sentinel_and_the_cutoff_disagree_on_purpose():
     """
     reading = detect_cutoff_detailed(*_spectrum(_noise()), RATE)
     if not reading.found:
-        assert np.isnan(
-            reading.width_hz
-        ), "when no edge was found there is nothing to measure the width of"
+        assert np.isnan(reading.width_hz), (
+            "when no edge was found there is nothing to measure the width of"
+        )

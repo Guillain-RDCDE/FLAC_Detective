@@ -80,7 +80,7 @@ def apply_rule_10_multi_segment_consistency(
         r2_score, _ = apply_rule_2_cutoff(cutoff, sample_rate)
 
         seg_score = r1_score + r2_score
-        segment_details.append(f"S{i+1}:{cutoff:.0f}Hz({seg_score}pts)")
+        segment_details.append(f"S{i + 1}:{cutoff:.0f}Hz({seg_score}pts)")
 
         if seg_score > 50:
             problematic_segments += 1

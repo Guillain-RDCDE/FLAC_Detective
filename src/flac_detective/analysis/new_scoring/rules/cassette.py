@@ -138,9 +138,7 @@ def apply_rule_11_cassette_detection(  # noqa: C901
                     reasons.append(
                         f"R11A: Tape hiss detected ({noise_energy_db:.1f} dB, random) (likely cassette)"
                     )
-                    logger.info(
-                        f"RULE 11A: Tape hiss detected ({noise_energy_db:.1f} dB, random)"
-                    )
+                    logger.info(f"RULE 11A: Tape hiss detected ({noise_energy_db:.1f} dB, random)")
 
         # TEST 11B: Progressive Roll-off
         # ================================

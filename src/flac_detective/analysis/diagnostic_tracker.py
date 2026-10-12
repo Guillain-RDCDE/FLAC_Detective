@@ -216,7 +216,7 @@ class DiagnosticTracker:
         lines.append("SUMMARY:")
         lines.append(f"  Total files analyzed: {stats['total_files']}")
         lines.append(
-            f"  Files with issues: {stats['files_with_issues']} ({stats['files_with_issues']/max(stats['total_files'], 1)*100:.1f}%)"
+            f"  Files with issues: {stats['files_with_issues']} ({stats['files_with_issues'] / max(stats['total_files'], 1) * 100:.1f}%)"
         )
         lines.append(f"  Clean files: {stats['clean_files']}")
         lines.append(f"  Critical failures: {stats['critical_failures']}")

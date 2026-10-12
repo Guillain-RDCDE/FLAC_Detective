@@ -127,15 +127,15 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     # Limit to first 10 files for reasonable test duration
     flac_files = flac_files[:10]
 
-    safe_print(f"\n{'='*80}")
+    safe_print(f"\n{'=' * 80}")
     safe_print("PARALLEL COPY STRESS TEST")
-    safe_print(f"{'='*80}")
+    safe_print(f"{'=' * 80}")
     safe_print(f"Directory: {directory}")
     safe_print(f"Files to test: {len(flac_files)}")
     safe_print(f"Copies per file: {copies_per_file}")
     safe_print(f"Parallel workers: {num_workers}")
     safe_print(f"Total operations: {len(flac_files) * copies_per_file}")
-    safe_print(f"{'='*80}\n")
+    safe_print(f"{'=' * 80}\n")
 
     # Create task list (each file copied multiple times)
     tasks = []
@@ -167,9 +167,9 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
                 failures.append(result)
 
     # Summary
-    safe_print(f"\n{'='*80}")
+    safe_print(f"\n{'=' * 80}")
     safe_print("RESULTS")
-    safe_print(f"{'='*80}")
+    safe_print(f"{'=' * 80}")
     safe_print(f"Total operations: {len(results)}")
     safe_print(f"Successful: {len([r for r in results if r['success']])}")
     safe_print(f"Failed: {len(failures)}")
@@ -182,7 +182,7 @@ def stress_test_parallel_copies(directory, num_workers=4, copies_per_file=3):
     else:
         safe_print("\n✅ CONCLUSION: All parallel copies succeeded - no corruption detected!")
 
-    safe_print(f"{'='*80}\n")
+    safe_print(f"{'=' * 80}\n")
 
 
 if __name__ == "__main__":

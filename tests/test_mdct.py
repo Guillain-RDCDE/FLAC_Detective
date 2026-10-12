@@ -257,9 +257,9 @@ class TestScoreClamping:
             cutoff_freq=22050.0,
         )
         context.add_score(-50, ["protection first"])
-        assert (
-            context.current_score == -50
-        ), "clamping here is what made every early protection rule inert before v1.8"
+        assert context.current_score == -50, (
+            "clamping here is what made every early protection rule inert before v1.8"
+        )
         context.add_score(45, ["penalty second"])
         assert context.current_score == -5
 

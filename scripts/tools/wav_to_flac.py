@@ -37,9 +37,7 @@ logger = logging.getLogger("WavToFlac")
 def check_flac_installed():
     """Check if flac is available in PATH."""
     try:
-        subprocess.run(
-            ["flac", "--version"], capture_output=True, check=True
-        )
+        subprocess.run(["flac", "--version"], capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -196,7 +194,7 @@ def main():  # noqa: C901
                 total_flac_size += res["flac_size"]
                 print(f"[{i}/{len(wav_files)}] {Colors.GREEN}✓ {res['file']}{Colors.RESET}")
                 print(
-                    f"        {res['flac_size']/1024/1024:.1f} MB ({res['ratio']:.1f}%) - {res['duration']:.1f}s"
+                    f"        {res['flac_size'] / 1024 / 1024:.1f} MB ({res['ratio']:.1f}%) - {res['duration']:.1f}s"
                 )
             elif res["status"] == "skipped":
                 print(

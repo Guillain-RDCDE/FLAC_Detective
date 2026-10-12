@@ -708,11 +708,11 @@ def new_calculate_score(
     logger.debug("OPTIMIZATION: File read cache ENABLED (via AudioCache)")
 
     try:
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info(f"Starting score calculation for: {filepath.name}")
         logger.info(f"Metadata received: {metadata}")
         logger.info(f"Cutoff frequency: {cutoff_freq:.1f} Hz")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
 
         # Parse and validate metadata
         audio_meta = parse_metadata(metadata)
@@ -804,7 +804,7 @@ def new_calculate_score(
             f"Evidence families: {sorted(families) or 'none'}"
         )
         logger.info(f"Reasons: {reasons_str}")
-        logger.info(f"{'='*60}\n")
+        logger.info(f"{'=' * 60}\n")
 
         return score, verdict, confidence, reasons_str
 

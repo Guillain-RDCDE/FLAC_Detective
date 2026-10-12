@@ -623,7 +623,7 @@ def apply_rule_8_nyquist_exception(
     else:
         # No bonus for cutoff < 95% of Nyquist
         logger.debug(
-            f"RULE 8: No bonus (cutoff {cutoff_freq:.0f} Hz = {cutoff_ratio*100:.1f}% of Nyquist, < 95%)"
+            f"RULE 8: No bonus (cutoff {cutoff_freq:.0f} Hz = {cutoff_ratio * 100:.1f}% of Nyquist, < 95%)"
         )
         return score, reasons
 
@@ -647,7 +647,7 @@ def apply_rule_8_nyquist_exception(
             # Grey zone - REDUCE bonus
             final_bonus = -15
             reasons.append(
-                f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
+                f"R8: Cutoff at {cutoff_ratio * 100:.1f}% of Nyquist "
                 f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → Reduced bonus "
                 f"(MP3 signature + grey zone) (-15pts)"
             )
@@ -658,23 +658,23 @@ def apply_rule_8_nyquist_exception(
         else:
             # Silence ratio <= 0.15 or None - APPLY bonus (authentic)
             reasons.append(
-                f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
+                f"R8: Cutoff at {cutoff_ratio * 100:.1f}% of Nyquist "
                 f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → {bonus_description} "
                 f"({base_bonus}pts, MP3 signature but authentic silence)"
             )
             logger.info(
                 f"RULE 8: {base_bonus} points (cutoff {cutoff_freq:.0f} Hz >= "
-                f"{cutoff_ratio*100:.0f}% of Nyquist, MP3 signature but authentic silence)"
+                f"{cutoff_ratio * 100:.0f}% of Nyquist, MP3 signature but authentic silence)"
             )
     else:
         # No MP3 signature - APPLY bonus unconditionally
         reasons.append(
-            f"R8: Cutoff at {cutoff_ratio*100:.1f}% of Nyquist "
+            f"R8: Cutoff at {cutoff_ratio * 100:.1f}% of Nyquist "
             f"({cutoff_freq:.0f}/{nyquist_freq:.0f} Hz) → {bonus_description} ({base_bonus}pts)"
         )
         logger.info(
             f"RULE 8: {base_bonus} points (cutoff {cutoff_freq:.0f} Hz >= "
-            f"{cutoff_ratio*100:.0f}% of Nyquist)"
+            f"{cutoff_ratio * 100:.0f}% of Nyquist)"
         )
 
     score = final_bonus

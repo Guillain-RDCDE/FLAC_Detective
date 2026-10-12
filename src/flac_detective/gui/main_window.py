@@ -743,8 +743,7 @@ class MainWindow(QMainWindow):
             html = f"<p style='margin:0 0 10px 0;'>{explanation}</p>"
             if action:
                 html += (
-                    f"<p style='margin:0; color:{style.ACCENT}; font-weight:600;'>"
-                    f"→ {action}</p>"
+                    f"<p style='margin:0; color:{style.ACCENT}; font-weight:600;'>→ {action}</p>"
                 )
             return html
 

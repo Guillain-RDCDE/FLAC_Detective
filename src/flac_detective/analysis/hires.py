@@ -146,7 +146,9 @@ def detect_upsampling(audio: np.ndarray, samplerate: int) -> dict:  # noqa: C901
         if r0 > samplerate * _MAX_SOURCE_RATE_RATIO:
             continue
         n0 = r0 / 2.0
-        if (abs(content_edge - n0) <= _NYQUIST_TOLERANCE * n0) and (best_rate is None or n0 > best_rate / 2.0):
+        if (abs(content_edge - n0) <= _NYQUIST_TOLERANCE * n0) and (
+            best_rate is None or n0 > best_rate / 2.0
+        ):
             best_rate = r0
     if best_rate is None:
         return result

@@ -197,9 +197,9 @@ class TestMandatoryTestCase2:
         # 64 points from the spectral family alone: above the SUSPICIOUS floor,
         # and permanently below conviction because one family cannot convict.
         assert verdict == "SUSPICIOUS", f"Expected SUSPICIOUS (one family), got {verdict}"
-        assert (
-            "256" in reason or "24-bit" in reason
-        ), "Reason should mention 256 kbps or 24-bit issue"
+        assert "256" in reason or "24-bit" in reason, (
+            "Reason should mention 256 kbps or 24-bit issue"
+        )
 
 
 class TestMandatoryTestCase3:
@@ -394,7 +394,12 @@ class TestRule13BeforeTheAcquittal:
     (ml/exchange/R13_DEFAULT_REGISTRATION_2026-10-01.md).
     """
 
-    METADATA: ClassVar[dict] = {"sample_rate": 44100, "bit_depth": 16, "channels": 2, "duration": 180.0}
+    METADATA: ClassVar[dict] = {
+        "sample_rate": 44100,
+        "bit_depth": 16,
+        "channels": 2,
+        "duration": 180.0,
+    }
     DURATION: ClassVar[dict] = {"mismatch": None, "diff_ms": 0}
     AUDIO = (np.zeros((44100 * 3, 2)), 44100)
 

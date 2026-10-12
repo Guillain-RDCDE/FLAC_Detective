@@ -60,10 +60,10 @@ def check_copy_corruption(source_path, num_tests=3):
         print(f"❌ Source file not found: {source}")
         return
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Testing copy integrity for: {source.name}")
     print(f"Source location: {source.parent}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     # Step 1: Test original file
     print("1️⃣  Testing ORIGINAL file...")
@@ -131,14 +131,14 @@ def check_copy_corruption(source_path, num_tests=3):
                 temp_path.unlink()
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     if all_passed:
         print("✅ RESULT: All copies are IDENTICAL and VALID")
         print("   → The copy process does NOT introduce corruption")
     else:
         print("❌ RESULT: Some copies are CORRUPTED or DIFFERENT")
         print("   → The copy process MAY introduce corruption")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
 
 if __name__ == "__main__":

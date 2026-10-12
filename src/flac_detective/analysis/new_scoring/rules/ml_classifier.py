@@ -372,8 +372,7 @@ def apply_rule_12_ml_classifier(filepath: Path, heuristic_score: int = 0) -> tup
         if p_spread >= 0.25:
             p_str += f", spread {p_spread:.2f}"
     reasons = [
-        f"R12: CNN classifier flags transcode "
-        f"({p_str}, confidence={confidence_str}, +{score}pts)"
+        f"R12: CNN classifier flags transcode ({p_str}, confidence={confidence_str}, +{score}pts)"
     ]
 
     # High-confidence WARNING floor: a confident detection on a file the heuristics

@@ -366,9 +366,9 @@ def test_the_reported_case_is_not_vacuous(reported_results):
     """
     for fmt, result in reported_results.items():
         reason = result.get("reason") or ""
-        assert (
-            "Fast analysis" not in reason
-        ), f"{fmt}: sorti par le chemin rapide, les regles couteuses n'ont pas tourne"
+        assert "Fast analysis" not in reason, (
+            f"{fmt}: sorti par le chemin rapide, les regles couteuses n'ont pas tourne"
+        )
 
         families = tuple(result.get("evidence_families") or ())
         assert families, (

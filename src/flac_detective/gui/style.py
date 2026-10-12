@@ -72,7 +72,7 @@ QPushButton#primary:hover {{ background: {ACCENT_HOVER}; }}
 QPushButton#primary:pressed {{ background: {ACCENT_PRESSED}; }}
 QPushButton#primary:disabled {{ background: #b9d6f6; color: #eaf3fd; }}
 
-QPushButton#danger {{ color: {VERDICT_THEME['FAKE_CERTAIN'][0]}; }}
+QPushButton#danger {{ color: {VERDICT_THEME["FAKE_CERTAIN"][0]}; }}
 QPushButton#danger:disabled {{ color: #d9b6b8; }}
 
 /* ---- inputs ---- */

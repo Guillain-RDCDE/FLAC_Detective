@@ -173,9 +173,9 @@ class TestGateD_WavDispatch:
         wav = tmp_path / "probe.wav"
         sf.write(str(wav), 0.1 * rng.standard_normal((44100 * 12, 2)), 44100, subtype="PCM_16")
         result = FLACAnalyzer(deep=False).analyze_file(str(wav))
-        assert (
-            "Rule1MP3Bitrate" in result["score_breakdown"]
-        ), "Rule 1 absent from the WAV path breakdown — gate D regressed"
+        assert "Rule1MP3Bitrate" in result["score_breakdown"], (
+            "Rule 1 absent from the WAV path breakdown — gate D regressed"
+        )
 
 
 class TestUntouchedGuards:

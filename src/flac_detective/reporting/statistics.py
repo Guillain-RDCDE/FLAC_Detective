@@ -1,6 +1,5 @@
 """Statistical calculations for reports."""
 
-
 from .common import verdict_of
 
 # (statistic name, result key) for every boolean per-file flag that is counted.
@@ -71,7 +70,7 @@ def _is_non_flac(r: dict) -> bool:
 
 
 def _pct(count: int, total: int) -> str:
-    return f"{count/total*100:.1f}%"
+    return f"{count / total * 100:.1f}%"
 
 
 def calculate_statistics(results: list[dict]) -> dict:

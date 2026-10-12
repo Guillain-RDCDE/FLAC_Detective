@@ -23,10 +23,10 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)s - %(message)s")
 
 def test_repair(file_path, replace_source=False):
     """Test repair on a corrupted file."""
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Testing repair on: {file_path}")
     print(f"Replace source: {replace_source}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     repaired = repair_flac_file(
         corrupted_path=file_path,
@@ -45,7 +45,7 @@ def test_repair(file_path, replace_source=False):
     else:
         print("\n❌ Repair failed")
 
-    print(f"\n{'='*80}\n")
+    print(f"\n{'=' * 80}\n")
     return repaired
 
 

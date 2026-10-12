@@ -115,7 +115,7 @@ class AudioCache:
             with self._lock:
                 if key not in self._segments:  # Double-check pattern
                     logger.debug(
-                        f"CACHE: Loading segment {start_frame}-{start_frame+frames} from {self.filepath.name}"
+                        f"CACHE: Loading segment {start_frame}-{start_frame + frames} from {self.filepath.name}"
                     )
                     data, sr = load_audio_with_retry(
                         str(self.filepath),
@@ -133,7 +133,7 @@ class AudioCache:
                         )
                     self._segments[key] = (data, sr)
         else:
-            logger.debug(f"CACHE: Using cached segment {start_frame}-{start_frame+frames}")
+            logger.debug(f"CACHE: Using cached segment {start_frame}-{start_frame + frames}")
 
         return self._segments[key]
 

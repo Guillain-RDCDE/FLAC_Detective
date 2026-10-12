@@ -253,7 +253,6 @@ class TestRepairFlacFile:
                 "flac_detective.analysis.new_scoring.audio_loader._restore_metadata"
             ) as mock_restore,
         ):
-
             mock_extract.return_value = {"tags": {"TITLE": ["Test"]}, "pictures": []}
             mock_restore.return_value = True
 
@@ -276,7 +275,6 @@ class TestRepairFlacFile:
                 return_value=1000000,
             ),
         ):
-
             result = repair_flac_file(str(corrupted_file))
 
             assert result is not None
@@ -296,7 +294,6 @@ class TestRepairFlacFile:
                 return_value=False,
             ),
         ):
-
             result = repair_flac_file(str(corrupted_file))
 
             assert result is None
@@ -316,7 +313,6 @@ class TestRepairFlacFile:
                 return_value=1000000,
             ),
         ):
-
             # First call (decode) succeeds, second call (encode) fails
             mock_result_decode = MagicMock()
             mock_result_decode.returncode = 0
@@ -343,7 +339,6 @@ class TestRepairFlacFile:
                 return_value=1000000,
             ),
         ):
-
             # Decode and encode succeed, verify fails
             mock_success = MagicMock()
             mock_success.returncode = 0
@@ -375,7 +370,6 @@ class TestRepairFlacFile:
             patch("flac_detective.analysis.new_scoring.audio_loader.shutil.copy2") as mock_copy,
             patch("flac_detective.analysis.new_scoring.audio_loader.get_tracker"),
         ):
-
             result = repair_flac_file(
                 str(corrupted_file), source_path=str(source_file), replace_source=True
             )
@@ -413,7 +407,6 @@ class TestRepairFlacFile:
             ),
             patch("flac_detective.analysis.new_scoring.audio_loader.os.remove") as mock_remove,
         ):
-
             repair_flac_file(str(corrupted_file))
 
             # Verify cleanup was attempted
@@ -437,7 +430,6 @@ class TestRepairFlacFile:
                 return_value=1000000,
             ),
         ):
-
             result = repair_flac_file(str(corrupted_file))
 
             # Should still succeed even without metadata

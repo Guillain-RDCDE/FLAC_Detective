@@ -323,7 +323,10 @@ def low_wall_hz(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: i
     lo_idx = np.searchsorted(frequencies, edges)
     hi_idx = np.searchsorted(frequencies, edges + LOW_WALL_CELL_HZ)
     cells = np.array(
-        [float(np.median(magnitude_db[a:b])) if b > a else np.nan for a, b in zip(lo_idx, hi_idx, strict=False)]
+        [
+            float(np.median(magnitude_db[a:b])) if b > a else np.nan
+            for a, b in zip(lo_idx, hi_idx, strict=False)
+        ]
     )
 
     def clears(f: float) -> float:
@@ -405,10 +408,10 @@ def _analyze_window(
     if start_frame + frames_to_read > actual_frames:
         frames_to_read = max(0, actual_frames - start_frame)
         if frames_to_read == 0:
-            logger.warning(f"Sample {i+1} beyond available data, skipping")
+            logger.warning(f"Sample {i + 1} beyond available data, skipping")
             return 0.0, 0.0, float("nan"), float("nan")
 
-    logger.debug(f"⚡ CACHE: Extracting segment {i+1}/{num_samples} from cached audio")
+    logger.debug(f"⚡ CACHE: Extracting segment {i + 1}/{num_samples} from cached audio")
     data = full_audio[start_frame : start_frame + frames_to_read]
     fft_freq, magnitude, magnitude_db = _magnitude_spectrum(data, samplerate)
 
@@ -899,14 +902,14 @@ def _segment_cutoff(
     start_frame = int(start_time * samplerate)
     frames_to_read = int(_R10_SEGMENT_SECONDS * samplerate)
     try:
-        logger.debug(f"⚡ CACHE: Reading segment at {center_ratio*100:.0f}% via cache")
+        logger.debug(f"⚡ CACHE: Reading segment at {center_ratio * 100:.0f}% via cache")
         data, _ = cache.get_segment(start_frame, frames_to_read)
         if len(data) == 0:
             return 0.0
         fft_freq, _magnitude, magnitude_db = _magnitude_spectrum(data, samplerate)
         return detect_cutoff(fft_freq, magnitude_db, samplerate)
     except Exception as e:
-        logger.warning(f"Error analyzing segment at {center_ratio*100:.0f}%: {e}")
+        logger.warning(f"Error analyzing segment at {center_ratio * 100:.0f}%: {e}")
         return 0.0
 
 

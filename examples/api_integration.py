@@ -63,7 +63,7 @@ def example_error_handling():
             print(f"\nAnalyzing: {file_path.name}")
             result = analyzer.analyze_file(file_path)
 
-            if result.get('error'):
+            if result.get("error"):
                 print(f"  ⚠️  Error: {result['error']}")
             else:
                 print(f"  ✅ Success: {result['verdict']} (Score: {result['score']})")
@@ -96,23 +96,23 @@ def example_filtering_and_sorting():
 
     # Filter: Only show problematic files
     print("\n--- Problematic Files (score >= 60) ---")
-    problematic = [r for r in results if r['score'] >= 60]
+    problematic = [r for r in results if r["score"] >= 60]
 
     # Sort by score (descending)
-    problematic.sort(key=lambda x: x['score'], reverse=True)
+    problematic.sort(key=lambda x: x["score"], reverse=True)
 
     for i, result in enumerate(problematic[:5], 1):
-        path = Path(result['filepath'])
+        path = Path(result["filepath"])
         print(f"{i}. {path.name}")
         print(f"   Score: {result['score']} | Verdict: {result['verdict']}")
         print(f"   Reason: {result['reason']}")
 
     # Filter: Only authentic files
-    authentic = [r for r in results if r['verdict'] == 'AUTHENTIC']
+    authentic = [r for r in results if r["verdict"] == "AUTHENTIC"]
     print(f"\n--- Authentic Files: {len(authentic)}/{len(results)} ---")
 
     # Calculate statistics
-    avg_score = sum(r['score'] for r in results) / len(results) if results else 0
+    avg_score = sum(r["score"] for r in results) / len(results) if results else 0
     print(f"Average score: {avg_score:.1f}")
 
 
@@ -141,23 +141,22 @@ def example_integration_webhook():
         result = analyzer.analyze_file(flac_file)
 
         # Alert on fake files
-        if result['verdict'] == 'FAKE_CERTAIN':
+        if result["verdict"] == "FAKE_CERTAIN":
             fake_count += 1
             send_notification(
                 title="Fake FLAC Detected!",
-                message=f"File: {Path(result['filepath']).name} | Score: {result['score']}"
+                message=f"File: {Path(result['filepath']).name} | Score: {result['score']}",
             )
 
     # Summary notification
     if fake_count > 0:
         send_notification(
             title="Scan Complete",
-            message=f"Found {fake_count} fake files out of {len(flac_files)} analyzed."
+            message=f"Found {fake_count} fake files out of {len(flac_files)} analyzed.",
         )
     else:
         send_notification(
-            title="Scan Complete",
-            message=f"All {len(flac_files)} files are authentic! 🎉"
+            title="Scan Complete", message=f"All {len(flac_files)} files are authentic! 🎉"
         )
 
 

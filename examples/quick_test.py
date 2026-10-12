@@ -14,6 +14,7 @@ from pathlib import Path
 
 try:
     from flac_detective import FLACAnalyzer
+
     FLAC_DETECTIVE_INSTALLED = True
 except ImportError:
     FLAC_DETECTIVE_INSTALLED = False
@@ -25,7 +26,7 @@ def create_test_wav(filepath, duration=1, sample_rate=44100, cutoff_freq=None):
 
     num_samples = duration * sample_rate
 
-    with wave.open(str(filepath), 'w') as wav_file:
+    with wave.open(str(filepath), "w") as wav_file:
         wav_file.setnchannels(2)  # Stereo
         wav_file.setsampwidth(2)  # 16-bit
         wav_file.setframerate(sample_rate)
@@ -48,7 +49,7 @@ def create_test_wav(filepath, duration=1, sample_rate=44100, cutoff_freq=None):
             sample = int(value * 10000)
 
             # Write stereo (same value for both channels)
-            data = struct.pack('<hh', sample, sample)
+            data = struct.pack("<hh", sample, sample)
             wav_file.writeframes(data)
 
 
@@ -57,9 +58,9 @@ def convert_wav_to_flac(wav_path, flac_path):
     try:
         # Try with flac command first
         result = subprocess.run(
-            ['flac', '--silent', '-f', str(wav_path), '-o', str(flac_path)],
+            ["flac", "--silent", "-f", str(wav_path), "-o", str(flac_path)],
             capture_output=True,
-            timeout=10
+            timeout=10,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -68,10 +69,10 @@ def convert_wav_to_flac(wav_path, flac_path):
     try:
         # Try with ffmpeg
         result = subprocess.run(
-            ['ffmpeg', '-y', '-i', str(wav_path), '-c:a', 'flac', str(flac_path)],
+            ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "flac", str(flac_path)],
             capture_output=True,
             timeout=10,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):

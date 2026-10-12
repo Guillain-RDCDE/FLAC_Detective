@@ -339,8 +339,7 @@ def alignment_stat(
     if median_base < MIN_BASELINE_HOLE_FRACTION:
         # Denominator too sparse to divide by — abstain rather than guess.
         logger.debug(
-            "MDCT: abstaining, baseline hole fraction %.6f below %.4f "
-            "(analysis band nearly empty)",
+            "MDCT: abstaining, baseline hole fraction %.6f below %.4f (analysis band nearly empty)",
             median_base,
             MIN_BASELINE_HOLE_FRACTION,
         )

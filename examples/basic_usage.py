@@ -32,11 +32,11 @@ def main():
         print(f"Reason: {result['reason']}")
 
         # Interpret the verdict
-        if result['verdict'] == 'AUTHENTIC':
+        if result["verdict"] == "AUTHENTIC":
             print("\n✅ This file is genuine lossless audio!")
-        elif result['verdict'] == 'WARNING':
+        elif result["verdict"] == "WARNING":
             print("\n⚡ This file needs manual verification.")
-        elif result['verdict'] == 'SUSPICIOUS':
+        elif result["verdict"] == "SUSPICIOUS":
             print("\n⚠️ This file is likely a transcode.")
         else:  # FAKE_CERTAIN
             print("\n❌ This file is definitely a transcode.")
