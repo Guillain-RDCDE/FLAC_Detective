@@ -91,7 +91,7 @@ pip install -e ".[dev]"
 This installs:
 - FLAC Detective in editable mode
 - Testing tools (pytest, pytest-cov)
-- Code quality tools (black, isort, flake8, mypy)
+- Code quality tools (ruff, mypy)
 - Pre-commit hooks
 
 ### Set Up Pre-Commit Hooks
@@ -106,12 +106,11 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-**What the hooks do**:
-- Format code with Black
-- Sort imports with isort
-- Check style with flake8
-- Type check with mypy
-- Security scan with bandit
+**What the hooks do** (same tools, same pinned versions as CI):
+- Lint with ruff (style, imports, bugbear, security, complexity), fixing what it safely can
+- Format with ruff
+- Type check `src/` with mypy
+- Basic file hygiene: YAML/TOML syntax, end of file, private keys, large files
 
 ## Development Workflow
 
@@ -128,7 +127,7 @@ pre-commit run --all-files
 Follow these guidelines:
 
 **Code Style**:
-- Follow PEP 8 (enforced by flake8)
+- Follow PEP 8 (enforced by ruff)
 - Use meaningful variable names
 - Keep functions small and focused
 - Add docstrings to public functions
@@ -161,33 +160,31 @@ def analyze_cutoff_frequency(fft_magnitude: np.ndarray,
 
 #### 2. Write Tests
 
-**Coverage requirement**: ≥80% code coverage
+Every change in behaviour comes with a test that pins it, and a detection change
+also proves it stays silent on authentic input. Tests live directly under `tests/`
+as `test_*.py`.
 
 ```python
-# tests/unit/test_spectrum.py
-import pytest
+# tests/test_my_rule.py (illustrative: the names below are placeholders)
 import numpy as np
-from flac_detective.analysis.spectrum import analyze_cutoff_frequency
+
+from flac_detective.analysis.my_module import my_cutoff_estimate
+
 
 def test_cutoff_detection_basic():
-    """Test basic cutoff frequency detection."""
-    # Create mock FFT with cutoff at 20 kHz
+    """A sharp drop at ~20 kHz is read as a 20 kHz cutoff."""
     frequencies = np.linspace(0, 22050, 1000)
     magnitude = np.ones(1000)
-    magnitude[900:] = 0.001  # Sharp drop at ~20 kHz
+    magnitude[900:] = 0.001
 
-    cutoff = analyze_cutoff_frequency(magnitude, frequencies)
+    assert 19000 < my_cutoff_estimate(magnitude, frequencies) < 21000
 
-    assert 19000 < cutoff < 21000  # Cutoff around 20 kHz
 
-def test_cutoff_detection_authentic():
-    """Test authentic file (full spectrum)."""
+def test_full_spectrum_has_no_cutoff():
+    """An authentic full-band spectrum reads close to Nyquist."""
     frequencies = np.linspace(0, 22050, 1000)
-    magnitude = np.ones(1000)  # No cutoff
 
-    cutoff = analyze_cutoff_frequency(magnitude, frequencies)
-
-    assert cutoff > 21000  # Near Nyquist
+    assert my_cutoff_estimate(np.ones(1000), frequencies) > 21000
 ```
 
 #### 3. Update Documentation
@@ -201,41 +198,37 @@ If you changed behavior or added features:
 ### Running Tests Locally
 
 ```bash
-# Run all tests
-pytest
+# Run the suite as CI runs it on every Python version (skips the slow tests)
+pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks -m "not slow"
+
+# Run everything, slow tests included (CI does this once, on Linux)
+pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks
 
 # Run with coverage report
 pytest --cov=flac_detective --cov-report=html
 
 # Run specific test file
-pytest tests/unit/test_spectrum.py
+pytest tests/test_rule1_gates.py
 
 # Run specific test
-pytest tests/unit/test_spectrum.py::test_cutoff_detection_basic -v
+pytest "tests/test_rule1_gates.py::TestGateA_VarianceVsGrid::test_one_cell_wander_is_admitted" -v
 
 # Run tests matching pattern
 pytest -k "cutoff" -v
 ```
 
+Mark a test `@pytest.mark.slow` when it decodes or encodes real audio end to end
+and takes seconds rather than milliseconds.
+
 ### Code Quality Checks
 
-Pre-commit hooks run automatically, but you can run manually:
+Pre-commit hooks run automatically, but you can run the same gates as CI by hand.
+Run them without arguments: what they check is configured in `pyproject.toml`.
 
 ```bash
-# Format code
-black src/ tests/
-isort src/ tests/
-
-# Check style
-flake8 src/ tests/
-
-# Type checking
-mypy src/
-
-# Security scan
-bandit -r src/
-
-# Run all checks
+ruff check --fix     # lint, sort imports, fix what is safe
+ruff format          # format
+mypy                 # type check src/
 pre-commit run --all-files
 ```
 
@@ -245,18 +238,10 @@ pre-commit run --all-files
 
 ```
 tests/
-├── unit/                  # Unit tests (fast, isolated)
-│   ├── test_analyzer.py
-│   ├── test_spectrum.py
-│   ├── test_rules.py
-│   └── ...
-├── integration/           # Integration tests (slower, full workflow)
-│   ├── test_end_to_end.py
-│   └── ...
-├── benchmarks/           # Performance tests
-│   └── test_performance.py
-└── fixtures/             # Test data
-    └── sample.flac
+├── test_*.py        # the suite CI runs: unit and end-to-end tests, flat
+├── conftest.py      # shared fixtures (synthetic audio, temp files)
+├── integration/     # manual scripts against real libraries, never run in CI
+└── benchmarks/      # pytest-benchmark measurements, run on demand
 ```
 
 ### Writing Good Tests
@@ -307,43 +292,34 @@ open htmlcov/index.html
 xdg-open htmlcov/index.html
 ```
 
-**Coverage goals**:
-- Overall: ≥80%
-- New code: ≥90%
-- Critical paths: 100%
+There is no fixed coverage threshold: CI reports coverage on every push, and the
+path you change should be covered by the test you add.
 
 ## Code Quality
 
-### Code Formatting
+### Linting and Formatting
 
-**Black** (code formatter):
+**ruff** is the only linter and formatter. It replaces black, isort, flake8,
+pylint and bandit, with one configuration in `pyproject.toml` and one pinned
+version shared by CI and pre-commit:
+
 ```bash
-black src/ tests/
+ruff check --fix
+ruff format
 ```
 
-**isort** (import sorter):
-```bash
-isort src/ tests/
+When a finding is a deliberate choice, silence that one line with the rule code
+and the reason, never a blanket ignore:
+
+```python
+result = subprocess.run(cmd)  # noqa: S603 - the command is built here, not from input
 ```
-
-### Linting
-
-**flake8** (style checker):
-```bash
-flake8 src/ tests/
-```
-
-Common issues:
-- Line too long (max 88 chars with Black)
-- Unused imports
-- Undefined names
-- Missing docstrings
 
 ### Type Checking
 
-**mypy** (type checker):
+**mypy** (type checker), configured in `pyproject.toml`:
 ```bash
-mypy src/
+mypy
 ```
 
 Add type hints to new code:
@@ -351,18 +327,6 @@ Add type hints to new code:
 def analyze_file(filepath: Path, duration: float = 30.0) -> dict:
     """Analyze FLAC file."""
     ...
-```
-
-### Security
-
-**bandit** (security linter):
-```bash
-bandit -r src/
-```
-
-If false positive, add comment:
-```python
-result = subprocess.run(cmd, shell=True)  # nosec - Safe command
 ```
 
 **Note on dependency scanning**: FLAC Detective uses `pip-audit` for dependency vulnerability scanning (via GitHub Actions). GitHub Dependabot is also enabled by default for automated security updates.
@@ -426,7 +390,7 @@ Brief description of changes
 ## Testing
 - [ ] All tests pass
 - [ ] Added new tests
-- [ ] Coverage ≥80%
+- [ ] New behaviour is pinned by a test
 
 ## Checklist
 - [ ] Code follows project style
