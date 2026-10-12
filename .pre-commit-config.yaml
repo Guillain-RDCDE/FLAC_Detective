@@ -70,10 +70,16 @@ repos:
     hooks:
       - id: mypy
         pass_filenames: false
+        # The libraries CI type-checks against. numpy is held below 2.5 because
+        # CI's mypy job runs on Python 3.11, where numpy stops at 2.4; the 2.5
+        # stubs reject `.max()`/`.min()` calls that CI accepts.
         additional_dependencies: [
           'types-setuptools',
-          'numpy',
-          'scipy'
+          'numpy<2.5',
+          'scipy',
+          'soundfile',
+          'mutagen',
+          'rich',
         ]
 
 
@@ -83,9 +89,10 @@ default_language_version:
 
 # Files to exclude from all hooks.
 #
-# The exchange evidence under ml/ is hashed as bytes and its SHA-256 has been
-# published (see .gitattributes): a hook that fixes a line ending or strips a
-# trailing space there changes a hash a third party already holds.
+# ml/ is the research corpus and the exchange evidence, hashed as bytes, some of
+# it with published SHA-256 (see .gitattributes): a hook that fixes a line ending
+# or strips a trailing space there changes a hash a third party already holds.
+# No hook touches any of it.
 exclude: |
   (?x)^(
     \.git/|
@@ -101,9 +108,7 @@ exclude: |
     \.coverage|
     htmlcov/|
     tests/test_data/|
-    ml/exchange/received/|
-    ml/exchange/MANIFEST.*\.sha256$|
-    ml/verdicts_set.*\.csv$
+    ml/
   )
 
 # Run hooks in parallel for speed
