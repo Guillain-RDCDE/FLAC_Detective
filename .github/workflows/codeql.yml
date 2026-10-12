@@ -18,6 +18,13 @@ on:
     - cron: '0 6 * * 1'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze Code
@@ -53,8 +60,6 @@ jobs:
         python -m pip install --upgrade pip
         # Install package dependencies to help CodeQL analyze usage patterns
         pip install -e .
-        # Install optional dependencies for more complete analysis
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     # Initializes the CodeQL tools for scanning
     - name: Initialize CodeQL
