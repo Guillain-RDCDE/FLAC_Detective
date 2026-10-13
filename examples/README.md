@@ -196,7 +196,7 @@ Always wrap analysis in try-except blocks for production code:
 ```python
 try:
     result = analyzer.analyze_file(file_path)
-    if result.get('error'):
+    if result.get("error"):
         print(f"Analysis error: {result['error']}")
     else:
         print(f"Success: {result['verdict']}")
@@ -208,13 +208,13 @@ except Exception as e:
 
 ```python
 # Get only fake files
-fake_files = [r for r in results if r['verdict'] == 'FAKE_CERTAIN']
+fake_files = [r for r in results if r["verdict"] == "FAKE_CERTAIN"]
 
 # Get files with score above threshold
-suspicious = [r for r in results if r['score'] >= 70]
+suspicious = [r for r in results if r["score"] >= 70]
 
 # Get authentic files
-authentic = [r for r in results if r['verdict'] == 'AUTHENTIC']
+authentic = [r for r in results if r["verdict"] == "AUTHENTIC"]
 ```
 
 ## Need More Help?

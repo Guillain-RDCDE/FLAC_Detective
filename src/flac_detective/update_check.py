@@ -86,7 +86,7 @@ def cache_path() -> Path:
 
 def fetch_latest_version(timeout: float = FETCH_TIMEOUT_SECONDS) -> str | None:
     """Ask PyPI for the latest release; None on any failure."""
-    request = urllib.request.Request(  # noqa: S310 - PYPI_URL is a fixed https constant
+    request = urllib.request.Request(
         PYPI_URL,
         headers={"User-Agent": f"flac-detective/{__version__}", "Accept": "application/json"},
     )

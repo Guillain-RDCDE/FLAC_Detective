@@ -306,6 +306,7 @@ From Python, pass a callback instead — same stages, no subprocess:
 ```python
 from flac_detective import FLACAnalyzer
 
+
 def show(event):
     if event.frames is not None:
         pct = 100 * event.frames / event.frames_total
@@ -313,6 +314,7 @@ def show(event):
         return
     where = event.stage if event.detail is None else f"{event.stage}/{event.detail}"
     print(f"{where} ({event.index}/{event.total}) {event.file}")
+
 
 result = FLACAnalyzer().analyze_file("track.flac", on_progress=show)
 ```

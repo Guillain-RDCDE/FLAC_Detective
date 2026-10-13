@@ -134,7 +134,7 @@ flac-detective --version
 from flac_detective import FLACAnalyzer
 
 result = FLACAnalyzer().analyze_file("song.flac")
-print(result["verdict"])   # AUTHENTIC, WARNING, SUSPICIOUS, or FAKE_CERTAIN
+print(result["verdict"])  # AUTHENTIC, WARNING, SUSPICIOUS, or FAKE_CERTAIN
 ```
 
 **[beets](https://beets.io) plugin** — triage transcodes without leaving your workflow:

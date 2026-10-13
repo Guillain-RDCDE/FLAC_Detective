@@ -31,7 +31,7 @@ from pathlib import Path
 analyzer = FLACAnalyzer()
 
 # Analyze a file
-result = analyzer.analyze_file(Path('song.flac'))
+result = analyzer.analyze_file(Path("song.flac"))
 
 # Check verdict
 print(f"Verdict: {result['verdict']}")
@@ -46,10 +46,10 @@ from flac_detective import FLACAnalyzer
 from pathlib import Path
 
 analyzer = FLACAnalyzer()
-music_dir = Path('/path/to/music')
+music_dir = Path("/path/to/music")
 
 # Find all FLAC files
-flac_files = list(music_dir.rglob('*.flac'))
+flac_files = list(music_dir.rglob("*.flac"))
 
 # Analyze each
 results = []
@@ -59,7 +59,7 @@ for flac_file in flac_files:
     print(f"{result['filename']}: {result['verdict']}")
 
 # Filter suspicious files
-suspicious = [r for r in results if r['score'] >= 55]
+suspicious = [r for r in results if r["score"] >= 55]
 print(f"Found {len(suspicious)} suspicious files")
 ```
 
@@ -121,8 +121,8 @@ but FLAC/WAV/AIFF is demuxed and decoded via ffmpeg (a lossy stream, such as an 
 ```python
 from pathlib import Path
 
-result = analyzer.analyze_file('song.flac')          # str works
-result = analyzer.analyze_file(Path('album.wav'))    # Path works; WAV/ALAC/APE too
+result = analyzer.analyze_file("song.flac")  # str works
+result = analyzer.analyze_file(Path("album.wav"))  # Path works; WAV/ALAC/APE too
 ```
 
 **Raises**:
@@ -139,7 +139,7 @@ from flac_detective.utils import find_flac_files
 from pathlib import Path
 
 # Find all FLAC files recursively
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 
 # Returns list of Path objects
 print(f"Found {len(flac_files)} files")
@@ -158,10 +158,10 @@ from pathlib import Path
 
 # Setup
 analyzer = FLACAnalyzer()
-tracker = ProgressTracker(progress_file=Path('progress.json'))
+tracker = ProgressTracker(progress_file=Path("progress.json"))
 
 # Find files
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 tracker.set_total(len(flac_files))
 
 # Analyze with resume capability
@@ -194,13 +194,15 @@ from flac_detective import FLACAnalyzer
 from flac_detective.utils import find_flac_files
 from pathlib import Path
 
+
 def analyze_file(filepath):
     """Worker function for parallel processing."""
     analyzer = FLACAnalyzer()
     return analyzer.analyze_file(filepath)
 
+
 # Find files
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 
 # Parallel analysis with 4 workers
 results = []
@@ -224,47 +226,40 @@ Each `analyze_file()` call returns a dictionary:
 ```python
 {
     # File information
-    'filepath': str,              # Full path: "/music/song.flac"
-    'filename': str,              # Name only: "song.flac"
-
+    "filepath": str,  # Full path: "/music/song.flac"
+    "filename": str,  # Name only: "song.flac"
     # Verdict
-    'score': int,                 # 0-150 (higher = more likely fake)
-    'verdict': str,               # "AUTHENTIC" | "WARNING" | "SUSPICIOUS" | "FAKE_CERTAIN"
-    'confidence': str,            # Confidence level description
-    'reason': str,                # Human-readable explanation
-
+    "score": int,  # 0-150 (higher = more likely fake)
+    "verdict": str,  # "AUTHENTIC" | "WARNING" | "SUSPICIOUS" | "FAKE_CERTAIN"
+    "confidence": str,  # Confidence level description
+    "reason": str,  # Human-readable explanation
     # Audio metadata
-    'cutoff_freq': int,           # Frequency cutoff in Hz (e.g., 22050)
-    'sample_rate': int,           # Sample rate (e.g., 44100, 48000)
-    'bit_depth': int,             # Bit depth (16, 24, etc.)
-    'channels': int,              # Number of channels (1, 2)
-    'duration': float,            # Duration in seconds
-    'encoder': str,               # Encoder info from metadata
-
+    "cutoff_freq": int,  # Frequency cutoff in Hz (e.g., 22050)
+    "sample_rate": int,  # Sample rate (e.g., 44100, 48000)
+    "bit_depth": int,  # Bit depth (16, 24, etc.)
+    "channels": int,  # Number of channels (1, 2)
+    "duration": float,  # Duration in seconds
+    "encoder": str,  # Encoder info from metadata
     # Quality indicators
-    'has_clipping': bool,         # Audio clipping detected
-    'clipping_severity': str,     # "light" | "moderate" | "severe"
-    'has_dc_offset': bool,        # DC offset detected
-    'dc_offset_severity': str,    # "light" | "moderate" | "severe"
-
+    "has_clipping": bool,  # Audio clipping detected
+    "clipping_severity": str,  # "light" | "moderate" | "severe"
+    "has_dc_offset": bool,  # DC offset detected
+    "dc_offset_severity": str,  # "light" | "moderate" | "severe"
     # Corruption detection
-    'is_corrupted': bool,         # File integrity issues
-    'corruption_error': str,      # Error message if corrupted
-
+    "is_corrupted": bool,  # File integrity issues
+    "corruption_error": str,  # Error message if corrupted
     # Transcode detection
-    'estimated_mp3_bitrate': int, # Estimated source bitrate (0 if unknown)
-
+    "estimated_mp3_bitrate": int,  # Estimated source bitrate (0 if unknown)
     # Fake hi-res axis (separate from the transcode verdict)
-    'hires_verdict': str,         # GENUINE_HIRES | UPSAMPLED | PADDED_DEPTH |
-                                  # UPSAMPLED_AND_PADDED | NOT_HIRES | UNKNOWN
-    'hires_reason': str,          # The reading behind it, "" when none
-    'is_fake_high_res': bool,     # Container declares more bits than the samples use
-    'estimated_bit_depth': int,   # Bits the samples actually use (16, 24 or 32)
-    'is_upsampled': bool,         # Spectral cliff at a lower rate's Nyquist, silence above
-    'suspected_original_rate': int,
-
+    "hires_verdict": str,  # GENUINE_HIRES | UPSAMPLED | PADDED_DEPTH |
+    # UPSAMPLED_AND_PADDED | NOT_HIRES | UNKNOWN
+    "hires_reason": str,  # The reading behind it, "" when none
+    "is_fake_high_res": bool,  # Container declares more bits than the samples use
+    "estimated_bit_depth": int,  # Bits the samples actually use (16, 24 or 32)
+    "is_upsampled": bool,  # Spectral cliff at a lower rate's Nyquist, silence above
+    "suspected_original_rate": int,
     # Rule details (verbose mode)
-    'rule_scores': dict,          # Individual rule contributions
+    "rule_scores": dict,  # Individual rule contributions
 }
 ```
 
@@ -273,32 +268,32 @@ Each `analyze_file()` call returns a dictionary:
 ```python
 # Possible verdict values
 VERDICTS = [
-    "AUTHENTIC",      # Score ≤ 30
-    "WARNING",        # Score 31-54
-    "SUSPICIOUS",     # Score 55-85
-    "FAKE_CERTAIN",   # Score ≥ 86
+    "AUTHENTIC",  # Score ≤ 30
+    "WARNING",  # Score 31-54
+    "SUSPICIOUS",  # Score 55-85
+    "FAKE_CERTAIN",  # Score ≥ 86
 ]
 ```
 
 ### Working with Results
 
 ```python
-result = analyzer.analyze_file(Path('song.flac'))
+result = analyzer.analyze_file(Path("song.flac"))
 
 # Check verdict
-if result['verdict'] == 'AUTHENTIC':
+if result["verdict"] == "AUTHENTIC":
     print("File is genuine!")
-elif result['verdict'] in ['SUSPICIOUS', 'FAKE_CERTAIN']:
+elif result["verdict"] in ["SUSPICIOUS", "FAKE_CERTAIN"]:
     print(f"Likely fake: {result['reason']}")
 
 # Check score threshold
-if result['score'] >= 86:
+if result["score"] >= 86:
     print("High confidence fake")
 
 # The hi-res axis, separate from the transcode verdict
-if result['hires_verdict'] in ('UPSAMPLED', 'PADDED_DEPTH', 'UPSAMPLED_AND_PADDED'):
+if result["hires_verdict"] in ("UPSAMPLED", "PADDED_DEPTH", "UPSAMPLED_AND_PADDED"):
     print(f"Fake hi-res: {result['hires_reason']}")
-if result['is_upsampled']:
+if result["is_upsampled"]:
     print(f"Upsampled from about {result['suspected_original_rate']} Hz")
 
 # Access metadata
@@ -316,28 +311,22 @@ from flac_detective.utils import find_flac_files
 from pathlib import Path
 
 analyzer = FLACAnalyzer()
-results = [analyzer.analyze_file(f) for f in find_flac_files(Path('/music'))]
+results = [analyzer.analyze_file(f) for f in find_flac_files(Path("/music"))]
 
 # Find all fake files (score >= 86)
-fakes = [r for r in results if r['score'] >= 86]
+fakes = [r for r in results if r["score"] >= 86]
 
 # Find upsampled files
-upsampled = [r for r in results if r['is_upsampled']]
+upsampled = [r for r in results if r["is_upsampled"]]
 
 # Find 24-bit suspicious files
-suspicious_24bit = [
-    r for r in results
-    if r['bit_depth'] == 24 and r['score'] >= 50
-]
+suspicious_24bit = [r for r in results if r["bit_depth"] == 24 and r["score"] >= 50]
 
 # Find corrupted files
-corrupted = [r for r in results if r['is_corrupted']]
+corrupted = [r for r in results if r["is_corrupted"]]
 
 # Find authentic high-quality files
-authentic_hq = [
-    r for r in results
-    if r['verdict'] == 'AUTHENTIC' and r['sample_rate'] >= 48000
-]
+authentic_hq = [r for r in results if r["verdict"] == "AUTHENTIC" and r["sample_rate"] >= 48000]
 ```
 
 ### Statistics Calculation
@@ -371,13 +360,9 @@ results = [analyzer.analyze_file(f) for f in flac_files]
 
 # Generate report
 reporter = TextReporter()
-report_file = Path('analysis_report.txt')
+report_file = Path("analysis_report.txt")
 
-reporter.generate_report(
-    results=results,
-    output_file=report_file,
-    scan_paths=[Path('/music')]
-)
+reporter.generate_report(results=results, output_file=report_file, scan_paths=[Path("/music")])
 
 print(f"Report saved to {report_file}")
 ```
@@ -399,8 +384,8 @@ from flac_detective.repair import FLACDurationFixer
 from pathlib import Path
 
 fixer = FLACDurationFixer()
-fixed = fixer.fix_duration(Path('corrupted.flac'), output_path=Path('repaired.flac'))
-print('Repair attempted, output at:', fixed)
+fixed = fixer.fix_duration(Path("corrupted.flac"), output_path=Path("repaired.flac"))
+print("Repair attempted, output at:", fixed)
 ```
 
 Or, to access the lower-level repair function used by the analyser:
@@ -408,7 +393,7 @@ Or, to access the lower-level repair function used by the analyser:
 ```python
 from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 
-repaired_path = repair_flac_file(corrupted_path=Path('corrupted.flac'))
+repaired_path = repair_flac_file(corrupted_path=Path("corrupted.flac"))
 # repaired_path is None on failure
 ```
 
@@ -424,23 +409,23 @@ from pathlib import Path
 
 # Analyze
 analyzer = FLACAnalyzer()
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 results = [analyzer.analyze_file(f) for f in flac_files]
 
 # Create DataFrame
 df = pd.DataFrame(results)
 
 # Analysis
-print(df['verdict'].value_counts())
-print(df.groupby('verdict')['score'].mean())
+print(df["verdict"].value_counts())
+print(df.groupby("verdict")["score"].mean())
 
 # Filter and sort
-suspicious = df[df['score'] >= 55].sort_values('score', ascending=False)
-print(suspicious[['filename', 'score', 'verdict', 'reason']])
+suspicious = df[df["score"] >= 55].sort_values("score", ascending=False)
+print(suspicious[["filename", "score", "verdict", "reason"]])
 
 # Export
-df.to_csv('analysis.csv', index=False)
-suspicious.to_csv('suspicious.csv', index=False)
+df.to_csv("analysis.csv", index=False)
+suspicious.to_csv("suspicious.csv", index=False)
 ```
 
 ### With tqdm Progress Bar
@@ -452,7 +437,7 @@ from flac_detective.utils import find_flac_files
 from pathlib import Path
 
 analyzer = FLACAnalyzer()
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 
 results = []
 for flac_file in tqdm(flac_files, desc="Analyzing FLAC files"):
@@ -469,10 +454,10 @@ from flac_detective.utils import find_flac_files
 from pathlib import Path
 
 # Create database
-conn = sqlite3.connect('flac_analysis.db')
+conn = sqlite3.connect("flac_analysis.db")
 cursor = conn.cursor()
 
-cursor.execute('''
+cursor.execute("""
     CREATE TABLE IF NOT EXISTS analysis (
         filepath TEXT PRIMARY KEY,
         filename TEXT,
@@ -483,34 +468,37 @@ cursor.execute('''
         is_upsampled BOOLEAN,
         analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-''')
+""")
 
 # Analyze and store
 analyzer = FLACAnalyzer()
-flac_files = find_flac_files(Path('/music'))
+flac_files = find_flac_files(Path("/music"))
 
 for flac_file in flac_files:
     result = analyzer.analyze_file(flac_file)
 
-    cursor.execute('''
+    cursor.execute(
+        """
         INSERT OR REPLACE INTO analysis
         (filepath, filename, score, verdict, sample_rate, bit_depth, is_upsampled)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        result['filepath'],
-        result['filename'],
-        result['score'],
-        result['verdict'],
-        result['sample_rate'],
-        result['bit_depth'],
-        result['is_upsampled']
-    ))
+    """,
+        (
+            result["filepath"],
+            result["filename"],
+            result["score"],
+            result["verdict"],
+            result["sample_rate"],
+            result["bit_depth"],
+            result["is_upsampled"],
+        ),
+    )
 
 conn.commit()
 conn.close()
 
 # Query later
-conn = sqlite3.connect('flac_analysis.db')
+conn = sqlite3.connect("flac_analysis.db")
 cursor = conn.cursor()
 
 cursor.execute("SELECT * FROM analysis WHERE verdict = 'FAKE_CERTAIN'")
@@ -529,16 +517,17 @@ import tempfile
 app = Flask(__name__)
 analyzer = FLACAnalyzer()
 
-@app.route('/analyze', methods=['POST'])
+
+@app.route("/analyze", methods=["POST"])
 def analyze():
     """Analyze uploaded FLAC file."""
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
 
-    file = request.files['file']
+    file = request.files["file"]
 
     # Save temporarily
-    with tempfile.NamedTemporaryFile(suffix='.flac', delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".flac", delete=False) as tmp:
         file.save(tmp.name)
         tmp_path = Path(tmp.name)
 
@@ -550,7 +539,8 @@ def analyze():
         # Cleanup
         tmp_path.unlink()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)
 ```
 
@@ -565,7 +555,7 @@ from pathlib import Path
 analyzer = FLACAnalyzer()
 
 try:
-    result = analyzer.analyze_file(Path('song.flac'))
+    result = analyzer.analyze_file(Path("song.flac"))
     print(f"Score: {result['score']}")
 
 except FileNotFoundError:
@@ -590,29 +580,30 @@ def safe_analyze(filepath, analyzer):
         return analyzer.analyze_file(filepath)
     except Exception as e:
         return {
-            'filepath': str(filepath),
-            'filename': filepath.name,
-            'score': 0,
-            'verdict': 'ERROR',
-            'reason': f'Analysis failed: {str(e)}',
-            'error': str(e)
+            "filepath": str(filepath),
+            "filename": filepath.name,
+            "score": 0,
+            "verdict": "ERROR",
+            "reason": f"Analysis failed: {str(e)}",
+            "error": str(e),
         }
+
 
 # Use in batch processing
 analyzer = FLACAnalyzer()
 results = [safe_analyze(f, analyzer) for f in flac_files]
 
 # Check for errors
-errors = [r for r in results if r['verdict'] == 'ERROR']
+errors = [r for r in results if r["verdict"] == "ERROR"]
 print(f"Errors: {len(errors)}")
 ```
 
 ### Corrupted File Handling
 
 ```python
-result = analyzer.analyze_file(Path('song.flac'))
+result = analyzer.analyze_file(Path("song.flac"))
 
-if result['is_corrupted']:
+if result["is_corrupted"]:
     print(f"File is corrupted: {result['corruption_error']}")
 
     # FLACAnalyzer already attempted auto-repair internally before reporting the
@@ -620,7 +611,7 @@ if result['is_corrupted']:
     # second pass you can call the lower-level repair directly:
     from flac_detective.analysis.new_scoring.audio_loader import repair_flac_file
 
-    repaired = repair_flac_file(corrupted_path=Path(result['filepath']))
+    repaired = repair_flac_file(corrupted_path=Path(result["filepath"]))
     if repaired:
         new_result = analyzer.analyze_file(repaired)
         print(f"Repaired file score: {new_result['score']}")
@@ -641,15 +632,16 @@ from flac_detective.reporting.statistics import calculate_statistics
 from pathlib import Path
 import sys
 
+
 def main():
     # Configuration
-    music_dir = Path(sys.argv[1] if len(sys.argv) > 1 else '.')
-    output_dir = Path('flac_analysis')
+    music_dir = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
+    output_dir = Path("flac_analysis")
     output_dir.mkdir(exist_ok=True)
 
     # Initialize
     analyzer = FLACAnalyzer(sample_duration=30.0)
-    tracker = ProgressTracker(progress_file=output_dir / 'progress.json')
+    tracker = ProgressTracker(progress_file=output_dir / "progress.json")
 
     # Find files
     print(f"Scanning {music_dir}...")
@@ -667,8 +659,10 @@ def main():
 
                 # Progress
                 processed, total = tracker.get_progress()
-                print(f"[{processed}/{total}] {result['filename']}: "
-                      f"{result['score']}/150 ({result['verdict']})")
+                print(
+                    f"[{processed}/{total}] {result['filename']}: "
+                    f"{result['score']}/150 ({result['verdict']})"
+                )
 
                 # Save periodically
                 if processed % 10 == 0:
@@ -682,7 +676,7 @@ def main():
     results = tracker.get_results()
 
     # Generate report
-    report_file = output_dir / 'analysis_report.txt'
+    report_file = output_dir / "analysis_report.txt"
     reporter = TextReporter()
     reporter.generate_report(results, report_file, scan_paths=[music_dir])
 
@@ -690,21 +684,22 @@ def main():
     stats = calculate_statistics(results)
 
     # Summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Analysis Complete")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Total files: {stats['total_files']}")
     print(f"Authentic: {stats['authentic_count']} ({stats['authentic_percentage']:.1f}%)")
     print(f"Suspicious: {stats['suspicious_count']} ({stats['suspicious_percentage']:.1f}%)")
     print(f"Fake (certain): {stats['fake_count']} ({stats['fake_percentage']:.1f}%)")
     print(f"Average score: {stats['average_score']:.1f}")
     print(f"\nReport saved to: {report_file}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Cleanup
     tracker.cleanup()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
 ```
 

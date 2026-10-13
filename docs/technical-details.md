@@ -115,7 +115,7 @@ Performs FFT (Fast Fourier Transform) analysis.
 audio_data = load_audio(file, duration=30.0)
 fft_result = np.fft.rfft(audio_data)
 magnitude = np.abs(fft_result)
-frequencies = np.fft.rfftfreq(len(audio_data), 1/sample_rate)
+frequencies = np.fft.rfftfreq(len(audio_data), 1 / sample_rate)
 
 # Find cutoff frequency (where energy drops significantly)
 cutoff_freq = detect_cutoff(magnitude, frequencies)
@@ -1090,7 +1090,7 @@ def analyze_spectrum(audio_data, sample_rate):
     # Compute FFT
     fft_result = np.fft.rfft(audio_data)
     magnitude = np.abs(fft_result)
-    frequencies = np.fft.rfftfreq(len(audio_data), 1/sample_rate)
+    frequencies = np.fft.rfftfreq(len(audio_data), 1 / sample_rate)
 
     # Find cutoff frequency
     threshold = 0.01 * np.max(magnitude)  # 1% of peak

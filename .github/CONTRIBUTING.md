@@ -134,9 +134,9 @@ Follow these guidelines:
 
 **Example**:
 ```python
-def analyze_cutoff_frequency(fft_magnitude: np.ndarray,
-                             frequencies: np.ndarray,
-                             threshold: float = 0.01) -> float:
+def analyze_cutoff_frequency(
+    fft_magnitude: np.ndarray, frequencies: np.ndarray, threshold: float = 0.01
+) -> float:
     """
     Detect frequency cutoff from FFT magnitude spectrum.
 
