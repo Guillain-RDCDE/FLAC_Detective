@@ -28,6 +28,18 @@ runs from 6 to 40 subbands.
 The reading is taken on the mono mix, where parametric stereo, which rebuilds left
 and right from that mix, does not hide it.
 
+Above 48 kHz the file is brought down to 44.1 kHz and to 48 kHz, and the higher
+of the two readings is kept (v2.5.0). The subbands are fs/128 wide, so the
+geometry only matches an SBR decoder's QMF bank at the rate the decoder output:
+HE-AAC as encoded in practice stops at 48 kHz, and a hi-res file that holds SBR
+is a decode resampled upward, whose copy is a whole number of subbands only at
+the decoder's own rate, 44.1 or 48 kHz, which the file does not say. Read at
+192 kHz instead, each subband is 1.5 kHz wide, and on a quiet recording the
+"high band" holds nothing but the leakage of the low notes, phase-locked across
+subbands as the four-sine chord below is. A purchased 24/192 solo-piano album
+read 0.57-0.86 on all 26 of its tracks there, and 0.07-0.09 on the same audio at
+44.1 and 48 kHz (``ml/exchange/HIRES_RULES_REGISTRATION_2026-10-13.md``).
+
 It abstains when the high band holds no content at all: when not one of its
 (segment, subband) cells is within 50 dB of its segment's strongest subband, the
 band is the leakage of lower tones, phase-locked across subbands, and a four-sine
@@ -40,6 +52,8 @@ band stops well under 20 kHz.
 
 from __future__ import annotations
 
+from math import gcd
+
 import numpy as np
 
 QMF_BANDS = 64
@@ -51,10 +65,36 @@ SHIFT_RANGE = (6, 41)
 HIGH_BAND_HZ = (5500.0, 20000.0)
 MIN_ENERGY = 1e-6
 LIVE_FLOOR_DB = -50.0
+# Above this rate the QMF geometry is read at the decoder rates instead.
+READ_RATE_MAX = 48000
+DECODER_RATES = (44100, 48000)
+
+
+def _brought_down(mono: np.ndarray, sample_rate: int, target: int) -> np.ndarray:
+    from scipy.signal import resample_poly
+
+    g = gcd(int(sample_rate), target)
+    down = resample_poly(np.asarray(mono, dtype=np.float64), target // g, int(sample_rate) // g)
+    return np.asarray(down, dtype=np.float64)
 
 
 def replication_coherence(mono: np.ndarray, sample_rate: int) -> tuple[float, int]:
-    """Return ``(coherence, shift_in_subbands)``; ``(nan, -1)`` when it cannot be read."""
+    """Return ``(coherence, shift_in_subbands)``; ``(nan, -1)`` when it cannot be read.
+
+    Above ``READ_RATE_MAX``: the higher reading at the two ``DECODER_RATES``.
+    """
+    if sample_rate <= READ_RATE_MAX:
+        return _coherence_at(mono, sample_rate)
+    best = (float("nan"), -1)
+    for target in DECODER_RATES:
+        reading = _coherence_at(_brought_down(mono, sample_rate, target), target)
+        if np.isfinite(reading[0]) and not (np.isfinite(best[0]) and best[0] >= reading[0]):
+            best = reading
+    return best
+
+
+def _coherence_at(mono: np.ndarray, sample_rate: int) -> tuple[float, int]:
+    """The reading itself, at ``sample_rate`` as given."""
     x = np.asarray(mono, dtype=np.float32)
     window = np.hanning(STFT_SIZE).astype(np.float32)
     total = (len(x) - STFT_SIZE) // STFT_HOP

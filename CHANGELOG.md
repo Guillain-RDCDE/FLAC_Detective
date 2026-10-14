@@ -1,3 +1,44 @@
+## v2.5.0 (2026-10-14) — a quiet piano is not a codec
+
+A purchased 24/192 solo-piano album read 26 of 26 tracks as transcodes in 2.4.1:
+22 SUSPICIOUS, 4 FAKE_CERTAIN. Two readings were wrong, and fixing the first
+turned out to repair a blind spot as well.
+
+### Fixed
+
+* **Rule 17 (band replication) above 48 kHz.** It reads an SBR decoder's QMF
+  geometry, 64 subbands of fs/128 Hz, and it read them at the file's own rate:
+  at 192 kHz each subband is 1.5 kHz wide, and the nearly empty high band of a
+  quiet recording, the leakage of its low notes, read as a copy (0.81 where the
+  bar is 0.55; 0.09 on the same audio at 48 kHz). Above 48 kHz the reading is
+  now taken on the audio brought down to 44.1 and to 48 kHz, the decoder rates,
+  and the higher is kept. The piano album now reads 26 of 26 AUTHENTIC.
+* **The same geometry was blind to HE-AAC resampled upward.** An HE-AAC v2 decode
+  upsampled to 96 or 192 kHz was signalled on 0 of 40 files by 2.4.1, against 38
+  of 40 at its own rate. 2.5.0 signals 38 of 40 at both rates.
+* **The low wall needs two windows.** The engine keeps the lowest cutoff of the
+  windows it reads, so one dark passage, a 16 dB step at 2 kHz still falling
+  past it, was reported as "the audio stops at 2000 Hz behind a wall". A codec's
+  low-pass is in every window: when several windows are read, a low wall seen in
+  only one is no longer believed. It removes 19 of the 31 walls read on genuine
+  recordings (the piano track and 18 restored 78s) and 2 of 134 on full-length
+  low-rate transcodes; no transcode loses a signal.
+
+### Measured
+
+Registered before the passes, with results:
+`ml/exchange/HIRES_RULES_REGISTRATION_2026-10-13.md`. 2,739 files on each side:
+1,151 labelled genuine files, 0 newly signalled; 172 library hi-res files and 196
+upsampled-CD files, 0 moves; 640 low-rate excerpts, 0 moves. Nothing changes at
+or below 48 kHz except where a low wall was read in one window only.
+
+### Not addressed
+
+Rule 13 still reads a review-tier structure (25 points, no signal) on one
+192 kHz piano track. Upsampling an HE-AAC v1 file still hides it from the cutoff
+rules and the CNN, and the hi-res axis reads 3 of 40 upsampled HE-AAC decodes as
+upsampled (their band stops under ~20.7 kHz, the 2.2.0 limit).
+
 ## v2.4.1 (2026-10-07) — pip is asked for the exact release
 
 The first post-publication test of 2.4.0 had a 2.3.0 install defer its update

@@ -309,6 +309,13 @@ LOW_WALL_STEP_DB = 15.0
 LOW_WALL_DEPTH_DB = 30.0
 LOW_WALL_CELL_HZ = 250.0
 _LOW_WALL_BASE_HZ = 1000.0
+# When more than one window is read, the wall must be read in this many of them
+# (v2.5.0). A codec's low-pass does not move; a dark passage does. A solo piano
+# album at 24/192 read a 16 dB step at 2 kHz in one window of three, and the
+# spectrum was still 15 dB above its floor 500 Hz past that "wall": it was
+# declining, not stopping. A one-window file keeps its single reading.
+# See ml/exchange/HIRES_RULES_REGISTRATION_2026-10-13.md.
+LOW_WALL_MIN_WINDOWS = 2
 
 
 def low_wall_hz(frequencies: np.ndarray, magnitude_db: np.ndarray, samplerate: int) -> float:
@@ -397,11 +404,14 @@ def _analyze_window(
     actual_frames: int,
     i: int,
     num_samples: int,
-) -> tuple[float, float, float, float]:
-    """Cutoff, HF energy ratio, edge step and floor above the edge of one window.
+    allow_wall: bool = True,
+) -> tuple[float, float, float, float, bool]:
+    """Cutoff, HF energy ratio, edge step, floor above the edge, and low-wall flag.
 
-    Returns ``(0.0, 0.0, nan, nan)`` for a window that lies entirely beyond the
-    audio actually read (partial files).
+    The flag says the cutoff is a low-wall reading. ``allow_wall=False`` reads
+    the window without consulting the low-wall instrument (see
+    ``LOW_WALL_MIN_WINDOWS``). Returns ``(0.0, 0.0, nan, nan, False)`` for a
+    window that lies entirely beyond the audio actually read (partial files).
     """
     start_frame, frames_to_read = bounds
     # Ensure we don't read beyond available data (for partial files)
@@ -409,7 +419,7 @@ def _analyze_window(
         frames_to_read = max(0, actual_frames - start_frame)
         if frames_to_read == 0:
             logger.warning(f"Sample {i + 1} beyond available data, skipping")
-            return 0.0, 0.0, float("nan"), float("nan")
+            return 0.0, 0.0, float("nan"), float("nan"), False
 
     logger.debug(f"⚡ CACHE: Extracting segment {i + 1}/{num_samples} from cached audio")
     data = full_audio[start_frame : start_frame + frames_to_read]
@@ -420,7 +430,8 @@ def _analyze_window(
 
     # Nothing found against the 10-14 kHz reference: look for a codec
     # wall below it before believing a full spectrum (low-wall instrument).
-    if _no_edge(cutoff_freq, fft_freq, samplerate):
+    is_wall = False
+    if allow_wall and _no_edge(cutoff_freq, fft_freq, samplerate):
         wall = low_wall_hz(fft_freq, magnitude_db, samplerate)
         if not math.isnan(wall):
             logger.info(
@@ -428,6 +439,7 @@ def _analyze_window(
                 f"(detect_cutoff read {cutoff_freq:.0f} Hz)"
             )
             cutoff_freq = wall
+            is_wall = True
 
     # Calculate high frequency energy ratio (> 16 kHz)
     energy_ratio = calculate_high_frequency_energy(fft_freq, magnitude)
@@ -435,7 +447,7 @@ def _analyze_window(
     step_db = edge_step_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
     # What is left above that edge (Rule 1's depth gate).
     floor_db = floor_above_edge_db(fft_freq, magnitude_db, cutoff_freq, samplerate)
-    return cutoff_freq, energy_ratio, step_db, floor_db
+    return cutoff_freq, energy_ratio, step_db, floor_db, is_wall
 
 
 def analyze_spectrum(
@@ -503,6 +515,23 @@ def analyze_spectrum(
             )
             for i in range(num_samples)
         ]
+        # A codec's low-pass is in every window; a dark passage is in one. When
+        # several windows are read, a low wall seen in fewer than
+        # LOW_WALL_MIN_WINDOWS of them is not believed, and its window is read
+        # again without the instrument.
+        walls = [i for i, r in enumerate(results) if r[4]]
+        if num_samples > 1 and 0 < len(walls) < LOW_WALL_MIN_WINDOWS:
+            for i in walls:
+                logger.info(f"Low wall in window {i + 1} only of {num_samples}: not believed")
+                results[i] = _analyze_window(
+                    full_audio,
+                    samplerate,
+                    _window_bounds(i, num_samples, total_duration, sample_duration, samplerate),
+                    actual_frames,
+                    i,
+                    num_samples,
+                    allow_wall=False,
+                )
         cutoff_freqs = [r[0] for r in results]
         energy_ratios = [r[1] for r in results]
         step_dbs = [r[2] for r in results]

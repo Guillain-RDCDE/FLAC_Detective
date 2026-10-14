@@ -245,7 +245,7 @@ name = "cz_conventional_commits"
 # Commitizen's own record of the current version (its default provider). A bump
 # rewrites it and the one source file below; the release workflow refuses a tag
 # that does not match both.
-version = "2.4.1"
+version = "2.5.0"
 tag_format = "v$version"
 update_changelog_on_bump = false
 version_files = [

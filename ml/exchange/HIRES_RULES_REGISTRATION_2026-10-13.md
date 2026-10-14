@@ -137,3 +137,67 @@ D2, D3, D6 missed are reported with their reason. Results are appended below
 after the passes, everything above left as committed.
 
 ---
+
+## RESULTS — appended 2026-10-14, after both passes
+
+Before `d2fa5be`, after `f1483f8` + the change (the measured source diff,
+sha256 `eba49b90…fe9446`, is the one committed with this section, plus a
+typing-only `np.asarray` on Rule 17's resampled array). 2,739 files on each
+side, 0 errors in the final rows. Run notes: the two passes were first run side
+by side; five files of the after-pass hit `WinError 112` (the machine ran out of
+memory with its page file on a full system disk). Those five rows were removed
+and the five files re-run alone; the before-pass was then finished alone. No
+other row was re-run. Comparison: `D:/fd-hires/cmp_reg1013.py`.
+
+| corpus | files | signalled before → after | newly signalled / convicted | verdict or score moves | low wall before → after |
+|---|---|---|---|---|---|
+| labelled genuine | 1,151 | 22 → 22 | 0 / 0 | 1 (a Dust-to-Digital 78: AUTHENTIC 30 → 0) | 1 → 0 |
+| library non-CD | 172 | 7 → 7 | 0 / 0 | 0 | 0 → 0 |
+| the other 6 private hi-res | 6 | 0 → 0 | 0 / 0 | 0 | 0 → 0 |
+| ATFA at 96 kHz | 7 | 0 → 0 | 0 / 0 | 0 | 0 → 0 |
+| Dust-to-Digital with a wall | 30 | 0 → 0 | 0 / 0 | 8 (7 × AUTHENTIC 30 → 0; 1 × AUTHENTIC 0 → 18) | 30 → 12 |
+| upsampled-CD arms | 196 | 0 → 0 | 0 / 0 | 0 | 0 → 0 |
+| **the piano album** | 26 | **26 → 0** | 0 / 0 | 26 (all to AUTHENTIC 0) | 1 → 0 |
+| HE-AAC v2 128, native | 40 | 38 → 38 | 0 / 0 | 0 | — |
+| HE-AAC v2 128, up 96 | 40 | **0 → 38** | 38 / 37 | 40 | — |
+| HE-AAC v2 128, up 192 | 40 | **0 → 38** | 38 / 37 | 40 | — |
+| HE-AAC v1 64, native / up 96 / up 192 | 40 each | 8 → 8 / 0 → 1 / 0 → 1 | 0 / 1 / 1 | 0 / 1 / 1 | — |
+| HE-AAC MF 64, native / up 96 / up 192 | 40 each | 7 → 7 / 0 → 2 / 0 → 2 | 0 / 2 / 2 | 0 / 2 / 2 | — |
+| excerpt low-rate arms | 640 | 454 → 454 | 0 / 0 | 0 | 220 → 220 |
+| full-length `lc_aac_32k` | 45 | 43 → 43 | 0 / 0 | 1 (FAKE_CERTAIN 85 → 55) | 44 → 42 |
+| full-length `lc_aac_48k` | 45 | 44 → 44 | 0 / 0 | 0 | 45 → 45 |
+| full-length `mp3_64k` | 45 | 29 → 29 | 0 / 0 | 0 | 45 → 45 |
+| their 45 sources | 45 | 0 → 0 | 0 / 0 | 0 | 0 → 0 |
+
+**What the before-engine did with an upsampled HE-AAC file, found by this
+run:** nothing. Read at 96 or 192 kHz, Rule 17's geometry missed the copy as
+surely as it invented one on the piano: **0 of 40** HE-AAC v2 decodes resampled
+upward were signalled, against 38 of 40 at their own rate. After: 38 and 38.
+The same change that silences the false reading restores the true one.
+
+| # | criterion | bound | result |
+|---|---|---|---|
+| A1 | genuine 1,151 newly signalled / convicted | 0 / 0 | **0 / 0 — held** |
+| A2 | library 172 + private 6, verdict moves | 0 | **0 — held** |
+| A3 | D2D 30 + ATFA 96 kHz 7, newly signalled / convicted | 0 / 0 | **0 / 0 — held** (8 score moves inside AUTHENTIC, listed above) |
+| A4 | upsampled-CD arms, signalled after ≤ before | after ≤ before | **0 ≤ 0 — held** |
+| H1 | piano album AUTHENTIC after | 26 / 26 | **26 / 26 — held** |
+| H2 | piano album, Rule 17 at review or above, after | 0 | **0 — held** |
+| H3 | track 13 low wall after | none | **none — held** |
+| D1 | HE-AAC native arms, verdict moves | 0 | **0 — held** |
+| D2 | up 96 / 192, Rule 17 hard tier = native | 37 / 1 / 1 | **held**: v2 37 (up 96) and 36 + 1 whose reason line the probe cut (up 192) vs native 36 + 1 cut; v1 1 / 1; MF 1 / 1 |
+| D3 | up 96 / 192 signalled ≥ native − 2 | v2 ≥ 36, v1 ≥ 6, MF ≥ 5 | **v2 held (38); v1 (1) and MF (2) missed**: their other native signals come from the cutoff rules and the CNN (families spectral, stereo, temporal, cnn), which the resampled files evade on both engines (before: 0). Every signal Rule 17 carries at the native rate is kept (s29, s34). Reported, not caused by the change |
+| D4 | excerpt arms 640, verdict moves | 0 | **0 — held** |
+| D5 | full-length arms, lost signal or conviction | 0 | **0 — held** |
+| D6 | full-length low wall read after | ≥ 42 / 45 / 45 | **42 / 45 / 45 — held** |
+| T1 | suite, ruff, ruff format, mypy, Sphinx `-W` | green | see the commit that carries this section |
+| C1 | cost | reported | Rule 17 above 48 kHz resamples the mono mix twice (polyphase); a refused low-wall window is read once more. No change at or below 48 kHz |
+
+**Limits stated, not addressed here.** (1) Rule 13 still reads a review-tier
+MDCT structure (25 points, no signal) on one piano track at 192 kHz only.
+(2) The hi-res axis reads 3 of 40 upsampled HE-AAC decodes `UPSAMPLED` in each
+arm: their band stops under ~20.7 kHz, the limit already stated in 2.2.0.
+(3) Upsampling an HE-AAC v1 file hides it from the cutoff rules and the CNN, as
+it did before this change.
+
+---

@@ -552,6 +552,16 @@ Rule 1 read it, sent an 1890s gramophone record to SUSPICIOUS by the same
 arithmetic that caught the 64 kbps MP3s. Measured on 220 low-rate files and 203
 genuine ones before it shipped: `ml/exchange/LOW_WALL_REGISTRATION_2026-09-25.md`.
 
+**Two windows (v2.5.0).** The engine keeps the lowest cutoff of the windows it
+reads, so one dark passage decided a whole file: a solo-piano track read a 16 dB
+step at 2 kHz in one window of three, still falling 500 Hz past it. A codec's
+low-pass is in every window; when several windows are read, a wall seen in only
+one is not believed and that window is read again without the instrument. A file
+of 90 s or less (one window) keeps its reading. It removes 19 of the 31 walls read
+on genuine recordings (the piano track and 18 of the 30 Dust-to-Digital tracks)
+and 2 of 134 on full-length low-rate transcodes, none of which loses a signal:
+`ml/exchange/HIRES_RULES_REGISTRATION_2026-10-13.md`.
+
 ---
 
 ### Rule 9: Compression Artifacts — REMOVED in v1.8
@@ -864,6 +874,17 @@ and refused by their registered criteria: a floor that dropped quiet cells (read
 at 0.56-0.89, but lifted a labelled genuine recording to 0.470) and a "half the band
 populated" gate (silenced 11 of 40 HE-AAC v2 files, whose rebuilt band stops well
 under 20 kHz).
+
+**Above 48 kHz (v2.5.0).** The subbands are fs/128 wide, so the geometry is a
+decoder's only at the decoder's rate. Read at 192 kHz, each subband is 1.5 kHz,
+and the nearly empty high band of a quiet recording, the leakage of its low
+notes, read as a copy: a purchased 24/192 solo-piano album read 0.57-0.86 on all
+26 tracks (0.07-0.09 on the same audio at 44.1 and 48 kHz). The same geometry
+missed real copies: HE-AAC v2 decodes resampled to 96 or 192 kHz were signalled
+on 0 of 40. Above 48 kHz the reading is now taken on the audio brought down to
+44.1 and to 48 kHz, the decoder rates, and the higher is kept: the album reads
+26 of 26 AUTHENTIC, the resampled HE-AAC v2 38 of 40 signalled, as at its own
+rate. `ml/exchange/HIRES_RULES_REGISTRATION_2026-10-13.md`.
 `analysis/new_scoring/sbr.py`.
 
 ### Rule 18: the side-channel step (v2.1.0)
@@ -1222,7 +1243,9 @@ with ProcessPoolExecutor(max_workers=4) as executor:
    22 kHz); one whose source was itself band-limited under ~20.7 kHz is not read at
    all; and a true 32-bit source reads as 24-bit data (the decode keeps 24 bits).
    The hi-res axis has been measured against 28 attested CDs and unlabelled library
-   files only — no certified hi-res corpus yet
+   files only — no certified hi-res corpus yet. An HE-AAC v1 decode resampled upward
+   is hidden from the cutoff rules and the CNN; Rule 17 reads it as at its own rate
+   (v2.5.0), which for v1 is rarely
 ❌ **Guarantee 100% accuracy** (see [Accuracy](#accuracy))
 ❌ **Real-time processing** (designed for batch analysis)
 ❌ **Analyze lossless formats beyond FLAC/WAV/ALAC/APE** (e.g. WavPack, TAK — not yet decoded)
