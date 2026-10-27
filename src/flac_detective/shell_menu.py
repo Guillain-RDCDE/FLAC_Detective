@@ -60,6 +60,9 @@ def build_command(python: Path, gui: bool) -> str:
 
 def install(python: Path | None = None, gui: bool | None = None) -> str:
     """Write the menu entry for the current user; return the command it runs."""
+    # Also how mypy, checking on Linux, knows winreg is only reached on Windows.
+    if sys.platform != "win32":
+        raise OSError("the right-click entry is for the Windows Explorer only")
     import winreg
 
     command = build_command(Path(python or sys.executable), has_gui() if gui is None else gui)
@@ -75,6 +78,8 @@ def install(python: Path | None = None, gui: bool | None = None) -> str:
 
 def uninstall() -> bool:
     """Remove the menu entry; return whether there was one."""
+    if sys.platform != "win32":
+        raise OSError("the right-click entry is for the Windows Explorer only")
     import winreg
 
     found = False
