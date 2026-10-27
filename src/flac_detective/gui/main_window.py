@@ -500,6 +500,14 @@ class MainWindow(QMainWindow):
         if files:
             self._set_targets([Path(f) for f in files])
 
+    def scan_now(self, paths: list[Path]) -> None:
+        """Set the targets and start at once (paths given on the command line,
+        e.g. by the Explorer right-click entry)."""
+        paths = [p for p in paths if p.exists()]
+        if paths:
+            self._set_targets(paths)
+            self._start_analysis()
+
     def _set_targets(self, paths: list[Path]) -> None:
         self._targets = paths
         if len(paths) == 1 and paths[0].is_dir():

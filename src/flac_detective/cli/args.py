@@ -8,6 +8,7 @@ from pathlib import Path
 from ..__version__ import __version__
 from ..colors import Colors, colorize
 from ..config import analysis_config
+from ..shell_menu import clean_shell_path
 from ..utils import LOGO
 from .console import print_banner
 
@@ -238,6 +239,22 @@ def build_parser() -> argparse.ArgumentParser:
             "Docker image are told how to update instead of being touched."
         ),
     )
+    menu = parser.add_mutually_exclusive_group()
+    menu.add_argument(
+        "--install-context-menu",
+        action="store_true",
+        help=(
+            "Windows: add 'Scan with FLAC Detective' to the right-click menu of folders, "
+            "for this user (no administrator rights). It opens the GUI on the folder and "
+            "starts the scan, or a console scan when the GUI extra is not installed. "
+            "Nothing is scanned."
+        ),
+    )
+    menu.add_argument(
+        "--uninstall-context-menu",
+        action="store_true",
+        help="Windows: remove the right-click entry added by --install-context-menu.",
+    )
     parser.add_argument(
         "--no-update-check",
         action="store_true",
@@ -288,13 +305,16 @@ def parse_arguments() -> argparse.Namespace:
             parser.error(f"--workers must be 1 or more (got {args.workers})")
         analysis_config.MAX_WORKERS = args.workers
 
-    # --update scans nothing: no path is needed and none is asked for.
-    if args.update:
+    # --update and the right-click menu scan nothing: no path is needed and none is asked for.
+    if args.update or args.install_context_menu or args.uninstall_context_menu:
         return args
 
     if not args.paths:
         args.paths = get_user_input_path()
         return args
+
+    # A drive root from the right-click menu arrives as `D:"` (see shell_menu).
+    args.paths = [Path(clean_shell_path(str(p))) for p in args.paths]
 
     invalid_paths = [p for p in args.paths if not p.exists()]
     if invalid_paths:

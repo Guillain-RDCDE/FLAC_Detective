@@ -67,6 +67,10 @@ flac-detective "/path/to/your/music"
     ♫ Album C/                                              ✅ ✅ ✅ ✅
 ```
 
+**On Windows, no command at all:** run `flac-detective --install-context-menu` once,
+then right-click any folder → **Scan with FLAC Detective** (on Windows 11, under
+*Show more options*). With `pip install "flac-detective[gui]"` it opens in a window.
+
 ---
 
 ## 5. Read your results (a traffic light)

@@ -32,6 +32,7 @@ from .cli.update_flow import offer_update, print_install_report, run_update_comm
 from .cli.workdir import resolve_work_dir
 from .colors import Colors, colorize
 from .config import analysis_config
+from .shell_menu import run_menu_command
 from .update_check import UpdateCheck
 from .updater import consume_install_report
 from .utils import LOGO
@@ -104,6 +105,11 @@ def _run() -> None:
     # `flac-detective --update`: check PyPI now, install if newer, and stop.
     if args.update:
         sys.exit(run_update_command())
+
+    # `flac-detective --install-context-menu` / `--uninstall-context-menu`: the
+    # Explorer right-click entry, and stop.
+    if args.install_context_menu or args.uninstall_context_menu:
+        sys.exit(run_menu_command("install" if args.install_context_menu else "uninstall"))
 
     # A machine-readable format with no --output means stdout carries DATA, so
     # every decorative print in the CLI has to go somewhere else. Reported by

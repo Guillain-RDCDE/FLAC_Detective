@@ -196,6 +196,30 @@ flac-detective /music --no-update-check          # this run
 export FLAC_DETECTIVE_NO_UPDATE_CHECK=1          # every run (the Docker image sets it)
 ```
 
+### Right-click a folder (Windows)
+
+```bash
+flac-detective --install-context-menu      # add "Scan with FLAC Detective" to the Explorer menu
+flac-detective --uninstall-context-menu    # remove it
+```
+
+Once installed, right-click a folder (or the empty space inside an open folder) and
+choose **Scan with FLAC Detective**: the GUI opens on that folder and the scan starts
+at once. On Windows 11 the entry is under **Show more options** (or Shift + right
+click); the compact top-level menu only takes entries from signed packaged apps.
+
+* It is written for your account only (`HKEY_CURRENT_USER\Software\Classes`), with no
+  administrator rights, and nothing is scanned when you install it.
+* The entry runs the Python this command was run from, so it follows a pipx or venv
+  install and keeps working after `--update`. Run the command again from another
+  environment and that one replaces it.
+* Without the GUI extra (`pip install "flac-detective[gui]"`), the entry opens a console
+  window that runs the command-line scan and stays open on the summary; the report is
+  written as usual in the work directory.
+* The GUI takes folders on its own command line too: `flac-detective-gui "D:\Downloads\Album"`.
+
+On macOS and Linux there is no file-manager entry yet: drop the folder on the GUI window.
+
 ### Combining Options
 
 ```bash

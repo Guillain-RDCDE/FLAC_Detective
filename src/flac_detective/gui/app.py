@@ -120,6 +120,14 @@ def main() -> int:
     window.raise_()
     window.activateWindow()
     splash.finish(window)
+
+    # `flac-detective-gui FOLDER...` (the Explorer right-click entry): scan at
+    # once, after the window has painted.
+    from ..shell_menu import clean_shell_path
+
+    targets = [Path(clean_shell_path(a)) for a in sys.argv[1:] if not a.startswith("-")]
+    if targets:
+        QtCore.QTimer.singleShot(0, lambda: window.scan_now(targets))
     # int(...) — QApplication.exec() is typed Any in the PySide6 stubs and the
     # project's mypy config has warn_return_any.
     return int(app.exec())

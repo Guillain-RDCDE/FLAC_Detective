@@ -1,3 +1,33 @@
+## v2.6.0 (2026-10-27) — a right click away
+
+Checking a folder you just downloaded meant opening the GUI, then finding the
+folder again in a file dialog. On Windows it is now one right click.
+
+### Added
+
+* **`flac-detective --install-context-menu`** adds *Scan with FLAC Detective* to
+  the Explorer right-click menu of folders, and of the empty space inside an open
+  folder. It opens the GUI on that folder and starts the scan at once. Per user
+  (`HKEY_CURRENT_USER`), no administrator rights; `--uninstall-context-menu`
+  removes it. The entry runs the interpreter the command was run from, so a pipx
+  or venv install points at itself; running it again from another environment
+  replaces the entry. Without the GUI extra, the entry opens a console scan that
+  stays open on the summary. On Windows 11 the entry is under *Show more options*
+  (Shift + right click): the compact menu only takes signed packaged apps.
+* **`flac-detective-gui FOLDER…`** opens the GUI on the folders or files given and
+  starts the scan.
+
+### Fixed
+
+* A drive root passed by Explorer (`"D:\"`) reached the program as `D:"`, the
+  backslash escaping the closing quote; the trailing quote is now dropped, in the
+  CLI and the GUI, on Windows only.
+
+### Not addressed
+
+No macOS Finder or Linux file-manager entry yet: there, drop the folder on the
+GUI window.
+
 ## v2.5.0 (2026-10-14) — a quiet piano is not a codec
 
 A purchased 24/192 solo-piano album read 26 of 26 tracks as transcodes in 2.4.1:

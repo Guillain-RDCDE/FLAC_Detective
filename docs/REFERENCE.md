@@ -94,6 +94,15 @@ A desktop app (PySide6): choose a folder or drag it in, watch the progress bar, 
 triage a sortable, colour-coded verdict table — click any file to see its spectrum with
 the detected cutoff marked and the reasons for its verdict. Export to HTML/CSV/JSON.
 
+On Windows, put it in the right-click menu once, then scan any folder from the Explorer:
+
+```bash
+flac-detective --install-context-menu    # right click a folder → "Scan with FLAC Detective"
+flac-detective --uninstall-context-menu  # to remove it
+```
+
+On Windows 11 the entry is under *Show more options* (or Shift + right click).
+
 ### 🎚️ It also catches **fake hi-res**
 
 Beyond lossy-as-lossless, FLAC Detective flags files *sold* as high-resolution that
