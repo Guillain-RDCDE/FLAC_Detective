@@ -67,7 +67,7 @@ dev = [
     # ruff and mypy carry the same versions in .pre-commit-config.yaml: they
     # move together, in the same commit.
     "ruff==0.17.3",
-    "mypy==2.4.0",
+    "mypy==2.4.1",
     "pre-commit>=3.5.0",
     "commitizen>=3.0.0",
 ]
