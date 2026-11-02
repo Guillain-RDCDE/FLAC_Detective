@@ -8,8 +8,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: monthly
       time: "09:00"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 10
@@ -51,6 +50,8 @@ updates:
         patterns:
           - "sphinx*"
           - "myst-parser"
+      everything-else:
+        patterns: ["*"]
     # This is a library: its runtime requirements are LOWER BOUNDS
     # (numpy>=1.20.0, ...). `increase` would raise them on every release of
     # a dependency and shut out users on older but perfectly compatible
@@ -65,8 +66,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: monthly
       time: "09:00"
       timezone: "Europe/Paris"
     open-pull-requests-limit: 5
