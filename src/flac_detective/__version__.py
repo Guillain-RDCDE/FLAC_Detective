@@ -8,7 +8,7 @@ __version__ = "2.6.1"
 __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Release information
-__release_date__ = "2026-10-27"
+__release_date__ = "2026-11-16"
 __release_name__ = "A right click away"
 
 # Metadata
