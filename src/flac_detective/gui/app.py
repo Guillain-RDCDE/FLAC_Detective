@@ -79,6 +79,21 @@ def main() -> int:
         app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("FLAC Detective")
 
+    # `flac-detective-gui FOLDER...` (the Explorer right-click entry). Explorer
+    # starts one copy per selected folder; they meet here so that one window
+    # scans them all, and the copies that handed their folder over stop now,
+    # before any splash or window (see gather.py).
+    from ..shell_menu import clean_shell_path
+
+    targets = [Path(clean_shell_path(a)) for a in sys.argv[1:] if not a.startswith("-")]
+    gatherer = None
+    if targets:
+        from .gather import gather
+
+        gatherer = gather(targets)
+        if gatherer is None:
+            return 0
+
     icon_file = _RESOURCES / "app_icon.png"
     if icon_file.exists():
         app.setWindowIcon(QtGui.QIcon(str(icon_file)))
@@ -121,13 +136,23 @@ def main() -> int:
     window.activateWindow()
     splash.finish(window)
 
-    # `flac-detective-gui FOLDER...` (the Explorer right-click entry): scan at
-    # once, after the window has painted.
-    from ..shell_menu import clean_shell_path
+    # Scan once the other copies of the same right click have handed over
+    # their folders: a short quiet moment after the last arrival.
+    if gatherer is not None:
+        from .gather import SETTLE_MS
 
-    targets = [Path(clean_shell_path(a)) for a in sys.argv[1:] if not a.startswith("-")]
-    if targets:
-        QtCore.QTimer.singleShot(0, lambda: window.scan_now(targets))
+        found = gatherer
+        settle = QtCore.QTimer(window)
+        settle.setSingleShot(True)
+        settle.setInterval(SETTLE_MS)
+
+        def scan_gathered() -> None:
+            found.stop()
+            window.scan_now(found.paths)
+
+        settle.timeout.connect(scan_gathered)
+        found.on_arrival = settle.start
+        settle.start()
     # int(...) — QApplication.exec() is typed Any in the PySide6 stubs and the
     # project's mypy config has warn_return_any.
     return int(app.exec())

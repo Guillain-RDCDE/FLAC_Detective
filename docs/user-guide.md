@@ -205,7 +205,8 @@ flac-detective --uninstall-context-menu    # remove it
 
 Once installed, right-click a folder (or the empty space inside an open folder) and
 choose **Scan with FLAC Detective**: the GUI opens on that folder and the scan starts
-at once. On Windows 11 the entry is under **Show more options** (or Shift + right
+at once. Select several folders before the right click to scan them together in one
+window. On Windows 11 the entry is under **Show more options** (or Shift + right
 click); the compact top-level menu only takes entries from signed packaged apps.
 
 * It is written for your account only (`HKEY_CURRENT_USER\Software\Classes`), with no

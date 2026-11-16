@@ -1,3 +1,21 @@
+## v2.6.1 (2026-11-16) — four folders, one window
+
+### Fixed
+
+* **Several folders selected, then *Scan with FLAC Detective*: only one was
+  scanned.** Explorer runs a menu command once per selected folder, so four
+  folders started four copies of the GUI, each on one folder, opening on top of
+  one another. The copies started by the same click now meet: the first one opens
+  the window, the others hand it their folder and close before showing anything,
+  and the window scans all the folders together. A right click made later, once
+  the scan has started, still opens its own window. If the hand-over fails, a copy
+  opens its own window on its folder, as before: no folder is dropped.
+
+### Not addressed
+
+The console entry (installed without the GUI extra) still opens one console per
+selected folder.
+
 ## v2.6.0 (2026-10-27) — a right click away
 
 Checking a folder you just downloaded meant opening the GUI, then finding the
